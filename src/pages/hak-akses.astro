@@ -14,7 +14,7 @@ const roles = [
   { value: 'hrd', label: 'HRD' },
   { value: 'keuangan', label: 'Keuangan' },
   { value: 'admin', label: 'Admin (Gudang/Ops)' },
-  { value: 'office', label: 'Office' },
+  { value: 'periklanan', label: 'Periklanan (Marketing)' },
   { value: 'lapangan', label: 'Lapangan (Supir/Kenek)' }
 ];
 
@@ -23,6 +23,7 @@ const getRoleColor = (role) => {
     if(role === 'hrd') return 'bg-pink-100 text-pink-700';
     if(role === 'keuangan') return 'bg-blue-100 text-blue-700';
     if(role === 'admin') return 'bg-orange-100 text-orange-700';
+    if(role === 'periklanan') return 'bg-teal-100 text-teal-700';
     if(role === 'lapangan') return 'bg-green-100 text-green-700';
     return 'bg-gray-100 text-gray-700';
 };
@@ -47,7 +48,7 @@ const getRoleColor = (role) => {
           <tr class="bg-gray-50 border-b border-gray-200">
             <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Pengguna</th>
             <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Username / ID</th>
-            <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Kontak</th>
+            <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Kontak & Alamat</th>
             <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Role Sistem</th>
             <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Aksi</th>
           </tr>
@@ -72,22 +73,16 @@ const getRoleColor = (role) => {
               </td>
 
               <td class="px-6 py-4">
-                <div class="text-sm font-medium text-gray-800 bg-gray-100 px-2 py-1 rounded w-fit">
+                <div class="text-sm font-bold text-gray-800 bg-gray-100 px-3 py-1 rounded w-fit border border-gray-200">
                     <i class="bi bi-person-badge mr-1 text-gray-500"></i>{item.id_lapangan}
                 </div>
               </td>
 
               <td class="px-6 py-4">
-                <p class="text-sm text-gray-600 flex items-center gap-2">
+                <p class="text-sm text-gray-700 flex items-center gap-2 font-medium mb-1">
                   <i class="bi bi-telephone text-green-600"></i> {item.nomor_hp || '-'}
                 </p>
-              </td>
-
-              <td class="px-6 py-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">Alamat Domisili</label>
-                    <textarea id="alamatInput" placeholder="Jl. Raya Purwakarta No. 123" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700" rows="2"></textarea>
-                </div>
+                <p class="text-xs text-gray-500 line-clamp-1 max-w-[200px]" title={item.alamat}>{item.alamat || 'Alamat belum diatur'}</p>
               </td>
 
               <td class="px-6 py-4">
@@ -98,7 +93,7 @@ const getRoleColor = (role) => {
 
               <td class="px-6 py-4">
                 <button class="edit-btn px-3 py-1 text-blue-600 hover:bg-blue-50 border border-blue-200 rounded transition font-medium text-sm shadow-sm" 
-                  data-emp={item.id} data-nama={item.nama} data-username={item.id_lapangan} data-telepon={item.nomor_hp} data-role={item.role}>
+                  data-emp={item.id} data-nama={item.nama} data-username={item.id_lapangan} data-telepon={item.nomor_hp} data-alamat={item.alamat} data-role={item.role}>
                   <i class="bi bi-pencil mr-1"></i> Edit
                 </button>
               </td>
@@ -130,7 +125,7 @@ const getRoleColor = (role) => {
       </div>
 
       <div>
-        <h3 class="text-sm font-bold text-gray-900 mb-3 border-b pb-2">Identitas</h3>
+        <h3 class="text-sm font-bold text-gray-900 mb-3 border-b pb-2">Identitas Personal</h3>
         <div class="space-y-4">
           <div>
             <label class="block text-xs font-bold text-gray-700 mb-1">Nama Lengkap</label>
@@ -140,32 +135,36 @@ const getRoleColor = (role) => {
             <label class="block text-xs font-bold text-gray-700 mb-1">No. Handphone / WhatsApp</label>
             <input type="tel" id="teleponInput" placeholder="0812xxxx" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
           </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Alamat Domisili</label>
+            <textarea id="alamatInput" placeholder="Jl. Raya Purwakarta No. 123" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" rows="2" required></textarea>
+          </div>
         </div>
       </div>
 
       <div>
-        <h3 class="text-sm font-bold text-gray-900 mb-3 border-b pb-2">Akses & Sistem</h3>
+        <h3 class="text-sm font-bold text-gray-900 mb-3 border-b pb-2">Role & Kredensial Sistem</h3>
         <div class="space-y-4">
           <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Username / ID Lapangan</label>
-            <input type="text" id="usernameInput" placeholder="Contoh: budi123 atau JLC-001" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
-            <p class="text-[10px] text-gray-500 mt-1">Digunakan untuk login aplikasi.</p>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Role / Peran</label>
+            <select id="roleInput" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700 bg-green-50" required>
+              <option value="">-- Pilih Role Terlebih Dahulu --</option>
+              {roles.map((role) => <option value={role.value}>{role.label}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Username / ID Karyawan (Otomatis)</label>
+            <input type="text" id="usernameInput" placeholder="Pilih Role untuk generate ID..." class="w-full px-4 py-2 border border-gray-300 bg-gray-100 rounded-lg outline-none font-bold text-gray-600" readonly required />
+            <p class="text-[10px] text-gray-500 mt-1">Digunakan sebagai Username login aplikasi.</p>
           </div>
 
           <div id="passwordFieldContainer">
-            <label class="block text-xs font-bold text-gray-700 mb-1">Password</label>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Password Baru</label>
             <div class="relative">
               <input type="text" id="passwordInput" placeholder="Minimal 6 karakter" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
-              <button type="button" id="generatePassBtn" class="absolute right-3 top-2 text-gray-600 hover:text-green-700"><i class="bi bi-arrow-repeat font-bold"></i></button>
+              <button type="button" id="generatePassBtn" class="absolute right-3 top-2 text-gray-600 hover:text-green-700"><i class="bi bi-arrow-repeat font-bold text-lg"></i></button>
             </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Role / Peran</label>
-            <select id="roleInput" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required>
-              <option value="">-- Pilih Role --</option>
-              {roles.map((role) => <option value={role.value}>{role.label}</option>)}
-            </select>
           </div>
         </div>
       </div>
@@ -179,14 +178,68 @@ const getRoleColor = (role) => {
 </div>
 
 <script is:inline>
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', async function() {
+    
+    // Cek Akses: Pastikan yg buka halaman ini HRD atau Owner
+    let currentUserRole = 'admin';
+    if(window.supabase) {
+        const { data: { session } } = await window.supabase.auth.getSession();
+        if(session) {
+            const { data: prof } = await window.supabase.from('profiles').select('role').eq('id', session.user.id).single();
+            currentUserRole = prof?.role || 'admin';
+        }
+    }
+
     const formModal = document.getElementById('formModal');
     const openFormBtn = document.getElementById('openFormBtn');
     const closeFormBtn = document.getElementById('closeFormBtn');
     const cancelBtn = document.getElementById('cancelBtn');
     const employeeForm = document.getElementById('employeeForm');
     
-    // Foto Profil Preview
+    // Auto Generate ID Logic (JLC- / CMS-)
+    // Auto Generate ID Logic (LAP- / CMS-)
+    document.getElementById('roleInput').addEventListener('change', async function() {
+        const role = this.value;
+        const usernameInput = document.getElementById('usernameInput');
+        
+        // Jangan generate ulang jika sedang mode Edit
+        if(document.getElementById('editId').value !== '') return;
+        
+        if(!role) {
+            usernameInput.value = '';
+            return;
+        }
+
+        usernameInput.value = "Membuat ID...";
+        
+        // PERUBAHAN 1: Prefix untuk lapangan diubah jadi LAP-
+        const prefix = (role === 'lapangan') ? 'LAP-' : 'CMS-';
+
+        try {
+            const { data, error } = await window.supabase
+                .from('profiles')
+                .select('id_lapangan')
+                .like('id_lapangan', `${prefix}%`)
+                .order('id_lapangan', { ascending: false })
+                .limit(1);
+            
+            let nextNum = 1;
+            if(data && data.length > 0 && data[0].id_lapangan) {
+                const numPart = data[0].id_lapangan.split('-')[1];
+                if(numPart && !isNaN(parseInt(numPart))) {
+                    nextNum = parseInt(numPart) + 1;
+                }
+            }
+            
+            // PERUBAHAN 2: Angka 5 diganti jadi 3 agar formatnya jadi 3 digit (001)
+            usernameInput.value = prefix + String(nextNum).padStart(3, '0');
+        } catch(err) {
+            console.error("Gagal generate ID:", err);
+            usernameInput.value = prefix + 'ERR';
+        }
+    });
+
+    // Foto Preview
     const fotoInput = document.getElementById('fotoInput');
     const photoPreview = document.getElementById('photoPreview');
     const photoIcon = document.getElementById('photoIcon');
@@ -205,11 +258,14 @@ const getRoleColor = (role) => {
 
     // OPEN MODAL (BUAT BARU)
     openFormBtn.addEventListener('click', () => {
+      if(currentUserRole !== 'owner' && currentUserRole !== 'hrd') {
+          return alert('Akses Ditolak: Hanya Owner dan HRD yang berhak membuat akun baru!');
+      }
+
       document.getElementById('modalTitle').textContent = 'Buat Akun Karyawan';
       document.getElementById('editId').value = '';
       document.getElementById('passwordInput').required = true;
       document.getElementById('passwordFieldContainer').style.display = 'block';
-      document.getElementById('usernameInput').disabled = false; // Bisa ganti username pas daftar
       
       photoPreview.classList.add('hidden');
       photoIcon.classList.remove('hidden');
@@ -224,17 +280,20 @@ const getRoleColor = (role) => {
     // OPEN MODAL (EDIT)
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', function() {
+            if(currentUserRole !== 'owner' && currentUserRole !== 'hrd') {
+                return alert('Akses Ditolak: Hanya Owner dan HRD yang berhak mengedit data profil!');
+            }
+
             document.getElementById('modalTitle').textContent = 'Edit Karyawan';
             document.getElementById('editId').value = this.getAttribute('data-emp');
             document.getElementById('namaInput').value = this.getAttribute('data-nama');
             document.getElementById('usernameInput').value = this.getAttribute('data-username');
             document.getElementById('teleponInput').value = this.getAttribute('data-telepon');
+            document.getElementById('alamatInput').value = this.getAttribute('data-alamat');
             document.getElementById('roleInput').value = this.getAttribute('data-role');
             
-            // Password gak wajib diisi pas edit, username dikunci (gak bisa ganti id)
             document.getElementById('passwordInput').required = false;
             document.getElementById('passwordFieldContainer').style.display = 'none';
-            document.getElementById('usernameInput').disabled = true;
 
             formModal.classList.remove('hidden');
             formModal.classList.add('flex');
@@ -242,7 +301,6 @@ const getRoleColor = (role) => {
         });
     });
 
-    // CLOSE MODAL
     const closeModal = () => {
       formModal.classList.add('opacity-0'); formModal.querySelector('div').classList.add('scale-95');
       setTimeout(() => { formModal.classList.add('hidden'); formModal.classList.remove('flex'); }, 300);
@@ -250,7 +308,6 @@ const getRoleColor = (role) => {
     closeFormBtn.addEventListener('click', closeModal);
     cancelBtn.addEventListener('click', closeModal);
 
-    // GENERATE PASSWORD
     document.getElementById('generatePassBtn').addEventListener('click', () => {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
       let password = '';
@@ -258,7 +315,7 @@ const getRoleColor = (role) => {
       document.getElementById('passwordInput').value = password;
     });
 
-    // FORM SUBMIT LOGIC (SUPABASE)
+    // SUBMIT DATA
     employeeForm.addEventListener('submit', async function(e) {
       e.preventDefault();
       if(!window.supabase) return alert('Supabase tidak terhubung!');
@@ -269,70 +326,55 @@ const getRoleColor = (role) => {
 
       const editId = document.getElementById('editId').value;
       const nama = document.getElementById('namaInput').value;
-      const username = document.getElementById('usernameInput').value;
+      const username = document.getElementById('usernameInput').value; // EX: CMS-00001
       const password = document.getElementById('passwordInput').value;
       const telepon = document.getElementById('teleponInput').value;
       const alamat = document.getElementById('alamatInput').value;
       const role = document.getElementById('roleInput').value;
       const file = fotoInput.files[0];
 
-      const dummyUsername = nama.toLowerCase().replace(/\s/g, ''); 
-const dummyEmail = `${dummyUsername}@bangjelantah.local`.toLowerCase();
-
       try {
         let finalAvatarUrl = null;
 
-        // 1. UPLOAD FOTO KE STORAGE JIKA ADA
         if (file) {
             const fileExt = file.name.split('.').pop();
             const fileName = `${username}-${Date.now()}.${fileExt}`;
-            
             const { error: uploadErr } = await window.supabase.storage.from('avatars').upload(fileName, file);
             if(uploadErr) throw uploadErr;
-
             const { data: publicUrlData } = window.supabase.storage.from('avatars').getPublicUrl(fileName);
             finalAvatarUrl = publicUrlData.publicUrl;
         }
 
         if(editId) {
-            // == MODE EDIT ==
-            const updateData = {
-                nama: nama,
-                nomor_hp: telepon,
-                role: role
-            };
+            const updateData = { nama, nomor_hp: telepon, alamat, role };
             if(finalAvatarUrl) updateData.foto_profil = finalAvatarUrl;
 
-            const { error } = await window.supabase.from('profiles').update({
-                nama: nama,
-                nomor_hp: telepon,
-                alamat: alamat,
-                role: role
-            }).eq('id', authData.user.id);
+            const { error } = await window.supabase.from('profiles').update(updateData).eq('id', editId);
             if(error) throw error;
             alert('Profil Karyawan berhasil diperbarui!');
             
         } else {
-            // == MODE BUAT BARU ==
             const dummyEmail = `${username}@bangjelantah.local`.toLowerCase();
 
-            // Sign Up Auth (Supabase)
             const { data: authData, error: authError } = await window.supabase.auth.signUp({
                 email: dummyEmail,
-                password: password
+                password: password,
+                options: {
+                    data: {
+                        nama: nama,
+                        role: role,
+                        telepon: telepon,
+                        alamat: alamat
+                    }
+                }
             });
             if(authError) throw authError;
 
-            // Update Profiles karena trigger SQL udah bikinin row awalnya
-            const updateData = {
-                nama: nama,
-                nomor_hp: telepon,
-                role: role
-            };
-            if(finalAvatarUrl) updateData.foto_profil = finalAvatarUrl;
+            if(finalAvatarUrl) {
+                await window.supabase.from('profiles').update({ foto_profil: finalAvatarUrl }).eq('id', authData.user.id);
+            }
 
-            await window.supabase.from('profiles').update(updateData).eq('id', authData.user.id);
-            alert(`Karyawan berhasil didaftarkan!\nUsername: ${username}\nPassword: ${password}\n\n*Simpan baik-baik passwordnya.`);
+            alert(`Karyawan berhasil didaftarkan!\n\nUsername Login: ${username}\nPassword: ${password}\n\n*Silakan berikan kredensial ini kepada karyawan bersangkutan.`);
         }
 
         window.location.reload();

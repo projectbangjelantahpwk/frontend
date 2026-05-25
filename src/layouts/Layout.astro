@@ -163,12 +163,11 @@ const { title, requireAuth = true } = Astro.props;
             </div>
 
             <div id="auth-logged-in" class="hidden items-center gap-1 md:gap-2">
-                <button class="w-10 h-10 hidden sm:flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full" type="button" aria-label="Notifikasi">
+                <button id="notif-btn" class="relative w-10 h-10 hidden sm:flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full" type="button" aria-label="Notifikasi">
                     <span class="material-symbols-outlined">notifications</span>
+                    <span id="notif-badge" class="hidden absolute top-2 right-2.5 w-2.5 h-2.5 bg-error rounded-full outline outline-2 outline-surface-container-lowest"></span>
                 </button>
-                <button class="w-10 h-10 hidden sm:flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full" type="button" aria-label="Pengaturan">
-                    <span class="material-symbols-outlined">settings</span>
-                </button>
+
                 <div class="ml-2 w-9 h-9 rounded-full overflow-hidden border-2 border-primary-container cursor-pointer hover:opacity-90 transition-opacity">
                     <img
                         id="user-avatar"
@@ -258,8 +257,58 @@ const { title, requireAuth = true } = Astro.props;
                 document.addEventListener('DOMContentLoaded', callback, { once: true });
                 return;
             }
-
             callback();
+        }
+
+        // ==========================================
+        // FITUR NOTIFIKASI REAL-TIME
+        // ==========================================
+        function initRealtimeNotifications() {
+            // Minta Izin Notifikasi Browser
+            if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+                Notification.requestPermission();
+            }
+
+            const notifBadge = document.getElementById('notif-badge');
+            const notifBtn = document.getElementById('notif-btn');
+
+            // Hapus merah-merah kalau lonceng diklik
+            notifBtn?.addEventListener('click', () => {
+                notifBadge?.classList.add('hidden');
+            });
+
+            function sendPush(title, body) {
+                // Tampilkan titik merah di UI Lonceng
+                notifBadge?.classList.remove('hidden');
+
+                // Kirim notifikasi desktop (Chrome)
+                if ("Notification" in window && Notification.permission === "granted") {
+                    new Notification(title, { 
+                        body: body,
+                        icon: 'https://ui-avatars.com/api/?name=Bang+Jelantah&background=2e7d32&color=ffffff'
+                    });
+                }
+            }
+
+            if (supabase) {
+                supabase.channel('dashboard-notifications')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'transaksi' }, payload => {
+                    sendPush('💳 Validasi Pembayaran Baru!', 'Ada setoran lapangan baru yang menunggu divalidasi pembayarannya.');
+                })
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pengeluaran' }, payload => {
+                    sendPush('💸 Pengeluaran Karyawan', `Pengajuan kas jalan baru sebesar Rp ${payload.new.total_harian} menunggu persetujuan.`);
+                })
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'penjualan_olahan' }, payload => {
+                    sendPush('📦 Penjualan Berhasil!', `Terdapat input penjualan olahan baru ke ${payload.new.pembeli}.`);
+                })
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'gudang_mutasi' }, payload => {
+                    // Hanya notif saat ada barang 'Masuk'
+                    if (payload.new.jenis_mutasi === 'Masuk') {
+                        sendPush('🚛 Barang Gudang Masuk', `Stok ${payload.new.komoditas_id} baru saja bertambah sebanyak ${payload.new.jumlah} Kg.`);
+                    }
+                })
+                .subscribe();
+            }
         }
 
         function initSidebar() {
@@ -272,7 +321,6 @@ const { title, requireAuth = true } = Astro.props;
 
             function openSidebar() {
                 if (!sidebar || !overlay) return;
-
                 sidebar.classList.add('active');
                 overlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
@@ -280,14 +328,12 @@ const { title, requireAuth = true } = Astro.props;
 
             function closeSidebar() {
                 if (!sidebar || !overlay) return;
-
                 sidebar.classList.remove('active');
                 overlay.classList.remove('active');
                 document.body.style.overflow = '';
             }
 
-            // Biar fungsi close bisa dipakai juga dari auth state ketika user logout.
-            // @ts-ignore - helper kecil untuk nutup sidebar dari renderAuthUI
+            // @ts-ignore
             window.closeAppSidebar = closeSidebar;
 
             hamburgerBtn?.addEventListener('click', openSidebar);
@@ -318,7 +364,6 @@ const { title, requireAuth = true } = Astro.props;
             const avatarImg = document.getElementById('user-avatar');
 
             if (session) {
-                // Sudah login: header user + tombol aside muncul di semua halaman.
                 loggedOutView?.classList.add('hidden');
                 loggedOutView?.classList.remove('flex');
 
@@ -334,11 +379,9 @@ const { title, requireAuth = true } = Astro.props;
                 if (avatarImg && avatarUrl) {
                     avatarImg.setAttribute('src', avatarUrl);
                 }
-
                 return;
             }
 
-            // Belum login: tombol aside disembunyikan dan aside ditutup kalau sempat terbuka.
             loggedOutView?.classList.remove('hidden');
             loggedOutView?.classList.add('flex');
 
@@ -349,7 +392,7 @@ const { title, requireAuth = true } = Astro.props;
             hamburgerBtn?.classList.remove('flex');
 
             sidebarFooter?.classList.add('hidden');
-            // @ts-ignore - dipasang di initSidebar()
+            // @ts-ignore
             window.closeAppSidebar?.();
         }
 
@@ -376,7 +419,6 @@ const { title, requireAuth = true } = Astro.props;
                     window.location.replace('/login');
                     return;
                 }
-
                 renderAuthUI(session);
             });
         }
@@ -394,7 +436,6 @@ const { title, requireAuth = true } = Astro.props;
                     logoutButton.removeAttribute('disabled');
                     return;
                 }
-
                 window.location.replace('/login');
             });
         }
@@ -403,6 +444,7 @@ const { title, requireAuth = true } = Astro.props;
             initSidebar();
             initAuthCheck();
             initLogout();
+            initRealtimeNotifications(); // Menjalankan Notifikasi Real-Time
         });
     </script>
 </body>

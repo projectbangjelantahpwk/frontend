@@ -1,0 +1,420 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { supabase } from '../lib/supabase';
+
+// 1. Tarik Data Mitra Baru (Prospek) - MAKSIMAL 15
+const { data: mitraBaru } = await supabase
+    .from('mitra_baru')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(15);
+
+// 2. Tarik Data Mitra Langganan (Aktif) - MAKSIMAL 15
+const { data: mitraLangganan } = await supabase
+    .from('mitra')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(15);
+
+// 3. Tarik Data Mitra Tidak Aktif - MAKSIMAL 15
+const { data: mitraTidakAktif } = await supabase
+    .from('mitra_tidak_aktif')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(15);
+---
+
+<Layout title="Kemitraan - Manajemen Bang Jelantah">
+    <div class="max-w-7xl mx-auto flex flex-col h-full gap-lg">
+        
+        <div class="content-view flex flex-col gap-lg" id="view-kemitraan">
+            <header class="">
+                <h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary">Kemitraan</h2>
+                <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Manajemen relasi dan pendaftaran mitra pengumpul.</p>
+            </header>
+
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-md md:p-lg flex flex-col shadow-sm">
+                <div class="flex justify-between items-center mb-md">
+                    <h3 class="font-headline-md text-headline-md text-on-surface">Pertumbuhan Mitra</h3>
+                    <div class="flex bg-surface-container-low rounded-lg p-xs">
+                        <button class="px-md py-sm rounded-md bg-secondary-container text-on-secondary-container font-label-sm text-label-sm shadow-sm">Per Bulan</button>
+                        <button class="px-md py-sm rounded-md text-on-surface-variant font-label-sm text-label-sm hover:bg-surface-variant transition-colors">Per Tahun</button>
+                    </div>
+                </div>
+                <div class="w-full h-64 relative">
+                    <canvas id="growthChart" style="display: block; box-sizing: border-box; height: 100%; width: 100%;"></canvas>
+                </div>
+            </div>
+
+            <div class="flex flex-col flex-1 gap-md">
+                <div class="flex overflow-x-auto border-b border-outline-variant scrollbar-hide">
+                    <button class="tab-btn px-md py-sm font-label-lg text-label-lg border-b-2 border-primary text-primary whitespace-nowrap active" data-tab="mitra-baru">Mitra Baru</button>
+                    <button class="tab-btn px-md py-sm font-label-lg text-label-lg border-b-2 border-transparent text-on-surface-variant hover:text-primary whitespace-nowrap" data-tab="mitra-langganan">Mitra Langganan</button>
+                    <button class="tab-btn px-md py-sm font-label-lg text-label-lg border-b-2 border-transparent text-on-surface-variant hover:text-primary whitespace-nowrap" data-tab="mitra-tidak-aktif">Mitra Tidak Aktif</button>
+                </div>
+
+                <div class="tab-content" id="tab-mitra-baru">
+                    <div class="md:hidden flex flex-col gap-md">
+                        {mitraBaru && mitraBaru.map((mitra) => (
+                            <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="font-label-sm text-label-sm text-on-surface-variant">No HP</p>
+                                        <p class="font-body-md text-body-md text-on-surface font-semibold">{mitra.nomor_hp}</p>
+                                    </div>
+                                    <span class="px-xs py-xs bg-primary-container text-on-primary-container rounded font-label-sm text-xs">{mitra.sumber_customer || 'Lainnya'}</span>
+                                </div>
+                                <div>
+                                    <p class="font-label-sm text-label-sm text-on-surface-variant">Follow Up Ke-</p>
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-secondary text-on-secondary font-label-sm text-xs mt-xs">{mitra.follow_up_ke}</span>
+                                </div>
+                                <button class="mt-sm w-full h-touch-target bg-primary text-on-primary rounded-full font-label-lg text-label-lg hover:bg-surface-tint transition-colors active:scale-95 flex items-center justify-center gap-xs" onclick={`openModalMitraBaru('${mitra.nomor_hp}')`}>
+                                    <span class="material-symbols-outlined text-[20px]">person_add</span> Jadikan Langganan
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div class="hidden md:block overflow-x-auto bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm">
+                        <table class="w-full text-left border-collapse min-w-[600px]">
+                            <thead>
+                                <tr class="border-b border-outline-variant bg-surface-container-low">
+                                    <th class="p-md font-label-lg text-label-lg text-on-surface-variant font-semibold">No HP</th>
+                                    <th class="p-md font-label-lg text-label-lg text-on-surface-variant font-semibold">Sumber Customer</th>
+                                    <th class="p-md font-label-lg text-label-lg text-on-surface-variant font-semibold text-center">Follow Up Ke-</th>
+                                    <th class="p-md font-label-lg text-label-lg text-on-surface-variant font-semibold text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-outline-variant">
+                                {mitraBaru && mitraBaru.map((mitra) => (
+                                    <tr class="hover:bg-surface-container-low transition-colors">
+                                        <td class="p-md font-body-md text-body-md text-on-surface font-semibold">{mitra.nomor_hp}</td>
+                                        <td class="p-md"><span class="px-2 py-1 bg-primary-container text-on-primary-container rounded font-label-sm text-xs">{mitra.sumber_customer || 'Lainnya'}</span></td>
+                                        <td class="p-md text-center"><span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-secondary text-on-secondary font-label-sm text-xs">{mitra.follow_up_ke}</span></td>
+                                        <td class="p-md text-right">
+                                            <button class="px-md py-sm bg-primary text-on-primary rounded-full font-label-lg text-label-lg hover:bg-surface-tint transition-colors active:scale-95 inline-flex items-center gap-xs h-10" onclick={`openModalMitraBaru('${mitra.nomor_hp}')`}>
+                                                <span class="material-symbols-outlined text-[18px]">person_add</span> Jadikan Langganan
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-content hidden" id="tab-mitra-langganan">
+                    <div class="md:hidden flex flex-col gap-md">
+                        {mitraLangganan && mitraLangganan.map((mitra) => (
+                            <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm">
+                                <div class="flex justify-between items-center border-b border-outline-variant pb-sm">
+                                    <p class="font-headline-md text-body-lg text-on-surface font-semibold">{mitra.nama_mitra}</p>
+                                    <a class="text-primary hover:text-surface-tint transition-colors" href={mitra.link_gmaps || '#'} target="_blank" title="Lihat Alamat">
+                                        <span class="material-symbols-outlined">location_on</span>
+                                    </a>
+                                </div>
+                                <div class="grid grid-cols-2 gap-sm pt-xs">
+                                    <div>
+                                        <p class="font-label-sm text-label-sm text-on-surface-variant">No HP</p>
+                                        <p class="font-body-md text-body-md text-on-surface">{mitra.nomor_hp || '-'}</p>
+                                    </div>
+                                    <div>
+                                        <p class="font-label-sm text-label-sm text-on-surface-variant">Jumlah Transaksi</p>
+                                        <p class="font-body-md text-body-md text-on-surface">{mitra.total_order}x</p>
+                                    </div>
+                                </div>
+                                <button class="mt-sm w-full h-touch-target bg-secondary text-on-secondary rounded-full font-label-lg text-label-lg hover:opacity-90 transition-colors active:scale-95 flex items-center justify-center gap-xs" onclick={`openModalTransaksi('${mitra.nama_mitra}', '${mitra.id}')`}>
+                                    <span class="material-symbols-outlined text-[20px]">payments</span> Input Transaksi
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div class="hidden md:block overflow-x-auto bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm">
+                        <table class="w-full text-left border-collapse min-w-[800px]">
+                            <thead>
+                                <tr class="border-b border-outline-variant bg-surface-container-low">
+                                    <th class="p-md font-label-lg text-label-lg text-on-surface-variant font-semibold">Nama</th>
+                                    <th class="p-md font-label-lg text-label-lg text-on-surface-variant font-semibold">No HP</th>
+                                    <th class="p-md font-label-lg text-label-lg text-on-surface-variant font-semibold text-center">Alamat</th>
+                                    <th class="p-md font-label-lg text-label-lg text-on-surface-variant font-semibold text-center">Jumlah Transaksi</th>
+                                    <th class="p-md font-label-lg text-label-lg text-on-surface-variant font-semibold">Total Setoran</th>
+                                    <th class="p-md font-label-lg text-label-lg text-on-surface-variant font-semibold text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-outline-variant">
+                                {mitraLangganan && mitraLangganan.map((mitra) => (
+                                    <tr class="hover:bg-surface-container-low transition-colors">
+                                        <td class="p-md font-body-md text-body-md text-on-surface font-semibold">{mitra.nama_mitra}</td>
+                                        <td class="p-md font-body-md text-body-md text-on-surface">{mitra.nomor_hp || '-'}</td>
+                                        <td class="p-md text-center">
+                                            <a class="text-primary hover:text-surface-tint inline-block p-1 rounded-full hover:bg-primary-container transition-colors" href={mitra.link_gmaps || '#'} target="_blank">
+                                                <span class="material-symbols-outlined text-[20px]">location_on</span>
+                                            </a>
+                                        </td>
+                                        <td class="p-md text-center font-body-md text-body-md text-on-surface">{mitra.total_order}x</td>
+                                        <td class="p-md font-body-md text-body-md text-on-surface">Rp {Number(mitra.total_transaksi || 0).toLocaleString('id-ID')}</td>
+                                        <td class="p-md text-right">
+                                            <button class="px-md py-sm bg-secondary text-on-secondary rounded-full font-label-lg text-label-lg hover:opacity-90 transition-all active:scale-95 inline-flex items-center gap-xs h-10" onclick={`openModalTransaksi('${mitra.nama_mitra}', '${mitra.id}')`}>
+                                                <span class="material-symbols-outlined text-[18px]">payments</span> Input Transaksi
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-content hidden" id="tab-mitra-tidak-aktif">
+                    <div class="md:hidden flex flex-col gap-md">
+                        {mitraTidakAktif && mitraTidakAktif.map((mitra) => (
+                            <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm opacity-75">
+                                <div class="flex justify-between items-center border-b border-outline-variant pb-sm">
+                                    <p class="font-headline-md text-body-lg text-on-surface font-semibold text-on-surface-variant">{mitra.nama_mitra}</p>
+                                    <a class="text-on-surface-variant hover:text-primary transition-colors" href={mitra.link_gmaps || '#'} target="_blank">
+                                        <span class="material-symbols-outlined">location_on</span>
+                                    </a>
+                                </div>
+                                <div class="grid grid-cols-2 gap-sm pt-xs">
+                                    <div>
+                                        <p class="font-label-sm text-label-sm text-on-surface-variant">No HP</p>
+                                        <p class="font-body-md text-body-md text-on-surface-variant">{mitra.nomor_hp || '-'}</p>
+                                    </div>
+                                    <div>
+                                        <p class="font-label-sm text-label-sm text-on-surface-variant">Jumlah Transaksi</p>
+                                        <p class="font-body-md text-body-md text-on-surface-variant">{mitra.total_order}x</p>
+                                    </div>
+                                    <div class="col-span-2">
+                                        <p class="font-label-sm text-label-sm text-on-surface-variant">Terakhir Transaksi</p>
+                                        <p class="font-body-md text-body-md text-on-surface-variant">{mitra.terakhir_transaksi || '-'}</p>
+                                    </div>
+                                </div>
+                                <button class="mt-sm w-full h-touch-target bg-surface-container text-primary rounded-full font-label-lg text-label-lg border border-primary hover:bg-primary-container transition-colors active:scale-95 flex items-center justify-center gap-xs">
+                                    <span class="material-symbols-outlined text-[20px]">person_check</span> Aktifkan Kembali
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div class="hidden md:block overflow-x-auto bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm">
+                        <table class="w-full text-left border-collapse min-w-[800px]">
+                            <thead>
+                                <tr class="border-b border-outline-variant bg-surface-container-low">
+                                    <th class="p-md font-label-lg text-label-lg text-on-surface-variant font-semibold">Nama</th>
+                                    <th class="p-md font-label-lg text-label-lg text-on-surface-variant font-semibold">No HP</th>
+                                    <th class="p-md font-label-lg text-label-lg text-on-surface-variant font-semibold text-center">Alamat</th>
+                                    <th class="p-md font-label-lg text-label-lg text-on-surface-variant font-semibold text-center">Jumlah Transaksi</th>
+                                    <th class="p-md font-label-lg text-label-lg text-on-surface-variant font-semibold">Terakhir Transaksi</th>
+                                    <th class="p-md font-label-lg text-label-lg text-on-surface-variant font-semibold text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-outline-variant opacity-75">
+                                {mitraTidakAktif && mitraTidakAktif.map((mitra) => (
+                                    <tr class="hover:bg-surface-container-low transition-colors">
+                                        <td class="p-md font-body-md text-body-md text-on-surface-variant font-semibold">{mitra.nama_mitra}</td>
+                                        <td class="p-md font-body-md text-body-md text-on-surface-variant">{mitra.nomor_hp || '-'}</td>
+                                        <td class="p-md text-center">
+                                            <a class="text-on-surface-variant hover:text-primary inline-block p-1 rounded-full hover:bg-surface-container-highest transition-colors" href={mitra.link_gmaps || '#'} target="_blank">
+                                                <span class="material-symbols-outlined text-[20px]">location_on</span>
+                                            </a>
+                                        </td>
+                                        <td class="p-md text-center font-body-md text-body-md text-on-surface-variant">{mitra.total_order}x</td>
+                                        <td class="p-md font-body-md text-body-md text-on-surface-variant">{mitra.terakhir_transaksi || '-'}</td>
+                                        <td class="p-md text-right">
+                                            <button class="px-md py-sm bg-surface-container text-primary rounded-full font-label-lg text-label-lg border border-primary hover:bg-primary-container transition-colors active:scale-95 inline-flex items-center gap-xs h-10">
+                                                Aktifkan Kembali
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-container-margin opacity-0 transition-opacity duration-300" id="conversionModal">
+        <div class="bg-surface-container-lowest rounded-xl shadow-lg w-full max-w-md p-lg transform scale-95 transition-transform duration-300 relative">
+            <button class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors" onclick="closeModal('conversionModal')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Jadikan Langganan</h3>
+            <p class="font-body-md text-body-md text-on-surface-variant mb-md">Lengkapi data profil untuk pendaftaran pelanggan tetap.</p>
+            <form class="flex flex-col gap-md" id="formMitraBaru">
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">No HP Prospek</label>
+                    <input class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container text-on-surface outline-none" id="modal_hp_baru" type="text" readonly>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Nama Lengkap Toko/Mitra</label>
+                    <input class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="Masukkan nama mitra" type="text" required>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Alamat Jemput</label>
+                    <textarea class="w-full p-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none" placeholder="Alamat lengkap lokasi pengumpulan" rows="3" required></textarea>
+                </div>
+                <div class="mt-sm flex justify-end gap-sm">
+                    <button class="px-md h-touch-target rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="closeModal('conversionModal')" type="button">Batal</button>
+                    <button class="px-md h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors" type="submit">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-container-margin opacity-0 transition-opacity duration-300" id="transaksiModal">
+        <div class="bg-surface-container-lowest rounded-xl shadow-lg w-full max-w-md p-lg transform scale-95 transition-transform duration-300 relative">
+            <button class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors" onclick="closeModal('transaksiModal')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Catat Transaksi Baru</h3>
+            <p class="font-body-md text-body-md text-on-surface-variant mb-md">Input timbangan jelantah masuk dari mitra langganan.</p>
+            <form class="flex flex-col gap-md" id="formTransaksiMitra">
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Nama Mitra</label>
+                    <input class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container text-on-surface outline-none" id="modal_nama_langganan" type="text" readonly>
+                    <input type="hidden" id="modal_id_langganan">
+                </div>
+                <div class="grid grid-cols-2 gap-sm">
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Volume (KG/Liter)</label>
+                        <input class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="0" type="number" required>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Metode Bayar</label>
+                        <select class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none">
+                            <option value="Cash">Cash</option>
+                            <option value="Transfer">Transfer</option>
+                            <option value="QRIS">QRIS</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-sm flex justify-end gap-sm">
+                    <button class="px-md h-touch-target rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="closeModal('transaksiModal')" type="button">Batal</button>
+                    <button class="px-md h-touch-target bg-secondary text-on-secondary rounded-full font-label-lg hover:opacity-90 shadow-sm transition-all" type="submit">Simpan Transaksi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script is:inline>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tab Logic
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tabBtns.forEach(b => {
+                        b.classList.remove('border-primary', 'text-primary', 'active');
+                        b.classList.add('border-transparent', 'text-on-surface-variant');
+                    });
+                    
+                    btn.classList.remove('border-transparent', 'text-on-surface-variant');
+                    btn.classList.add('border-primary', 'text-primary', 'active');
+
+                    tabContents.forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    
+                    const targetId = btn.getAttribute('data-tab');
+                    document.getElementById(`tab-${targetId}`).classList.remove('hidden');
+                });
+            });
+
+            // Chart.js Initialization
+            const canvas = document.getElementById('growthChart');
+            if (canvas && typeof Chart !== 'undefined') {
+                const ctx = canvas.getContext('2d');
+                const primaryColor = '#2e7d32'; 
+                const surfaceContainerHigh = '#e9e8e7';
+                
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        datasets: [{
+                            label: 'Mitra Aktif',
+                            data: [12, 19, 25, 32, 45, 52, 60, 75, 82, 95, 105, 120],
+                            borderColor: primaryColor,
+                            backgroundColor: 'rgba(46, 125, 50, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: primaryColor,
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: primaryColor
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                backgroundColor: 'rgba(27, 28, 28, 0.9)', 
+                                titleFont: { family: 'Inter', size: 14 },
+                                bodyFont: { family: 'Inter', size: 14 },
+                                padding: 12,
+                                cornerRadius: 8
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: surfaceContainerHigh, drawBorder: false },
+                                ticks: { font: { family: 'Inter', size: 12 }, color: '#40493d' }
+                            },
+                            x: {
+                                grid: { display: false, drawBorder: false },
+                                ticks: { font: { family: 'Inter', size: 12 }, color: '#40493d' }
+                            }
+                        },
+                        interaction: { mode: 'nearest', axis: 'x', intersect: false }
+                    }
+                });
+            }
+        });
+
+        // FUNGSI MEMBUKA MODAL 1: Mitra Baru
+        window.openModalMitraBaru = function(nomorHp) {
+            const modal = document.getElementById('conversionModal');
+            document.getElementById('modal_hp_baru').value = nomorHp;
+            
+            modal.classList.remove('hidden');
+            void modal.offsetWidth; // Trigger reflow
+            modal.classList.remove('opacity-0');
+            modal.querySelector('div').classList.remove('scale-95');
+        };
+
+        // FUNGSI MEMBUKA MODAL 2: Catat Transaksi (Mitra Langganan)
+        window.openModalTransaksi = function(namaMitra, idMitra) {
+            const modal = document.getElementById('transaksiModal');
+            document.getElementById('modal_nama_langganan').value = namaMitra;
+            document.getElementById('modal_id_langganan').value = idMitra;
+            
+            modal.classList.remove('hidden');
+            void modal.offsetWidth; // Trigger reflow
+            modal.classList.remove('opacity-0');
+            modal.querySelector('div').classList.remove('scale-95');
+        };
+
+        // FUNGSI MENUTUP MODAL (Universal berdasarkan ID)
+        window.closeModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            const modalContent = modal.querySelector('div');
+            
+            modal.classList.add('opacity-0');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        };
+    </script>
+</Layout>

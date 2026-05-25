@@ -1,0 +1,348 @@
+---
+import GeneralLayout from '../layouts/Layout.astro';
+import { supabase } from '../lib/supabase';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
+// Ambil data Profiles dari Supabase
+const { data: karyawan } = await supabase
+  .from('profiles')
+  .select('*')
+  .order('created_at', { ascending: false });
+
+const roles = [
+  { value: 'owner', label: 'Owner' },
+  { value: 'hrd', label: 'HRD' },
+  { value: 'keuangan', label: 'Keuangan' },
+  { value: 'admin', label: 'Admin (Gudang/Ops)' },
+  { value: 'office', label: 'Office' },
+  { value: 'lapangan', label: 'Lapangan (Supir/Kenek)' }
+];
+
+const getRoleColor = (role) => {
+    if(role === 'owner') return 'bg-purple-100 text-purple-700';
+    if(role === 'hrd') return 'bg-pink-100 text-pink-700';
+    if(role === 'keuangan') return 'bg-blue-100 text-blue-700';
+    if(role === 'admin') return 'bg-orange-100 text-orange-700';
+    if(role === 'lapangan') return 'bg-green-100 text-green-700';
+    return 'bg-gray-100 text-gray-700';
+};
+---
+
+<GeneralLayout title="Hak Akses & Akun - Manajemen Bang Jelantah">
+  <div class="mb-8 flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Manajemen Hak Akses & Akun</h1>
+      <p class="text-gray-600">Kelola profil, foto, role, dan izin login karyawan.</p>
+    </div>
+    <button id="openFormBtn" class="flex items-center gap-2 px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition font-medium">
+      <i class="bi bi-person-plus-fill"></i>
+      <span>Buat Akun Karyawan</span>
+    </button>
+  </div>
+
+  <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="bg-gray-50 border-b border-gray-200">
+            <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Pengguna</th>
+            <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Username / ID</th>
+            <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Kontak</th>
+            <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Role Sistem</th>
+            <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {karyawan?.map((item) => (
+            <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                  {item.foto_profil ? (
+                      <img src={item.foto_profil} alt="Avatar" class="w-10 h-10 rounded-full object-cover border border-gray-200" />
+                  ) : (
+                      <div class="w-10 h-10 rounded-full bg-green-700 text-white flex items-center justify-center font-bold text-sm">
+                        {item.nama.substring(0, 2).toUpperCase()}
+                      </div>
+                  )}
+                  <div>
+                    <p class="font-bold text-gray-900">{item.nama}</p>
+                    <p class="text-xs text-gray-500 capitalize">{item.tipe_kendaraan ? item.tipe_kendaraan.replace('_', ' ') : item.role}</p>
+                  </div>
+                </div>
+              </td>
+
+              <td class="px-6 py-4">
+                <div class="text-sm font-medium text-gray-800 bg-gray-100 px-2 py-1 rounded w-fit">
+                    <i class="bi bi-person-badge mr-1 text-gray-500"></i>{item.id_lapangan}
+                </div>
+              </td>
+
+              <td class="px-6 py-4">
+                <p class="text-sm text-gray-600 flex items-center gap-2">
+                  <i class="bi bi-telephone text-green-600"></i> {item.nomor_hp || '-'}
+                </p>
+              </td>
+
+              <td class="px-6 py-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Alamat Domisili</label>
+                    <textarea id="alamatInput" placeholder="Jl. Raya Purwakarta No. 123" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700" rows="2"></textarea>
+                </div>
+              </td>
+
+              <td class="px-6 py-4">
+                <span class={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getRoleColor(item.role)}`}>
+                  {item.role}
+                </span>
+              </td>
+
+              <td class="px-6 py-4">
+                <button class="edit-btn px-3 py-1 text-blue-600 hover:bg-blue-50 border border-blue-200 rounded transition font-medium text-sm shadow-sm" 
+                  data-emp={item.id} data-nama={item.nama} data-username={item.id_lapangan} data-telepon={item.nomor_hp} data-role={item.role}>
+                  <i class="bi bi-pencil mr-1"></i> Edit
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</GeneralLayout>
+
+<div id="formModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
+  <div class="bg-white rounded-2xl max-w-xl w-full max-h-screen overflow-y-auto transform scale-95 transition-transform duration-300">
+    <div class="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between z-10">
+      <h2 id="modalTitle" class="text-xl font-bold text-gray-900">Buat Akun Karyawan</h2>
+      <button id="closeFormBtn" class="text-gray-400 hover:text-gray-600"><i class="bi bi-x-lg text-xl"></i></button>
+    </div>
+
+    <form id="employeeForm" class="p-6 space-y-6">
+      <input type="hidden" id="editId" value="">
+
+      <div class="flex flex-col items-center gap-3">
+          <div class="w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden relative cursor-pointer hover:border-green-600 transition" id="photoContainer">
+              <i class="bi bi-camera text-2xl text-gray-400" id="photoIcon"></i>
+              <img id="photoPreview" class="absolute inset-0 w-full h-full object-cover hidden" />
+          </div>
+          <input type="file" id="fotoInput" accept="image/*" class="hidden">
+          <button type="button" class="text-xs font-bold text-green-700 hover:underline" onclick="document.getElementById('fotoInput').click()">Pilih Foto Profil</button>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-bold text-gray-900 mb-3 border-b pb-2">Identitas</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Nama Lengkap</label>
+            <input type="text" id="namaInput" placeholder="Contoh: Budi Jelantah" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">No. Handphone / WhatsApp</label>
+            <input type="tel" id="teleponInput" placeholder="0812xxxx" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-bold text-gray-900 mb-3 border-b pb-2">Akses & Sistem</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Username / ID Lapangan</label>
+            <input type="text" id="usernameInput" placeholder="Contoh: budi123 atau JLC-001" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
+            <p class="text-[10px] text-gray-500 mt-1">Digunakan untuk login aplikasi.</p>
+          </div>
+
+          <div id="passwordFieldContainer">
+            <label class="block text-xs font-bold text-gray-700 mb-1">Password</label>
+            <div class="relative">
+              <input type="text" id="passwordInput" placeholder="Minimal 6 karakter" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              <button type="button" id="generatePassBtn" class="absolute right-3 top-2 text-gray-600 hover:text-green-700"><i class="bi bi-arrow-repeat font-bold"></i></button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Role / Peran</label>
+            <select id="roleInput" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required>
+              <option value="">-- Pilih Role --</option>
+              {roles.map((role) => <option value={role.value}>{role.label}</option>)}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-3 pt-4">
+        <button type="button" id="cancelBtn" class="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-bold transition">Batal</button>
+        <button type="submit" id="submitBtn" class="flex-1 px-6 py-3 bg-green-700 text-white rounded-xl hover:bg-green-800 font-bold transition shadow-sm">Simpan Akun</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', function() {
+    const formModal = document.getElementById('formModal');
+    const openFormBtn = document.getElementById('openFormBtn');
+    const closeFormBtn = document.getElementById('closeFormBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const employeeForm = document.getElementById('employeeForm');
+    
+    // Foto Profil Preview
+    const fotoInput = document.getElementById('fotoInput');
+    const photoPreview = document.getElementById('photoPreview');
+    const photoIcon = document.getElementById('photoIcon');
+
+    fotoInput.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                photoPreview.src = e.target.result;
+                photoPreview.classList.remove('hidden');
+                photoIcon.classList.add('hidden');
+            }
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    // OPEN MODAL (BUAT BARU)
+    openFormBtn.addEventListener('click', () => {
+      document.getElementById('modalTitle').textContent = 'Buat Akun Karyawan';
+      document.getElementById('editId').value = '';
+      document.getElementById('passwordInput').required = true;
+      document.getElementById('passwordFieldContainer').style.display = 'block';
+      document.getElementById('usernameInput').disabled = false; // Bisa ganti username pas daftar
+      
+      photoPreview.classList.add('hidden');
+      photoIcon.classList.remove('hidden');
+      fotoInput.value = '';
+      
+      employeeForm.reset();
+      formModal.classList.remove('hidden');
+      formModal.classList.add('flex');
+      setTimeout(() => { formModal.classList.remove('opacity-0'); formModal.querySelector('div').classList.remove('scale-95'); }, 10);
+    });
+
+    // OPEN MODAL (EDIT)
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById('modalTitle').textContent = 'Edit Karyawan';
+            document.getElementById('editId').value = this.getAttribute('data-emp');
+            document.getElementById('namaInput').value = this.getAttribute('data-nama');
+            document.getElementById('usernameInput').value = this.getAttribute('data-username');
+            document.getElementById('teleponInput').value = this.getAttribute('data-telepon');
+            document.getElementById('roleInput').value = this.getAttribute('data-role');
+            
+            // Password gak wajib diisi pas edit, username dikunci (gak bisa ganti id)
+            document.getElementById('passwordInput').required = false;
+            document.getElementById('passwordFieldContainer').style.display = 'none';
+            document.getElementById('usernameInput').disabled = true;
+
+            formModal.classList.remove('hidden');
+            formModal.classList.add('flex');
+            setTimeout(() => { formModal.classList.remove('opacity-0'); formModal.querySelector('div').classList.remove('scale-95'); }, 10);
+        });
+    });
+
+    // CLOSE MODAL
+    const closeModal = () => {
+      formModal.classList.add('opacity-0'); formModal.querySelector('div').classList.add('scale-95');
+      setTimeout(() => { formModal.classList.add('hidden'); formModal.classList.remove('flex'); }, 300);
+    };
+    closeFormBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+
+    // GENERATE PASSWORD
+    document.getElementById('generatePassBtn').addEventListener('click', () => {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+      let password = '';
+      for (let i = 0; i < 8; i++) password += chars.charAt(Math.floor(Math.random() * chars.length));
+      document.getElementById('passwordInput').value = password;
+    });
+
+    // FORM SUBMIT LOGIC (SUPABASE)
+    employeeForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      if(!window.supabase) return alert('Supabase tidak terhubung!');
+
+      const btn = document.getElementById('submitBtn');
+      btn.innerText = "Memproses...";
+      btn.disabled = true;
+
+      const editId = document.getElementById('editId').value;
+      const nama = document.getElementById('namaInput').value;
+      const username = document.getElementById('usernameInput').value;
+      const password = document.getElementById('passwordInput').value;
+      const telepon = document.getElementById('teleponInput').value;
+      const alamat = document.getElementById('alamatInput').value;
+      const role = document.getElementById('roleInput').value;
+      const file = fotoInput.files[0];
+
+      const dummyUsername = nama.toLowerCase().replace(/\s/g, ''); 
+const dummyEmail = `${dummyUsername}@bangjelantah.local`.toLowerCase();
+
+      try {
+        let finalAvatarUrl = null;
+
+        // 1. UPLOAD FOTO KE STORAGE JIKA ADA
+        if (file) {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${username}-${Date.now()}.${fileExt}`;
+            
+            const { error: uploadErr } = await window.supabase.storage.from('avatars').upload(fileName, file);
+            if(uploadErr) throw uploadErr;
+
+            const { data: publicUrlData } = window.supabase.storage.from('avatars').getPublicUrl(fileName);
+            finalAvatarUrl = publicUrlData.publicUrl;
+        }
+
+        if(editId) {
+            // == MODE EDIT ==
+            const updateData = {
+                nama: nama,
+                nomor_hp: telepon,
+                role: role
+            };
+            if(finalAvatarUrl) updateData.foto_profil = finalAvatarUrl;
+
+            const { error } = await window.supabase.from('profiles').update({
+                nama: nama,
+                nomor_hp: telepon,
+                alamat: alamat,
+                role: role
+            }).eq('id', authData.user.id);
+            if(error) throw error;
+            alert('Profil Karyawan berhasil diperbarui!');
+            
+        } else {
+            // == MODE BUAT BARU ==
+            const dummyEmail = `${username}@bangjelantah.local`.toLowerCase();
+
+            // Sign Up Auth (Supabase)
+            const { data: authData, error: authError } = await window.supabase.auth.signUp({
+                email: dummyEmail,
+                password: password
+            });
+            if(authError) throw authError;
+
+            // Update Profiles karena trigger SQL udah bikinin row awalnya
+            const updateData = {
+                nama: nama,
+                nomor_hp: telepon,
+                role: role
+            };
+            if(finalAvatarUrl) updateData.foto_profil = finalAvatarUrl;
+
+            await window.supabase.from('profiles').update(updateData).eq('id', authData.user.id);
+            alert(`Karyawan berhasil didaftarkan!\nUsername: ${username}\nPassword: ${password}\n\n*Simpan baik-baik passwordnya.`);
+        }
+
+        window.location.reload();
+
+      } catch (err) {
+        alert('Gagal: ' + err.message);
+        btn.innerText = "Simpan Akun";
+        btn.disabled = false;
+      }
+    });
+
+  });
+</script>

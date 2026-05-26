@@ -1,0 +1,886 @@
+---
+import GeneralLayout from '../layouts/Layout.astro';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+---
+
+<GeneralLayout title="Keuangan - Manajemen Bang Jelantah">
+  <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Manajemen Keuangan</h1>
+      <p class="text-gray-600">Kelola arus kas, penggajian, validasi operasional, dan penjualan pabrik.</p>
+    </div>
+  </div>
+
+  <div class="mb-6 border-b border-gray-200 overflow-x-auto hide-scrollbar">
+    <div class="flex gap-8 min-w-max">
+      <button class="tab-btn active px-4 py-3 font-medium transition border-b-2 border-green-700 text-green-700" data-tab="gaji">
+        <i class="bi bi-wallet2 mr-2"></i> Gaji Karyawan
+      </button>
+      <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="riwayat-gaji">
+        <i class="bi bi-clock-history mr-2"></i> Riwayat Gaji Karyawan
+      </button>
+      <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="pembelian">
+        <i class="bi bi-cart-check mr-2"></i> Beli & Pengeluaran
+      </button>
+      <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="validasi">
+        <i class="bi bi-shield-check mr-2"></i> Validasi Bayar
+        <span id="badge-validasi" class="hidden ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-red-700 text-xs font-bold">0</span>
+      </button>
+      <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="penjualan">
+        <i class="bi bi-graph-up-arrow mr-2"></i> Penjualan Olahan
+      </button>
+    </div>
+  </div>
+
+  <div id="gaji" class="tab-content block">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold text-gray-900">Rekapitulasi Gaji Karyawan</h2>
+        <button onclick="openModal('modal-pengaturan-global')" class="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition">
+            <i class="bi bi-gear"></i> Setting Gaji Global
+        </button>
+    </div>
+    <div id="gaji-karyawan-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <p class="text-gray-500">Memuat data gaji...</p>
+    </div>
+  </div>
+
+    <div class="tab-content hidden" id="riwayat-gaji-tab">
+      <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-4">Filter Riwayat Gaji Tahun Berjalan</h3>
+
+        <div class="flex flex-wrap gap-4 items-end">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">Dari Tanggal</label>
+            <input type="date" id="filter-gaji-start" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-700" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+            <input type="date" id="filter-gaji-end" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-700" />
+          </div>
+          <button id="btn-filter-gaji" class="bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-800 transition">
+            Saring Riwayat
+          </button>
+        </div>
+      </div>
+
+      <div id="riwayat-gaji-container" class="space-y-4">
+        <p class="text-gray-500 text-sm italic">Pilih filter tanggal untuk memuat riwayat.</p>
+      </div>
+    </div>
+
+  <div id="pembelian" class="tab-content hidden">
+    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex flex-wrap gap-4 items-end">
+        <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Mulai Tanggal</label>
+            <input type="date" id="filter-start-pengeluaran" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600">
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Sampai Tanggal</label>
+            <input type="date" id="filter-end-pengeluaran" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600">
+        </div>
+        <button onclick="filterTabelPengeluaran()" class="bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-800">Filter Data</button>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Pembelian Komoditas (Mitra)</h2>
+            <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+                <div class="overflow-x-auto max-h-[500px]">
+                <table class="w-full text-left" id="tabel-pembelian">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-3 text-sm font-bold text-gray-900">Tanggal</th>
+                            <th class="px-4 py-3 text-sm font-bold text-gray-900">Komoditas & Volume</th>
+                            <th class="px-4 py-3 text-sm font-bold text-gray-900 text-right">Nilai (Rp)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pembelian-tbody" class="divide-y divide-gray-200">
+                        <tr><td colspan="3" class="text-center py-4">Memuat...</td></tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-900">Pengeluaran Operasional</h2>
+            </div>
+            <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+                <div class="overflow-x-auto max-h-[500px]">
+                <table class="w-full text-left" id="tabel-pengeluaran">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-3 text-sm font-bold text-gray-900">Tgl & Pengaju</th>
+                            <th class="px-4 py-3 text-sm font-bold text-gray-900">Detail Rincian</th>
+                            <th class="px-4 py-3 text-sm font-bold text-gray-900 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pengeluaran-tbody" class="divide-y divide-gray-200">
+                        <tr><td colspan="3" class="text-center py-4">Memuat...</td></tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <div id="validasi" class="tab-content hidden">
+    <div class="mb-8">
+      <div class="flex items-center gap-2 mb-6">
+        <i class="bi bi-exclamation-triangle text-red-600 text-xl"></i>
+        <h2 class="text-xl font-bold text-gray-900">Menunggu Validasi (<span id="title-validasi-count">0</span>)</h2>
+      </div>
+
+      <div id="validasi-container" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+         <p class="text-gray-500">Memuat data validasi...</p>
+      </div>
+    </div>
+
+    <div class="mt-12 border-t border-gray-200 pt-8">
+      <div class="flex items-center gap-2 mb-6">
+        <i class="bi bi-clock-history text-blue-600 text-xl"></i>
+        <h2 class="text-xl font-bold text-gray-900">Riwayat Pembayaran Selesai</h2>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+          <table class="w-full text-left">
+              <thead class="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                      <th class="px-6 py-4 text-sm font-bold text-gray-900">Mitra</th>
+                      <th class="px-6 py-4 text-sm font-bold text-gray-900">Tanggal</th>
+                      <th class="px-6 py-4 text-sm font-bold text-gray-900">Metode Bayar</th>
+                      <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right">Nominal</th>
+                  </tr>
+              </thead>
+              <tbody id="riwayat-lunas-tbody" class="divide-y divide-gray-100">
+                  <tr><td colspan="4" class="text-center py-4">Memuat...</td></tr>
+              </tbody>
+          </table>
+       </div>
+    </div>
+  </div>
+
+  <div id="penjualan" class="tab-content hidden">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold text-gray-900">Data Penjualan Barang Produksi</h2>
+        <button onclick="openModal('modal-tambah-penjualan')" class="flex items-center gap-2 px-4 py-2 bg-green-700 text-white rounded-lg font-medium hover:bg-green-800 transition shadow-sm">
+            <i class="bi bi-plus-circle"></i> Catat Penjualan Baru
+        </button>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex flex-wrap gap-4 items-end">
+          <div>
+              <label class="block text-xs font-bold text-gray-600 mb-1">Mulai Tanggal</label>
+              <input type="date" id="filter-start-jual" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600">
+          </div>
+          <div>
+              <label class="block text-xs font-bold text-gray-600 mb-1">Sampai Tanggal</label>
+              <input type="date" id="filter-end-jual" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600">
+          </div>
+          <button onclick="filterTabelPenjualan()" class="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-900">Hitung Total</button>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+          <table class="w-full text-left" id="tabel-penjualan">
+              <thead class="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                      <th class="px-6 py-4 text-sm font-bold text-gray-900">Tanggal</th>
+                      <th class="px-6 py-4 text-sm font-bold text-gray-900">Pembeli (Customer)</th>
+                      <th class="px-6 py-4 text-sm font-bold text-gray-900">Barang & Qty</th>
+                      <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right">Harga/Kg</th>
+                      <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right">Total Transaksi</th>
+                  </tr>
+              </thead>
+              <tbody id="penjualan-tbody" class="divide-y divide-gray-100">
+                  <tr><td colspan="5" class="text-center py-4">Memuat...</td></tr>
+              </tbody>
+              <tfoot class="bg-gray-50 border-t border-gray-200 hidden" id="footer-total-jual">
+                  <tr>
+                      <td colspan="4" class="px-6 py-4 text-sm font-bold text-gray-900 text-right">TOTAL PENDAPATAN (FILTERED):</td>
+                      <td class="px-6 py-4 text-lg font-bold text-green-700 text-right" id="text-total-jual">Rp 0</td>
+                  </tr>
+              </tfoot>
+          </table>
+      </div>
+  </div>
+</GeneralLayout>
+
+<div id="modal-pengaturan-global" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
+    <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 class="font-bold text-lg text-gray-900">Pengaturan Gaji Global</h3>
+            <button onclick="closeModal('modal-pengaturan-global')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form id="form-global-gaji" class="p-6 space-y-4">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Uang Kesehatan (Rp)</label>
+                <input type="number" id="g_kesehatan" value="0" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Bonus Tepat Waktu (Rp)</label>
+                <input type="number" id="g_tepatwaktu" value="0" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Bonus Mingguan (Rp)</label>
+                <input type="number" id="g_mingguan" value="0" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Tarif Lembur per Jam (Rp)</label>
+                <input type="number" id="g_lembur" value="0" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600">
+            </div>
+            <button type="submit" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-black transition">Simpan Pengaturan</button>
+        </form>
+    </div>
+</div>
+
+<div id="modal-detail-gaji" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
+    <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-green-50">
+            <div>
+                <h3 class="font-bold text-lg text-gray-900" id="m_nama_karyawan">Nama Karyawan</h3>
+                <p class="text-xs text-green-700 font-medium">Kalkulasi Gaji Personal</p>
+            </div>
+            <button onclick="closeModal('modal-detail-gaji')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto flex-1 space-y-6">
+            <input type="hidden" id="m_karyawan_id">
+            
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <label class="block text-sm font-bold text-gray-700 mb-2">Setting Gaji Pokok (Per Jam)</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-3 text-gray-500 font-bold">Rp</span>
+                    <input type="number" id="m_tarif_jam" class="w-full border border-gray-300 rounded-lg p-3 pl-10 outline-none focus:border-green-600 font-bold text-lg text-gray-900">
+                </div>
+                <button onclick="updateTarifJam()" class="mt-2 text-xs bg-green-100 text-green-800 px-3 py-1 rounded font-bold hover:bg-green-200">Update Tarif Khusus Dia</button>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-gray-900 mb-3 border-b pb-2">Rincian Komponen Gaji</h4>
+                <div class="space-y-2 text-sm" id="m_rincian_list"></div>
+            </div>
+
+            <div class="bg-green-700 text-white p-4 rounded-xl flex justify-between items-center">
+                <span class="font-bold">Total Bersih:</span>
+                <span class="text-2xl font-bold" id="m_total_gaji">Rp 0</span>
+            </div>
+        </div>
+        
+        <div class="p-6 border-t border-gray-100 bg-white">
+             <button class="w-full bg-green-700 text-white font-bold py-4 rounded-xl hover:bg-green-800 transition active:scale-95 text-lg shadow-sm">
+                <i class="bi bi-check2-circle mr-2"></i> Setujui & Bayar Gaji
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-tambah-penjualan" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
+    <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-blue-50">
+            <h3 class="font-bold text-lg text-gray-900">Catat Penjualan Olahan</h3>
+            <button onclick="closeModal('modal-tambah-penjualan')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form id="form-penjualan" class="p-6 space-y-4">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Tanggal</label>
+                <input type="date" id="pj_tgl" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600" required>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Nama Pembeli / PT</label>
+                <input type="text" id="pj_pembeli" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600" required>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Pilih Komoditas</label>
+                <select id="pj_komoditas" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600" required>
+                    <option value="">-- Memuat Komoditas... --</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Volume (Kg)</label>
+                    <input type="number" step="0.1" id="pj_volume" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Harga Satuan (Rp)</label>
+                    <input type="number" id="pj_harga" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600" required>
+                </div>
+            </div>
+            <div class="bg-gray-50 p-3 rounded text-right font-bold text-lg text-gray-900" id="pj_total_display">Total: Rp 0</div>
+            
+            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition">Simpan Penjualan</button>
+        </form>
+    </div>
+</div>
+
+<script is:inline>
+  // Variabel Global untuk nyimpen data yang di-fetch
+  let dataGlobalGaji = null;
+  let dataKaryawan = [];
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    //Setup Batasan Tanggal Otomatis
+    const tahunAktif = new Date().getFullYear();
+        const awalTahun = `${tahunAktif}-01-01`; 
+        const hariIni = new Date().toISOString().split('T')[0];
+
+        const inputStart = document.getElementById('filter-gaji-start');
+        const inputEnd = document.getElementById('filter-gaji-end');
+
+        if (inputStart && inputEnd) {
+            inputStart.min = awalTahun;
+            inputStart.max = hariIni;
+            inputStart.value = awalTahun; 
+
+            inputEnd.min = awalTahun;
+            inputEnd.max = hariIni;
+            inputEnd.value = hariIni; 
+        }
+    
+    // ==========================================
+    // 1. FETCH DATA KEUANGAN (CLIENT-SIDE)
+    // ==========================================
+    async function loadKeuanganData() {
+        if(!window.supabase) return;
+
+        try {
+            // A. Fetch Pengaturan Gaji
+            const { data: globalGaji } = await window.supabase.from('pengaturan_gaji_global').select('*').single();
+            dataGlobalGaji = globalGaji;
+            if(globalGaji) {
+                document.getElementById('g_kesehatan').value = globalGaji.uang_kesehatan || 0;
+                document.getElementById('g_tepatwaktu').value = globalGaji.bonus_tepat_waktu || 0;
+                document.getElementById('g_mingguan').value = globalGaji.bonus_mingguan || 0;
+                document.getElementById('g_lembur').value = globalGaji.tarif_lembur_perjam || 0;
+            }
+
+            // B. Fetch Karyawan
+            const { data: karyawan } = await window.supabase
+                .from('profiles')
+                .select('id, nama, role, tipe_kendaraan, tarif_gaji_perjam, presensi(tanggal, status_tiba, status_pulang)')
+                .neq('role', 'owner');
+            dataKaryawan = karyawan || [];
+            
+            const contKaryawan = document.getElementById('gaji-karyawan-container');
+            let htmlKaryawan = '';
+            if(dataKaryawan.length > 0) {
+                dataKaryawan.forEach(k => {
+                    const jumlahHadir = k.presensi?.length || 0;
+                    const inisial = k.nama ? k.nama.charAt(0).toUpperCase() : 'U';
+                    const peran = k.tipe_kendaraan ? k.tipe_kendaraan.replace('_', ' ') : k.role;
+                    const tarif = Number(k.tarif_gaji_perjam || 0).toLocaleString('id-ID');
+
+                    htmlKaryawan += `
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+                        <div class="bg-gradient-to-r from-green-50 to-green-100 px-6 py-4 flex items-center justify-between border-b border-green-200">
+                            <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full bg-green-700 text-white flex items-center justify-center font-bold text-lg">${inisial}</div>
+                            <div>
+                                <h3 class="font-bold text-gray-900">${k.nama}</h3>
+                                <p class="text-sm text-gray-600 capitalize">${peran}</p>
+                            </div>
+                            </div>
+                        </div>
+                        <div class="p-6 flex-1 flex flex-col">
+                            <div class="space-y-2 mb-6 text-sm">
+                                <div class="flex justify-between"><span class="text-gray-500">Tarif per Jam:</span> <span class="font-medium">Rp ${tarif}</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">Hadir Bulan Ini:</span> <span class="font-medium text-green-600">${jumlahHadir} Hari</span></div>
+                            </div>
+                            <button onclick="window.openModalGaji('${k.id}')" class="mt-auto w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-green-700 text-green-700 rounded-xl font-bold hover:bg-green-50 transition active:scale-95">
+                            <i class="bi bi-calculator"></i> Hitung & Rincian
+                            </button>
+                        </div>
+                    </div>`;
+                });
+            } else {
+                htmlKaryawan = '<p class="text-gray-500">Belum ada data karyawan.</p>';
+            }
+            contKaryawan.innerHTML = htmlKaryawan;
+
+            // C. Fetch Transaksi (Pembelian)
+            const { data: transaksi } = await window.supabase.from('transaksi')
+                .select('*, mitra(nama_mitra), transaksi_item(komoditas, volume, harga_unit), penjemputan(tanggal)')
+                .order('created_at', { ascending: false });
+            
+            const tbodyPembelian = document.getElementById('pembelian-tbody');
+            let htmlPembelian = '';
+            transaksi?.forEach(t => {
+                const totalNilai = t.transaksi_item?.reduce((acc, item) => acc + (item.volume * (item.harga_unit || 0)), 0) || 0;
+                let itemsHtml = '';
+                t.transaksi_item?.forEach(item => {
+                    itemsHtml += `<div class="text-gray-900 font-medium">• ${item.komoditas}: ${item.volume} Kg</div>`;
+                });
+
+                htmlPembelian += `
+                <tr class="hover:bg-gray-50" data-date="${t.penjemputan?.tanggal || ''}">
+                    <td class="px-4 py-3 text-sm text-gray-600">${t.penjemputan?.tanggal || '-'}</td>
+                    <td class="px-4 py-3 text-sm">${itemsHtml}</td>
+                    <td class="px-4 py-3 text-sm font-bold text-right text-gray-900">Rp ${totalNilai.toLocaleString('id-ID')}</td>
+                </tr>`;
+            });
+            tbodyPembelian.innerHTML = htmlPembelian || '<tr><td colspan="3" class="text-center py-4">Data kosong</td></tr>';
+
+            // D. Fetch Pengeluaran
+            const { data: pengeluaran } = await window.supabase.from('pengeluaran')
+                .select('*, profiles(nama), rincian_pengeluaran(*)')
+                .order('tanggal', { ascending: false });
+            
+            const tbodyPengeluaran = document.getElementById('pengeluaran-tbody');
+            let htmlPeng = '';
+            pengeluaran?.forEach(p => {
+                let rincianHtml = '';
+                p.rincian_pengeluaran?.forEach(r => {
+                    rincianHtml += `<div class="flex justify-between text-gray-600"><span>${r.nama_item}</span><span class="font-medium">Rp ${Number(r.nominal).toLocaleString('id-ID')}</span></div>`;
+                });
+
+                let statusBtn = '';
+                if(p.status_approval === 'Menunggu') {
+                    statusBtn = `
+                    <div class="flex flex-col gap-1">
+                        <button onclick="window.approvePengeluaran('${p.id}', 'Disetujui')" class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold hover:bg-green-200">Setujui</button>
+                        <button onclick="window.approvePengeluaran('${p.id}', 'Ditolak')" class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold hover:bg-red-200">Tolak</button>
+                    </div>`;
+                } else {
+                    const color = p.status_approval === 'Disetujui' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                    statusBtn = `<span class="inline-flex px-2 py-1 rounded text-xs font-bold ${color}">${p.status_approval}</span>`;
+                }
+
+                htmlPeng += `
+                <tr class="hover:bg-gray-50" data-date="${p.tanggal}">
+                    <td class="px-4 py-3 text-sm">
+                        <div class="font-bold text-gray-900">${p.tanggal}</div>
+                        <div class="text-gray-500">${p.profiles?.nama || 'Unknown'}</div>
+                    </td>
+                    <td class="px-4 py-3 text-sm">
+                        ${rincianHtml}
+                        <div class="mt-1 pt-1 border-t border-gray-100 font-bold text-gray-900 flex justify-between">
+                            <span>Total:</span> <span>Rp ${Number(p.total_harian).toLocaleString('id-ID')}</span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-sm text-center">${statusBtn}</td>
+                </tr>`;
+            });
+            tbodyPengeluaran.innerHTML = htmlPeng || '<tr><td colspan="3" class="text-center py-4">Data kosong</td></tr>';
+
+            // E. Pisahkan Transaksi untuk Validasi
+            const trxMenunggu = transaksi?.filter(t => !t.is_paid_by_admin) || [];
+            const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
+
+            // Update Badge
+            const badge = document.getElementById('badge-validasi');
+            const countEl = document.getElementById('title-validasi-count');
+            if(badge && countEl) {
+                countEl.innerText = trxMenunggu.length;
+                if(trxMenunggu.length > 0) {
+                    badge.innerText = trxMenunggu.length;
+                    badge.classList.remove('hidden');
+                }
+            }
+
+            // Render List Menunggu Validasi
+            const valContainer = document.getElementById('validasi-container');
+            let htmlVal = '';
+            trxMenunggu.forEach(trx => {
+                const subtotal = trx.transaksi_item?.reduce((acc, i) => acc + (i.volume * (i.harga_unit||0)), 0) || 0;
+                const finalTotal = subtotal - (trx.potongan_dp || 0);
+                
+                let itemHtml = '';
+                trx.transaksi_item?.forEach(i => {
+                    itemHtml += `<div class="flex justify-between text-gray-700"><span>${i.komoditas} (${i.volume}kg @ ${i.harga_unit})</span><span>Rp ${(i.volume * (i.harga_unit||0)).toLocaleString('id-ID')}</span></div>`;
+                });
+
+                htmlVal += `
+                <div class="bg-white rounded-xl border border-red-200 p-6 shadow-sm">
+                    <div class="flex items-start justify-between mb-4 border-b border-gray-100 pb-4">
+                        <div>
+                            <h3 class="font-bold text-gray-900 text-lg">${trx.mitra?.nama_mitra || '-'}</h3>
+                            <p class="text-sm text-gray-500">Tgl Angkut: ${trx.penjemputan?.tanggal || '-'}</p>
+                        </div>
+                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Belum Lunas</span>
+                    </div>
+                    <div class="space-y-2 mb-4 text-sm">
+                        ${itemHtml}
+                        <div class="flex justify-between text-red-600 pt-2">
+                            <span>Potongan DP</span><span>- Rp ${Number(trx.potongan_dp || 0).toLocaleString('id-ID')}</span>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-200 pt-4 mb-6">
+                        <p class="text-sm text-gray-600 mb-1">Total Wajib Dibayar</p>
+                        <p class="text-3xl font-bold text-gray-900">Rp ${finalTotal.toLocaleString('id-ID')}</p>
+                    </div>
+                    <button onclick="window.validasiBayar('${trx.id}')" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-700 text-white rounded-xl hover:bg-green-800 transition font-bold active:scale-95">
+                        <i class="bi bi-check-circle"></i> Validasi Lunas
+                    </button>
+                </div>`;
+            });
+            valContainer.innerHTML = htmlVal || '<p class="text-gray-500">Tidak ada transaksi yang menunggu validasi.</p>';
+
+            // Render Riwayat Lunas
+            const tbodyLunas = document.getElementById('riwayat-lunas-tbody');
+            let htmlLunas = '';
+            trxSelesai.forEach(t => {
+                htmlLunas += `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 text-sm font-bold text-gray-900">${t.mitra?.nama_mitra || '-'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">${t.penjemputan?.tanggal || '-'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">${t.metode_bayar || '-'}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-green-700 text-right">Rp ${Number(t.grand_total || 0).toLocaleString('id-ID')}</td>
+                </tr>`;
+            });
+            tbodyLunas.innerHTML = htmlLunas || '<tr><td colspan="4" class="text-center py-4">Data kosong</td></tr>';
+
+            // F. Fetch Penjualan Olahan
+            const { data: penjualan } = await window.supabase.from('penjualan_olahan')
+                .select('*, gudang_komoditas(nama_komoditas)')
+                .order('tanggal', { ascending: false });
+            
+            const tbodyPenjualan = document.getElementById('penjualan-tbody');
+            let htmlPenjualan = '';
+            penjualan?.forEach(p => {
+                htmlPenjualan += `
+                <tr class="hover:bg-gray-50 penjualan-row" data-date="${p.tanggal}" data-total="${p.total_harga}">
+                    <td class="px-6 py-4 text-sm text-gray-600">${p.tanggal}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-gray-900">${p.pembeli}</td>
+                    <td class="px-6 py-4 text-sm text-gray-700">
+                        <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold mr-2">${p.gudang_komoditas?.nama_komoditas || '-'}</span>
+                        ${p.volume} Kg
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600 text-right">Rp ${Number(p.harga_satuan).toLocaleString('id-ID')}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-green-700 text-right">Rp ${Number(p.total_harga).toLocaleString('id-ID')}</td>
+                </tr>`;
+            });
+            tbodyPenjualan.innerHTML = htmlPenjualan || '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Belum ada data penjualan.</td></tr>';
+
+            // G. Dropdown Komoditas untuk Form Penjualan
+            const { data: komoditas } = await window.supabase.from('gudang_komoditas').select('id, nama_komoditas');
+            const selectKom = document.getElementById('pj_komoditas');
+            let htmlKom = '';
+            komoditas?.forEach(k => {
+                htmlKom += `<option value="${k.id}">${k.nama_komoditas}</option>`;
+            });
+            if(selectKom) selectKom.innerHTML = htmlKom;
+
+        } catch (error) {
+            console.error("Gagal load data keuangan:", error);
+        }
+    }
+
+    // Jalankan Load Data Utama
+    await loadKeuanganData();
+
+
+    // ==========================================
+// 2. TAB SWITCHING LOGIC (FIXED)
+// ==========================================
+const tabButtons = document.querySelectorAll('.tab-btn');
+const tabContents = document.querySelectorAll('.tab-content');
+
+tabButtons.forEach((button) => {
+  button.addEventListener('click', function() {
+    let tabName = this.getAttribute('data-tab');
+    
+    // PERBAIKAN: Map data-tab ke ID yang benar di HTML
+    const tabIdMap = {
+      'gaji': 'gaji',
+      'riwayat-gaji': 'riwayat-gaji-tab',  // ← PENTING: tambah -tab
+      'pembelian': 'pembelian',
+      'validasi': 'validasi',
+      'penjualan': 'penjualan'
+    };
+    
+    tabName = tabIdMap[tabName] || tabName; // Gunakan mapping, fallback ke original
+    
+    // Hide all tabs & reset buttons
+    tabButtons.forEach((btn) => {
+      btn.classList.remove('active', 'border-green-700', 'text-green-700');
+      btn.classList.add('border-transparent', 'text-gray-600');
+    });
+    tabContents.forEach((content) => {
+      content.classList.add('hidden');
+      content.classList.remove('block');
+    });
+    
+    // Show active tab & button
+    this.classList.add('active', 'border-green-700', 'text-green-700');
+    this.classList.remove('border-transparent', 'text-gray-600');
+    
+    const activeTab = document.getElementById(tabName);
+    if(activeTab) {
+      activeTab.classList.remove('hidden');
+      activeTab.classList.add('block');
+    } else {
+      console.warn(`Tab dengan ID '${tabName}' tidak ditemukan!`);
+    }
+  });
+});
+
+    // ==========================================
+    // 3. MODAL CONTROLS & FUNCTIONS (GLOBAL WINDOW)
+    // ==========================================
+    window.openModal = function(id) {
+        const m = document.getElementById(id);
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+        setTimeout(() => { m.classList.remove('opacity-0'); m.querySelector('div').classList.remove('scale-95'); }, 10);
+    }
+    
+    window.closeModal = function(id) {
+        const m = document.getElementById(id);
+        m.classList.add('opacity-0'); m.querySelector('div').classList.add('scale-95');
+        setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
+    }
+
+    // UPDATE PENGATURAN GLOBAL
+    document.getElementById('form-global-gaji')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if(!window.supabase) return;
+        const btn = e.target.querySelector('button[type="submit"]');
+        btn.innerText = "Menyimpan...";
+        
+        try {
+            await window.supabase.from('pengaturan_gaji_global').update({
+                uang_kesehatan: document.getElementById('g_kesehatan').value,
+                bonus_tepat_waktu: document.getElementById('g_tepatwaktu').value,
+                bonus_mingguan: document.getElementById('g_mingguan').value,
+                tarif_lembur_perjam: document.getElementById('g_lembur').value,
+            }).eq('id', 1);
+            alert('Pengaturan Global berhasil diperbarui!');
+            window.location.reload();
+        } catch (err) { alert(err.message); btn.innerText = "Simpan Pengaturan"; }
+    });
+
+    // BUKA MODAL DETAIL GAJI KARYAWAN
+    window.openModalGaji = function(empId) {
+        const emp = dataKaryawan.find(k => k.id === empId);
+        if(!emp) return;
+        
+        document.getElementById('m_karyawan_id').value = emp.id;
+        document.getElementById('m_nama_karyawan').innerText = emp.nama;
+        document.getElementById('m_tarif_jam').value = emp.tarif_gaji_perjam || 0;
+
+        const totalHadir = emp.presensi?.length || 0;
+        const tepatWaktuCount = emp.presensi?.filter(p => p.status_tiba === 'Tepat Waktu').length || 0;
+        
+        const baseGaji = totalHadir * 8 * (emp.tarif_gaji_perjam || 0);
+        const bonusTepatWaktu = tepatWaktuCount * (dataGlobalGaji?.bonus_tepat_waktu || 0);
+        const kesehatan = dataGlobalGaji?.uang_kesehatan || 0;
+        
+        const grandTotal = baseGaji + bonusTepatWaktu + kesehatan;
+
+        document.getElementById('m_rincian_list').innerHTML = `
+            <div class="flex justify-between"><span>Gaji Pokok (${totalHadir} Hari x 8 Jam)</span> <span class="font-medium text-gray-900">Rp ${baseGaji.toLocaleString('id-ID')}</span></div>
+            <div class="flex justify-between"><span>Bonus Tepat Waktu (${tepatWaktuCount}x)</span> <span class="font-medium text-green-600">+ Rp ${bonusTepatWaktu.toLocaleString('id-ID')}</span></div>
+            <div class="flex justify-between border-b pb-2"><span>Uang Kesehatan (Global)</span> <span class="font-medium text-green-600">+ Rp ${kesehatan.toLocaleString('id-ID')}</span></div>
+        `;
+        document.getElementById('m_total_gaji').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+
+        window.openModal('modal-detail-gaji');
+    };
+
+    // UPDATE TARIF GAJI PER JAM PERSONAL
+    window.updateTarifJam = async function() {
+        if(!window.supabase) return;
+        const empId = document.getElementById('m_karyawan_id').value;
+        const newTarif = document.getElementById('m_tarif_jam').value;
+        try {
+            await window.supabase.from('profiles').update({ tarif_gaji_perjam: newTarif }).eq('id', empId);
+            alert('Tarif per jam berhasil diupdate! Silakan refresh halaman.');
+        } catch (err) { alert(err.message); }
+    };
+
+    // FILTER TANGGAL PEMBELIAN & PENGELUARAN
+    window.filterTabelPengeluaran = function() {
+        const start = document.getElementById('filter-start-pengeluaran').value;
+        const end = document.getElementById('filter-end-pengeluaran').value;
+        if(!start || !end) return alert("Pilih tanggal awal dan akhir!");
+
+        document.querySelectorAll('#tabel-pembelian tbody tr').forEach(tr => {
+            const date = tr.getAttribute('data-date');
+            if(date) tr.style.display = (date >= start && date <= end) ? '' : 'none';
+        });
+
+        document.querySelectorAll('#tabel-pengeluaran tbody tr').forEach(tr => {
+            const date = tr.getAttribute('data-date');
+            if(date) tr.style.display = (date >= start && date <= end) ? '' : 'none';
+        });
+    };
+
+    // APPROVE/REJECT PENGELUARAN KARYAWAN
+    window.approvePengeluaran = async function(id, statusText) {
+        if(!confirm(`Yakin ingin mengubah status menjadi ${statusText}?`)) return;
+        if(!window.supabase) return;
+        try {
+            await window.supabase.from('pengeluaran').update({ status_approval: statusText }).eq('id', id);
+            window.location.reload();
+        } catch (err) { alert(err.message); }
+    };
+
+    // VALIDASI PEMBAYARAN MITRA LUNAS
+    window.validasiBayar = async function(trxId) {
+        if(!confirm('Tandai transaksi ini sudah dibayar LUNAS?')) return;
+        if(!window.supabase) return;
+        try {
+            await window.supabase.from('transaksi').update({ is_paid_by_admin: true }).eq('id', trxId);
+            window.location.reload();
+        } catch (err) { alert(err.message); }
+    };
+
+    // ==========================================
+    // 4. PENJUALAN OLAHAN FORM
+    // ==========================================
+    const pjVol = document.getElementById('pj_volume');
+    const pjHarga = document.getElementById('pj_harga');
+    const pjTotalDisplay = document.getElementById('pj_total_display');
+
+    function calcTotalPj() {
+        const vol = parseFloat(pjVol.value) || 0;
+        const hrg = parseFloat(pjHarga.value) || 0;
+        pjTotalDisplay.innerText = `Total: Rp ${(vol * hrg).toLocaleString('id-ID')}`;
+    }
+    pjVol?.addEventListener('input', calcTotalPj);
+    pjHarga?.addEventListener('input', calcTotalPj);
+
+    document.getElementById('form-penjualan')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if(!window.supabase) return;
+        
+        const btnSubmit = e.target.querySelector('button[type="submit"]');
+        btnSubmit.innerText = "Memproses...";
+        btnSubmit.disabled = true;
+
+        try {
+            const vol = parseFloat(pjVol.value);
+            const hrg = parseFloat(pjHarga.value);
+            const total = vol * hrg;
+            const k_id = document.getElementById('pj_komoditas').value;
+
+            await window.supabase.from('penjualan_olahan').insert([{
+                tanggal: document.getElementById('pj_tgl').value,
+                pembeli: document.getElementById('pj_pembeli').value,
+                komoditas_id: k_id,
+                volume: vol,
+                harga_satuan: hrg,
+                total_harga: total
+            }]);
+
+            const { data: gudang } = await window.supabase.from('gudang_komoditas').select('stok').eq('id', k_id).single();
+            await window.supabase.from('gudang_komoditas').update({ stok: gudang.stok - vol }).eq('id', k_id);
+            
+            await window.supabase.from('gudang_mutasi').insert([{
+                jenis_mutasi: 'Keluar', komoditas_id: k_id, jumlah: -vol, keterangan: 'Penjualan ke ' + document.getElementById('pj_pembeli').value
+            }]);
+
+            alert('Penjualan berhasil dicatat & stok terpotong!');
+            window.location.reload();
+        } catch(err) { 
+            alert(err.message); 
+            btnSubmit.innerText = "Simpan Penjualan";
+            btnSubmit.disabled = false;
+        }
+    });
+
+    // FILTER PENJUALAN & TOTAL
+    window.filterTabelPenjualan = function() {
+        const start = document.getElementById('filter-start-jual').value;
+        const end = document.getElementById('filter-end-jual').value;
+        if(!start || !end) return alert("Pilih tanggal awal dan akhir!");
+
+        let grandTotal = 0;
+        document.querySelectorAll('.penjualan-row').forEach(tr => {
+            const date = tr.getAttribute('data-date');
+            if (date >= start && date <= end) {
+                tr.style.display = '';
+                grandTotal += parseFloat(tr.getAttribute('data-total') || 0);
+            } else {
+                tr.style.display = 'none';
+            }
+        });
+
+        const footer = document.getElementById('footer-total-jual');
+        if(footer) {
+            footer.classList.remove('hidden');
+            document.getElementById('text-total-jual').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+        }
+    };
+  });
+  // ====================================================================
+    // PERBAIKAN: FUNGSI UNTUK MENAMPILKAN RIWAYAT GAJI (SLIP GAJI)
+    // ====================================================================
+    async function muatRiwayatGaji() {
+        const container = document.getElementById('riwayat-gaji-container');
+        if (!container) return;
+
+        const start = document.getElementById('filter-gaji-start')?.value || awalTahun;
+        const end = document.getElementById('filter-gaji-end')?.value || hariIni;
+
+        container.innerHTML = '<p class="text-gray-500 text-sm italic animate-pulse">Memuat data riwayat gaji...</p>';
+
+        // PERBAIKAN 1: Menggunakan 'supabase' langsung hasil import
+        // PERBAIKAN 2: Mengubah format tanggal gte/lte agar kompatibel dengan PostgreSQL
+        const { data: dataGaji, error } = await supabase
+            .from('slip_gaji')
+            .select(`
+                *, 
+                profiles!inner(nama, role)
+            `)
+            .neq('profiles.role', 'owner')
+            .gte('created_at', `${start} 00:00:00`)
+            .lte('created_at', `${end} 23:59:59`)
+            .order('created_at', { ascending: false });
+
+        // PERBAIKAN 3: Jika ada error database, langsung munculkan teksnya di layar
+        if (error) {
+            container.innerHTML = `
+                <div class="p-4 bg-red-50 text-red-700 rounded-xl text-xs">
+                    <p class="font-bold">Gagal mengambil data dari database:</p>
+                    <p class="italic mt-1">${error.message} (${error.code})</p>
+                    <p class="mt-2 text-[10px] text-gray-500">*Pastikan nama tabel 'slip_gaji' dan relasi ke 'profiles' sudah sesuai di Supabase.</p>
+                </div>
+            `;
+            console.error("Supabase Error:", error);
+            return;
+        }
+
+        if (!dataGaji || dataGaji.length === 0) {
+            container.innerHTML = `<p class="text-gray-500 text-sm italic py-4">Tidak ada riwayat pengeluaran gaji dari tanggal ${start} sampai ${end}.</p>`;
+            return;
+        }
+
+        // Looping untuk menggambar HTML masing-masing slip
+        container.innerHTML = dataGaji.map(slip => {
+            const isACC = slip.status === 'ACC' || slip.status_persetujuan === 'ACC';
+
+            return `
+                <div class="p-4 border border-gray-200 rounded-xl mb-3 bg-white shadow-sm">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-bold text-gray-900">${slip.profiles?.nama || 'Karyawan'}</p>
+                            <p class="text-xs text-gray-500">Periode: ${slip.periode || '-'}</p>
+                        </div>
+                        <span class="px-2 py-1 rounded text-xs font-bold ${isACC ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}">
+                            ${slip.status || 'Menunggu'}
+                        </span>
+                    </div>
+
+                    ${isACC ? `
+                        <div class="mt-2 text-xs space-y-1 border-t pt-2 border-dashed border-gray-300">
+                            <div class="flex justify-between"><span>Gaji Pokok:</span> <span>Rp ${Number(slip.gaji_pokok || 0).toLocaleString('id-ID')}</span></div>
+                            <div class="flex justify-between"><span>Tunjangan:</span> <span>Rp ${Number(slip.tunjangan || 0).toLocaleString('id-ID')}</span></div>
+                            <div class="flex justify-between text-red-600"><span>Potongan:</span> <span>-Rp ${Number(slip.potongan || 0).toLocaleString('id-ID')}</span></div>
+                            <div class="flex justify-between font-bold text-green-700 mt-1 pt-1 border-t">
+                                <span>Total Pengeluaran (ACC):</span> 
+                                <span>Rp ${Number(slip.total_diterima || 0).toLocaleString('id-ID')}</span>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="mt-2 text-xs text-amber-700 italic border-t pt-2 border-dashed border-gray-300">
+                            * Rincian disembunyikan sampai status disetujui (ACC).
+                        </div>
+                    `}
+                </div>
+            `;
+        }).join('');
+    }
+    document.getElementById('btn-filter-gaji')?.addEventListener('click', muatRiwayatGaji);
+</script>

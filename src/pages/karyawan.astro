@@ -1,33 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { supabase } from '../lib/supabase';
 
-// 1. Tarik Data Karyawan beserta Riwayat Presensinya
-const { data: daftarKaryawan, error } = await supabase
-    .from('profiles')
-    .select(`
-        id,
-        id_lapangan,
-        nama,
-        nomor_hp,
-        role,
-        tipe_kendaraan,
-        presensi (
-            tanggal,
-            waktu_tiba,
-            waktu_pulang,
-            status_tiba,
-            status_pulang
-        )
-    `)
-    .order('nama', { ascending: true });
-
-if (error) {
-    console.error("Gagal menarik data karyawan:", error);
-}
-
-// 2. Fungsi kecil untuk mengecek apakah karyawan absen hari ini
-const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
+// Sesuai dengan konsep SSG, frontmatter dikosongkan dari fetch data server
 ---
 
 <Layout title="Manajemen Karyawan - Bang Jelantah">
@@ -45,34 +19,10 @@ const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-md">
-            {daftarKaryawan && daftarKaryawan.map((karyawan) => {
-                // Cek status hari ini
-                const absenHariIni = karyawan.presensi?.find(p => p.tanggal === today);
-                const statusBadgeBg = absenHariIni ? 'bg-primary-container text-on-primary-container' : 'bg-surface-variant text-on-surface-variant';
-                const statusBadgeText = absenHariIni ? (absenHariIni.status_tiba === 'Telat' ? 'Telat' : 'Hadir') : 'Belum Absen';
-                
-                // Format inisial nama
-                const inisial = karyawan.nama.substring(0, 2).toUpperCase();
-
-                return (
-                    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex items-center gap-md hover:shadow-md cursor-pointer transition-shadow relative overflow-hidden" onclick={`openEmployeeDetail('${karyawan.id}')`}>
-                        {absenHariIni && <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>}
-                        
-                        <div class="w-12 h-12 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-md shrink-0">
-                            {inisial}
-                        </div>
-                        
-                        <div class="flex-1 min-w-0">
-                            <h3 class="font-label-lg text-label-lg text-on-surface truncate">{karyawan.nama}</h3>
-                            <p class="font-body-md text-body-md text-on-surface-variant truncate capitalize">{karyawan.tipe_kendaraan?.replace('_', ' ') || karyawan.role}</p>
-                        </div>
-                        <div class={`${statusBadgeBg} font-label-sm text-label-sm px-2 py-1 rounded-full shrink-0`}>
-                            {statusBadgeText}
-                        </div>
-                    </div>
-                );
-            })}
+        <div id="karyawan-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-md">
+            <div class="p-md text-on-surface-variant font-body-md">
+                Memuat data karyawan...
+            </div>
         </div>
     </div>
 
@@ -88,96 +38,152 @@ const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
         </div>
         
         <div class="flex-1 overflow-y-auto bg-surface-container-lowest">
-            <div class="p-lg flex flex-col gap-xl">
-                
-                <section class="flex flex-col items-center text-center gap-md">
-                    <div class="w-24 h-24 rounded-full bg-surface-variant border-2 border-surface-container-high flex items-center justify-center text-on-surface-variant text-4xl font-bold" id="detail-inisial">
-                        --
-                    </div>
-                    <div>
-                        <h3 class="font-headline-md text-headline-md font-bold text-on-surface" id="detail-nama">Nama Karyawan</h3>
-                        <p class="font-body-md text-body-md text-on-surface-variant" id="detail-id">ID: ---</p>
-                    </div>
-                </section>
-
-                <section class="bg-surface border border-outline-variant rounded-xl p-md flex flex-col gap-sm">
-                    <div class="grid grid-cols-[100px_1fr] gap-sm py-xs border-b border-surface-variant">
-                        <span class="font-label-sm text-label-sm text-on-surface-variant">Posisi</span>
-                        <span class="font-body-md text-body-md text-on-surface font-medium capitalize" id="detail-posisi">-</span>
-                    </div>
-                    <div class="grid grid-cols-[100px_1fr] gap-sm py-xs border-b border-surface-variant">
-                        <span class="font-label-sm text-label-sm text-on-surface-variant">No. HP</span>
-                        <span class="font-body-md text-body-md text-on-surface font-medium" id="detail-hp">-</span>
-                    </div>
-                </section>
-
-                <section>
-                    <h4 class="font-label-lg text-label-lg font-bold text-on-surface mb-md">Riwayat Kehadiran Terakhir</h4>
-                    <div id="riwayat-container" class="flex flex-col relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-surface-variant gap-lg ml-xs">
-                        </div>
-                </section>
+            <div id="detail-content" class="p-lg flex flex-col">
+                <p class="text-on-surface-variant font-body-md">Pilih salah satu karyawan untuk melihat detail.</p>
             </div>
         </div>
     </div>
 
-    <script is:inline define:vars={{ daftarKaryawan }}>
-        window.openEmployeeDetail = function(id) {
-            // Cari data karyawan berdasarkan ID
-            const karyawan = daftarKaryawan.find(k => k.id === id);
-            if (!karyawan) return;
+    <script>
+        import { supabase } from '../lib/supabase';
 
-            // 1. Update UI Identitas
-            document.getElementById('detail-nama').innerText = karyawan.nama;
-            document.getElementById('detail-id').innerText = 'ID: ' + karyawan.id_lapangan;
-            document.getElementById('detail-posisi').innerText = karyawan.tipe_kendaraan?.replace('_', ' ') || karyawan.role;
-            document.getElementById('detail-hp').innerText = karyawan.nomor_hp || 'Belum diatur';
-            document.getElementById('detail-inisial').innerText = karyawan.nama.substring(0, 2).toUpperCase();
+        const container = document.getElementById('karyawan-container');
+        const today = new Date().toISOString().split('T')[0];
 
-            // 2. Render Riwayat Presensi
-            const riwayatContainer = document.getElementById('riwayat-container');
-            riwayatContainer.innerHTML = ''; // Bersihkan kontainer lama
+        // Menyimpan data secara global di browser agar bisa diakses saat diklik
+        window.daftarKaryawan = [];
 
-            // Urutkan presensi dari yang paling baru
-            const presensi = karyawan.presensi || [];
-            const presensiSorted = presensi.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+        // 1. Ambil data dari Supabase di sisi Client (Browser)
+        async function fetchKaryawan() {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select(`
+                    id,
+                    id_lapangan,
+                    nama,
+                    nomor_hp,
+                    role,
+                    tipe_kendaraan,
+                    presensi (
+                        tanggal,
+                        waktu_tiba,
+                        waktu_pulang,
+                        status_tiba,
+                        status_pulang
+                    )
+                `)
+                .order('nama', { ascending: true });
 
-            if (presensiSorted.length === 0) {
-                riwayatContainer.innerHTML = '<p class="font-body-md text-body-md text-on-surface-variant italic">Belum ada riwayat kehadiran.</p>';
-            } else {
-                // Ambil maksimal 5 riwayat terakhir
-                const top5Presensi = presensiSorted.slice(0, 5);
-                
-                let htmlRiwayat = '';
-                top5Presensi.forEach(p => {
-                    const isTelat = p.status_tiba?.toLowerCase().includes('telat');
-                    
-                    // Set warna dan icon berdasarkan status
-                    const bgColorClass = isTelat ? 'bg-error' : 'bg-primary';
-                    const iconText = isTelat ? 'schedule' : 'check';
-                    const badgeBgClass = isTelat ? 'bg-error-container text-on-error-container' : 'bg-primary-container text-on-primary-container';
-                    const statusText = p.status_tiba || 'Hadir';
-
-                    htmlRiwayat += `
-                        <div class="relative flex gap-md items-start">
-                            <div class="w-6 h-6 rounded-full ${bgColorClass} flex items-center justify-center shrink-0 z-10 outline outline-4 outline-surface-container-lowest">
-                                <span class="material-symbols-outlined text-[14px] text-white">${iconText}</span>
-                            </div>
-                            <div class="flex-1 bg-surface border border-outline-variant p-sm rounded-lg shadow-sm">
-                                <div class="flex justify-between items-center mb-xs">
-                                    <span class="font-label-sm text-label-sm text-on-surface font-bold">${p.tanggal} ${p.waktu_tiba ? `, ${p.waktu_tiba.substring(0,5)}` : ''}</span>
-                                    <span class="${badgeBgClass} text-[10px] uppercase font-bold px-2 py-1 rounded-sm tracking-wider">${statusText}</span>
-                                </div>
-                                <p class="font-body-md text-body-md text-on-surface-variant">
-                                    ${p.waktu_pulang ? `Pulang: ${p.waktu_pulang.substring(0,5)} (${p.status_pulang || '-'})` : 'Belum absen pulang.'}
-                                </p>
-                            </div>
-                        </div>
-                    `;
-                });
-                riwayatContainer.innerHTML = htmlRiwayat;
+            if (error) {
+                console.error("Gagal menarik data karyawan:", error);
+                container.innerHTML = '<p class="text-error p-md">Terjadi kesalahan memuat data.</p>';
+                return;
             }
 
-            // 3. Animasi Panel Slide
+            window.daftarKaryawan = data || [];
+            renderKaryawan(window.daftarKaryawan);
+        }
+
+        // 2. Tampilkan daftar kartu karyawan di halaman utama
+        function renderKaryawan(dataKaryawan) {
+            if (dataKaryawan.length === 0) {
+                container.innerHTML = '<p class="text-on-surface-variant p-md">Belum ada data karyawan.</p>';
+                return;
+            }
+
+            const html = dataKaryawan.map((karyawan) => {
+                const absenHariIni = karyawan.presensi?.find(p => p.tanggal === today);
+                const statusBadgeBg = absenHariIni ? 'bg-primary-container text-on-primary-container' : 'bg-surface-variant text-on-surface-variant';
+                const statusBadgeText = absenHariIni ? (absenHariIni.status_tiba === 'Telat' ? 'Telat' : 'Hadir') : 'Belum Absen';
+                const inisial = karyawan.nama.substring(0, 2).toUpperCase();
+                const jabatan = karyawan.tipe_kendaraan ? karyawan.tipe_kendaraan.replace('_', ' ') : karyawan.role;
+
+                return `
+                    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex items-center gap-md hover:shadow-md cursor-pointer transition-shadow relative overflow-hidden" onclick="openEmployeeDetail('${karyawan.id}')">
+                        ${absenHariIni ? '<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>' : ''}
+                        
+                        <div class="w-12 h-12 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-md shrink-0">
+                            ${inisial}
+                        </div>
+                        
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-label-lg text-label-lg text-on-surface truncate">${karyawan.nama}</h3>
+                            <p class="font-body-md text-body-md text-on-surface-variant truncate capitalize">${jabatan}</p>
+                        </div>
+                        <div class="${statusBadgeBg} font-label-sm text-label-sm px-2 py-1 rounded-full shrink-0">
+                            ${statusBadgeText}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        // Jalankan fetch saat dokumen siap
+        document.addEventListener('DOMContentLoaded', fetchKaryawan);
+        // Simpan data karyawan yang sedang dibuka ke variabel global agar bisa difilter
+        window.currentEmployee = null;
+        // =======================================================
+        // FUNGSI ISI DATA PANEL SAMPING SAAT KARTU DIKLIK
+        // =======================================================
+        window.openEmployeeDetail = function(id) {
+            const karyawan = window.daftarKaryawan.find(k => k.id === id);
+            if (!karyawan) return;
+            
+            window.currentEmployee = karyawan; // Set karyawan aktif
+
+            const detailContent = document.getElementById('detail-content');
+            const jabatan = karyawan.tipe_kendaraan ? karyawan.tipe_kendaraan.replace('_', ' ') : karyawan.role;
+            const inisial = karyawan.nama.substring(0, 2).toUpperCase();
+
+            // Suntikkan seluruh kerangka detail & Input Filter Tanggal
+            detailContent.innerHTML = `
+                <div class="flex flex-col items-center gap-sm border-b border-outline-variant pb-lg mb-lg">
+                    <div class="w-20 h-20 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-lg mb-xs">
+                        ${inisial}
+                    </div>
+                    <h3 class="font-headline-sm text-on-surface font-bold text-center">${karyawan.nama}</h3>
+                    <span class="bg-surface-variant text-on-surface-variant px-3 py-1 rounded-full font-label-md capitalize">${jabatan}</span>
+                </div>
+
+                <div class="flex flex-col gap-md border-b border-outline-variant pb-lg mb-lg">
+                    <h4 class="font-label-lg text-primary font-bold">Informasi Profil</h4>
+                    <div class="grid grid-cols-3 gap-y-xs font-body-md">
+                        <div class="text-on-surface-variant">ID Lapangan</div>
+                        <div class="col-span-2 text-on-surface font-medium">: ${karyawan.id_lapangan || '-'}</div>
+                        
+                        <div class="text-on-surface-variant">No. HP</div>
+                        <div class="col-span-2 text-on-surface font-medium">: ${karyawan.nomor_hp || '-'}</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-md">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-label-lg text-primary font-bold">Riwayat Presensi</h4>
+                    </div>
+
+                    <div class="flex gap-2 items-center bg-surface-container-lowest p-2 rounded-lg border border-outline-variant">
+                        <div class="flex flex-col w-full">
+                            <label class="text-[10px] text-on-surface-variant">Dari</label>
+                            <input type="date" id="filter-start" max="${today}" class="text-sm bg-transparent border-none outline-none text-on-surface cursor-pointer" onchange="filterRiwayat()">
+                        </div>
+                        <span class="text-on-surface-variant">-</span>
+                        <div class="flex flex-col w-full">
+                            <label class="text-[10px] text-on-surface-variant">Sampai</label>
+                            <input type="date" id="filter-end" max="${today}" value="${today}" class="text-sm bg-transparent border-none outline-none text-on-surface cursor-pointer" onchange="filterRiwayat()">
+                        </div>
+                    </div>
+
+                    <div id="riwayat-container" class="flex flex-col gap-sm max-h-[350px] overflow-y-auto pr-xs mt-xs">
+                    </div>
+                </div>
+            `;
+
+            // Panggil render riwayat pertama kali saat panel dibuka
+            filterRiwayat();
+
+            // Jalankan Animasi Slide Panel Samping
             const panel = document.getElementById('employee-detail-panel');
             const backdrop = document.getElementById('employee-detail-backdrop');
             
@@ -188,6 +194,55 @@ const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
             panel.classList.add('translate-x-0');
         };
 
+        // =======================================================
+        // FUNGSI FILTER & RENDER RIWAYAT ABSEN
+        // =======================================================
+        window.filterRiwayat = function() {
+            if (!window.currentEmployee) return;
+
+            const startDate = document.getElementById('filter-start').value;
+            const endDate = document.getElementById('filter-end').value || today;
+            const riwayatContainer = document.getElementById('riwayat-container');
+
+            let presensi = window.currentEmployee.presensi || [];
+
+            // Proses Filter Tanggal
+            let riwayatTersaring = presensi.filter(p => {
+                let valid = true;
+                if (startDate) valid = valid && p.tanggal >= startDate;
+                if (endDate) valid = valid && p.tanggal <= endDate;
+                return valid;
+            });
+
+            // Urutkan dari yang terbaru (opsional, agar yang absen hari ini paling atas)
+            riwayatTersaring.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+
+            // Render ke HTML
+            if (riwayatTersaring.length === 0) {
+                riwayatContainer.innerHTML = '<p class="text-on-surface-variant font-body-md text-center py-md">Tidak ada riwayat absen pada tanggal tersebut.</p>';
+                return;
+            }
+
+            riwayatContainer.innerHTML = riwayatTersaring.map(p => {
+                const statusText = p.status_tiba || '-';
+                const statusColor = p.status_tiba === 'Telat' ? 'bg-error-container text-on-error-container' : 'bg-primary-container text-on-primary-container';
+                
+                return `
+                    <div class="border-b border-outline-variant pb-sm mb-sm last:border-none last:pb-0 last:mb-0">
+                        <div class="flex justify-between items-center mb-xs">
+                            <span class="font-label-md text-on-surface font-semibold">${p.tanggal}</span>
+                            <span class="${statusColor} text-[10px] px-2 py-0.5 rounded-full font-bold tracking-wider uppercase">${statusText}</span>
+                        </div>
+                        <p class="font-body-md text-body-md text-on-surface-variant">
+                            Tiba: ${p.waktu_tiba ? p.waktu_tiba.substring(0,5) : '-'} | 
+                            ${p.waktu_pulang ? `Pulang: ${p.waktu_pulang.substring(0,5)} (${p.status_pulang || '-'})` : 'Belum absen pulang.'}
+                        </p>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        // Fungsi Menutup Panel
         window.closeEmployeeDetail = function() {
             const panel = document.getElementById('employee-detail-panel');
             const backdrop = document.getElementById('employee-detail-backdrop');

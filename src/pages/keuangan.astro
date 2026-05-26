@@ -16,6 +16,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
       <button class="tab-btn active px-4 py-3 font-medium transition border-b-2 border-green-700 text-green-700" data-tab="gaji">
         <i class="bi bi-wallet2 mr-2"></i> Gaji Karyawan
       </button>
+      <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="riwayat-gaji">
+        <i class="bi bi-clock-history mr-2"></i> Riwayat Gaji Karyawan
+      </button>
       <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="pembelian">
         <i class="bi bi-cart-check mr-2"></i> Beli & Pengeluaran
       </button>
@@ -40,6 +43,30 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         <p class="text-gray-500">Memuat data gaji...</p>
     </div>
   </div>
+
+    <div class="tab-content hidden" id="riwayat-gaji-tab">
+      <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-4">Filter Riwayat Gaji Tahun Berjalan</h3>
+
+        <div class="flex flex-wrap gap-4 items-end">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">Dari Tanggal</label>
+            <input type="date" id="filter-gaji-start" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-700" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+            <input type="date" id="filter-gaji-end" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-700" />
+          </div>
+          <button id="btn-filter-gaji" class="bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-800 transition">
+            Saring Riwayat
+          </button>
+        </div>
+      </div>
+
+      <div id="riwayat-gaji-container" class="space-y-4">
+        <p class="text-gray-500 text-sm italic">Pilih filter tanggal untuk memuat riwayat.</p>
+      </div>
+    </div>
 
   <div id="pembelian" class="tab-content hidden">
     <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex flex-wrap gap-4 items-end">
@@ -293,6 +320,23 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
   let dataKaryawan = [];
 
   document.addEventListener('DOMContentLoaded', async () => {
+    //Setup Batasan Tanggal Otomatis
+    const tahunAktif = new Date().getFullYear();
+        const awalTahun = `${tahunAktif}-01-01`; 
+        const hariIni = new Date().toISOString().split('T')[0];
+
+        const inputStart = document.getElementById('filter-gaji-start');
+        const inputEnd = document.getElementById('filter-gaji-end');
+
+        if (inputStart && inputEnd) {
+            inputStart.min = awalTahun;
+            inputStart.max = hariIni;
+            inputStart.value = awalTahun; 
+
+            inputEnd.min = awalTahun;
+            inputEnd.max = hariIni;
+            inputEnd.value = hariIni; 
+        }
     
     // ==========================================
     // 1. FETCH DATA KEUANGAN (CLIENT-SIDE)
@@ -312,9 +356,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             }
 
             // B. Fetch Karyawan
-            const { data: karyawan } = await window.supabase.from('profiles')
+            const { data: karyawan } = await window.supabase
+                .from('profiles')
                 .select('id, nama, role, tipe_kendaraan, tarif_gaji_perjam, presensi(tanggal, status_tiba, status_pulang)')
-                .in('role', ['lapangan', 'admin', 'office']);
+                .neq('role', 'owner');
             dataKaryawan = karyawan || [];
             
             const contKaryawan = document.getElementById('gaji-karyawan-container');
@@ -737,6 +782,84 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             document.getElementById('text-total-jual').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
         }
     };
-
   });
+  // ====================================================================
+    // PERBAIKAN: FUNGSI UNTUK MENAMPILKAN RIWAYAT GAJI (SLIP GAJI)
+    // ====================================================================
+    async function muatRiwayatGaji() {
+        const container = document.getElementById('riwayat-gaji-container');
+        if (!container) return;
+
+        const start = document.getElementById('filter-gaji-start')?.value || awalTahun;
+        const end = document.getElementById('filter-gaji-end')?.value || hariIni;
+
+        container.innerHTML = '<p class="text-gray-500 text-sm italic animate-pulse">Memuat data riwayat gaji...</p>';
+
+        // PERBAIKAN 1: Menggunakan 'supabase' langsung hasil import
+        // PERBAIKAN 2: Mengubah format tanggal gte/lte agar kompatibel dengan PostgreSQL
+        const { data: dataGaji, error } = await supabase
+            .from('slip_gaji')
+            .select(`
+                *, 
+                profiles!inner(nama, role)
+            `)
+            .neq('profiles.role', 'owner')
+            .gte('created_at', `${start} 00:00:00`)
+            .lte('created_at', `${end} 23:59:59`)
+            .order('created_at', { ascending: false });
+
+        // PERBAIKAN 3: Jika ada error database, langsung munculkan teksnya di layar
+        if (error) {
+            container.innerHTML = `
+                <div class="p-4 bg-red-50 text-red-700 rounded-xl text-xs">
+                    <p class="font-bold">Gagal mengambil data dari database:</p>
+                    <p class="italic mt-1">${error.message} (${error.code})</p>
+                    <p class="mt-2 text-[10px] text-gray-500">*Pastikan nama tabel 'slip_gaji' dan relasi ke 'profiles' sudah sesuai di Supabase.</p>
+                </div>
+            `;
+            console.error("Supabase Error:", error);
+            return;
+        }
+
+        if (!dataGaji || dataGaji.length === 0) {
+            container.innerHTML = `<p class="text-gray-500 text-sm italic py-4">Tidak ada riwayat pengeluaran gaji dari tanggal ${start} sampai ${end}.</p>`;
+            return;
+        }
+
+        // Looping untuk menggambar HTML masing-masing slip
+        container.innerHTML = dataGaji.map(slip => {
+            const isACC = slip.status === 'ACC' || slip.status_persetujuan === 'ACC';
+
+            return `
+                <div class="p-4 border border-gray-200 rounded-xl mb-3 bg-white shadow-sm">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-bold text-gray-900">${slip.profiles?.nama || 'Karyawan'}</p>
+                            <p class="text-xs text-gray-500">Periode: ${slip.periode || '-'}</p>
+                        </div>
+                        <span class="px-2 py-1 rounded text-xs font-bold ${isACC ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}">
+                            ${slip.status || 'Menunggu'}
+                        </span>
+                    </div>
+
+                    ${isACC ? `
+                        <div class="mt-2 text-xs space-y-1 border-t pt-2 border-dashed border-gray-300">
+                            <div class="flex justify-between"><span>Gaji Pokok:</span> <span>Rp ${Number(slip.gaji_pokok || 0).toLocaleString('id-ID')}</span></div>
+                            <div class="flex justify-between"><span>Tunjangan:</span> <span>Rp ${Number(slip.tunjangan || 0).toLocaleString('id-ID')}</span></div>
+                            <div class="flex justify-between text-red-600"><span>Potongan:</span> <span>-Rp ${Number(slip.potongan || 0).toLocaleString('id-ID')}</span></div>
+                            <div class="flex justify-between font-bold text-green-700 mt-1 pt-1 border-t">
+                                <span>Total Pengeluaran (ACC):</span> 
+                                <span>Rp ${Number(slip.total_diterima || 0).toLocaleString('id-ID')}</span>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="mt-2 text-xs text-amber-700 italic border-t pt-2 border-dashed border-gray-300">
+                            * Rincian disembunyikan sampai status disetujui (ACC).
+                        </div>
+                    `}
+                </div>
+            `;
+        }).join('');
+    }
+    document.getElementById('btn-filter-gaji')?.addEventListener('click', muatRiwayatGaji);
 </script>

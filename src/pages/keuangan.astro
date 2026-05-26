@@ -1,41 +1,6 @@
 ---
 import GeneralLayout from '../layouts/Layout.astro';
-import { supabase } from '../lib/supabase';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-
-// 1. Fetch Pengaturan Gaji Global
-const { data: globalGaji } = await supabase.from('pengaturan_gaji_global').select('*').single();
-
-// 2. Fetch Karyawan + Presensi & Gaji History
-const { data: karyawan } = await supabase
-  .from('profiles')
-  .select('id, nama, role, tipe_kendaraan, tarif_gaji_perjam, presensi(tanggal, status_tiba, status_pulang)')
-  .in('role', ['lapangan', 'admin', 'office']);
-
-// 3. Fetch Transaksi (Pembelian dari Mitra)
-const { data: transaksi } = await supabase
-  .from('transaksi')
-  .select('*, mitra(nama_mitra), transaksi_item(komoditas, volume, harga_unit), penjemputan(tanggal)')
-  .order('created_at', { ascending: false });
-
-// 4. Fetch Pengeluaran (Kas Jalan)
-const { data: pengeluaran } = await supabase
-  .from('pengeluaran')
-  .select('*, profiles(nama), rincian_pengeluaran(*)')
-  .order('tanggal', { ascending: false });
-
-// 5. Fetch Penjualan Olahan
-const { data: penjualan } = await supabase
-  .from('penjualan_olahan')
-  .select('*, gudang_komoditas(nama_komoditas)')
-  .order('tanggal', { ascending: false });
-
-// 6. Fetch Komoditas Gudang (Buat Form Penjualan)
-const { data: komoditas } = await supabase.from('gudang_komoditas').select('id, nama_komoditas');
-
-// Filter Data untuk Tab Validasi Pembayaran
-const trxMenunggu = transaksi?.filter(t => !t.is_paid_by_admin) || [];
-const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
 ---
 
 <GeneralLayout title="Keuangan - Manajemen Bang Jelantah">
@@ -56,7 +21,7 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
       </button>
       <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="validasi">
         <i class="bi bi-shield-check mr-2"></i> Validasi Bayar
-        {trxMenunggu.length > 0 && <span class="ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-red-700 text-xs font-bold">{trxMenunggu.length}</span>}
+        <span id="badge-validasi" class="hidden ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-red-700 text-xs font-bold">0</span>
       </button>
       <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="penjualan">
         <i class="bi bi-graph-up-arrow mr-2"></i> Penjualan Olahan
@@ -71,39 +36,12 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
             <i class="bi bi-gear"></i> Setting Gaji Global
         </button>
     </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {karyawan?.map((k) => (
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
-          <div class="bg-gradient-to-r from-green-50 to-green-100 px-6 py-4 flex items-center justify-between border-b border-green-200">
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 rounded-full bg-green-700 text-white flex items-center justify-center font-bold text-lg">
-                {k.nama.charAt(0)}
-              </div>
-              <div>
-                <h3 class="font-bold text-gray-900">{k.nama}</h3>
-                <p class="text-sm text-gray-600 capitalize">{k.tipe_kendaraan?.replace('_', ' ') || k.role}</p>
-              </div>
-            </div>
-          </div>
-          
-          <div class="p-6 flex-1 flex flex-col">
-            <div class="space-y-2 mb-6 text-sm">
-                <div class="flex justify-between"><span class="text-gray-500">Tarif per Jam:</span> <span class="font-medium">Rp {Number(k.tarif_gaji_perjam).toLocaleString('id-ID')}</span></div>
-                <div class="flex justify-between"><span class="text-gray-500">Hadir Bulan Ini:</span> <span class="font-medium text-green-600">{k.presensi?.length || 0} Hari</span></div>
-            </div>
-            
-            <button onclick={`openModalGaji('${k.id}')`} class="mt-auto w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-green-700 text-green-700 rounded-xl font-bold hover:bg-green-50 transition active:scale-95">
-              <i class="bi bi-calculator"></i> Hitung & Rincian
-            </button>
-          </div>
-        </div>
-      ))}
+    <div id="gaji-karyawan-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <p class="text-gray-500">Memuat data gaji...</p>
     </div>
   </div>
 
   <div id="pembelian" class="tab-content hidden">
-    
     <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex flex-wrap gap-4 items-end">
         <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Mulai Tanggal</label>
@@ -129,21 +67,8 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
                             <th class="px-4 py-3 text-sm font-bold text-gray-900 text-right">Nilai (Rp)</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        {transaksi?.map(t => {
-                            const totalNilai = t.transaksi_item?.reduce((acc, item) => acc + (item.volume * (item.harga_unit || 0)), 0) || 0;
-                            return (
-                                <tr class="hover:bg-gray-50" data-date={t.penjemputan?.tanggal}>
-                                    <td class="px-4 py-3 text-sm text-gray-600">{t.penjemputan?.tanggal || '-'}</td>
-                                    <td class="px-4 py-3 text-sm">
-                                        {t.transaksi_item?.map(item => (
-                                            <div class="text-gray-900 font-medium">• {item.komoditas}: {item.volume} Kg</div>
-                                        ))}
-                                    </td>
-                                    <td class="px-4 py-3 text-sm font-bold text-right text-gray-900">Rp {totalNilai.toLocaleString('id-ID')}</td>
-                                </tr>
-                            )
-                        })}
+                    <tbody id="pembelian-tbody" class="divide-y divide-gray-200">
+                        <tr><td colspan="3" class="text-center py-4">Memuat...</td></tr>
                     </tbody>
                 </table>
                 </div>
@@ -164,38 +89,8 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
                             <th class="px-4 py-3 text-sm font-bold text-gray-900 text-center">Status</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        {pengeluaran?.map(p => (
-                            <tr class="hover:bg-gray-50" data-date={p.tanggal}>
-                                <td class="px-4 py-3 text-sm">
-                                    <div class="font-bold text-gray-900">{p.tanggal}</div>
-                                    <div class="text-gray-500">{p.profiles?.nama}</div>
-                                </td>
-                                <td class="px-4 py-3 text-sm">
-                                    {p.rincian_pengeluaran?.map(r => (
-                                        <div class="flex justify-between text-gray-600">
-                                            <span>{r.nama_item}</span>
-                                            <span class="font-medium">Rp {Number(r.nominal).toLocaleString('id-ID')}</span>
-                                        </div>
-                                    ))}
-                                    <div class="mt-1 pt-1 border-t border-gray-100 font-bold text-gray-900 flex justify-between">
-                                        <span>Total:</span> <span>Rp {Number(p.total_harian).toLocaleString('id-ID')}</span>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3 text-sm text-center">
-                                    {p.status_approval === 'Menunggu' ? (
-                                        <div class="flex flex-col gap-1">
-                                            <button onclick={`approvePengeluaran('${p.id}', 'Disetujui')`} class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold hover:bg-green-200">Setujui</button>
-                                            <button onclick={`approvePengeluaran('${p.id}', 'Ditolak')`} class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold hover:bg-red-200">Tolak</button>
-                                        </div>
-                                    ) : (
-                                        <span class={`inline-flex px-2 py-1 rounded text-xs font-bold ${p.status_approval === 'Disetujui' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                            {p.status_approval}
-                                        </span>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
+                    <tbody id="pengeluaran-tbody" class="divide-y divide-gray-200">
+                        <tr><td colspan="3" class="text-center py-4">Memuat...</td></tr>
                     </tbody>
                 </table>
                 </div>
@@ -208,48 +103,11 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
     <div class="mb-8">
       <div class="flex items-center gap-2 mb-6">
         <i class="bi bi-exclamation-triangle text-red-600 text-xl"></i>
-        <h2 class="text-xl font-bold text-gray-900">Menunggu Validasi ({trxMenunggu.length})</h2>
+        <h2 class="text-xl font-bold text-gray-900">Menunggu Validasi (<span id="title-validasi-count">0</span>)</h2>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {trxMenunggu.map((trx) => {
-            const totalKg = trx.transaksi_item?.reduce((acc, i) => acc + i.volume, 0) || 0;
-            const subtotal = trx.transaksi_item?.reduce((acc, i) => acc + (i.volume * (i.harga_unit||0)), 0) || 0;
-            const finalTotal = subtotal - (trx.potongan_dp || 0);
-
-            return (
-            <div class="bg-white rounded-xl border border-red-200 p-6 shadow-sm">
-                <div class="flex items-start justify-between mb-4 border-b border-gray-100 pb-4">
-                    <div>
-                        <h3 class="font-bold text-gray-900 text-lg">{trx.mitra?.nama_mitra}</h3>
-                        <p class="text-sm text-gray-500">Tgl Angkut: {trx.penjemputan?.tanggal}</p>
-                    </div>
-                    <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Belum Lunas</span>
-                </div>
-
-                <div class="space-y-2 mb-4 text-sm">
-                    {trx.transaksi_item?.map(i => (
-                        <div class="flex justify-between text-gray-700">
-                            <span>{i.komoditas} ({i.volume}kg @ {i.harga_unit})</span>
-                            <span>Rp {(i.volume * (i.harga_unit||0)).toLocaleString('id-ID')}</span>
-                        </div>
-                    ))}
-                    <div class="flex justify-between text-red-600 pt-2">
-                        <span>Potongan DP</span>
-                        <span>- Rp {Number(trx.potongan_dp).toLocaleString('id-ID')}</span>
-                    </div>
-                </div>
-
-                <div class="border-t border-gray-200 pt-4 mb-6">
-                    <p class="text-sm text-gray-600 mb-1">Total Wajib Dibayar</p>
-                    <p class="text-3xl font-bold text-gray-900">Rp {finalTotal.toLocaleString('id-ID')}</p>
-                </div>
-
-                <button onclick={`validasiBayar('${trx.id}')`} class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-700 text-white rounded-xl hover:bg-green-800 transition font-bold active:scale-95">
-                    <i class="bi bi-check-circle"></i> Validasi Lunas
-                </button>
-            </div>
-        )})}
+      <div id="validasi-container" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+         <p class="text-gray-500">Memuat data validasi...</p>
       </div>
     </div>
 
@@ -269,18 +127,11 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
                       <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right">Nominal</th>
                   </tr>
               </thead>
-              <tbody class="divide-y divide-gray-100">
-                  {trxSelesai.map(t => (
-                      <tr class="hover:bg-gray-50">
-                          <td class="px-6 py-4 text-sm font-bold text-gray-900">{t.mitra?.nama_mitra}</td>
-                          <td class="px-6 py-4 text-sm text-gray-600">{t.penjemputan?.tanggal}</td>
-                          <td class="px-6 py-4 text-sm text-gray-600">{t.metode_bayar || '-'}</td>
-                          <td class="px-6 py-4 text-sm font-bold text-green-700 text-right">Rp {Number(t.grand_total).toLocaleString('id-ID')}</td>
-                      </tr>
-                  ))}
+              <tbody id="riwayat-lunas-tbody" class="divide-y divide-gray-100">
+                  <tr><td colspan="4" class="text-center py-4">Memuat...</td></tr>
               </tbody>
           </table>
-      </div>
+       </div>
     </div>
   </div>
 
@@ -315,21 +166,8 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
                       <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right">Total Transaksi</th>
                   </tr>
               </thead>
-              <tbody class="divide-y divide-gray-100">
-                  {penjualan?.length > 0 ? penjualan.map(p => (
-                      <tr class="hover:bg-gray-50 penjualan-row" data-date={p.tanggal} data-total={p.total_harga}>
-                          <td class="px-6 py-4 text-sm text-gray-600">{p.tanggal}</td>
-                          <td class="px-6 py-4 text-sm font-bold text-gray-900">{p.pembeli}</td>
-                          <td class="px-6 py-4 text-sm text-gray-700">
-                              <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold mr-2">{p.gudang_komoditas?.nama_komoditas}</span>
-                              {p.volume} Kg
-                          </td>
-                          <td class="px-6 py-4 text-sm text-gray-600 text-right">Rp {Number(p.harga_satuan).toLocaleString('id-ID')}</td>
-                          <td class="px-6 py-4 text-sm font-bold text-green-700 text-right">Rp {Number(p.total_harga).toLocaleString('id-ID')}</td>
-                      </tr>
-                  )) : (
-                      <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Belum ada data penjualan tercatat.</td></tr>
-                  )}
+              <tbody id="penjualan-tbody" class="divide-y divide-gray-100">
+                  <tr><td colspan="5" class="text-center py-4">Memuat...</td></tr>
               </tbody>
               <tfoot class="bg-gray-50 border-t border-gray-200 hidden" id="footer-total-jual">
                   <tr>
@@ -340,7 +178,6 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
           </table>
       </div>
   </div>
-
 </GeneralLayout>
 
 <div id="modal-pengaturan-global" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
@@ -352,19 +189,19 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
         <form id="form-global-gaji" class="p-6 space-y-4">
             <div>
                 <label class="block text-sm font-bold text-gray-700 mb-1">Uang Kesehatan (Rp)</label>
-                <input type="number" id="g_kesehatan" value={globalGaji?.uang_kesehatan || 0} class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600">
+                <input type="number" id="g_kesehatan" value="0" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600">
             </div>
             <div>
                 <label class="block text-sm font-bold text-gray-700 mb-1">Bonus Tepat Waktu (Rp)</label>
-                <input type="number" id="g_tepatwaktu" value={globalGaji?.bonus_tepat_waktu || 0} class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600">
+                <input type="number" id="g_tepatwaktu" value="0" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600">
             </div>
             <div>
                 <label class="block text-sm font-bold text-gray-700 mb-1">Bonus Mingguan (Rp)</label>
-                <input type="number" id="g_mingguan" value={globalGaji?.bonus_mingguan || 0} class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600">
+                <input type="number" id="g_mingguan" value="0" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600">
             </div>
             <div>
                 <label class="block text-sm font-bold text-gray-700 mb-1">Tarif Lembur per Jam (Rp)</label>
-                <input type="number" id="g_lembur" value={globalGaji?.tarif_lembur_perjam || 0} class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600">
+                <input type="number" id="g_lembur" value="0" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600">
             </div>
             <button type="submit" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-black transition">Simpan Pengaturan</button>
         </form>
@@ -395,8 +232,7 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
 
             <div>
                 <h4 class="font-bold text-gray-900 mb-3 border-b pb-2">Rincian Komponen Gaji</h4>
-                <div class="space-y-2 text-sm" id="m_rincian_list">
-                    </div>
+                <div class="space-y-2 text-sm" id="m_rincian_list"></div>
             </div>
 
             <div class="bg-green-700 text-white p-4 rounded-xl flex justify-between items-center">
@@ -406,7 +242,7 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
         </div>
         
         <div class="p-6 border-t border-gray-100 bg-white">
-            <button class="w-full bg-green-700 text-white font-bold py-4 rounded-xl hover:bg-green-800 transition active:scale-95 text-lg shadow-sm">
+             <button class="w-full bg-green-700 text-white font-bold py-4 rounded-xl hover:bg-green-800 transition active:scale-95 text-lg shadow-sm">
                 <i class="bi bi-check2-circle mr-2"></i> Setujui & Bayar Gaji
             </button>
         </div>
@@ -431,7 +267,7 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
             <div>
                 <label class="block text-sm font-bold text-gray-700 mb-1">Pilih Komoditas</label>
                 <select id="pj_komoditas" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600" required>
-                    {komoditas?.map(k => <option value={k.id}>{k.nama_komoditas}</option>)}
+                    <option value="">-- Memuat Komoditas... --</option>
                 </select>
             </div>
             <div class="grid grid-cols-2 gap-4">
@@ -451,10 +287,247 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
     </div>
 </div>
 
-<script is:inline define:vars={{ karyawan, globalGaji }}>
-  document.addEventListener('DOMContentLoaded', function() {
+<script is:inline>
+  // Variabel Global untuk nyimpen data yang di-fetch
+  let dataGlobalGaji = null;
+  let dataKaryawan = [];
+
+  document.addEventListener('DOMContentLoaded', async () => {
     
-    // TAB SWITCHING
+    // ==========================================
+    // 1. FETCH DATA KEUANGAN (CLIENT-SIDE)
+    // ==========================================
+    async function loadKeuanganData() {
+        if(!window.supabase) return;
+
+        try {
+            // A. Fetch Pengaturan Gaji
+            const { data: globalGaji } = await window.supabase.from('pengaturan_gaji_global').select('*').single();
+            dataGlobalGaji = globalGaji;
+            if(globalGaji) {
+                document.getElementById('g_kesehatan').value = globalGaji.uang_kesehatan || 0;
+                document.getElementById('g_tepatwaktu').value = globalGaji.bonus_tepat_waktu || 0;
+                document.getElementById('g_mingguan').value = globalGaji.bonus_mingguan || 0;
+                document.getElementById('g_lembur').value = globalGaji.tarif_lembur_perjam || 0;
+            }
+
+            // B. Fetch Karyawan
+            const { data: karyawan } = await window.supabase.from('profiles')
+                .select('id, nama, role, tipe_kendaraan, tarif_gaji_perjam, presensi(tanggal, status_tiba, status_pulang)')
+                .in('role', ['lapangan', 'admin', 'office']);
+            dataKaryawan = karyawan || [];
+            
+            const contKaryawan = document.getElementById('gaji-karyawan-container');
+            let htmlKaryawan = '';
+            if(dataKaryawan.length > 0) {
+                dataKaryawan.forEach(k => {
+                    const jumlahHadir = k.presensi?.length || 0;
+                    const inisial = k.nama ? k.nama.charAt(0).toUpperCase() : 'U';
+                    const peran = k.tipe_kendaraan ? k.tipe_kendaraan.replace('_', ' ') : k.role;
+                    const tarif = Number(k.tarif_gaji_perjam || 0).toLocaleString('id-ID');
+
+                    htmlKaryawan += `
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+                        <div class="bg-gradient-to-r from-green-50 to-green-100 px-6 py-4 flex items-center justify-between border-b border-green-200">
+                            <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full bg-green-700 text-white flex items-center justify-center font-bold text-lg">${inisial}</div>
+                            <div>
+                                <h3 class="font-bold text-gray-900">${k.nama}</h3>
+                                <p class="text-sm text-gray-600 capitalize">${peran}</p>
+                            </div>
+                            </div>
+                        </div>
+                        <div class="p-6 flex-1 flex flex-col">
+                            <div class="space-y-2 mb-6 text-sm">
+                                <div class="flex justify-between"><span class="text-gray-500">Tarif per Jam:</span> <span class="font-medium">Rp ${tarif}</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">Hadir Bulan Ini:</span> <span class="font-medium text-green-600">${jumlahHadir} Hari</span></div>
+                            </div>
+                            <button onclick="window.openModalGaji('${k.id}')" class="mt-auto w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-green-700 text-green-700 rounded-xl font-bold hover:bg-green-50 transition active:scale-95">
+                            <i class="bi bi-calculator"></i> Hitung & Rincian
+                            </button>
+                        </div>
+                    </div>`;
+                });
+            } else {
+                htmlKaryawan = '<p class="text-gray-500">Belum ada data karyawan.</p>';
+            }
+            contKaryawan.innerHTML = htmlKaryawan;
+
+            // C. Fetch Transaksi (Pembelian)
+            const { data: transaksi } = await window.supabase.from('transaksi')
+                .select('*, mitra(nama_mitra), transaksi_item(komoditas, volume, harga_unit), penjemputan(tanggal)')
+                .order('created_at', { ascending: false });
+            
+            const tbodyPembelian = document.getElementById('pembelian-tbody');
+            let htmlPembelian = '';
+            transaksi?.forEach(t => {
+                const totalNilai = t.transaksi_item?.reduce((acc, item) => acc + (item.volume * (item.harga_unit || 0)), 0) || 0;
+                let itemsHtml = '';
+                t.transaksi_item?.forEach(item => {
+                    itemsHtml += `<div class="text-gray-900 font-medium">• ${item.komoditas}: ${item.volume} Kg</div>`;
+                });
+
+                htmlPembelian += `
+                <tr class="hover:bg-gray-50" data-date="${t.penjemputan?.tanggal || ''}">
+                    <td class="px-4 py-3 text-sm text-gray-600">${t.penjemputan?.tanggal || '-'}</td>
+                    <td class="px-4 py-3 text-sm">${itemsHtml}</td>
+                    <td class="px-4 py-3 text-sm font-bold text-right text-gray-900">Rp ${totalNilai.toLocaleString('id-ID')}</td>
+                </tr>`;
+            });
+            tbodyPembelian.innerHTML = htmlPembelian || '<tr><td colspan="3" class="text-center py-4">Data kosong</td></tr>';
+
+            // D. Fetch Pengeluaran
+            const { data: pengeluaran } = await window.supabase.from('pengeluaran')
+                .select('*, profiles(nama), rincian_pengeluaran(*)')
+                .order('tanggal', { ascending: false });
+            
+            const tbodyPengeluaran = document.getElementById('pengeluaran-tbody');
+            let htmlPeng = '';
+            pengeluaran?.forEach(p => {
+                let rincianHtml = '';
+                p.rincian_pengeluaran?.forEach(r => {
+                    rincianHtml += `<div class="flex justify-between text-gray-600"><span>${r.nama_item}</span><span class="font-medium">Rp ${Number(r.nominal).toLocaleString('id-ID')}</span></div>`;
+                });
+
+                let statusBtn = '';
+                if(p.status_approval === 'Menunggu') {
+                    statusBtn = `
+                    <div class="flex flex-col gap-1">
+                        <button onclick="window.approvePengeluaran('${p.id}', 'Disetujui')" class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold hover:bg-green-200">Setujui</button>
+                        <button onclick="window.approvePengeluaran('${p.id}', 'Ditolak')" class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold hover:bg-red-200">Tolak</button>
+                    </div>`;
+                } else {
+                    const color = p.status_approval === 'Disetujui' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                    statusBtn = `<span class="inline-flex px-2 py-1 rounded text-xs font-bold ${color}">${p.status_approval}</span>`;
+                }
+
+                htmlPeng += `
+                <tr class="hover:bg-gray-50" data-date="${p.tanggal}">
+                    <td class="px-4 py-3 text-sm">
+                        <div class="font-bold text-gray-900">${p.tanggal}</div>
+                        <div class="text-gray-500">${p.profiles?.nama || 'Unknown'}</div>
+                    </td>
+                    <td class="px-4 py-3 text-sm">
+                        ${rincianHtml}
+                        <div class="mt-1 pt-1 border-t border-gray-100 font-bold text-gray-900 flex justify-between">
+                            <span>Total:</span> <span>Rp ${Number(p.total_harian).toLocaleString('id-ID')}</span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-sm text-center">${statusBtn}</td>
+                </tr>`;
+            });
+            tbodyPengeluaran.innerHTML = htmlPeng || '<tr><td colspan="3" class="text-center py-4">Data kosong</td></tr>';
+
+            // E. Pisahkan Transaksi untuk Validasi
+            const trxMenunggu = transaksi?.filter(t => !t.is_paid_by_admin) || [];
+            const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
+
+            // Update Badge
+            const badge = document.getElementById('badge-validasi');
+            const countEl = document.getElementById('title-validasi-count');
+            if(badge && countEl) {
+                countEl.innerText = trxMenunggu.length;
+                if(trxMenunggu.length > 0) {
+                    badge.innerText = trxMenunggu.length;
+                    badge.classList.remove('hidden');
+                }
+            }
+
+            // Render List Menunggu Validasi
+            const valContainer = document.getElementById('validasi-container');
+            let htmlVal = '';
+            trxMenunggu.forEach(trx => {
+                const subtotal = trx.transaksi_item?.reduce((acc, i) => acc + (i.volume * (i.harga_unit||0)), 0) || 0;
+                const finalTotal = subtotal - (trx.potongan_dp || 0);
+                
+                let itemHtml = '';
+                trx.transaksi_item?.forEach(i => {
+                    itemHtml += `<div class="flex justify-between text-gray-700"><span>${i.komoditas} (${i.volume}kg @ ${i.harga_unit})</span><span>Rp ${(i.volume * (i.harga_unit||0)).toLocaleString('id-ID')}</span></div>`;
+                });
+
+                htmlVal += `
+                <div class="bg-white rounded-xl border border-red-200 p-6 shadow-sm">
+                    <div class="flex items-start justify-between mb-4 border-b border-gray-100 pb-4">
+                        <div>
+                            <h3 class="font-bold text-gray-900 text-lg">${trx.mitra?.nama_mitra || '-'}</h3>
+                            <p class="text-sm text-gray-500">Tgl Angkut: ${trx.penjemputan?.tanggal || '-'}</p>
+                        </div>
+                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Belum Lunas</span>
+                    </div>
+                    <div class="space-y-2 mb-4 text-sm">
+                        ${itemHtml}
+                        <div class="flex justify-between text-red-600 pt-2">
+                            <span>Potongan DP</span><span>- Rp ${Number(trx.potongan_dp || 0).toLocaleString('id-ID')}</span>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-200 pt-4 mb-6">
+                        <p class="text-sm text-gray-600 mb-1">Total Wajib Dibayar</p>
+                        <p class="text-3xl font-bold text-gray-900">Rp ${finalTotal.toLocaleString('id-ID')}</p>
+                    </div>
+                    <button onclick="window.validasiBayar('${trx.id}')" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-700 text-white rounded-xl hover:bg-green-800 transition font-bold active:scale-95">
+                        <i class="bi bi-check-circle"></i> Validasi Lunas
+                    </button>
+                </div>`;
+            });
+            valContainer.innerHTML = htmlVal || '<p class="text-gray-500">Tidak ada transaksi yang menunggu validasi.</p>';
+
+            // Render Riwayat Lunas
+            const tbodyLunas = document.getElementById('riwayat-lunas-tbody');
+            let htmlLunas = '';
+            trxSelesai.forEach(t => {
+                htmlLunas += `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 text-sm font-bold text-gray-900">${t.mitra?.nama_mitra || '-'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">${t.penjemputan?.tanggal || '-'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">${t.metode_bayar || '-'}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-green-700 text-right">Rp ${Number(t.grand_total || 0).toLocaleString('id-ID')}</td>
+                </tr>`;
+            });
+            tbodyLunas.innerHTML = htmlLunas || '<tr><td colspan="4" class="text-center py-4">Data kosong</td></tr>';
+
+            // F. Fetch Penjualan Olahan
+            const { data: penjualan } = await window.supabase.from('penjualan_olahan')
+                .select('*, gudang_komoditas(nama_komoditas)')
+                .order('tanggal', { ascending: false });
+            
+            const tbodyPenjualan = document.getElementById('penjualan-tbody');
+            let htmlPenjualan = '';
+            penjualan?.forEach(p => {
+                htmlPenjualan += `
+                <tr class="hover:bg-gray-50 penjualan-row" data-date="${p.tanggal}" data-total="${p.total_harga}">
+                    <td class="px-6 py-4 text-sm text-gray-600">${p.tanggal}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-gray-900">${p.pembeli}</td>
+                    <td class="px-6 py-4 text-sm text-gray-700">
+                        <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold mr-2">${p.gudang_komoditas?.nama_komoditas || '-'}</span>
+                        ${p.volume} Kg
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600 text-right">Rp ${Number(p.harga_satuan).toLocaleString('id-ID')}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-green-700 text-right">Rp ${Number(p.total_harga).toLocaleString('id-ID')}</td>
+                </tr>`;
+            });
+            tbodyPenjualan.innerHTML = htmlPenjualan || '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Belum ada data penjualan.</td></tr>';
+
+            // G. Dropdown Komoditas untuk Form Penjualan
+            const { data: komoditas } = await window.supabase.from('gudang_komoditas').select('id, nama_komoditas');
+            const selectKom = document.getElementById('pj_komoditas');
+            let htmlKom = '';
+            komoditas?.forEach(k => {
+                htmlKom += `<option value="${k.id}">${k.nama_komoditas}</option>`;
+            });
+            if(selectKom) selectKom.innerHTML = htmlKom;
+
+        } catch (error) {
+            console.error("Gagal load data keuangan:", error);
+        }
+    }
+
+    // Jalankan Load Data Utama
+    await loadKeuanganData();
+
+
+    // ==========================================
+    // 2. TAB SWITCHING LOGIC
+    // ==========================================
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
 
@@ -476,13 +549,16 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
       });
     });
 
-    // MODAL LOGIC (Global & Universal)
+    // ==========================================
+    // 3. MODAL CONTROLS & FUNCTIONS (GLOBAL WINDOW)
+    // ==========================================
     window.openModal = function(id) {
         const m = document.getElementById(id);
         m.classList.remove('hidden');
         m.classList.add('flex');
         setTimeout(() => { m.classList.remove('opacity-0'); m.querySelector('div').classList.remove('scale-95'); }, 10);
     }
+    
     window.closeModal = function(id) {
         const m = document.getElementById(id);
         m.classList.add('opacity-0'); m.querySelector('div').classList.add('scale-95');
@@ -505,26 +581,24 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
             }).eq('id', 1);
             alert('Pengaturan Global berhasil diperbarui!');
             window.location.reload();
-        } catch (err) { alert(err.message); }
+        } catch (err) { alert(err.message); btn.innerText = "Simpan Pengaturan"; }
     });
 
     // BUKA MODAL DETAIL GAJI KARYAWAN
     window.openModalGaji = function(empId) {
-        const emp = karyawan.find(k => k.id === empId);
+        const emp = dataKaryawan.find(k => k.id === empId);
         if(!emp) return;
         
         document.getElementById('m_karyawan_id').value = emp.id;
         document.getElementById('m_nama_karyawan').innerText = emp.nama;
         document.getElementById('m_tarif_jam').value = emp.tarif_gaji_perjam || 0;
 
-        // Logika Kalkulasi Dummy berdasarkan presensi & setting global
-        // Asumsi kerja 8 jam/hari. Ini bisa dikembangkan lebih detail lagi.
         const totalHadir = emp.presensi?.length || 0;
         const tepatWaktuCount = emp.presensi?.filter(p => p.status_tiba === 'Tepat Waktu').length || 0;
         
         const baseGaji = totalHadir * 8 * (emp.tarif_gaji_perjam || 0);
-        const bonusTepatWaktu = tepatWaktuCount * (globalGaji?.bonus_tepat_waktu || 0);
-        const kesehatan = globalGaji?.uang_kesehatan || 0;
+        const bonusTepatWaktu = tepatWaktuCount * (dataGlobalGaji?.bonus_tepat_waktu || 0);
+        const kesehatan = dataGlobalGaji?.uang_kesehatan || 0;
         
         const grandTotal = baseGaji + bonusTepatWaktu + kesehatan;
 
@@ -535,7 +609,7 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
         `;
         document.getElementById('m_total_gaji').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
 
-        openModal('modal-detail-gaji');
+        window.openModal('modal-detail-gaji');
     };
 
     // UPDATE TARIF GAJI PER JAM PERSONAL
@@ -543,7 +617,6 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
         if(!window.supabase) return;
         const empId = document.getElementById('m_karyawan_id').value;
         const newTarif = document.getElementById('m_tarif_jam').value;
-        
         try {
             await window.supabase.from('profiles').update({ tarif_gaji_perjam: newTarif }).eq('id', empId);
             alert('Tarif per jam berhasil diupdate! Silakan refresh halaman.');
@@ -556,16 +629,14 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
         const end = document.getElementById('filter-end-pengeluaran').value;
         if(!start || !end) return alert("Pilih tanggal awal dan akhir!");
 
-        // Loop tabel pembelian
         document.querySelectorAll('#tabel-pembelian tbody tr').forEach(tr => {
             const date = tr.getAttribute('data-date');
-            tr.style.display = (date >= start && date <= end) ? '' : 'none';
+            if(date) tr.style.display = (date >= start && date <= end) ? '' : 'none';
         });
 
-        // Loop tabel pengeluaran
         document.querySelectorAll('#tabel-pengeluaran tbody tr').forEach(tr => {
             const date = tr.getAttribute('data-date');
-            tr.style.display = (date >= start && date <= end) ? '' : 'none';
+            if(date) tr.style.display = (date >= start && date <= end) ? '' : 'none';
         });
     };
 
@@ -589,7 +660,9 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
         } catch (err) { alert(err.message); }
     };
 
-    // LOGIKA PENJUALAN OLAHAN
+    // ==========================================
+    // 4. PENJUALAN OLAHAN FORM
+    // ==========================================
     const pjVol = document.getElementById('pj_volume');
     const pjHarga = document.getElementById('pj_harga');
     const pjTotalDisplay = document.getElementById('pj_total_display');
@@ -605,13 +678,17 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
     document.getElementById('form-penjualan')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         if(!window.supabase) return;
+        
+        const btnSubmit = e.target.querySelector('button[type="submit"]');
+        btnSubmit.innerText = "Memproses...";
+        btnSubmit.disabled = true;
+
         try {
             const vol = parseFloat(pjVol.value);
             const hrg = parseFloat(pjHarga.value);
             const total = vol * hrg;
             const k_id = document.getElementById('pj_komoditas').value;
 
-            // Insert ke penjualan
             await window.supabase.from('penjualan_olahan').insert([{
                 tanggal: document.getElementById('pj_tgl').value,
                 pembeli: document.getElementById('pj_pembeli').value,
@@ -621,18 +698,20 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
                 total_harga: total
             }]);
 
-            // Potong stok Gudang Otomatis
             const { data: gudang } = await window.supabase.from('gudang_komoditas').select('stok').eq('id', k_id).single();
             await window.supabase.from('gudang_komoditas').update({ stok: gudang.stok - vol }).eq('id', k_id);
             
-            // Catat Mutasi
             await window.supabase.from('gudang_mutasi').insert([{
                 jenis_mutasi: 'Keluar', komoditas_id: k_id, jumlah: -vol, keterangan: 'Penjualan ke ' + document.getElementById('pj_pembeli').value
             }]);
 
             alert('Penjualan berhasil dicatat & stok terpotong!');
             window.location.reload();
-        } catch(err) { alert(err.message); }
+        } catch(err) { 
+            alert(err.message); 
+            btnSubmit.innerText = "Simpan Penjualan";
+            btnSubmit.disabled = false;
+        }
     });
 
     // FILTER PENJUALAN & TOTAL
@@ -652,10 +731,11 @@ const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
             }
         });
 
-        // Tampilkan footer total
         const footer = document.getElementById('footer-total-jual');
-        footer.classList.remove('hidden');
-        document.getElementById('text-total-jual').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+        if(footer) {
+            footer.classList.remove('hidden');
+            document.getElementById('text-total-jual').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+        }
     };
 
   });

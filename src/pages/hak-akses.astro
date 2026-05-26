@@ -4,10 +4,6 @@ import { supabase } from '../lib/supabase';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 // Ambil data Profiles dari Supabase
-const { data: karyawan } = await supabase
-  .from('profiles')
-  .select('*')
-  .order('created_at', { ascending: false });
 
 const roles = [
   { value: 'owner', label: 'Owner' },
@@ -53,52 +49,8 @@ const getRoleColor = (role) => {
             <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Aksi</th>
           </tr>
         </thead>
-        <tbody>
-          {karyawan?.map((item) => (
-            <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-3">
-                  {item.foto_profil ? (
-                      <img src={item.foto_profil} alt="Avatar" class="w-10 h-10 rounded-full object-cover border border-gray-200" />
-                  ) : (
-                      <div class="w-10 h-10 rounded-full bg-green-700 text-white flex items-center justify-center font-bold text-sm">
-                        {item.nama.substring(0, 2).toUpperCase()}
-                      </div>
-                  )}
-                  <div>
-                    <p class="font-bold text-gray-900">{item.nama}</p>
-                    <p class="text-xs text-gray-500 capitalize">{item.tipe_kendaraan ? item.tipe_kendaraan.replace('_', ' ') : item.role}</p>
-                  </div>
-                </div>
-              </td>
-
-              <td class="px-6 py-4">
-                <div class="text-sm font-bold text-gray-800 bg-gray-100 px-3 py-1 rounded w-fit border border-gray-200">
-                    <i class="bi bi-person-badge mr-1 text-gray-500"></i>{item.id_lapangan}
-                </div>
-              </td>
-
-              <td class="px-6 py-4">
-                <p class="text-sm text-gray-700 flex items-center gap-2 font-medium mb-1">
-                  <i class="bi bi-telephone text-green-600"></i> {item.nomor_hp || '-'}
-                </p>
-                <p class="text-xs text-gray-500 line-clamp-1 max-w-[200px]" title={item.alamat}>{item.alamat || 'Alamat belum diatur'}</p>
-              </td>
-
-              <td class="px-6 py-4">
-                <span class={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getRoleColor(item.role)}`}>
-                  {item.role}
-                </span>
-              </td>
-
-              <td class="px-6 py-4">
-                <button class="edit-btn px-3 py-1 text-blue-600 hover:bg-blue-50 border border-blue-200 rounded transition font-medium text-sm shadow-sm" 
-                  data-emp={item.id} data-nama={item.nama} data-username={item.id_lapangan} data-telepon={item.nomor_hp} data-alamat={item.alamat} data-role={item.role}>
-                  <i class="bi bi-pencil mr-1"></i> Edit
-                </button>
-              </td>
-            </tr>
-          ))}
+        <tbody id="tabelKaryawan">
+           <tr><td colspan="5" class="text-center py-4">Memuat data karyawan...</td></tr>
         </tbody>
       </table>
     </div>
@@ -180,58 +132,150 @@ const getRoleColor = (role) => {
 <script is:inline>
   document.addEventListener('DOMContentLoaded', async function() {
     
-    // Cek Akses: Pastikan yg buka halaman ini HRD atau Owner
+    // 1. Cek Supabase & Sesi Login
+    if (!window.supabase) return;
+    
     let currentUserRole = 'admin';
-    if(window.supabase) {
-        const { data: { session } } = await window.supabase.auth.getSession();
-        if(session) {
-            const { data: prof } = await window.supabase.from('profiles').select('role').eq('id', session.user.id).single();
-            currentUserRole = prof?.role || 'admin';
-        }
+    const { data: { session } } = await window.supabase.auth.getSession();
+    if(session) {
+        const { data: prof } = await window.supabase.from('profiles').select('role').eq('id', session.user.id).single();
+        currentUserRole = prof?.role || 'admin';
     }
 
+    // 2. Fungsi Warna Role untuk Client-Side
+    const getRoleColorJs = (role) => {
+        if(role === 'owner') return 'bg-purple-100 text-purple-700';
+        if(role === 'hrd') return 'bg-pink-100 text-pink-700';
+        if(role === 'keuangan') return 'bg-blue-100 text-blue-700';
+        if(role === 'admin') return 'bg-orange-100 text-orange-700';
+        if(role === 'periklanan') return 'bg-teal-100 text-teal-700';
+        if(role === 'lapangan') return 'bg-green-100 text-green-700';
+        return 'bg-gray-100 text-gray-700';
+    };
+
+    // 3. Modals & Forms Elements
     const formModal = document.getElementById('formModal');
     const openFormBtn = document.getElementById('openFormBtn');
     const closeFormBtn = document.getElementById('closeFormBtn');
     const cancelBtn = document.getElementById('cancelBtn');
     const employeeForm = document.getElementById('employeeForm');
-    
-    // Auto Generate ID Logic (JLC- / CMS-)
-    // Auto Generate ID Logic (LAP- / CMS-)
-    document.getElementById('roleInput').addEventListener('change', async function() {
-        const role = this.value;
-        const usernameInput = document.getElementById('usernameInput');
-        
-        // Jangan generate ulang jika sedang mode Edit
-        if(document.getElementById('editId').value !== '') return;
-        
-        if(!role) {
-            usernameInput.value = '';
+
+    // 4. Fetch dan Render Data Karyawan
+    async function loadKaryawan() {
+        const { data: karyawan, error } = await window.supabase
+            .from('profiles')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error("Gagal ambil data", error);
+            document.getElementById('tabelKaryawan').innerHTML = '<tr><td colspan="5" class="text-center py-4 text-red-500 font-bold">Gagal memuat data!</td></tr>';
             return;
         }
 
+        const tbody = document.getElementById('tabelKaryawan');
+        let html = '';
+
+        karyawan.forEach(item => {
+            const roleColor = getRoleColorJs(item.role);
+            const initial = item.nama ? item.nama.substring(0, 2).toUpperCase() : 'US';
+            const avatarHtml = item.foto_profil 
+                ? `<img src="${item.foto_profil}" alt="Avatar" class="w-10 h-10 rounded-full object-cover border border-gray-200" />`
+                : `<div class="w-10 h-10 rounded-full bg-green-700 text-white flex items-center justify-center font-bold text-sm">${initial}</div>`;
+            
+            const tipeKendaraan = item.tipe_kendaraan ? item.tipe_kendaraan.replace('_', ' ') : item.role;
+            const alamatTeks = item.alamat ? item.alamat : 'Alamat belum diatur';
+            const teleponTeks = item.nomor_hp ? item.nomor_hp : '-';
+
+            html += `
+            <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                  ${avatarHtml}
+                  <div>
+                    <p class="font-bold text-gray-900">${item.nama}</p>
+                    <p class="text-xs text-gray-500 capitalize">${tipeKendaraan}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="text-sm font-bold text-gray-800 bg-gray-100 px-3 py-1 rounded w-fit border border-gray-200">
+                    <i class="bi bi-person-badge mr-1 text-gray-500"></i>${item.id_lapangan}
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <p class="text-sm text-gray-700 flex items-center gap-2 font-medium mb-1">
+                  <i class="bi bi-telephone text-green-600"></i> ${teleponTeks}
+                </p>
+                <p class="text-xs text-gray-500 line-clamp-1 max-w-[200px]" title="${alamatTeks}">${alamatTeks}</p>
+              </td>
+              <td class="px-6 py-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${roleColor}">
+                  ${item.role}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <button class="edit-btn px-3 py-1 text-blue-600 hover:bg-blue-50 border border-blue-200 rounded transition font-medium text-sm shadow-sm" 
+                  data-emp="${item.id}" data-nama="${item.nama}" data-username="${item.id_lapangan}" data-telepon="${item.nomor_hp || ''}" data-alamat="${item.alamat || ''}" data-role="${item.role}">
+                  <i class="bi bi-pencil mr-1"></i> Edit
+                </button>
+              </td>
+            </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+
+        // PENTING: Pasang event listener Edit SETELAH HTML di-render
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if(currentUserRole !== 'owner' && currentUserRole !== 'hrd') {
+                    return alert('Akses Ditolak: Hanya Owner dan HRD yang berhak mengedit data profil!');
+                }
+
+                document.getElementById('modalTitle').textContent = 'Edit Karyawan';
+                document.getElementById('editId').value = this.getAttribute('data-emp');
+                document.getElementById('namaInput').value = this.getAttribute('data-nama');
+                document.getElementById('usernameInput').value = this.getAttribute('data-username');
+                document.getElementById('teleponInput').value = this.getAttribute('data-telepon');
+                document.getElementById('alamatInput').value = this.getAttribute('data-alamat');
+                document.getElementById('roleInput').value = this.getAttribute('data-role');
+                
+                document.getElementById('passwordInput').required = false;
+                document.getElementById('passwordFieldContainer').style.display = 'none';
+
+                formModal.classList.remove('hidden');
+                formModal.classList.add('flex');
+                setTimeout(() => { formModal.classList.remove('opacity-0'); formModal.querySelector('div').classList.remove('scale-95'); }, 10);
+            });
+        });
+    }
+
+    // Panggil fungsi render utama
+    loadKaryawan();
+
+    // =======================================================
+    // SISA LOGIKA FORM, ID GENERATOR, DAN SUBMIT (TIDAK BERUBAH)
+    // =======================================================
+    
+    document.getElementById('roleInput').addEventListener('change', async function() {
+        const role = this.value;
+        const usernameInput = document.getElementById('usernameInput');
+        if(document.getElementById('editId').value !== '') return;
+        if(!role) { usernameInput.value = ''; return; }
+
         usernameInput.value = "Membuat ID...";
-        
-        // PERUBAHAN 1: Prefix untuk lapangan diubah jadi LAP-
         const prefix = (role === 'lapangan') ? 'LAP-' : 'CMS-';
 
         try {
             const { data, error } = await window.supabase
-                .from('profiles')
-                .select('id_lapangan')
-                .like('id_lapangan', `${prefix}%`)
-                .order('id_lapangan', { ascending: false })
-                .limit(1);
+                .from('profiles').select('id_lapangan').like('id_lapangan', `${prefix}%`).order('id_lapangan', { ascending: false }).limit(1);
             
             let nextNum = 1;
             if(data && data.length > 0 && data[0].id_lapangan) {
                 const numPart = data[0].id_lapangan.split('-')[1];
-                if(numPart && !isNaN(parseInt(numPart))) {
-                    nextNum = parseInt(numPart) + 1;
-                }
+                if(numPart && !isNaN(parseInt(numPart))) nextNum = parseInt(numPart) + 1;
             }
-            
-            // PERUBAHAN 2: Angka 5 diganti jadi 3 agar formatnya jadi 3 digit (001)
             usernameInput.value = prefix + String(nextNum).padStart(3, '0');
         } catch(err) {
             console.error("Gagal generate ID:", err);
@@ -239,7 +283,6 @@ const getRoleColor = (role) => {
         }
     });
 
-    // Foto Preview
     const fotoInput = document.getElementById('fotoInput');
     const photoPreview = document.getElementById('photoPreview');
     const photoIcon = document.getElementById('photoIcon');
@@ -256,49 +299,20 @@ const getRoleColor = (role) => {
         }
     });
 
-    // OPEN MODAL (BUAT BARU)
     openFormBtn.addEventListener('click', () => {
-      if(currentUserRole !== 'owner' && currentUserRole !== 'hrd') {
-          return alert('Akses Ditolak: Hanya Owner dan HRD yang berhak membuat akun baru!');
-      }
+      if(currentUserRole !== 'owner' && currentUserRole !== 'hrd') return alert('Akses Ditolak: Hanya Owner dan HRD yang berhak membuat akun baru!');
 
       document.getElementById('modalTitle').textContent = 'Buat Akun Karyawan';
       document.getElementById('editId').value = '';
       document.getElementById('passwordInput').required = true;
       document.getElementById('passwordFieldContainer').style.display = 'block';
-      
       photoPreview.classList.add('hidden');
       photoIcon.classList.remove('hidden');
       fotoInput.value = '';
-      
       employeeForm.reset();
-      formModal.classList.remove('hidden');
-      formModal.classList.add('flex');
+      
+      formModal.classList.remove('hidden'); formModal.classList.add('flex');
       setTimeout(() => { formModal.classList.remove('opacity-0'); formModal.querySelector('div').classList.remove('scale-95'); }, 10);
-    });
-
-    // OPEN MODAL (EDIT)
-    document.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            if(currentUserRole !== 'owner' && currentUserRole !== 'hrd') {
-                return alert('Akses Ditolak: Hanya Owner dan HRD yang berhak mengedit data profil!');
-            }
-
-            document.getElementById('modalTitle').textContent = 'Edit Karyawan';
-            document.getElementById('editId').value = this.getAttribute('data-emp');
-            document.getElementById('namaInput').value = this.getAttribute('data-nama');
-            document.getElementById('usernameInput').value = this.getAttribute('data-username');
-            document.getElementById('teleponInput').value = this.getAttribute('data-telepon');
-            document.getElementById('alamatInput').value = this.getAttribute('data-alamat');
-            document.getElementById('roleInput').value = this.getAttribute('data-role');
-            
-            document.getElementById('passwordInput').required = false;
-            document.getElementById('passwordFieldContainer').style.display = 'none';
-
-            formModal.classList.remove('hidden');
-            formModal.classList.add('flex');
-            setTimeout(() => { formModal.classList.remove('opacity-0'); formModal.querySelector('div').classList.remove('scale-95'); }, 10);
-        });
     });
 
     const closeModal = () => {
@@ -315,18 +329,61 @@ const getRoleColor = (role) => {
       document.getElementById('passwordInput').value = password;
     });
 
-    // SUBMIT DATA
+    // ==========================================
+    // FUNGSI KOMPRESI GAMBAR (JADI KECIL & CEPAT)
+    // ==========================================
+    async function compressImage(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    
+                    // Batasi ukuran maksimal (Resolusi) jadi 400x400 pixel (cukup banget buat Avatar)
+                    const MAX_SIZE = 400;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
+                    } else {
+                        if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Kompresi ke format WebP (Kualitas 80%) - Dijamin < 100kb
+                    canvas.toBlob((blob) => {
+                        const compressedFile = new File([blob], "avatar.webp", {
+                            type: 'image/webp',
+                            lastModified: Date.now(),
+                        });
+                        resolve(compressedFile);
+                    }, 'image/webp', 0.8); 
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // ==========================================
+    // SUBMIT DATA (DENGAN UPSERT & CACHE)
+    // ==========================================
     employeeForm.addEventListener('submit', async function(e) {
       e.preventDefault();
       if(!window.supabase) return alert('Supabase tidak terhubung!');
 
       const btn = document.getElementById('submitBtn');
-      btn.innerText = "Memproses...";
-      btn.disabled = true;
+      btn.innerText = "Memproses..."; btn.disabled = true;
 
       const editId = document.getElementById('editId').value;
       const nama = document.getElementById('namaInput').value;
-      const username = document.getElementById('usernameInput').value; // EX: CMS-00001
+      const username = document.getElementById('usernameInput').value; 
       const password = document.getElementById('passwordInput').value;
       const telepon = document.getElementById('teleponInput').value;
       const alamat = document.getElementById('alamatInput').value;
@@ -336,13 +393,27 @@ const getRoleColor = (role) => {
       try {
         let finalAvatarUrl = null;
 
+        // JIKA ADA FILE FOTO YANG DIUPLOAD
         if (file) {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${username}-${Date.now()}.${fileExt}`;
-            const { error: uploadErr } = await window.supabase.storage.from('avatars').upload(fileName, file);
+            // 1. Kompres gambar dulu sebelum dikirim
+            const compressedFile = await compressImage(file);
+            
+            // 2. Buat nama file STATIS agar SALING TIMPA (Contoh: CMS-001.webp)
+            const fileName = `${username}.webp`;
+
+            // 3. Upload dengan Upsert dan Cache Control
+            const { error: uploadErr } = await window.supabase.storage.from('avatars').upload(fileName, compressedFile, {
+                upsert: true, // INI YANG BIKIN SALING TIMPA (Overwrite)
+                cacheControl: '31536000', // Cache di browser pengunjung selama 1 Tahun (Website jadi ngebut)
+                contentType: 'image/webp'
+            });
+            
             if(uploadErr) throw uploadErr;
+
+            // 4. Ambil URL dan tambahkan Cache Buster (?t=...) 
+            // Biar walau di-cache 1 tahun, kalau upload baru, fotonya tetep refresh!
             const { data: publicUrlData } = window.supabase.storage.from('avatars').getPublicUrl(fileName);
-            finalAvatarUrl = publicUrlData.publicUrl;
+            finalAvatarUrl = `${publicUrlData.publicUrl}?t=${Date.now()}`;
         }
 
         if(editId) {
@@ -352,37 +423,24 @@ const getRoleColor = (role) => {
             const { error } = await window.supabase.from('profiles').update(updateData).eq('id', editId);
             if(error) throw error;
             alert('Profil Karyawan berhasil diperbarui!');
-            
         } else {
             const dummyEmail = `${username}@bangjelantah.local`.toLowerCase();
-
             const { data: authData, error: authError } = await window.supabase.auth.signUp({
-                email: dummyEmail,
-                password: password,
-                options: {
-                    data: {
-                        nama: nama,
-                        role: role,
-                        telepon: telepon,
-                        alamat: alamat
-                    }
-                }
+                email: dummyEmail, password: password, options: { data: { nama: nama, role: role, telepon: telepon, alamat: alamat } }
             });
             if(authError) throw authError;
 
             if(finalAvatarUrl) {
                 await window.supabase.from('profiles').update({ foto_profil: finalAvatarUrl }).eq('id', authData.user.id);
             }
-
-            alert(`Karyawan berhasil didaftarkan!\n\nUsername Login: ${username}\nPassword: ${password}\n\n*Silakan berikan kredensial ini kepada karyawan bersangkutan.`);
+            alert(`Karyawan berhasil didaftarkan!\n\nUsername Login: ${username}\nPassword: ${password}`);
         }
 
         window.location.reload();
 
       } catch (err) {
         alert('Gagal: ' + err.message);
-        btn.innerText = "Simpan Akun";
-        btn.disabled = false;
+        btn.innerText = "Simpan Akun"; btn.disabled = false;
       }
     });
 

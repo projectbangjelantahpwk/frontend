@@ -1,53 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { supabase } from '../lib/supabase';
-
-// 1. Tarik Data Jadwal Penjemputan + Join Transaksi & Transaksi Item (Komoditas & Volume)
-const { data: jadwalPenjemputan, error: errJadwal } = await supabase
-    .from('penjemputan')
-    .select(`
-        id,
-        status,
-        tanggal,
-        mitra ( id, nama_mitra, alamat ),
-        driver:driver_id ( id, nama, tipe_kendaraan ),
-        helper:helper_id ( id, nama ),
-        transaksi (
-            id,
-            potongan_dp,
-            transaksi_item (
-                id,
-                komoditas,
-                volume
-            )
-        )
-    `)
-    .order('tanggal', { ascending: false });
-
-if (errJadwal) {
-    console.error("Gagal menarik jadwal operasional:", errJadwal);
-}
-
-// 2. Tarik Daftar Mitra untuk Dropdown Pilihan di Modal Penjemputan Baru
-const { data: daftarMitra } = await supabase
-    .from('mitra')
-    .select('id, nama_mitra, alamat')
-    .order('nama_mitra', { ascending: true });
-
-// 3. Tarik Karyawan Lapangan untuk Dropdown Tim Penjemput
-const { data: karyawanLapangan } = await supabase
-    .from('profiles')
-    .select('id, nama, tipe_kendaraan')
-    .eq('role', 'lapangan');
-
-const kurirMotor = karyawanLapangan?.filter(k => k.tipe_kendaraan === 'motor') || [];
-const supirMobil = karyawanLapangan?.filter(k => k.tipe_kendaraan === 'mobil_driver') || [];
-const kenekMobil = karyawanLapangan?.filter(k => k.tipe_kendaraan === 'mobil_helper') || [];
-
-// Pisahkan data berdasarkan status untuk masing-masing Tab
-const pending = jadwalPenjemputan?.filter(j => j.status === 'Belum') || [];
-const onProgress = jadwalPenjemputan?.filter(j => j.status === 'OTW' || j.status === 'Proses') || [];
-const history = jadwalPenjemputan?.filter(j => j.status === 'Selesai') || [];
+import 'bootstrap-icons/font/bootstrap-icons.css';
 ---
 
 <Layout title="Operasional Penjemputan - Manajemen Bang Jelantah">
@@ -61,28 +14,16 @@ const history = jadwalPenjemputan?.filter(j => j.status === 'Selesai') || [];
         @media (max-width: 768px) {
             .mobile-table-card thead { display: none; }
             .mobile-table-card tbody tr {
-                display: flex;
-                flex-direction: column;
-                margin-bottom: 1rem;
-                border: 1px solid #bfcaba;
-                border-radius: 0.5rem;
-                background-color: #ffffff;
+                display: flex; flex-direction: column; margin-bottom: 1rem;
+                border: 1px solid #bfcaba; border-radius: 0.5rem; background-color: #ffffff;
             }
             .mobile-table-card tbody td {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 8px 16px;
-                border-bottom: 1px solid #e3e2e2;
+                display: flex; justify-content: space-between; align-items: center;
+                padding: 8px 16px; border-bottom: 1px solid #e3e2e2;
             }
-            .mobile-table-card tbody td:last-child {
-                border-bottom: none;
-            }
+            .mobile-table-card tbody td:last-child { border-bottom: none; }
             .mobile-table-card tbody td::before {
-                content: attr(data-label);
-                font-weight: 600;
-                color: #40493d;
-                font-size: 12px;
+                content: attr(data-label); font-weight: 600; color: #40493d; font-size: 12px;
             }
         }
     </style>
@@ -97,15 +38,15 @@ const history = jadwalPenjemputan?.filter(j => j.status === 'Selesai') || [];
                 <button class="bg-surface-container border border-outline-variant text-on-surface font-label-lg text-label-lg rounded-full px-lg py-sm flex items-center gap-sm hover:bg-surface-container-high transition-colors min-h-touch-target">
                     <span class="material-symbols-outlined text-[18px]">filter_list</span> Filter
                 </button>
-                <button class="bg-primary text-on-primary font-label-lg text-label-lg rounded-full px-lg py-sm flex items-center gap-sm hover:opacity-90 shadow-sm transition-all min-h-touch-target active:scale-95" onclick="openModal()">
+                <button class="bg-primary text-on-primary font-label-lg text-label-lg rounded-full px-lg py-sm flex items-center gap-sm hover:opacity-90 shadow-sm transition-all min-h-touch-target active:scale-95" onclick="window.tambahPenjemputan()">
                     <span class="material-symbols-outlined text-[18px]">add</span> Buat Penjemputan Baru
                 </button>
             </div>
         </div>
 
         <div class="flex border-b border-outline-variant mb-md overflow-x-auto hide-scrollbar">
-            <button class="px-md py-sm font-label-lg text-primary border-b-2 border-primary whitespace-nowrap" id="tab-pending" onclick="switchTab('pending')">Belum Diproses ({pending.length})</button>
-            <button class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap" id="tab-progress" onclick="switchTab('progress')">Sedang Diproses ({onProgress.length})</button>
+            <button class="px-md py-sm font-label-lg text-primary border-b-2 border-primary whitespace-nowrap" id="tab-pending" onclick="switchTab('pending')">Belum Diproses (<span id="count-pending">0</span>)</button>
+            <button class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap" id="tab-progress" onclick="switchTab('progress')">Sedang Diproses (<span id="count-progress">0</span>)</button>
             <button class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap" id="tab-history" onclick="switchTab('history')">Riwayat Selesai</button>
         </div>
 
@@ -123,25 +64,8 @@ const history = jadwalPenjemputan?.filter(j => j.status === 'Selesai') || [];
                                 <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase text-right">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-outline-variant font-body-md text-body-md text-on-surface bg-surface-container-lowest">
-                            {pending.length > 0 ? pending.map((jadwal) => (
-                                <tr class="hover:bg-surface-container-low transition-colors">
-                                    <td class="px-md py-md whitespace-nowrap font-semibold" data-label="Nama Mitra">{jadwal.mitra?.nama_mitra}</td>
-                                    <td class="px-md py-md truncate max-w-[200px]" data-label="Alamat">{jadwal.mitra?.alamat || '-'}</td> 
-                                    <td class="px-md py-md capitalize" data-label="Kendaraan">{jadwal.driver?.tipe_kendaraan === 'motor' ? 'Motor' : 'Mobil'}</td>
-                                    <td class="px-md py-md" data-label="Kurir">
-                                        {jadwal.driver?.nama} {jadwal.helper?.nama ? `& ${jadwal.helper.nama}` : ''}
-                                    </td>
-                                    <td class="px-md py-md" data-label="Status">
-                                        <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 font-label-sm text-[11px]">
-                                            <span class="w-2 h-2 rounded-full bg-amber-500"></span> {jadwal.status}
-                                        </span>
-                                    </td>
-                                    <td class="px-md py-md text-right" data-label="Aksi">
-                                        <span class="text-xs text-on-surface-variant italic">Menunggu Lapangan...</span>
-                                    </td>
-                                </tr>
-                            )) : <tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Tidak ada jadwal penjemputan baru.</td></tr>}
+                        <tbody class="divide-y divide-outline-variant font-body-md text-body-md text-on-surface bg-surface-container-lowest" id="tbody-pending">
+                            <tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Memuat data...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -162,25 +86,8 @@ const history = jadwalPenjemputan?.filter(j => j.status === 'Selesai') || [];
                                 <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase text-right">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-outline-variant font-body-md text-body-md text-on-surface bg-surface-container-lowest">
-                            {onProgress.length > 0 ? onProgress.map((jadwal) => (
-                                <tr class="hover:bg-surface-container-low transition-colors">
-                                    <td class="px-md py-md whitespace-nowrap font-semibold" data-label="Nama Mitra">{jadwal.mitra?.nama_mitra}</td>
-                                    <td class="px-md py-md truncate max-w-[200px]" data-label="Alamat">{jadwal.mitra?.alamat || '-'}</td>
-                                    <td class="px-md py-md capitalize" data-label="Kendaraan">{jadwal.driver?.tipe_kendaraan === 'motor' ? 'Motor' : 'Mobil'}</td>
-                                    <td class="px-md py-md" data-label="Kurir">
-                                        {jadwal.driver?.nama} {jadwal.helper?.nama ? `& ${jadwal.helper.nama}` : ''}
-                                    </td>
-                                    <td class="px-md py-md" data-label="Status">
-                                        <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 font-label-sm text-[11px]">
-                                            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> {jadwal.status}
-                                        </span>
-                                    </td>
-                                    <td class="px-md py-md text-right" data-label="Aksi">
-                                        <button class="bg-secondary text-on-secondary font-label-sm rounded-full px-4 py-1 hover:opacity-90 transition-all">Pantau Rute</button>
-                                    </td>
-                                </tr>
-                            )) : <tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Tidak ada armada yang sedang di perjalanan.</td></tr>}
+                        <tbody class="divide-y divide-outline-variant font-body-md text-body-md text-on-surface bg-surface-container-lowest" id="tbody-progress">
+                            <tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Memuat data...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -201,39 +108,8 @@ const history = jadwalPenjemputan?.filter(j => j.status === 'Selesai') || [];
                                 <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-outline-variant font-body-md text-body-md text-on-surface bg-surface-container-lowest">
-                            {history.length > 0 ? history.map((jadwal) => {
-                                const tData = jadwal.transaksi?.[0];
-                                const items = tData?.transaksi_item || [];
-                                const totalRealKg = items.reduce((acc, curr) => acc + parseFloat(curr.volume || 0), 0);
-
-                                return (
-                                    <tr class="hover:bg-surface-container-low transition-colors">
-                                        <td class="px-md py-md whitespace-nowrap font-semibold" data-label="Nama Mitra">{jadwal.mitra?.nama_mitra}</td>
-                                        <td class="px-md py-md whitespace-nowrap" data-label="Tanggal Selesai">{jadwal.tanggal}</td>
-                                        <td class="px-md py-md" data-label="Rincian Komoditas">
-                                            <div class="flex flex-col gap-xs my-1">
-                                                {items.length > 0 ? items.map((item) => (
-                                                    <span class="inline-flex items-center gap-1 text-xs font-medium text-on-surface-variant bg-surface-container px-2 py-0.5 rounded border border-outline-variant w-fit">
-                                                        📦 <strong class="text-primary">{item.komoditas}:</strong> {item.volume} Kg
-                                                    </span>
-                                                )) : <span class="text-xs italic text-red-600">Data belum diinput lapangan</span>}
-                                            </div>
-                                        </td>
-                                        <td class="px-md py-md text-right text-amber-700 font-medium" data-label="Potongan DP">
-                                            {tData?.potongan_dp ? `Rp ${Number(tData.potongan_dp).toLocaleString('id-ID')}` : '-'}
-                                        </td>
-                                        <td class="px-md py-md font-bold text-right text-primary" data-label="Total Berat Real">
-                                            {totalRealKg} KG
-                                        </td>
-                                        <td class="px-md py-md" data-label="Status">
-                                            <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 font-label-sm text-[11px]">
-                                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Selesai
-                                            </span>
-                                        </td>
-                                    </tr>
-                                );
-                            }) : <tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Riwayat transaksi operasional kosong.</td></tr>}
+                        <tbody class="divide-y divide-outline-variant font-body-md text-body-md text-on-surface bg-surface-container-lowest" id="tbody-history">
+                            <tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Memuat data...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -252,15 +128,18 @@ const history = jadwalPenjemputan?.filter(j => j.status === 'Selesai') || [];
             
             <form id="formPenjemputan" class="flex flex-col h-full overflow-hidden">
                 <div class="p-md overflow-y-auto flex-1 flex flex-col gap-md">
-                    
                     <div>
                         <label class="block font-label-sm text-on-surface-variant mb-xs">Pilih Lokasi Mitra</label>
                         <select id="input_mitra" class="w-full px-sm py-sm border border-outline-variant rounded-md bg-surface-container focus:border-primary focus:ring-1 focus:ring-primary font-body-md outline-none" required>
-                            <option value="">-- Pilih Mitra Pengumpul --</option>
-                            {daftarMitra && daftarMitra.map(m => (
-                                <option value={m.id}>{m.nama_mitra} - {m.alamat?.substring(0,30)}...</option>
-                            ))}
+                            <option value="">-- Memuat Mitra... --</option>
                         </select>
+                        
+                        <div id="detail_mitra_box" class="hidden mt-2 p-3 bg-surface-container-low border border-outline-variant rounded-md">
+                             <p id="detail_alamat_mitra" class="text-xs text-on-surface-variant mb-2 leading-relaxed"></p>
+                             <a id="detail_gmaps_mitra" href="#" target="_blank" class="text-primary hover:underline flex items-center font-bold text-xs w-fit bg-primary-container px-2 py-1 rounded">
+                                 <span class="material-symbols-outlined text-[16px] mr-1">location_on</span> Buka di Google Maps
+                             </a>
+                        </div>
                     </div>
 
                     <div>
@@ -275,8 +154,7 @@ const history = jadwalPenjemputan?.filter(j => j.status === 'Selesai') || [];
                     <div class="block" id="kurir-motor-select">
                         <label class="block font-label-sm text-on-surface-variant mb-xs">Pilih Driver Motor</label>
                         <select id="input_driver_motor" class="w-full px-sm py-sm border border-outline-variant rounded-md bg-surface-container focus:border-primary focus:ring-1 focus:ring-primary font-body-md outline-none" required>
-                            <option value="">-- Pilih Kurir --</option>
-                            {kurirMotor.map(d => <option value={d.id}>{d.nama}</option>)}
+                            <option value="">-- Memuat Kurir... --</option>
                         </select>
                     </div>
 
@@ -284,15 +162,13 @@ const history = jadwalPenjemputan?.filter(j => j.status === 'Selesai') || [];
                         <div class="flex-1">
                             <label class="block font-label-sm text-on-surface-variant mb-xs">Pilih Supir (Driver)</label>
                             <select id="input_driver_mobil" class="w-full px-sm py-sm border border-outline-variant rounded-md bg-surface-container focus:border-primary focus:ring-1 focus:ring-primary font-body-md outline-none">
-                                <option value="">-- Pilih Supir --</option>
-                                {supirMobil.map(d => <option value={d.id}>{d.nama}</option>)}
+                                <option value="">-- Memuat Supir... --</option>
                             </select>
                         </div>
                         <div class="flex-1 mt-2">
                             <label class="block font-label-sm text-on-surface-variant mb-xs">Pilih Pendamping (Helper)</label>
                             <select id="input_helper_mobil" class="w-full px-sm py-sm border border-outline-variant rounded-md bg-surface-container focus:border-primary focus:ring-1 focus:ring-primary font-body-md outline-none">
                                 <option value="">-- Tanpa Helper --</option>
-                                {kenekMobil.map(h => <option value={h.id}>{h.nama}</option>)}
                             </select>
                         </div>
                     </div>
@@ -339,23 +215,228 @@ const history = jadwalPenjemputan?.filter(j => j.status === 'Selesai') || [];
     </div>
 
     <script is:inline>
+        // Cek Role Keamanan
+        let currentUserRole = 'lapangan';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!window.supabase) return console.error("Supabase Client tidak ditemukan!");
+
+            // 1. Dapatkan Role Login
+            const { data: { session } } = await window.supabase.auth.getSession();
+            if(session) {
+                const { data: prof } = await window.supabase.from('profiles').select('role').eq('id', session.user.id).single();
+                currentUserRole = prof?.role || 'lapangan';
+            }
+
+            // 2. Fetch Data Jadwal Operasional
+            async function loadOperasionalData() {
+                const { data: jadwalPenjemputan, error: errJadwal } = await window.supabase
+                    .from('penjemputan')
+                    .select(`
+                        id, status, tanggal,
+                        mitra ( id, nama_mitra, alamat, link_gmaps ),
+                        driver:driver_id ( id, nama, tipe_kendaraan ),
+                        helper:helper_id ( id, nama ),
+                        transaksi ( id, potongan_dp, transaksi_item ( id, komoditas, volume ) )
+                    `)
+                    .order('tanggal', { ascending: false });
+
+                const pending = jadwalPenjemputan?.filter(j => j.status === 'Belum') || [];
+                const onProgress = jadwalPenjemputan?.filter(j => j.status === 'OTW' || j.status === 'Proses') || [];
+                const history = jadwalPenjemputan?.filter(j => j.status === 'Selesai') || [];
+
+                // Update Notif Tab
+                document.getElementById('count-pending').innerText = pending.length;
+                document.getElementById('count-progress').innerText = onProgress.length;
+
+                // Render Tab Pending
+                let htmlPending = '';
+                if(pending.length > 0) {
+                    pending.forEach(j => {
+                        htmlPending += `
+                        <tr class="hover:bg-surface-container-low transition-colors">
+                            <td class="px-md py-md whitespace-nowrap font-semibold" data-label="Nama Mitra">${j.mitra?.nama_mitra || '-'}</td>
+                            <td class="px-md py-md" data-label="Alamat">
+                                <div class="text-xs font-bold text-gray-800 break-words max-w-[220px]" title="${j.mitra?.alamat || ''}">
+                                    ${j.mitra?.alamat || '<span class="text-amber-600 font-normal italic text-[11px]">Teks alamat belum diisi (Data Lama)</span>'}
+                                </div>
+                                ${j.mitra?.link_gmaps ? `
+                                    <a href="${j.mitra.link_gmaps}" target="_blank" class="text-blue-600 text-[11px] hover:underline flex items-center mt-1 font-semibold">
+                                        <i class="bi bi-geo-alt-fill mr-1 text-red-500"></i> Google Maps
+                                    </a>
+                                ` : ''}
+                            </td>
+                            <td class="px-md py-md capitalize" data-label="Kendaraan">${j.driver?.tipe_kendaraan === 'motor' ? 'Motor' : 'Mobil'}</td>
+                            <td class="px-md py-md" data-label="Kurir">${j.driver?.nama || ''} ${j.helper?.nama ? '& ' + j.helper.nama : ''}</td>
+                            <td class="px-md py-md" data-label="Status">
+                                <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 font-label-sm text-[11px]">
+                                    <span class="w-2 h-2 rounded-full bg-amber-500"></span> ${j.status}
+                                </span>
+                            </td>
+                            <td class="px-md py-md text-right" data-label="Aksi">
+                                <span class="text-xs text-on-surface-variant italic">Menunggu Lapangan...</span>
+                            </td>
+                        </tr>`;
+                    });
+                } else { htmlPending = '<tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Tidak ada jadwal penjemputan baru.</td></tr>'; }
+                document.getElementById('tbody-pending').innerHTML = htmlPending;
+
+                // Render Tab Progress
+                let htmlProgress = '';
+                if(onProgress.length > 0) {
+                    onProgress.forEach(j => {
+                        htmlProgress += `
+                        <tr class="hover:bg-surface-container-low transition-colors">
+                            <td class="px-md py-md whitespace-nowrap font-semibold" data-label="Nama Mitra">${j.mitra?.nama_mitra || '-'}</td>
+                            <td class="px-md py-md" data-label="Alamat">
+                                <div class="text-xs font-bold text-gray-800 break-words max-w-[220px]" title="${j.mitra?.alamat || ''}">
+                                    ${j.mitra?.alamat || '<span class="text-amber-600 font-normal italic text-[11px]">Teks alamat belum diisi (Data Lama)</span>'}
+                                </div>
+                                ${j.mitra?.link_gmaps ? `
+                                    <a href="${j.mitra.link_gmaps}" target="_blank" class="text-blue-600 text-[11px] hover:underline flex items-center mt-1 font-semibold">
+                                        <i class="bi bi-geo-alt-fill mr-1 text-red-500"></i> Google Maps
+                                    </a>
+                                ` : ''}
+                            </td> 
+                            <td class="px-md py-md capitalize" data-label="Kendaraan">${j.driver?.tipe_kendaraan === 'motor' ? 'Motor' : 'Mobil'}</td>
+                            <td class="px-md py-md" data-label="Kurir">${j.driver?.nama || ''} ${j.helper?.nama ? '& ' + j.helper.nama : ''}</td>
+                            <td class="px-md py-md" data-label="Status">
+                                <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 font-label-sm text-[11px]">
+                                    <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> ${j.status}
+                                </span>
+                            </td>
+                            <td class="px-md py-md text-right" data-label="Aksi">
+                                <button class="bg-secondary text-on-secondary font-label-sm rounded-full px-4 py-1 hover:opacity-90 transition-all">Pantau Rute</button>
+                            </td>
+                        </tr>`;
+                    });
+                } else { htmlProgress = '<tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Tidak ada armada yang sedang di perjalanan.</td></tr>'; }
+                document.getElementById('tbody-progress').innerHTML = htmlProgress;
+
+                // Render Tab History
+                let htmlHistory = '';
+                if(history.length > 0) {
+                    history.forEach(j => {
+                        const tData = j.transaksi?.[0];
+                        const items = tData?.transaksi_item || [];
+                        const totalRealKg = items.reduce((acc, curr) => acc + parseFloat(curr.volume || 0), 0);
+                        
+                        let itemsHtml = '';
+                        if(items.length > 0) {
+                            items.forEach(item => {
+                                itemsHtml += `<span class="inline-flex items-center gap-1 text-xs font-medium text-on-surface-variant bg-surface-container px-2 py-0.5 rounded border border-outline-variant w-fit mb-1">📦 <strong class="text-primary">${item.komoditas}:</strong> ${item.volume} Kg</span><br>`;
+                            });
+                        } else {
+                            itemsHtml = '<span class="text-xs italic text-red-600">Data belum diinput lapangan</span>';
+                        }
+
+                        htmlHistory += `
+                        <tr class="hover:bg-surface-container-low transition-colors">
+                            <td class="px-md py-md whitespace-nowrap font-semibold" data-label="Nama Mitra">${j.mitra?.nama_mitra || '-'}</td>
+                            <td class="px-md py-md whitespace-nowrap" data-label="Tanggal Selesai">${j.tanggal}</td>
+                            <td class="px-md py-md" data-label="Rincian Komoditas">${itemsHtml}</td>
+                            <td class="px-md py-md text-right text-amber-700 font-medium" data-label="Potongan DP">${tData?.potongan_dp ? 'Rp ' + Number(tData.potongan_dp).toLocaleString('id-ID') : '-'}</td>
+                            <td class="px-md py-md font-bold text-right text-primary" data-label="Total Berat Real">${totalRealKg} KG</td>
+                            <td class="px-md py-md" data-label="Status">
+                                <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 font-label-sm text-[11px]">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Selesai
+                                </span>
+                            </td>
+                        </tr>`;
+                    });
+                } else { htmlHistory = '<tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Riwayat transaksi operasional kosong.</td></tr>'; }
+                document.getElementById('tbody-history').innerHTML = htmlHistory;
+
+                // 3. Fetch Dropdown Mitra & Tampilkan Detail Gmaps
+                const { data: daftarMitra } = await window.supabase.from('mitra').select('id, nama_mitra, alamat, link_gmaps').order('nama_mitra', { ascending: true });
+                window.allMitra = daftarMitra || []; // Simpan global
+                
+                let optMitra = '<option value="">-- Pilih Mitra Pengumpul --</option>';
+                window.allMitra.forEach(m => optMitra += `<option value="${m.id}">${m.nama_mitra} - ${(m.alamat || '').substring(0,30)}...</option>`);
+                document.getElementById('input_mitra').innerHTML = optMitra;
+
+                // Event Listener biar alamat & Gmaps muncul saat dipilih
+                document.getElementById('input_mitra').addEventListener('change', function() {
+                    const box = document.getElementById('detail_mitra_box');
+                    const alamatTxt = document.getElementById('detail_alamat_mitra');
+                    const gmapsBtn = document.getElementById('detail_gmaps_mitra');
+                    
+                    const selectedMitra = window.allMitra.find(m => String(m.id) === String(this.value));
+                    
+                    if(selectedMitra && (selectedMitra.alamat || selectedMitra.link_gmaps)) {
+                        box.classList.remove('hidden');
+                        alamatTxt.innerText = selectedMitra.alamat || 'Alamat tidak tersedia di sistem';
+                        if(selectedMitra.link_gmaps) {
+                            gmapsBtn.href = selectedMitra.link_gmaps;
+                            gmapsBtn.style.display = 'flex';
+                        } else { gmapsBtn.style.display = 'none'; }
+                    } else { box.classList.add('hidden'); }
+                });
+
+                // 4. Fetch Dropdown Karyawan & Filter Logic
+                const { data: karyawanLapangan } = await window.supabase.from('profiles').select('id, nama, tipe_kendaraan').eq('role', 'lapangan');
+                window.allKaryawan = karyawanLapangan || []; // Simpan global
+                
+                let optMotor = '<option value="">-- Pilih Kurir Motor --</option>';
+                let optSupir = '<option value="">-- Pilih Supir Mobil --</option>';
+                let optKenek = '<option value="">-- Tanpa Helper --</option>';
+
+                window.allKaryawan.forEach(k => {
+                    const labelTipe = k.tipe_kendaraan ? ` (${k.tipe_kendaraan.replace('_', ' ')})` : '';
+                    const namaLengkap = `${k.nama}${labelTipe}`;
+                    optMotor += `<option value="${k.id}">${namaLengkap}</option>`;
+                    optSupir += `<option value="${k.id}">${namaLengkap}</option>`;
+                    optKenek += `<option value="${k.id}">${namaLengkap}</option>`;
+                });
+
+                document.getElementById('input_driver_motor').innerHTML = optMotor;
+                document.getElementById('input_driver_mobil').innerHTML = optSupir;
+                document.getElementById('input_helper_mobil').innerHTML = optKenek;
+
+                // 🔥 LOGIKA MENCEGAH SUPIR DIPILIH LAGI JADI KENEK 🔥
+                document.getElementById('input_driver_mobil').addEventListener('change', function() {
+                    const selectedSupirId = this.value;
+                    const kenekSelect = document.getElementById('input_helper_mobil');
+                    const prevKenekId = kenekSelect.value; // Simpan pilihan kenek sebelumnya
+                    
+                    let newOptKenek = '<option value="">-- Tanpa Helper --</option>';
+                    window.allKaryawan.forEach(k => {
+                        // JANGAN MASUKIN ID YANG SAMA DENGAN SUPIR
+                        if(k.id !== selectedSupirId) { 
+                            const labelTipe = k.tipe_kendaraan ? ` (${k.tipe_kendaraan.replace('_', ' ')})` : '';
+                            newOptKenek += `<option value="${k.id}">${k.nama}${labelTipe}</option>`;
+                        }
+                    });
+                    
+                    kenekSelect.innerHTML = newOptKenek;
+                    // Balikin value kenek lama kalau gak bentrok dengan supir baru
+                    if(prevKenekId !== selectedSupirId) kenekSelect.value = prevKenekId; 
+                });
+            }
+
+            await loadOperasionalData();
+        });
+
+
+        // === FUNGSI GLOBAL & UI ===
         window.switchTab = function(tabId) {
             document.querySelectorAll('[id^="tab-"]').forEach(btn => {
                 btn.className = 'px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap';
             });
             const activeBtn = document.getElementById('tab-' + tabId);
             activeBtn.className = 'px-md py-sm font-label-lg text-primary border-b-2 border-primary whitespace-nowrap';
-
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.remove('active');
             });
             document.getElementById('content-' + tabId).classList.add('active');
         };
 
-        window.openModal = function() {
+        const isAllowed = () => ['owner', 'hrd', 'admin'].includes(currentUserRole);
+
+        window.tambahPenjemputan = function() {
+            if(!isAllowed()) return alert('Akses Ditolak: Hanya Admin, HRD, dan Owner yang diizinkan menerbitkan penugasan!');
             document.getElementById('new-pickup-modal').classList.add('active');
             document.getElementById('input_tanggal').valueAsDate = new Date();
-            // Reset container barang ke default satu baris kosong saat modal dibuka kembali
             document.getElementById('barang-rows-container').innerHTML = `
                 <div class="flex gap-xs barang-row items-center">
                     <select class="row-komoditas flex-1 h-9 px-xs border border-outline-variant rounded bg-surface-container text-xs outline-none focus:border-primary" required>
@@ -374,7 +455,6 @@ const history = jadwalPenjemputan?.filter(j => j.status === 'Selesai') || [];
             document.getElementById('new-pickup-modal').classList.remove('active');
         };
 
-        // Tambah Baris Rincian Barang Dinamis
         window.addBarangRow = function() {
             const container = document.getElementById('barang-rows-container');
             const div = document.createElement('div');
@@ -391,7 +471,6 @@ const history = jadwalPenjemputan?.filter(j => j.status === 'Selesai') || [];
             container.appendChild(div);
         };
 
-        // Hapus Baris Rincian Barang
         window.removeBarangRow = function(button) {
             const container = document.getElementById('barang-rows-container');
             if (container.children.length > 1) {
@@ -413,7 +492,6 @@ const history = jadwalPenjemputan?.filter(j => j.status === 'Selesai') || [];
                 btnMobil.className = 'flex-1 py-2 rounded-md font-label-sm text-on-surface-variant hover:bg-surface-variant transition-all';
                 selectMotor.classList.replace('hidden', 'block');
                 selectMobil.classList.replace('flex', 'hidden');
-                
                 document.getElementById('input_driver_motor').required = true;
                 document.getElementById('input_driver_mobil').required = false;
             } else {
@@ -421,18 +499,23 @@ const history = jadwalPenjemputan?.filter(j => j.status === 'Selesai') || [];
                 btnMotor.className = 'flex-1 py-2 rounded-md font-label-sm text-on-surface-variant hover:bg-surface-variant transition-all';
                 selectMotor.classList.replace('block', 'hidden');
                 selectMobil.classList.replace('hidden', 'flex');
-                
                 document.getElementById('input_driver_motor').required = false;
                 document.getElementById('input_driver_mobil').required = true;
             }
         };
 
-        // Submit Tugas Baru & Menyimpan Rincian ke Supabase
+        // SUBMIT TUGAS BARU
         document.getElementById('formPenjemputan')?.addEventListener('submit', async function(e) {
             e.preventDefault();
+                
+            // Cek role di website sekali lagi sebelum data terbang ke Supabase
+            if(!isAllowed()) {
+                alert('Akses Ditolak: Anda tidak memiliki izin untuk mengirim perintah jalan!');
+                return;
+            }
+            
             const btn = document.getElementById('btnSubmitPenjemputan');
-            btn.innerHTML = 'Menyimpan...';
-            btn.disabled = true;
+            btn.innerHTML = 'Menyimpan...'; btn.disabled = true;
 
             try {
                 const tipeKendaraan = document.getElementById('tipe_kendaraan_input').value;
@@ -454,57 +537,46 @@ const history = jadwalPenjemputan?.filter(j => j.status === 'Selesai') || [];
                 if (!window.supabase) throw new Error("Supabase Client tidak ditemukan!");
 
                 // 1. Simpan data utama ke tabel 'penjemputan'
-                const { data: pickupData, error: errPickup } = await window.supabase
-                    .from('penjemputan')
-                    .insert([{
-                        mitra_id: parseInt(mitra_id),
-                        driver_id: driver_id,
-                        helper_id: helper_id || null,
-                        tanggal: tanggal,
-                        status: 'Belum'
-                    }])
-                    .select()
-                    .single();
-
+                const { data: pickupData, error: errPickup } = await window.supabase.from('penjemputan').insert([{
+                    mitra_id: parseInt(mitra_id),
+                    driver_id: driver_id,
+                    helper_id: helper_id || null,
+                    tanggal: tanggal,
+                    status: 'Belum'
+                }]).select().single();
                 if (errPickup) throw errPickup;
 
                 // 2. Simpan induk data 'transaksi' (untuk mencatat DP)
-                const { data: txData, error: errTx } = await window.supabase
-                    .from('transaksi')
-                    .insert([{
-                        penjemputan_id: pickupData.id,
-                        kalkulator_user_id: driver_id,
-                        potongan_dp: dpValue ? parseFloat(dpValue) : 0,
-                        subtotal: 0,
-                        grand_total: 0
-                    }])
-                    .select()
-                    .single();
-
+                const { data: txData, error: errTx } = await window.supabase.from('transaksi').insert([{
+                    penjemputan_id: pickupData.id,
+                    kalkulator_user_id: driver_id,
+                    potongan_dp: dpValue ? parseFloat(dpValue) : 0,
+                    subtotal: 0,
+                    grand_total: 0
+                }]).select().single();
                 if (errTx) throw errTx;
 
-                // 3. Loop & kumpulkan data rincian barang dari elemen input DOM dinamis
                 const rows = document.querySelectorAll('.barang-row');
                 const itemsToInsert = [];
-
+                
                 rows.forEach(row => {
                     const komoditas = row.querySelector('.row-komoditas').value;
                     const volume = row.querySelector('.row-volume').value;
                     
                     if(komoditas && volume) {
                         itemsToInsert.push({
-                            transaksi_id: txData.id,
+                            transaksi_id: txData.id, 
                             komoditas: komoditas,
-                            volume: parseFloat(volume),
-                            harga_unit: 0 // Default awal sebelum di-audit admin keuangan
+                            volume: parseFloat(volume)
+                            // harga_unit gw hapus ya, karena ini baru estimasi, belum deal harga
                         });
                     }
                 });
 
-                // 4. Masukkan array rincian barang sekaligus ke tabel 'transaksi_item'
+                // 4. Masukkan rincian barang ke tabel TRANSAKSI_ESTIMASI (Bukan transaksi_item lagi)
                 if(itemsToInsert.length > 0) {
                     const { error: errItems } = await window.supabase
-                        .from('transaksi_item')
+                        .from('transaksi_estimasi') // <--- DIUBAH KE SINI BRO!
                         .insert(itemsToInsert);
                         
                     if (errItems) throw errItems;
@@ -512,11 +584,9 @@ const history = jadwalPenjemputan?.filter(j => j.status === 'Selesai') || [];
                 
                 alert('Tugas penjemputan dan rincian kuantitas berhasil diterbitkan!');
                 window.location.reload();
-                
             } catch (error) {
                 alert('Gagal memproses penugasan: ' + error.message);
-                btn.innerHTML = 'Kirim Perintah Jalan';
-                btn.disabled = false;
+                btn.innerHTML = 'Kirim Perintah Jalan'; btn.disabled = false;
             }
         });
     </script>

@@ -1,29 +1,6 @@
 ---
 import GeneralLayout from '../layouts/Layout.astro';
-import { supabase } from '../lib/supabase';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-
-// 1. Tarik Data Stok Komoditas
-const { data: listKomoditas } = await supabase
-  .from('gudang_komoditas')
-  .select('*')
-  .order('id', { ascending: true });
-
-// Buat object map biar gampang dipanggil di UI
-const stokData = listKomoditas?.reduce((acc, curr) => {
-  acc[curr.id] = curr;
-  return acc;
-}, {}) || {};
-
-// 2. Tarik Riwayat Mutasi (Limit 30 terbaru)
-const { data: riwayatMutasi } = await supabase
-  .from('gudang_mutasi')
-  .select(`
-    *,
-    komoditas:komoditas_id ( nama_komoditas )
-  `)
-  .order('tanggal', { ascending: false })
-  .limit(30);
 
 const tabs = [
   { id: 'dashboard', label: 'Ringkasan Stok', icon: 'grid-1x2' },
@@ -31,14 +8,6 @@ const tabs = [
   { id: 'kalibrasi', label: 'Kalibrasi Stok', icon: 'sliders' },
   { id: 'riwayat', label: 'Riwayat Mutasi', icon: 'clock-history' }
 ];
-
-// Helper warna badge riwayat
-const getBadgeColor = (jenis) => {
-  if(jenis === 'Masuk') return 'bg-green-100 text-green-700';
-  if(jenis === 'Keluar') return 'bg-red-100 text-red-700';
-  if(jenis === 'Olahan') return 'bg-blue-100 text-blue-700';
-  return 'bg-yellow-100 text-yellow-700'; // Kalibrasi
-};
 ---
 
 <GeneralLayout title="Gudang & Stok - Manajemen Bang Jelantah">
@@ -65,7 +34,6 @@ const getBadgeColor = (jenis) => {
   </div>
 
   <div id="dashboard-tab" class="tab-content block">
-    
     <div class="mb-8">
         <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
             <i class="bi bi-box-seam text-primary"></i> Komoditas Belum Olah (Penerimaan Mitra)
@@ -73,24 +41,24 @@ const getBadgeColor = (jenis) => {
         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm">
                 <div class="flex items-center gap-3 mb-3">
-                <div class="w-10 h-10 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center text-xl shrink-0"><i class="bi bi-droplet-half"></i></div>
-                <p class="text-sm font-semibold text-gray-700 leading-tight">Minyak Jelantah Kotor</p>
+                  <div class="w-10 h-10 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center text-xl shrink-0"><i class="bi bi-droplet-half"></i></div>
+                  <p class="text-sm font-semibold text-gray-700 leading-tight">Minyak Jelantah Kotor</p>
                 </div>
-                <p class="text-3xl font-bold text-gray-900">{stokData['minyak_kotor']?.stok || 0} <span class="text-sm font-normal text-gray-500">Kg</span></p>
+                <p class="text-3xl font-bold text-gray-900"><span id="stok-minyak_kotor">0</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
             </div>
             <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm">
                 <div class="flex items-center gap-3 mb-3">
-                <div class="w-10 h-10 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center text-xl shrink-0"><i class="bi bi-cloud-haze2"></i></div>
-                <p class="text-sm font-semibold text-gray-700 leading-tight">Tepung Ayakan</p>
+                  <div class="w-10 h-10 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center text-xl shrink-0"><i class="bi bi-cloud-haze2"></i></div>
+                  <p class="text-sm font-semibold text-gray-700 leading-tight">Tepung Ayakan</p>
                 </div>
-                <p class="text-3xl font-bold text-gray-900">{stokData['tepung']?.stok || 0} <span class="text-sm font-normal text-gray-500">Kg</span></p>
+                <p class="text-3xl font-bold text-gray-900"><span id="stok-tepung">0</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
             </div>
             <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm">
                 <div class="flex items-center gap-3 mb-3">
-                <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xl shrink-0"><i class="bi bi-record-circle"></i></div>
-                <p class="text-sm font-semibold text-gray-700 leading-tight">Kriuk</p>
+                  <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xl shrink-0"><i class="bi bi-record-circle"></i></div>
+                  <p class="text-sm font-semibold text-gray-700 leading-tight">Kriuk</p>
                 </div>
-                <p class="text-3xl font-bold text-gray-900">{stokData['kriuk']?.stok || 0} <span class="text-sm font-normal text-gray-500">Kg</span></p>
+                <p class="text-3xl font-bold text-gray-900"><span id="stok-kriuk">0</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
             </div>
         </div>
     </div>
@@ -102,17 +70,17 @@ const getBadgeColor = (jenis) => {
         <div class="grid grid-cols-2 gap-4">
             <div class="bg-green-50 rounded-xl p-4 border border-green-200 shadow-sm">
                 <div class="flex items-center gap-3 mb-3">
-                <div class="w-10 h-10 rounded-lg bg-green-200 text-green-700 flex items-center justify-center text-xl shrink-0"><i class="bi bi-droplet-fill"></i></div>
-                <p class="text-sm font-semibold text-green-800 leading-tight">Minyak Jelantah Olahan</p>
+                  <div class="w-10 h-10 rounded-lg bg-green-200 text-green-700 flex items-center justify-center text-xl shrink-0"><i class="bi bi-droplet-fill"></i></div>
+                  <p class="text-sm font-semibold text-green-800 leading-tight">Minyak Jelantah Olahan</p>
                 </div>
-                <p class="text-3xl font-bold text-primary">{stokData['minyak_olahan']?.stok || 0} <span class="text-sm font-normal text-green-700">Kg</span></p>
+                <p class="text-3xl font-bold text-primary"><span id="stok-minyak_olahan">0</span> <span class="text-sm font-normal text-green-700">Kg</span></p>
             </div>
             <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm">
                 <div class="flex items-center gap-3 mb-3">
-                <div class="w-10 h-10 rounded-lg bg-gray-200 text-gray-700 flex items-center justify-center text-xl shrink-0"><i class="bi bi-trash3"></i></div>
-                <p class="text-sm font-semibold text-gray-700 leading-tight">Ampas (Sludge)</p>
+                  <div class="w-10 h-10 rounded-lg bg-gray-200 text-gray-700 flex items-center justify-center text-xl shrink-0"><i class="bi bi-trash3"></i></div>
+                  <p class="text-sm font-semibold text-gray-700 leading-tight">Ampas (Sludge)</p>
                 </div>
-                <p class="text-3xl font-bold text-gray-900">{stokData['ampas']?.stok || 0} <span class="text-sm font-normal text-gray-500">Kg</span></p>
+                <p class="text-3xl font-bold text-gray-900"><span id="stok-ampas">0</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
             </div>
         </div>
     </div>
@@ -124,10 +92,10 @@ const getBadgeColor = (jenis) => {
         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm">
                 <div class="flex items-center gap-3 mb-3">
-                <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-xl shrink-0"><i class="bi bi-arrow-repeat"></i></div>
-                <p class="text-sm font-semibold text-gray-700 leading-tight">Spinner</p>
+                  <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-xl shrink-0"><i class="bi bi-arrow-repeat"></i></div>
+                  <p class="text-sm font-semibold text-gray-700 leading-tight">Spinner</p>
                 </div>
-                <p class="text-3xl font-bold text-gray-900">{stokData['spinner']?.stok || 0} <span class="text-sm font-normal text-gray-500">Kg</span></p>
+                <p class="text-3xl font-bold text-gray-900"><span id="stok-spinner">0</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
             </div>
         </div>
     </div>
@@ -135,7 +103,6 @@ const getBadgeColor = (jenis) => {
 
   <div id="olahan-tab" class="tab-content hidden">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
         <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm flex flex-col">
             <h3 class="text-xl font-bold text-gray-900 mb-2">Proses Jelantah Kotor</h3>
             <p class="text-sm text-gray-500 mb-6">Pecah stok minyak kotor menjadi Minyak Olahan & Ampas.</p>
@@ -145,7 +112,7 @@ const getBadgeColor = (jenis) => {
                     <div class="bg-orange-50 border border-orange-200 p-4 rounded-xl mb-6">
                         <label class="block text-sm font-bold text-orange-900 mb-1">Jelantah Kotor Digunakan (Kg)</label>
                         <div class="flex justify-between items-center mb-2">
-                            <span class="text-xs text-orange-700">Stok Gudang: <strong id="maxBahanBaku">{stokData['minyak_kotor']?.stok || 0}</strong> Kg</span>
+                            <span class="text-xs text-orange-700">Stok Gudang: <strong id="maxBahanBaku">0</strong> Kg</span>
                         </div>
                         <input type="number" step="0.1" id="inputBahanBaku" class="w-full px-4 py-3 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-lg font-bold" required />
                     </div>
@@ -203,7 +170,6 @@ const getBadgeColor = (jenis) => {
                 </button>
             </form>
         </div>
-
     </div>
   </div>
 
@@ -216,10 +182,13 @@ const getBadgeColor = (jenis) => {
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Komoditas</label>
           <select id="kalibrasiKomoditas" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-primary" required>
-            <option value="">-- Pilih --</option>
-            {listKomoditas?.map(k => (
-              <option value={k.id} data-stok={k.stok}>{k.nama_komoditas}</option>
-            ))}
+            <option value="">-- Pilih Komoditas --</option>
+            <option value="minyak_kotor" data-stok="0">Minyak Jelantah Kotor</option>
+            <option value="tepung" data-stok="0">Tepung Ayakan</option>
+            <option value="kriuk" data-stok="0">Kriuk</option>
+            <option value="minyak_olahan" data-stok="0">Minyak Jelantah Olahan</option>
+            <option value="ampas" data-stok="0">Ampas (Sludge)</option>
+            <option value="spinner" data-stok="0">Spinner</option>
           </select>
         </div>
 
@@ -277,22 +246,8 @@ const getBadgeColor = (jenis) => {
               <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Keterangan</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
-            {riwayatMutasi && riwayatMutasi.map((item) => (
-              <tr class="hover:bg-gray-50 transition">
-                <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{new Date(item.tanggal).toLocaleString('id-ID')}</td>
-                <td class="px-6 py-4">
-                  <span class={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${getBadgeColor(item.jenis_mutasi)}`}>
-                    {item.jenis_mutasi}
-                  </span>
-                </td>
-                <td class="px-6 py-4 text-sm font-medium text-gray-900">{item.komoditas?.nama_komoditas}</td>
-                <td class={`px-6 py-4 text-sm font-bold text-right ${item.jumlah > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {item.jumlah > 0 ? '+' : ''}{item.jumlah} Kg
-                </td>
-                <td class="px-6 py-4 text-sm text-gray-500 max-w-[250px] truncate" title={item.keterangan}>{item.keterangan || '-'}</td>
-              </tr>
-            ))}
+          <tbody id="tabelRiwayat" class="divide-y divide-gray-100">
+            <tr><td colspan="5" class="text-center py-4 text-gray-500">Memuat data riwayat...</td></tr>
           </tbody>
         </table>
       </div>
@@ -304,7 +259,84 @@ const getBadgeColor = (jenis) => {
 <script is:inline>
   document.addEventListener('DOMContentLoaded', () => {
     
-    // --- TAB SWITCHING LOGIC ---
+    // ==============================================================
+    // 1. FETCH DATA GUDANG (CLIENT-SIDE)
+    // ==============================================================
+    async function loadGudangData() {
+        if(!window.supabase) return;
+
+        // A. Ambil Data Stok Komoditas
+        const { data: komoditas, error: errKom } = await window.supabase.from('gudang_komoditas').select('*');
+        
+        if(!errKom && komoditas) {
+            komoditas.forEach(k => {
+                // Update angka di Dashboard
+                const elStok = document.getElementById(`stok-${k.id}`);
+                if(elStok) elStok.innerText = k.stok;
+
+                // Update batas maksimal di form Produksi Olahan
+                if(k.id === 'minyak_kotor') {
+                    const maxBahan = document.getElementById('maxBahanBaku');
+                    if(maxBahan) maxBahan.innerText = k.stok;
+                }
+
+                // Update data-stok di dropdown form Kalibrasi
+                const opt = document.querySelector(`#kalibrasiKomoditas option[value="${k.id}"]`);
+                if(opt) opt.setAttribute('data-stok', k.stok);
+            });
+        }
+
+        const getBadgeColorJs = (jenis) => {
+            if(jenis === 'Masuk') return 'bg-green-100 text-green-700';
+            if(jenis === 'Keluar') return 'bg-red-100 text-red-700';
+            if(jenis === 'Olahan') return 'bg-blue-100 text-blue-700';
+            return 'bg-yellow-100 text-yellow-700';
+        };
+
+        // B. Ambil Data Riwayat Mutasi (Limit 30)
+        const { data: mutasi, error: errMut } = await window.supabase
+            .from('gudang_mutasi')
+            .select('*, komoditas:komoditas_id ( nama_komoditas )')
+            .order('tanggal', { ascending: false })
+            .limit(30);
+
+        if(!errMut && mutasi) {
+            const tbody = document.getElementById('tabelRiwayat');
+            let html = '';
+            
+            if(mutasi.length === 0) {
+                html = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Belum ada riwayat mutasi.</td></tr>';
+            } else {
+                mutasi.forEach(item => {
+                    const tgl = new Date(item.tanggal).toLocaleString('id-ID');
+                    const badge = getBadgeColorJs(item.jenis_mutasi);
+                    const namaK = item.komoditas ? item.komoditas.nama_komoditas : item.komoditas_id;
+                    const sign = item.jumlah > 0 ? '+' : '';
+                    const colorNum = item.jumlah > 0 ? 'text-green-600' : 'text-red-600';
+                    const ket = item.keterangan ? item.keterangan : '-';
+
+                    html += `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">${tgl}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${badge}">${item.jenis_mutasi}</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">${namaK}</td>
+                        <td class="px-6 py-4 text-sm font-bold text-right ${colorNum}">${sign}${item.jumlah} Kg</td>
+                        <td class="px-6 py-4 text-sm text-gray-500 max-w-[250px] truncate" title="${ket}">${ket}</td>
+                    </tr>
+                    `;
+                });
+            }
+            if(tbody) tbody.innerHTML = html;
+        }
+    }
+
+    loadGudangData();
+
+    // ==============================================================
+    // 2. LOGIKA TAB SWITCHING
+    // ==============================================================
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabContents = document.querySelectorAll('.tab-content');
 
@@ -325,12 +357,13 @@ const getBadgeColor = (jenis) => {
       });
     });
 
-    // --- FORM 1: PRODUKSI JELANTAH OLAHAN ---
+    // ==============================================================
+    // 3. LOGIKA FORM: PRODUKSI JELANTAH OLAHAN
+    // ==============================================================
     const inputBahan = document.getElementById('inputBahanBaku');
-    const hasilInputs = document.querySelectorAll('.hasil-input'); // minyak olahan & ampas
+    const hasilInputs = document.querySelectorAll('.hasil-input'); 
     const penyusutanDisplay = document.getElementById('penyusutanDisplay');
-    const maxBahan = parseFloat(document.getElementById('maxBahanBaku').innerText);
-
+    
     function hitungPenyusutan() {
       const bahan = parseFloat(inputBahan.value) || 0;
       let totalHasil = 0;
@@ -348,6 +381,9 @@ const getBadgeColor = (jenis) => {
       e.preventDefault();
       const bahanBaku = parseFloat(inputBahan.value);
       
+      // FIX BUG: Ambil batas maksimal langsung saat tombol ditekan (biar nggak dapat nilai 0)
+      const maxBahan = parseFloat(document.getElementById('maxBahanBaku').innerText);
+      
       if(bahanBaku > maxBahan) return alert('Bahan baku melebihi stok kotor yang tersedia!');
       if(!window.supabase) return alert('Supabase tidak terkoneksi!');
       
@@ -361,7 +397,6 @@ const getBadgeColor = (jenis) => {
       const loss = parseFloat(penyusutanDisplay.innerText);
 
       try {
-        // Insert history olahan (Nilai tepung, spinner, kriuk di-set 0 karena bukan hasil olahan jelantah kotor)
         await window.supabase.from('gudang_olahan').insert([{
           bahan_baku_kotor: bahanBaku,
           hasil_minyak_olahan: dataHasil.minyak_olahan,
@@ -373,14 +408,12 @@ const getBadgeColor = (jenis) => {
           catatan: 'Proses produksi via Dashboard Gudang'
         }]);
 
-        // Kurangi stok bahan kotor 
         await window.supabase.from('gudang_komoditas').update({ stok: maxBahan - bahanBaku }).eq('id', 'minyak_kotor');
-        
+
         const mutasiEntries = [
           { jenis_mutasi: 'Olahan', komoditas_id: 'minyak_kotor', jumlah: -bahanBaku, keterangan: 'Bahan Baku Produksi' }
         ];
 
-        // Tambah stok hasil produksi yang dihasilkan
         for (const [id_komoditas, qty] of Object.entries(dataHasil)) {
             if(qty > 0) {
                 const { data: c } = await window.supabase.from('gudang_komoditas').select('stok').eq('id', id_komoditas).single();
@@ -389,18 +422,19 @@ const getBadgeColor = (jenis) => {
             }
         }
 
-        // Insert log mutasi
         await window.supabase.from('gudang_mutasi').insert(mutasiEntries);
 
         alert('Proses produksi berhasil disimpan!');
         window.location.reload();
       } catch (err) {
         alert('Gagal: ' + err.message);
+        document.getElementById('btnSubmitOlahan').innerHTML = `<i class="bi bi-gear-fill"></i> Simpan Produksi`;
       }
     });
 
-
-    // --- FORM 2: INPUT MANUAL SPINNER ---
+    // ==============================================================
+    // 4. LOGIKA FORM: INPUT MANUAL SPINNER
+    // ==============================================================
     document.getElementById('spinnerForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const inputQty = parseFloat(document.getElementById('input_spinner_qty').value);
@@ -411,11 +445,9 @@ const getBadgeColor = (jenis) => {
         btn.disabled = true;
 
         try {
-            // Ambil stok spinner sekarang, lalu tambahkan dengan input manual
             const { data: currentData } = await window.supabase.from('gudang_komoditas').select('stok').eq('id', 'spinner').single();
             await window.supabase.from('gudang_komoditas').update({ stok: (currentData.stok + inputQty) }).eq('id', 'spinner');
 
-            // Catat ke riwayat mutasi
             await window.supabase.from('gudang_mutasi').insert([{
                 jenis_mutasi: 'Masuk',
                 komoditas_id: 'spinner',
@@ -427,13 +459,14 @@ const getBadgeColor = (jenis) => {
             window.location.reload();
         } catch (err) {
             alert('Gagal menyimpan Spinner: ' + err.message);
-            btn.innerHTML = "Masukkan ke Gudang";
+            btn.innerHTML = `<i class="bi bi-arrow-down-circle-fill"></i> Masukkan ke Gudang`;
             btn.disabled = false;
         }
     });
 
-
-    // --- FORM 3: KALIBRASI LOGIC ---
+    // ==============================================================
+    // 5. LOGIKA FORM: KALIBRASI STOK
+    // ==============================================================
     const selectK = document.getElementById('kalibrasiKomoditas');
     const inputSistem = document.getElementById('kalibrasiSistem');
     const inputFisik = document.getElementById('kalibrasiFisik');
@@ -466,6 +499,7 @@ const getBadgeColor = (jenis) => {
       
       try {
         await window.supabase.from('gudang_komoditas').update({ stok: parseFloat(inputFisik.value) }).eq('id', komoditas_id);
+        
         await window.supabase.from('gudang_mutasi').insert([{
           jenis_mutasi: 'Kalibrasi',
           komoditas_id: komoditas_id,
@@ -477,6 +511,7 @@ const getBadgeColor = (jenis) => {
         window.location.reload();
       } catch (err) {
         alert('Gagal kalibrasi: ' + err.message);
+        document.getElementById('btnSubmitKalibrasi').innerHTML = `<i class="bi bi-sliders"></i> Simpan Penyesuaian`;
       }
     });
 

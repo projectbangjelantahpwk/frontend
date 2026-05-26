@@ -62,6 +62,7 @@ import Layout from '../layouts/Layout.astro';
                     id_lapangan,
                     nama,
                     nomor_hp,
+                    foto_profil,
                     role,
                     tipe_kendaraan,
                     presensi (
@@ -97,14 +98,20 @@ import Layout from '../layouts/Layout.astro';
                 const statusBadgeText = absenHariIni ? (absenHariIni.status_tiba === 'Telat' ? 'Telat' : 'Hadir') : 'Belum Absen';
                 const inisial = karyawan.nama.substring(0, 2).toUpperCase();
                 const jabatan = karyawan.tipe_kendaraan ? karyawan.tipe_kendaraan.replace('_', ' ') : karyawan.role;
+                            
+                // KONDISI CADANGAN: Pake foto_profil jika ada, kalo kosong balik ke inisial huruf
+                const avatarKomponen = karyawan.foto_profil 
+                    ? `<img src="${karyawan.foto_profil}" class="w-12 h-12 rounded-full object-cover border border-outline-variant shrink-0" />`
+                    : `<div class="w-12 h-12 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-md shrink-0">${inisial}</div>`;
 
                 return `
                     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex items-center gap-md hover:shadow-md cursor-pointer transition-shadow relative overflow-hidden" onclick="openEmployeeDetail('${karyawan.id}')">
                         ${absenHariIni ? '<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>' : ''}
                         
-                        <div class="w-12 h-12 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-md shrink-0">
-                            ${inisial}
-                        </div>
+                        ${karyawan.foto_profil 
+                            ? `<img src="${karyawan.foto_profil}" class="w-12 h-12 rounded-full object-cover border border-outline-variant shrink-0" />`
+                            : `<div class="w-12 h-12 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-md shrink-0">${inisial}</div>`
+                        }
                         
                         <div class="flex-1 min-w-0">
                             <h3 class="font-label-lg text-label-lg text-on-surface truncate">${karyawan.nama}</h3>
@@ -137,12 +144,18 @@ import Layout from '../layouts/Layout.astro';
             const jabatan = karyawan.tipe_kendaraan ? karyawan.tipe_kendaraan.replace('_', ' ') : karyawan.role;
             const inisial = karyawan.nama.substring(0, 2).toUpperCase();
 
+            // Buat variabel pengecekan sebelum detailContent.innerHTML dimasukkan:
+            const detailAvatar = karyawan.foto_profil
+                ? `<img src="${karyawan.foto_profil}" class="w-20 h-20 rounded-full object-cover border border-outline-variant mb-xs shadow-sm" />`
+                : `<div class="w-20 h-20 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-lg mb-xs">${inisial}</div>`;
+
             // Suntikkan seluruh kerangka detail & Input Filter Tanggal
             detailContent.innerHTML = `
                 <div class="flex flex-col items-center gap-sm border-b border-outline-variant pb-lg mb-lg">
-                    <div class="w-20 h-20 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-lg mb-xs">
-                        ${inisial}
-                    </div>
+                    ${karyawan.foto_profil 
+                        ? `<img src="${karyawan.foto_profil}" class="w-12 h-12 rounded-full object-cover border border-outline-variant shrink-0" />`
+                        : `<div class="w-12 h-12 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-md shrink-0">${inisial}</div>`
+                    }
                     <h3 class="font-headline-sm text-on-surface font-bold text-center">${karyawan.nama}</h3>
                     <span class="bg-surface-variant text-on-surface-variant px-3 py-1 rounded-full font-label-md capitalize">${jabatan}</span>
                 </div>

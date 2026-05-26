@@ -265,6 +265,51 @@ const getPlatformIcon = (platform) => {
     document.addEventListener('DOMContentLoaded', loadHistory);
 
     // ============================================
+    // LOGIKA UI (TOMBOL UPLOAD & RUMUS CONVERSION RATE)
+    // ============================================
+    const dropZone = document.getElementById('dropZone');
+    const buktiInput = document.getElementById('buktiInput');
+    const fileNameDisplay = document.getElementById('fileName');
+    
+    // 1. Bikin kotak DropZone bisa diklik buat pilih gambar
+    dropZone?.addEventListener('click', () => {
+        buktiInput.click();
+    });
+
+    // 2. Munculin nama file saat gambar berhasil dipilih
+    buktiInput?.addEventListener('change', (e) => {
+        if(e.target.files && e.target.files.length > 0) {
+            fileNameDisplay.innerText = "Siap diupload: " + e.target.files[0].name;
+            dropZone.classList.add('border-green-700', 'bg-green-50');
+            dropZone.classList.remove('border-gray-300');
+        } else {
+            fileNameDisplay.innerText = "";
+            dropZone.classList.remove('border-green-700', 'bg-green-50');
+            dropZone.classList.add('border-gray-300');
+        }
+    });
+
+    // 3. Hitung Conversion Rate otomatis saat ngetik angka
+    const reachInput = document.getElementById('reachInput');
+    const leadsInput = document.getElementById('leadsInput');
+    const conversionRateText = document.getElementById('conversionRate');
+
+    function hitungCR() {
+        const reach = parseFloat(reachInput.value) || 0;
+        const leads = parseFloat(leadsInput.value) || 0;
+        
+        if(reach > 0) {
+            const cr = ((leads / reach) * 100).toFixed(2);
+            conversionRateText.innerText = cr + '%';
+        } else {
+            conversionRateText.innerText = '0%';
+        }
+    }
+    
+    reachInput?.addEventListener('input', hitungCR);
+    leadsInput?.addEventListener('input', hitungCR);
+
+    // ============================================
     // 2. SUBMIT FORM PERFORMA (DENGAN UPLOAD GAMBAR)
     // ============================================
     const performaForm = document.getElementById('performaForm');

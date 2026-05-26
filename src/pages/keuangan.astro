@@ -236,8 +236,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 </div>
 
 <div id="modal-detail-gaji" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
-    <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-green-50">
+    <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[95vh]">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-green-50">
             <div>
                 <h3 class="font-bold text-lg text-gray-900" id="m_nama_karyawan">Nama Karyawan</h3>
                 <p class="text-xs text-green-700 font-medium">Kalkulasi Gaji Personal</p>
@@ -245,7 +245,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             <button onclick="closeModal('modal-detail-gaji')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
         </div>
         
-        <div class="p-6 overflow-y-auto flex-1 space-y-6">
+        <div class="p-5 overflow-y-auto flex-1 space-y-5">
             <input type="hidden" id="m_karyawan_id">
             
             <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
@@ -257,8 +257,24 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 <button onclick="updateTarifJam()" class="mt-2 text-xs bg-green-100 text-green-800 px-3 py-1 rounded font-bold hover:bg-green-200">Update Tarif Khusus Dia</button>
             </div>
 
+            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 flex flex-col gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Kasbon / Uang Jalan</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="m_input_uang_jalan" value="0" oninput="kalkulasiRealtimeGaji()" class="flex-1 border border-gray-300 rounded p-2 text-sm outline-none focus:border-blue-600">
+                        <button type="button" onclick="window.updateUangJalan()" class="bg-blue-600 text-white px-3 py-2 rounded font-bold text-xs hover:bg-blue-700 whitespace-nowrap transition-colors flex items-center gap-1">
+                            <i class="bi bi-disk"></i> Simpan Uang Jalan
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="m_check_bonus_mingguan" onchange="kalkulasiRealtimeGaji()" class="w-5 h-5 text-green-600 rounded focus:ring-green-500">
+                    <label class="text-xs font-bold text-gray-700">Apply Bonus Mingguan</label>
+                </div>
+            </div>
+
             <div>
-                <h4 class="font-bold text-gray-900 mb-3 border-b pb-2">Rincian Komponen Gaji</h4>
+                <h4 class="font-bold text-gray-900 mb-3 border-b pb-2">Rincian Komponen Gaji (Otomatis)</h4>
                 <div class="space-y-2 text-sm" id="m_rincian_list"></div>
             </div>
 
@@ -268,8 +284,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             </div>
         </div>
         
-        <div class="p-6 border-t border-gray-100 bg-white">
-             <button class="w-full bg-green-700 text-white font-bold py-4 rounded-xl hover:bg-green-800 transition active:scale-95 text-lg shadow-sm">
+        <div class="p-5 border-t border-gray-100 bg-white">
+             <button id="btn-bayar-gaji" onclick="prosesBayarGaji()" class="w-full bg-green-700 text-white font-bold py-4 rounded-xl hover:bg-green-800 transition active:scale-95 text-lg shadow-sm">
                 <i class="bi bi-check2-circle mr-2"></i> Setujui & Bayar Gaji
             </button>
         </div>
@@ -356,10 +372,17 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             }
 
             // B. Fetch Karyawan
-            const { data: karyawan } = await window.supabase
+            const { data: karyawan, error: errKaryawan } = await window.supabase
                 .from('profiles')
-                .select('id, nama, role, tipe_kendaraan, tarif_gaji_perjam, presensi(tanggal, status_tiba, status_pulang)')
+                .select('id, nama, role, tipe_kendaraan, foto_profil, tarif_gaji_perjam, pengeluaran(total_harian, status_approval), presensi(tanggal, status_tiba, status_pulang, waktu_tiba, waktu_pulang), slip_gaji(id, periode, uang_jalan, status)')
                 .neq('role', 'owner');
+
+            // JIKA ERROR, MUNCULKAN POP-UP BIAR KETAHUAN SALAHNYA DI MANA
+            if (errKaryawan) {
+                alert("Error Supabase (Data Karyawan): " + errKaryawan.message);
+                console.error("Detail Error:", errKaryawan);
+            }
+
             dataKaryawan = karyawan || [];
             
             const contKaryawan = document.getElementById('gaji-karyawan-container');
@@ -367,7 +390,13 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             if(dataKaryawan.length > 0) {
                 dataKaryawan.forEach(k => {
                     const jumlahHadir = k.presensi?.length || 0;
+                    // 1. Inisial tetap dipertahankan buat cadangan
                     const inisial = k.nama ? k.nama.charAt(0).toUpperCase() : 'U';
+
+                    // 2. INI TEBENGANNYA: Cek apakah dia punya foto_profil di database
+                    const avatarKomponen = k.foto_profil 
+                        ? `<img src="${k.foto_profil}" class="w-12 h-12 rounded-full object-cover border border-gray-200 shrink-0" />`
+                        : `<div class="w-12 h-12 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-md shrink-0">${inisial}</div>`;
                     const peran = k.tipe_kendaraan ? k.tipe_kendaraan.replace('_', ' ') : k.role;
                     const tarif = Number(k.tarif_gaji_perjam || 0).toLocaleString('id-ID');
 
@@ -375,11 +404,13 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
                         <div class="bg-gradient-to-r from-green-50 to-green-100 px-6 py-4 flex items-center justify-between border-b border-green-200">
                             <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-full bg-green-700 text-white flex items-center justify-center font-bold text-lg">${inisial}</div>
-                            <div>
-                                <h3 class="font-bold text-gray-900">${k.nama}</h3>
-                                <p class="text-sm text-gray-600 capitalize">${peran}</p>
-                            </div>
+
+                                ${avatarKomponen} 
+
+                                <div>
+                                    <h3 class="font-bold text-gray-900">${k.nama}</h3>
+                                    <p class="text-sm text-gray-600 capitalize">${peran}</p>
+                                </div>
                             </div>
                         </div>
                         <div class="p-6 flex-1 flex flex-col">
@@ -399,9 +430,15 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             contKaryawan.innerHTML = htmlKaryawan;
 
             // C. Fetch Transaksi (Pembelian)
-            const { data: transaksi } = await window.supabase.from('transaksi')
-                .select('*, mitra(nama_mitra), transaksi_item(komoditas, volume, harga_unit), penjemputan(tanggal)')
+            const { data: transaksi, error: errTransaksi } = await window.supabase.from('transaksi')
+                .select('*, transaksi_item(komoditas, volume, harga_unit), penjemputan(tanggal, mitra(nama_mitra))')
                 .order('created_at', { ascending: false });
+
+            // INI JEBAKANNYA BIAR MUNCUL POP-UP ERROR ASLINYA
+            if (errTransaksi) {
+                alert("Error Supabase (Transaksi): " + errTransaksi.message);
+                console.error("Detail Error Transaksi:", errTransaksi);
+            }
             
             const tbodyPembelian = document.getElementById('pembelian-tbody');
             let htmlPembelian = '';
@@ -464,7 +501,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             tbodyPengeluaran.innerHTML = htmlPeng || '<tr><td colspan="3" class="text-center py-4">Data kosong</td></tr>';
 
             // E. Pisahkan Transaksi untuk Validasi
-            const trxMenunggu = transaksi?.filter(t => !t.is_paid_by_admin) || [];
+            const trxMenunggu = transaksi?.filter(t => !t.is_paid_by_admin && t.metode_bayar) || [];
             const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
 
             // Update Badge
@@ -479,8 +516,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             }
 
             // Render List Menunggu Validasi
+            // Render List Menunggu Validasi
             const valContainer = document.getElementById('validasi-container');
             let htmlVal = '';
+            
             trxMenunggu.forEach(trx => {
                 const subtotal = trx.transaksi_item?.reduce((acc, i) => acc + (i.volume * (i.harga_unit||0)), 0) || 0;
                 const finalTotal = subtotal - (trx.potongan_dp || 0);
@@ -490,21 +529,66 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     itemHtml += `<div class="flex justify-between text-gray-700"><span>${i.komoditas} (${i.volume}kg @ ${i.harga_unit})</span><span>Rp ${(i.volume * (i.harga_unit||0)).toLocaleString('id-ID')}</span></div>`;
                 });
 
+                // 🔥 TAMBAHAN LOGIKA UI METODE BAYAR 🔥
+                let infoBayarHtml = '';
+                const metode = trx.metode_bayar;
+
+                if (metode === 'Bank') {
+                    infoBayarHtml = `
+                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 mb-4 mt-3">
+                            <p class="text-xs font-bold text-blue-800 mb-2"><i class="bi bi-bank2 mr-1"></i> Informasi Transfer Bank</p>
+                            <div class="grid grid-cols-3 gap-y-2 text-sm bg-white p-3 rounded-lg border border-blue-100 shadow-sm">
+                                <div class="text-gray-500">Bank</div><div class="col-span-2 font-bold text-gray-900">: ${trx.nama_bank || '-'}</div>
+                                <div class="text-gray-500">No. Rek</div><div class="col-span-2 font-bold text-gray-900">: ${trx.no_rek || '-'}</div>
+                                <div class="text-gray-500">Atas Nama</div><div class="col-span-2 font-bold text-gray-900">: ${trx.atas_nama || '-'}</div>
+                            </div>
+                        </div>`;
+                } else if (metode === 'QRIS') {
+                    infoBayarHtml = `
+                        <div class="bg-purple-50 p-4 rounded-xl border border-purple-200 mb-4 mt-3">
+                            <p class="text-xs font-bold text-purple-800 mb-2"><i class="bi bi-qr-code-scan mr-1"></i> Bukti Pembayaran QRIS</p>
+                            ${trx.photo_qris 
+                                ? `<a href="${trx.photo_qris}" target="_blank" class="block w-full h-36 bg-white rounded-lg border border-purple-200 overflow-hidden hover:opacity-90 transition shadow-sm">
+                                      <img src="${trx.photo_qris}" alt="QRIS" class="w-full h-full object-contain">
+                                   </a>
+                                   <p class="text-[11px] text-center text-purple-600 mt-2 font-medium italic">Klik gambar untuk memperbesar</p>` 
+                                : `<p class="text-xs text-red-500 italic bg-white p-2 rounded border border-red-100">Foto QRIS belum diunggah tim lapangan.</p>`}
+                        </div>`;
+                } else if (metode === 'Cash') {
+                    infoBayarHtml = `
+                        <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 mb-4 mt-3 flex items-start gap-3 shadow-sm">
+                            <div class="bg-amber-200 p-2 rounded-full text-amber-700">
+                                <i class="bi bi-cash-stack text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-amber-900">Pembayaran Tunai (Cash)</p>
+                                <p class="text-xs text-amber-800 leading-relaxed mt-1">
+                                    Mohon cek silang tabel <b>Pengeluaran (Dana Talang)</b> untuk memastikan kesesuaian nilai transaksi ini sebesar <b class="bg-amber-200 px-1 rounded">Rp ${finalTotal.toLocaleString('id-ID')}</b>.
+                                </p>
+                            </div>
+                        </div>`;
+                }
+
+                // GABUNGKAN KE KARTU HTML UTAMA
                 htmlVal += `
                 <div class="bg-white rounded-xl border border-red-200 p-6 shadow-sm">
                     <div class="flex items-start justify-between mb-4 border-b border-gray-100 pb-4">
                         <div>
-                            <h3 class="font-bold text-gray-900 text-lg">${trx.mitra?.nama_mitra || '-'}</h3>
+                            <h3 class="font-bold text-gray-900 text-lg">${trx.penjemputan?.mitra?.nama_mitra || 'Tanpa Nama Mitra'}</h3>
                             <p class="text-sm text-gray-500">Tgl Angkut: ${trx.penjemputan?.tanggal || '-'}</p>
                         </div>
                         <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Belum Lunas</span>
                     </div>
-                    <div class="space-y-2 mb-4 text-sm">
+                    
+                    <div class="space-y-2 mb-2 text-sm">
                         ${itemHtml}
                         <div class="flex justify-between text-red-600 pt-2">
                             <span>Potongan DP</span><span>- Rp ${Number(trx.potongan_dp || 0).toLocaleString('id-ID')}</span>
                         </div>
                     </div>
+
+                    ${infoBayarHtml}
+
                     <div class="border-t border-gray-200 pt-4 mb-6">
                         <p class="text-sm text-gray-600 mb-1">Total Wajib Dibayar</p>
                         <p class="text-3xl font-bold text-gray-900">Rp ${finalTotal.toLocaleString('id-ID')}</p>
@@ -522,7 +606,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             trxSelesai.forEach(t => {
                 htmlLunas += `
                 <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 text-sm font-bold text-gray-900">${t.mitra?.nama_mitra || '-'}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-gray-900">${t.penjemputan?.mitra?.nama_mitra || 'Tanpa Nama Mitra'}</td>
                     <td class="px-6 py-4 text-sm text-gray-600">${t.penjemputan?.tanggal || '-'}</td>
                     <td class="px-6 py-4 text-sm text-gray-600">${t.metode_bayar || '-'}</td>
                     <td class="px-6 py-4 text-sm font-bold text-green-700 text-right">Rp ${Number(t.grand_total || 0).toLocaleString('id-ID')}</td>
@@ -571,28 +655,49 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
 
     // ==========================================
-    // 2. TAB SWITCHING LOGIC
-    // ==========================================
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
+// 2. TAB SWITCHING LOGIC (FIXED)
+// ==========================================
+const tabButtons = document.querySelectorAll('.tab-btn');
+const tabContents = document.querySelectorAll('.tab-content');
 
-    tabButtons.forEach((button) => {
-      button.addEventListener('click', function() {
-        const tabName = this.getAttribute('data-tab');
-        tabButtons.forEach((btn) => {
-          btn.classList.remove('active', 'border-green-700', 'text-green-700');
-          btn.classList.add('border-transparent', 'text-gray-600');
-        });
-        tabContents.forEach((content) => {
-          content.classList.add('hidden');
-          content.classList.remove('block');
-        });
-        this.classList.add('active', 'border-green-700', 'text-green-700');
-        this.classList.remove('border-transparent', 'text-gray-600');
-        document.getElementById(tabName)?.classList.remove('hidden');
-        document.getElementById(tabName)?.classList.add('block');
-      });
+tabButtons.forEach((button) => {
+  button.addEventListener('click', function() {
+    let tabName = this.getAttribute('data-tab');
+    
+    // PERBAIKAN: Map data-tab ke ID yang benar di HTML
+    const tabIdMap = {
+      'gaji': 'gaji',
+      'riwayat-gaji': 'riwayat-gaji-tab',  // ← PENTING: tambah -tab
+      'pembelian': 'pembelian',
+      'validasi': 'validasi',
+      'penjualan': 'penjualan'
+    };
+    
+    tabName = tabIdMap[tabName] || tabName; // Gunakan mapping, fallback ke original
+    
+    // Hide all tabs & reset buttons
+    tabButtons.forEach((btn) => {
+      btn.classList.remove('active', 'border-green-700', 'text-green-700');
+      btn.classList.add('border-transparent', 'text-gray-600');
     });
+    tabContents.forEach((content) => {
+      content.classList.add('hidden');
+      content.classList.remove('block');
+    });
+    
+    // Show active tab & button
+    this.classList.add('active', 'border-green-700', 'text-green-700');
+    this.classList.remove('border-transparent', 'text-gray-600');
+    
+    const activeTab = document.getElementById(tabName);
+    if(activeTab) {
+      activeTab.classList.remove('hidden');
+      activeTab.classList.add('block');
+    } else {
+      console.warn(`Tab dengan ID '${tabName}' tidak ditemukan!`);
+    }
+  });
+});
 
     // ==========================================
     // 3. MODAL CONTROLS & FUNCTIONS (GLOBAL WINDOW)
@@ -629,32 +734,115 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         } catch (err) { alert(err.message); btn.innerText = "Simpan Pengaturan"; }
     });
 
+    // VARIABEL GLOBAL UNTUK MENYIMPAN DATA KALKULASI SEMENTARA
+    window.currentSalaryData = null;
+
     // BUKA MODAL DETAIL GAJI KARYAWAN
     window.openModalGaji = function(empId) {
-        const emp = dataKaryawan.find(k => k.id === empId);
-        if(!emp) return;
+        // Pakaikan String() biar tipe data Angka dan Teks bisa nyocok!
+        const emp = dataKaryawan.find(k => String(k.id) === String(empId));
         
+        if(!emp) {
+            alert('Waduh, data karyawan gak ketemu bro! Coba refresh.');
+            return;
+        }
+
         document.getElementById('m_karyawan_id').value = emp.id;
         document.getElementById('m_nama_karyawan').innerText = emp.nama;
         document.getElementById('m_tarif_jam').value = emp.tarif_gaji_perjam || 0;
 
-        const totalHadir = emp.presensi?.length || 0;
-        const tepatWaktuCount = emp.presensi?.filter(p => p.status_tiba === 'Tepat Waktu').length || 0;
-        
-        const baseGaji = totalHadir * 8 * (emp.tarif_gaji_perjam || 0);
-        const bonusTepatWaktu = tepatWaktuCount * (dataGlobalGaji?.bonus_tepat_waktu || 0);
-        const kesehatan = dataGlobalGaji?.uang_kesehatan || 0;
-        
-        const grandTotal = baseGaji + bonusTepatWaktu + kesehatan;
+        // Cari draf slip gaji bulan ini yang statusnya masih 'Menunggu'
+        const periodeSekarang = new Date().toISOString().split('T')[0];// Format: YYYY-MM--DD
+        const draftSlip = (emp.slip_gaji || []).find(s => s.status === 'Menunggu' && s.periode === periodeSekarang);
 
+        // Isi otomatis uang jalan dari kolom 'uang_jalan' draf slip gaji
+        document.getElementById('m_input_uang_jalan').value = draftSlip ? (draftSlip.uang_jalan || 0) : 0;
+        document.getElementById('m_check_bonus_mingguan').checked = false;
+
+        let totalNormalJam = 0;
+        let totalLemburJam = 0;
+        let tepatWaktuCount = 0;
+
+        // 1. Hitung Jam Kerja & Lembur dari Presensi
+        (emp.presensi || []).forEach(p => {
+            if (p.status_tiba === 'Tepat Waktu') tepatWaktuCount++;
+            
+            // Konversi string jam (Misal "08:30" -> 8)
+            const getJam = (timeStr) => {
+                if(!timeStr) return 0;
+                return parseInt(timeStr.split(':')[0], 10);
+            };
+
+            let masuk = getJam(p.waktu_masuk) || 8; // Default anggap masuk jam 8
+            let pulang = getJam(p.waktu_pulang) || 17; // Default anggap pulang jam 17
+
+            // Logika Pembulatan Jam Kerja
+            let batasPulangNormal = Math.min(pulang, 17); // Maksimal jam 17
+            let jamKerjaNormal = Math.max(0, batasPulangNormal - masuk);
+            totalNormalJam += jamKerjaNormal;
+
+            // Logika Lembur (Di atas jam 17)
+            if (pulang > 17) {
+                totalLemburJam += (pulang - 17);
+            }
+        });
+
+        // 2. Hitung Pengeluaran Karyawan (Hanya yang di-ACC)
+        const totalPengeluaranKar = (emp.pengeluaran || [])
+            .filter(peng => peng.status_approval === 'Disetujui')
+            .reduce((sum, peng) => sum + Number(peng.total_harian || 0), 0);
+
+        // 3. Simpan state untuk diakses realtime
+        window.currentSalaryData = {
+            empId: emp.id,
+            nama: emp.nama,
+            tarifNormal: emp.tarif_gaji_perjam || 0,
+            tarifLembur: dataGlobalGaji?.tarif_lembur_perjam || 0,
+            totalNormalJam,
+            totalLemburJam,
+            tepatWaktuCount,
+            bonusTepatWaktu: dataGlobalGaji?.bonus_tepat_waktu || 0,
+            uangKesehatan: dataGlobalGaji?.uang_kesehatan || 0,
+            bonusMingguanVal: dataGlobalGaji?.bonus_mingguan || 0,
+            totalPengeluaranKar
+        };
+
+        // Panggil kalkulasi UI
+        kalkulasiRealtimeGaji();
+        window.openModal('modal-detail-gaji');
+    };
+
+    // FUNGSI KALKULASI REAL-TIME SAAT INPUT DIUBAH
+    window.kalkulasiRealtimeGaji = function() {
+        const d = window.currentSalaryData;
+        if(!d) return;
+
+        const useBonusMingguan = document.getElementById('m_check_bonus_mingguan').checked;
+        const uangJalan = Number(document.getElementById('m_input_uang_jalan').value) || 0;
+
+        const hitungGajiPokok = d.totalNormalJam * d.tarifNormal;
+        const hitungLembur = d.totalLemburJam * d.tarifLembur;
+        const hitungTepatWaktu = d.tepatWaktuCount * d.bonusTepatWaktu;
+        const hitungMingguan = useBonusMingguan ? d.bonusMingguanVal : 0;
+
+        // TOTAL BERSIH
+        const grandTotal = hitungGajiPokok + d.totalPengeluaranKar + hitungTepatWaktu + hitungLembur + hitungMingguan + d.uangKesehatan - uangJalan;
+        
+        // Update Objek Data untuk disave nanti
+        d.grandTotal = grandTotal;
+        d.potonganJalan = uangJalan;
+
+        // Render Rincian List ke HTML
         document.getElementById('m_rincian_list').innerHTML = `
-            <div class="flex justify-between"><span>Gaji Pokok (${totalHadir} Hari x 8 Jam)</span> <span class="font-medium text-gray-900">Rp ${baseGaji.toLocaleString('id-ID')}</span></div>
-            <div class="flex justify-between"><span>Bonus Tepat Waktu (${tepatWaktuCount}x)</span> <span class="font-medium text-green-600">+ Rp ${bonusTepatWaktu.toLocaleString('id-ID')}</span></div>
-            <div class="flex justify-between border-b pb-2"><span>Uang Kesehatan (Global)</span> <span class="font-medium text-green-600">+ Rp ${kesehatan.toLocaleString('id-ID')}</span></div>
+            <div class="flex justify-between"><span>Gaji Pokok (${d.totalNormalJam} Jam)</span> <span class="font-medium text-gray-900">Rp ${hitungGajiPokok.toLocaleString('id-ID')}</span></div>
+            <div class="flex justify-between"><span>Pengeluaran (Di-ACC)</span> <span class="font-medium text-green-600">+ Rp ${d.totalPengeluaranKar.toLocaleString('id-ID')}</span></div>
+            <div class="flex justify-between"><span>Bonus Tepat Waktu (${d.tepatWaktuCount}x)</span> <span class="font-medium text-green-600">+ Rp ${hitungTepatWaktu.toLocaleString('id-ID')}</span></div>
+            <div class="flex justify-between"><span>Lembur (${d.totalLemburJam} Jam)</span> <span class="font-medium text-green-600">+ Rp ${hitungLembur.toLocaleString('id-ID')}</span></div>
+            ${useBonusMingguan ? `<div class="flex justify-between"><span>Bonus Mingguan</span> <span class="font-medium text-green-600">+ Rp ${hitungMingguan.toLocaleString('id-ID')}</span></div>` : ''}
+            <div class="flex justify-between border-b pb-2"><span>Uang Kesehatan (Global)</span> <span class="font-medium text-green-600">+ Rp ${d.uangKesehatan.toLocaleString('id-ID')}</span></div>
+            ${uangJalan > 0 ? `<div class="flex justify-between text-red-600 pt-1"><span>Potongan Kasbon/Jalan</span> <span class="font-bold">- Rp ${uangJalan.toLocaleString('id-ID')}</span></div>` : ''}
         `;
         document.getElementById('m_total_gaji').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
-
-        window.openModal('modal-detail-gaji');
     };
 
     // UPDATE TARIF GAJI PER JAM PERSONAL
@@ -664,8 +852,89 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         const newTarif = document.getElementById('m_tarif_jam').value;
         try {
             await window.supabase.from('profiles').update({ tarif_gaji_perjam: newTarif }).eq('id', empId);
-            alert('Tarif per jam berhasil diupdate! Silakan refresh halaman.');
+            alert('Tarif per jam berhasil diupdate! Silakan tutup modal dan klik ulang Hitung Rincian.');
         } catch (err) { alert(err.message); }
+    };
+
+    // TAMBAHAN FUNGSI: SIMPAN UANG JALAN / KASBON PERSONAL KE DATABASE
+    window.updateUangJalan = async function() {
+        if(!window.supabase) return;
+        const empId = document.getElementById('m_karyawan_id').value;
+        const uangJalan = document.getElementById('m_input_uang_jalan').value;
+        const periodeSekarang = new Date().toISOString().split('T')[0]; //YYYY-MM-DD
+        
+        try {
+            // Cek apakah draf slip gaji untuk bulan ini sudah ada
+            const { data: draft, error: errCek } = await window.supabase.from('slip_gaji')
+                .select('id').eq('user_id', empId).eq('periode', periodeSekarang).eq('status', 'Menunggu').maybeSingle();
+            
+            if (errCek) throw errCek;
+
+            if (draft) {
+                // Kalau Draf sudah ada, update kolom uang_jalan
+                const { error: errUpd } = await window.supabase.from('slip_gaji')
+                    .update({ uang_jalan: uangJalan }).eq('id', draft.id);
+                if (errUpd) throw errUpd;
+            } else {
+                // Kalau belum, bikin draf slip baru (KOLOM POTONGAN DIHAPUS TOTAL)
+                const { error: errIns } = await window.supabase.from('slip_gaji').insert([{
+                    user_id: empId,
+                    periode: periodeSekarang,
+                    uang_jalan: uangJalan,
+                    status: 'Menunggu',
+                    gaji_karyawan: 0, tunjangan: 0, total_diterima: 0 
+                }]);
+                if (errIns) throw errIns;
+            }
+            
+            alert('Uang jalan berhasil disimpan ke Draf Slip Gaji!');
+            window.location.reload(); 
+        } catch (err) { 
+            alert('Gagal menyimpan uang jalan: ' + err.message); 
+        }
+    };
+
+    // EKSEKUSI PEMBAYARAN GAJI KE DATABASE
+    window.prosesBayarGaji = async function() {
+        if(!confirm('Anda yakin ingin menyetujui dan merekap gaji ini ke database?')) return;
+        
+        const d = window.currentSalaryData;
+        const btn = document.getElementById('btn-bayar-gaji');
+        btn.innerHTML = "Memproses..."; btn.disabled = true;
+        const periodeSekarang = new Date().toISOString().split('T')[0]; // Format: YYYY-MM--DD
+
+        try {
+            // Struktur data final yang dikirim (BEBAS DARI KOLOM POTONGAN)
+            const slipDataFinal = {
+                user_id: d.empId,
+                periode: periodeSekarang,
+                gaji_karyawan: (d.totalNormalJam * d.tarifNormal),
+                tunjangan: d.totalPengeluaranKar + (d.tepatWaktuCount * d.bonusTepatWaktu) + (d.totalLemburJam * d.tarifLembur) + (document.getElementById('m_check_bonus_mingguan').checked ? d.bonusMingguanVal : 0) + d.uangKesehatan,
+                uang_jalan: d.potonganJalan, 
+                total_diterima: d.grandTotal,
+                status: 'ACC' 
+            };
+
+            const { data: draft, error: errDraft } = await window.supabase.from('slip_gaji')
+                .select('id').eq('user_id', d.empId).eq('periode', periodeSekarang).eq('status', 'Menunggu').maybeSingle();
+            
+            if (errDraft) throw errDraft;
+
+            if (draft) {
+                const { error: errFinalUpd } = await window.supabase.from('slip_gaji').update(slipDataFinal).eq('id', draft.id);
+                if (errFinalUpd) throw errFinalUpd;
+            } else {
+                const { error: errFinalIns } = await window.supabase.from('slip_gaji').insert([slipDataFinal]);
+                if (errFinalIns) throw errFinalIns;
+            }
+
+            alert('Gaji berhasil dibayar dan direkap ke Riwayat!');
+            window.location.reload();
+        } catch (err) {
+            alert('Gagal merekap gaji: ' + err.message);
+            btn.innerHTML = `<i class="bi bi-check2-circle mr-2"></i> Setujui & Bayar Gaji`;
+            btn.disabled = false;
+        }
     };
 
     // FILTER TANGGAL PEMBELIAN & PENGELUARAN
@@ -793,73 +1062,100 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         const start = document.getElementById('filter-gaji-start')?.value || awalTahun;
         const end = document.getElementById('filter-gaji-end')?.value || hariIni;
 
-        container.innerHTML = '<p class="text-gray-500 text-sm italic animate-pulse">Memuat data riwayat gaji...</p>';
+        // Bikin Kunci Cache Unik berdasarkan rentang tanggal
+        const cacheKey = `riwayat_gaji_${start}_${end}`;
+        const cachedData = localStorage.getItem(cacheKey);
 
-        // PERBAIKAN 1: Menggunakan 'supabase' langsung hasil import
-        // PERBAIKAN 2: Mengubah format tanggal gte/lte agar kompatibel dengan PostgreSQL
-        const { data: dataGaji, error } = await supabase
-            .from('slip_gaji')
-            .select(`
-                *, 
-                profiles!inner(nama, role)
-            `)
-            .neq('profiles.role', 'owner')
-            .gte('created_at', `${start} 00:00:00`)
-            .lte('created_at', `${end} 23:59:59`)
-            .order('created_at', { ascending: false });
+        // FUNGSI RENDER (Dipisah biar bisa dipakai 2x: oleh Cache dan oleh Database)
+        const renderHTML = (dataGaji) => {
+            if (!dataGaji || dataGaji.length === 0) {
+                container.innerHTML = `<p class="text-gray-500 text-sm italic py-4">Tidak ada riwayat pengeluaran gaji dari tanggal ${start} sampai ${end}.</p>`;
+                return;
+            }
 
-        // PERBAIKAN 3: Jika ada error database, langsung munculkan teksnya di layar
-        if (error) {
-            container.innerHTML = `
-                <div class="p-4 bg-red-50 text-red-700 rounded-xl text-xs">
-                    <p class="font-bold">Gagal mengambil data dari database:</p>
-                    <p class="italic mt-1">${error.message} (${error.code})</p>
-                    <p class="mt-2 text-[10px] text-gray-500">*Pastikan nama tabel 'slip_gaji' dan relasi ke 'profiles' sudah sesuai di Supabase.</p>
-                </div>
-            `;
-            console.error("Supabase Error:", error);
-            return;
-        }
+            container.innerHTML = dataGaji.map(slip => {
+                const isACC = slip.status === 'ACC' || slip.status_persetujuan === 'ACC';
+                const inisial = slip.profiles?.nama ? slip.profiles.nama.substring(0, 2).toUpperCase() : 'KY';
 
-        if (!dataGaji || dataGaji.length === 0) {
-            container.innerHTML = `<p class="text-gray-500 text-sm italic py-4">Tidak ada riwayat pengeluaran gaji dari tanggal ${start} sampai ${end}.</p>`;
-            return;
-        }
+                // Avatar pakai Foto Profil jika ada
+                const avatarKomponen = slip.profiles?.foto_profil 
+                    ? `<img src="${slip.profiles.foto_profil}" class="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0" />`
+                    : `<div class="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 font-bold text-xs shrink-0">${inisial}</div>`;
 
-        // Looping untuk menggambar HTML masing-masing slip
-        container.innerHTML = dataGaji.map(slip => {
-            const isACC = slip.status === 'ACC' || slip.status_persetujuan === 'ACC';
-
-            return `
-                <div class="p-4 border border-gray-200 rounded-xl mb-3 bg-white shadow-sm">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="font-bold text-gray-900">${slip.profiles?.nama || 'Karyawan'}</p>
-                            <p class="text-xs text-gray-500">Periode: ${slip.periode || '-'}</p>
-                        </div>
-                        <span class="px-2 py-1 rounded text-xs font-bold ${isACC ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}">
-                            ${slip.status || 'Menunggu'}
-                        </span>
-                    </div>
-
-                    ${isACC ? `
-                        <div class="mt-2 text-xs space-y-1 border-t pt-2 border-dashed border-gray-300">
-                            <div class="flex justify-between"><span>Gaji Pokok:</span> <span>Rp ${Number(slip.gaji_pokok || 0).toLocaleString('id-ID')}</span></div>
-                            <div class="flex justify-between"><span>Tunjangan:</span> <span>Rp ${Number(slip.tunjangan || 0).toLocaleString('id-ID')}</span></div>
-                            <div class="flex justify-between text-red-600"><span>Potongan:</span> <span>-Rp ${Number(slip.potongan || 0).toLocaleString('id-ID')}</span></div>
-                            <div class="flex justify-between font-bold text-green-700 mt-1 pt-1 border-t">
-                                <span>Total Pengeluaran (ACC):</span> 
-                                <span>Rp ${Number(slip.total_diterima || 0).toLocaleString('id-ID')}</span>
+                return `
+                    <div class="p-4 border border-gray-200 rounded-xl mb-3 bg-white shadow-sm flex gap-3 items-center">
+                        ${avatarKomponen}
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="font-bold text-gray-900">${slip.profiles?.nama || 'Karyawan'}</p>
+                                    <p class="text-xs text-gray-500">Periode: ${slip.periode || '-'}</p>
+                                </div>
+                                <span class="px-2 py-1 rounded text-xs font-bold ${isACC ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}">
+                                    ${slip.status || 'Menunggu'}
+                                </span>
                             </div>
+
+                            ${isACC ? `
+                                <div class="mt-2 text-xs space-y-1 border-t pt-2 border-dashed border-gray-300">
+                                    <div class="flex justify-between"><span>Gaji Pokok:</span> <span>Rp ${Number(slip.gaji_karyawan || 0).toLocaleString('id-ID')}</span></div>
+                                    <div class="flex justify-between"><span>Tunjangan:</span> <span>Rp ${Number(slip.tunjangan || 0).toLocaleString('id-ID')}</span></div>
+                                    <div class="flex justify-between text-red-600"><span>Potongan Uang Jalan:</span> <span>-Rp ${Number(slip.uang_jalan || 0).toLocaleString('id-ID')}</span></div>
+                                    <div class="flex justify-between font-bold text-green-700 mt-1 pt-1 border-t">
+                                        <span>Total Pengeluaran (ACC):</span> 
+                                        <span>Rp ${Number(slip.total_diterima || 0).toLocaleString('id-ID')}</span>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="mt-2 text-xs text-amber-700 italic border-t pt-2 border-dashed border-gray-300">
+                                    * Rincian disembunyikan sampai status disetujui (ACC).
+                                </div>
+                            `}
                         </div>
-                    ` : `
-                        <div class="mt-2 text-xs text-amber-700 italic border-t pt-2 border-dashed border-gray-300">
-                            * Rincian disembunyikan sampai status disetujui (ACC).
-                        </div>
-                    `}
-                </div>
-            `;
-        }).join('');
+                    </div>
+                `;
+            }).join('');
+        };
+
+        // LANGKAH 1: Tampilkan Cache Lokal Langsung (Instan 0 Detik)
+        if (cachedData) {
+            renderHTML(JSON.parse(cachedData));
+        } else {
+            // Kalau cache bener-bener kosong, baru munculin teks loading
+            container.innerHTML = '<p class="text-gray-500 text-sm italic animate-pulse">Memuat data riwayat gaji...</p>';
+        }
+
+        // LANGKAH 2: Tarik Data Fresh dari Supabase secara Diam-diam (Background)
+        try {
+            const { data: dataGaji, error } = await supabase
+                .from('slip_gaji')
+                .select(`*, profiles!inner(nama, role, foto_profil)`)
+                .neq('profiles.role', 'owner')
+                .gte('created_at', `${start} 00:00:00`)
+                .lte('created_at', `${end} 23:59:59`)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            // Update Cache lokal dengan data terbaru dari database
+            localStorage.setItem(cacheKey, JSON.stringify(dataGaji));
+            
+            // Render ulang layar dengan data paling fresh
+            renderHTML(dataGaji);
+
+        } catch (error) {
+            console.error("Supabase Error:", error);
+            
+            // Kalau lagi offline dan gak ada cache sama sekali, baru munculin error merah
+            if (!cachedData) {
+                container.innerHTML = `
+                    <div class="p-4 bg-red-50 text-red-700 rounded-xl text-xs">
+                        <p class="font-bold">Gagal sinkronisasi data dengan server:</p>
+                        <p class="italic mt-1">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
     }
     document.getElementById('btn-filter-gaji')?.addEventListener('click', muatRiwayatGaji);
 </script>

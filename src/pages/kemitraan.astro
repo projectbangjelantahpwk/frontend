@@ -4,6 +4,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 ---
 
 <Layout title="Kemitraan - Manajemen Bang Jelantah">
+    <style is:global>
+    /* Mengunci layar menjadi blank (putih) sampai skrip memberi izin masuk */
+        body { display: none; }
+    </style>
     <div class="max-w-7xl mx-auto flex flex-col h-full gap-lg">
         
         <div class="content-view flex flex-col gap-lg" id="view-kemitraan">
@@ -202,16 +206,19 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             if(!window.supabase) return console.error('Supabase tidak terhubung!');
 
             // === TAMBAHAN: CEK ROLE USER YANG LOGIN ===
-            let currentUserRole = 'lapangan'; // Default role terendah
-            const { data: { session } } = await window.supabase.auth.getSession();
-            if(session) {
-                const { data: prof } = await window.supabase.from('profiles').select('role').eq('id', session.user.id).single();
-                currentUserRole = prof?.role || 'lapangan';
+            // === 🛡️ GATEKEEPER KEUANGAN ===
+            const allowedRoles = ['owner', 'hrd', 'admin','periklanan'];
+            const client = window.supabase || supabase;
+
+            const { data: { session } } = await client.auth.getSession();
+            if (!session) return window.location.replace('/'); // Tendang kalau belum login
+
+            const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+            if (!allowedRoles.includes(prof?.role)) {
+                alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk ke Keuangan.`);
+                return window.location.replace('/');
             }
-            
-            // Fungsi helper untuk ngecek izin
-            const isAllowed = () => ['owner', 'hrd', 'admin'].includes(currentUserRole);
-            // ==========================================
+            document.body.style.display = 'block'; // Buka gembok CSS, tampilkan layar!
 
             // ==========================================
             // 1. TAB LOGIC

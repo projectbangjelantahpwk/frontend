@@ -4,6 +4,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 ---
 
 <GeneralLayout title="Keuangan - Manajemen Bang Jelantah">
+    <style is:global>
+        /* Mengunci layar menjadi blank (putih) sampai skrip memberi izin masuk */
+        body { display: none; }
+    </style>
   <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
     <div>
       <h1 class="text-3xl font-bold text-gray-900 mb-2">Manajemen Keuangan</h1>
@@ -336,6 +340,20 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
   let dataKaryawan = [];
 
   document.addEventListener('DOMContentLoaded', async () => {
+    // === 🛡️ GATEKEEPER KEUANGAN ===
+      const allowedRoles = ['owner', 'hrd', 'keuangan'];
+      const client = window.supabase || supabase;
+      
+      const { data: { session } } = await client.auth.getSession();
+      if (!session) return window.location.replace('/'); // Tendang kalau belum login
+      
+      const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+      if (!allowedRoles.includes(prof?.role)) {
+          alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk ke Keuangan.`);
+          return window.location.replace('/');
+      }
+      document.body.style.display = 'block'; // Buka gembok CSS, tampilkan layar!
+      
     //Setup Batasan Tanggal Otomatis
     const tahunAktif = new Date().getFullYear();
         const awalTahun = `${tahunAktif}-01-01`; 

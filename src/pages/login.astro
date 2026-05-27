@@ -16,4 +16,35 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
   <!-- Login Form Component -->
   <LoginForm />
+  <script is:inline>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const client = window.supabase || supabase;
+    if (!client) return;
+
+    // Pantau perubahan status login secara real-time (saat user klik submit form login)
+    client.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        
+        // Ambil data username / id_lapangan dari profiles
+        const { data: prof } = await client.from('profiles').select('id_lapangan, role').eq('id', session.user.id).single();
+        
+        // 🔥 CEK USERNAME: Jika berawalan 'LAP', langsung blokir dan paksa log out!
+        if (prof && prof.id_lapangan && prof.id_lapangan.startsWith('LAP')) {
+          
+          alert(`Login Gagal! Akun Lapangan (${prof.id_lapangan}) hanya boleh digunakan pada Aplikasi Mobile Android.`);
+          
+          // Paksa sign out seketika
+          await client.auth.signOut();
+          window.location.reload();
+          return;
+        }
+        
+        // Jika dia akun management/CMS (bukan LAP), biarkan sistem mengalihkan ke /index otomatis
+        if (prof && prof.role !== 'lapangan') {
+          window.location.replace('/index');
+        }
+      }
+    });
+  });
+</script>
 </LoginLayout>

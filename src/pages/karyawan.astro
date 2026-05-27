@@ -5,6 +5,10 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Manajemen Karyawan - Bang Jelantah">
+    <style is:global>
+        /* Mengunci layar menjadi blank (putih) sampai skrip memberi izin masuk */
+        body { display: none; }
+    </style>
     <div class="max-w-7xl mx-auto flex flex-col h-full relative">
         
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-md mb-lg">
@@ -128,7 +132,25 @@ import Layout from '../layouts/Layout.astro';
         }
 
         // Jalankan fetch saat dokumen siap
-        document.addEventListener('DOMContentLoaded', fetchKaryawan);
+        // === 🛡️ GATEKEEPER KARYAWAN ===
+        document.addEventListener('DOMContentLoaded', async () => {
+            const allowedRoles = ['owner', 'hrd'];
+            const client = window.supabase || supabase;
+            
+            const { data: { session } } = await client.auth.getSession();
+            if (!session) return window.location.replace('/');
+            
+            const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+            if (!allowedRoles.includes(prof?.role)) {
+                alert(`Akses Ditolak! Data karyawan terbatas untuk Owner & HRD.`);
+                return window.location.replace('/');
+            }
+            document.body.style.display = 'block';
+            
+            // Lolos Sensor? Baru panggil fetch data karyawannya!
+            fetchKaryawan();
+        });
+        // =================================
         // Simpan data karyawan yang sedang dibuka ke variabel global agar bisa difilter
         window.currentEmployee = null;
         // =======================================================

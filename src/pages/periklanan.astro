@@ -38,6 +38,10 @@ const getPlatformIcon = (platform) => {
 ---
 
 <GeneralLayout title="Periklanan - Manajemen Bang Jelantah">
+  <style is:global>
+      /* Mengunci layar menjadi blank (putih) sampai skrip memberi izin masuk */
+      body { display: none; }
+  </style>
   <div class="mb-8">
     <h1 class="text-3xl font-bold text-gray-900 mb-2">Manajemen Periklanan & Promosi</h1>
     <p class="text-gray-600">Kelola performa iklan digital dan pengeluaran promosi secara terpusat.</p>
@@ -262,7 +266,25 @@ const getPlatformIcon = (platform) => {
     }
 
     // Jalankan fetch otomatis saat halaman selesai dimuat
-    document.addEventListener('DOMContentLoaded', loadHistory);
+    // === 🛡️ GATEKEEPER KARYAWAN ===
+        document.addEventListener('DOMContentLoaded', async () => {
+            const allowedRoles = ['owner', 'hrd', 'periklanan'];
+            const client = window.supabase || supabase;
+            
+            const { data: { session } } = await client.auth.getSession();
+            if (!session) return window.location.replace('/');
+            
+            const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+            if (!allowedRoles.includes(prof?.role)) {
+                alert(`Akses Ditolak! Data karyawan terbatas untuk Owner & HRD.`);
+                return window.location.replace('/');
+            }
+            document.body.style.display = 'block';
+            
+            // Lolos Sensor? Baru panggil fetch data karyawannya!
+            loadHistory();
+        });
+        // =================================);
 
     // ============================================
     // LOGIKA UI (TOMBOL UPLOAD & RUMUS CONVERSION RATE)

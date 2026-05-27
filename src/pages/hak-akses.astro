@@ -1,6 +1,6 @@
 ---
 import GeneralLayout from '../layouts/Layout.astro';
-import { supabase } from '../lib/supabase';
+///import { supabase } from '../lib/supabase';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 // Ambil data Profiles dari Supabase
@@ -26,6 +26,10 @@ const getRoleColor = (role) => {
 ---
 
 <GeneralLayout title="Hak Akses & Akun - Manajemen Bang Jelantah">
+  <style is:global>
+    /* Mengunci layar menjadi blank (putih) sampai skrip memberi izin masuk */
+    body { display: none; }
+</style>
   <div class="mb-8 flex items-center justify-between">
     <div>
       <h1 class="text-3xl font-bold text-gray-900 mb-2">Manajemen Hak Akses & Akun</h1>
@@ -131,6 +135,19 @@ const getRoleColor = (role) => {
 
 <script is:inline>
   document.addEventListener('DOMContentLoaded', async function() {
+    // === 🛡️ GATEKEEPER KEUANGAN ===
+      const allowedRoles = ['owner', 'hrd', 'keuangan'];
+      const client = window.supabase || supabase;
+      
+      const { data: { session } } = await client.auth.getSession();
+      if (!session) return window.location.replace('/'); // Tendang kalau belum login
+      
+      const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+      if (!allowedRoles.includes(prof?.role)) {
+          alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk ke Keuangan.`);
+          return window.location.replace('/');
+      }
+      document.body.style.display = 'block'; // Buka gembok CSS, tampilkan layar!
     
     // 1. Cek Supabase & Sesi Login
     if (!window.supabase) return;

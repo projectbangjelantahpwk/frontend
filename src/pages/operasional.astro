@@ -4,6 +4,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 ---
 
 <Layout title="Operasional Penjemputan - Manajemen Bang Jelantah">
+    <style is:global>
+    /* Mengunci layar menjadi blank (putih) sampai skrip memberi izin masuk */
+        body { display: none; }
+    </style>
     <style>
         .tab-content { display: none; }
         .tab-content.active { display: block; }
@@ -11,19 +15,29 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         .modal.active { display: flex; }
         
         /* Mobile Table Cards Style */
+        /* Mobile Table Cards Style (DIPERBAIKI) */
         @media (max-width: 768px) {
             .mobile-table-card thead { display: none; }
             .mobile-table-card tbody tr {
                 display: flex; flex-direction: column; margin-bottom: 1rem;
-                border: 1px solid #bfcaba; border-radius: 0.5rem; background-color: #ffffff;
+                border: 1px solid #e0e4d6; border-radius: 0.75rem; background-color: #ffffff;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             }
             .mobile-table-card tbody td {
-                display: flex; justify-content: space-between; align-items: center;
-                padding: 8px 16px; border-bottom: 1px solid #e3e2e2;
+                display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start;
+                padding: 12px 16px; border-bottom: 1px solid #f0f2ec;
+                font-size: 13px; text-align: right; gap: 16px;
             }
-            .mobile-table-card tbody td:last-child { border-bottom: none; }
+            .mobile-table-card tbody td:last-child {
+                border-bottom: none; background-color: #fdfdf5; align-items: center; justify-content: flex-end;
+            }
             .mobile-table-card tbody td::before {
-                content: attr(data-label); font-weight: 600; color: #40493d; font-size: 12px;
+                content: attr(data-label); font-weight: 700; color: #5d624c; font-size: 11px;
+                text-transform: uppercase; text-align: left; flex-shrink: 0; width: 35%;
+            }
+            /* Paksa elemen di dalam kolom agar membungkus teks dengan rapi */
+            .mobile-table-card tbody td > div, .mobile-table-card tbody td > span, .mobile-table-card tbody td > a {
+                word-break: break-word; text-align: right; justify-content: flex-end;
             }
         }
     </style>
@@ -34,10 +48,37 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 <h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary">Operasional Penjemputan</h1>
                 <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Manajemen lapangan, komoditas masuk, dan monitoring tim harian.</p>
             </div>
-            <div class="flex gap-md">
-                <button class="bg-surface-container border border-outline-variant text-on-surface font-label-lg text-label-lg rounded-full px-lg py-sm flex items-center gap-sm hover:bg-surface-container-high transition-colors min-h-touch-target">
-                    <span class="material-symbols-outlined text-[18px]">filter_list</span> Filter
-                </button>
+           <div class="flex flex-wrap gap-sm md:gap-md w-full md:w-auto mt-4 md:mt-0 justify-stretch"> 
+                <div class="relative inline-block text-left">
+                    <button id="btn-filter-multi" class="bg-surface-container border border-outline-variant text-on-surface font-label-lg text-label-lg rounded-full px-lg py-sm flex items-center gap-sm hover:bg-surface-container-high transition-colors min-h-touch-target">
+                        <span class="material-symbols-outlined text-[18px]">filter_list</span> Filter Data
+                    </button>
+                    
+                    <div id="dropdown-filter-multi" class="hidden absolute left-0 md:left-auto md:right-0 z-20 mt-2 w-64 rounded-xl bg-surface-container-lowest shadow-lg border border-outline-variant p-4">
+                        <h4 class="font-bold text-sm text-on-surface mb-3 border-b pb-1">Filter Rute Lapangan</h4>
+                        <div class="flex flex-col gap-2 mb-2">
+                            <label class="flex items-center gap-2 text-sm text-on-surface cursor-pointer">
+                                <input type="checkbox" class="filter-rute-cb w-4 h-4 accent-primary" value="Purwakarta" checked> Purwakarta
+                            </label>
+                            <label class="flex items-center gap-2 text-sm text-on-surface cursor-pointer">
+                                <input type="checkbox" class="filter-rute-cb w-4 h-4 accent-primary" value="Karawang" checked> Karawang
+                            </label>
+                            <label class="flex items-center gap-2 text-sm text-on-surface cursor-pointer">
+                                <input type="checkbox" class="filter-rute-cb w-4 h-4 accent-primary" value="Subang" checked> Subang
+                            </label>
+                        </div>
+
+                        <div id="filter-history-section" class="hidden border-t border-outline-variant pt-3 mt-2">
+                            <h4 class="font-bold text-sm text-on-surface mb-2">Filter Periode (4 Bulanan)</h4>
+                            <select id="filter-kuartal" class="w-full p-2 border border-outline-variant rounded-lg text-sm bg-surface-container outline-none focus:border-primary">
+                                <option value="semua">Semua Waktu</option>
+                                <option value="Q1">Kuartal 1 (Jan - Apr)</option>
+                                <option value="Q2">Kuartal 2 (Mei - Ags)</option>
+                                <option value="Q3">Kuartal 3 (Sep - Des)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
                 <button class="bg-primary text-on-primary font-label-lg text-label-lg rounded-full px-lg py-sm flex items-center gap-sm hover:opacity-90 shadow-sm transition-all min-h-touch-target active:scale-95" onclick="window.tambahPenjemputan()">
                     <span class="material-symbols-outlined text-[18px]">add</span> Buat Penjemputan Baru
                 </button>
@@ -53,7 +94,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         <div class="tab-content active" id="content-pending">
             <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse mobile-table-card min-w-[800px]">
+                    <table class="w-full text-left border-collapse mobile-table-card md:min-w-[800px]">
                         <thead>
                             <tr class="bg-surface-container-low border-b border-outline-variant">
                                 <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Nama Mitra</th>
@@ -75,7 +116,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         <div class="tab-content" id="content-progress">
             <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse mobile-table-card min-w-[800px]">
+                    <table class="w-full text-left border-collapse mobile-table-card md:min-w-[800px]">
                         <thead>
                             <tr class="bg-surface-container-low border-b border-outline-variant">
                                 <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Nama Mitra</th>
@@ -97,7 +138,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         <div class="tab-content" id="content-history">
             <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse mobile-table-card min-w-[900px]">
+                    <table class="w-full text-left border-collapse mobile-table-card md:min-w-[900px]">
                         <thead>
                             <tr class="bg-surface-container-low border-b border-outline-variant">
                                 <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Nama Mitra</th>
@@ -219,21 +260,29 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         let currentUserRole = 'lapangan';
 
         document.addEventListener('DOMContentLoaded', async () => {
-            if (!window.supabase) return console.error("Supabase Client tidak ditemukan!");
 
+            if (!window.supabase) return console.error("Supabase Client tidak ditemukan!");
+            // === 🛡️ GATEKEEPER KEUANGAN ===
             // 1. Dapatkan Role Login
-            const { data: { session } } = await window.supabase.auth.getSession();
-            if(session) {
-                const { data: prof } = await window.supabase.from('profiles').select('role').eq('id', session.user.id).single();
-                currentUserRole = prof?.role || 'lapangan';
+            const allowedRoles = ['owner', 'hrd', 'admin'];
+            const client = window.supabase || supabase;
+
+            const { data: { session } } = await client.auth.getSession();
+            if (!session) return window.location.replace('/'); // Tendang kalau belum login
+
+            const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+            if (!allowedRoles.includes(prof?.role)) {
+                alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk ke Keuangan.`);
+                return window.location.replace('/');
             }
+            document.body.style.display = 'block'; // Buka gembok CSS, tampilkan layar!
 
             // 2. Fetch Data Jadwal Operasional
             async function loadOperasionalData() {
                 const { data: jadwalPenjemputan, error: errJadwal } = await window.supabase
                     .from('penjemputan')
                     .select(`
-                        id, status, tanggal,
+                        id, status, tanggal, rute_penjemputan,
                         mitra ( id, nama_mitra, alamat, link_gmaps ),
                         driver:driver_id ( id, nama, tipe_kendaraan ),
                         helper:helper_id ( id, nama ),
@@ -254,7 +303,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 if(pending.length > 0) {
                     pending.forEach(j => {
                         htmlPending += `
-                        <tr class="hover:bg-surface-container-low transition-colors">
+                        <tr class="hover:bg-surface-container-low transition-colors" data-rute="${j.rute_penjemputan || ''}">
                             <td class="px-md py-md whitespace-nowrap font-semibold" data-label="Nama Mitra">${j.mitra?.nama_mitra || '-'}</td>
                             <td class="px-md py-md" data-label="Alamat">
                                 <div class="text-xs font-bold text-gray-800 break-words max-w-[220px]" title="${j.mitra?.alamat || ''}">
@@ -286,7 +335,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 if(onProgress.length > 0) {
                     onProgress.forEach(j => {
                         htmlProgress += `
-                        <tr class="hover:bg-surface-container-low transition-colors">
+                        <tr class="hover:bg-surface-container-low transition-colors" data-rute="${j.rute_penjemputan || ''}">
                             <td class="px-md py-md whitespace-nowrap font-semibold" data-label="Nama Mitra">${j.mitra?.nama_mitra || '-'}</td>
                             <td class="px-md py-md" data-label="Alamat">
                                 <div class="text-xs font-bold text-gray-800 break-words max-w-[220px]" title="${j.mitra?.alamat || ''}">
@@ -331,7 +380,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         }
 
                         htmlHistory += `
-                        <tr class="hover:bg-surface-container-low transition-colors">
+                        <tr class="hover:bg-surface-container-low transition-colors" data-rute="${j.rute_penjemputan || ''}" data-tanggal="${j.tanggal || ''}">>
                             <td class="px-md py-md whitespace-nowrap font-semibold" data-label="Nama Mitra">${j.mitra?.nama_mitra || '-'}</td>
                             <td class="px-md py-md whitespace-nowrap" data-label="Tanggal Selesai">${j.tanggal}</td>
                             <td class="px-md py-md" data-label="Rincian Komoditas">${itemsHtml}</td>
@@ -415,7 +464,67 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             }
 
             await loadOperasionalData();
-        });
+            const btnFilterMulti = document.getElementById('btn-filter-multi');
+            const dropdownMulti = document.getElementById('dropdown-filter-multi');
+            const ruteCheckboxes = document.querySelectorAll('.filter-rute-cb');
+            const filterKuartal = document.getElementById('filter-kuartal');
+            const historySection = document.getElementById('filter-history-section');
+
+            if(!btnFilterMulti || !dropdownMulti) return;
+
+            // Buka tutup menu
+            btnFilterMulti.addEventListener('click', () => dropdownMulti.classList.toggle('hidden'));
+            document.addEventListener('click', (e) => {
+                if (!btnFilterMulti.contains(e.target) && !dropdownMulti.contains(e.target)) {
+                    dropdownMulti.classList.add('hidden');
+                }
+            });
+
+            window.applyMultiFilters = function() {
+                const checkedRoutes = Array.from(ruteCheckboxes).filter(cb => cb.checked).map(cb => cb.value.toLowerCase());
+                const kuartalVal = filterKuartal?.value || 'semua';
+                
+                const allRows = document.querySelectorAll('#tbody-pending tr, #tbody-progress tr, #tbody-history tr');
+                
+                allRows.forEach(row => {
+                    if (row.children.length === 1) return; // Abaikan teks loading
+
+                    const rute = (row.getAttribute('data-rute') || '').toLowerCase();
+                    const tanggal = row.getAttribute('data-tanggal') || ''; 
+                    
+                    let isRuteSesuai = checkedRoutes.some(checked => rute.includes(checked));
+                    let isKuartalSesuai = true; 
+
+                    // Cek Kuartal untuk Tab History
+                    if (row.closest('#tbody-history') && kuartalVal !== 'semua' && tanggal) {
+                        const bulan = parseInt(tanggal.split('-')[1]); 
+                        if (kuartalVal === 'Q1' && (bulan < 1 || bulan > 4)) isKuartalSesuai = false;
+                        if (kuartalVal === 'Q2' && (bulan < 5 || bulan > 8)) isKuartalSesuai = false;
+                        if (kuartalVal === 'Q3' && (bulan < 9 || bulan > 12)) isKuartalSesuai = false;
+                    }
+
+                    row.style.display = (isRuteSesuai && isKuartalSesuai) ? '' : 'none';
+                });
+            };
+
+            // Trigger saat input berubah
+            ruteCheckboxes.forEach(cb => cb.addEventListener('change', window.applyMultiFilters));
+            if(filterKuartal) filterKuartal.addEventListener('change', window.applyMultiFilters);
+
+            // Suntik logika filter ke tombol Switch Tab tanpa ngerusak fungsi aslinya
+            const originalSwitchTab = window.switchTab;
+            window.switchTab = function(tabId) {
+                if (originalSwitchTab) originalSwitchTab(tabId); 
+                
+                if (historySection) {
+                    if (tabId === 'history') {
+                        historySection.classList.remove('hidden');
+                    } else {
+                        historySection.classList.add('hidden');
+                    }
+                }
+                setTimeout(window.applyMultiFilters, 50); // Eksekusi filter setelah tab aktif
+            };
 
 
         // === FUNGSI GLOBAL & UI ===
@@ -508,7 +617,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         document.getElementById('formPenjemputan')?.addEventListener('submit', async function(e) {
             e.preventDefault();
                 
-            // Cek role di website sekali lagi sebelum data terbang ke Supabase
             if(!isAllowed()) {
                 alert('Akses Ditolak: Anda tidak memiliki izin untuk mengirim perintah jalan!');
                 return;
@@ -525,7 +633,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 
                 let driver_id = null;
                 let helper_id = null;
-
                 if (tipeKendaraan === 'motor') {
                     driver_id = document.getElementById('input_driver_motor').value;
                 } else {
@@ -536,7 +643,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
                 if (!window.supabase) throw new Error("Supabase Client tidak ditemukan!");
 
-                // 1. Simpan data utama ke tabel 'penjemputan'
+                // 1. Simpan data utama
                 const { data: pickupData, error: errPickup } = await window.supabase.from('penjemputan').insert([{
                     mitra_id: parseInt(mitra_id),
                     driver_id: driver_id,
@@ -546,7 +653,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 }]).select().single();
                 if (errPickup) throw errPickup;
 
-                // 2. Simpan induk data 'transaksi' (untuk mencatat DP)
+                // 2. Simpan induk transaksi
                 const { data: txData, error: errTx } = await window.supabase.from('transaksi').insert([{
                     penjemputan_id: pickupData.id,
                     kalkulator_user_id: driver_id,
@@ -558,7 +665,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
                 const rows = document.querySelectorAll('.barang-row');
                 const itemsToInsert = [];
-                
                 rows.forEach(row => {
                     const komoditas = row.querySelector('.row-komoditas').value;
                     const volume = row.querySelector('.row-volume').value;
@@ -568,15 +674,14 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             transaksi_id: txData.id, 
                             komoditas: komoditas,
                             volume: parseFloat(volume)
-                            // harga_unit gw hapus ya, karena ini baru estimasi, belum deal harga
                         });
                     }
                 });
 
-                // 4. Masukkan rincian barang ke tabel TRANSAKSI_ESTIMASI (Bukan transaksi_item lagi)
+                // 3. Simpan estimasi
                 if(itemsToInsert.length > 0) {
                     const { error: errItems } = await window.supabase
-                        .from('transaksi_estimasi') // <--- DIUBAH KE SINI BRO!
+                        .from('transaksi_estimasi') 
                         .insert(itemsToInsert);
                         
                     if (errItems) throw errItems;
@@ -589,5 +694,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 btn.innerHTML = 'Kirim Perintah Jalan'; btn.disabled = false;
             }
         });
+    });
     </script>
 </Layout>

@@ -13,7 +13,7 @@ const { title, requireAuth = true } = Astro.props;
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>{title}</title>
-    
+    <link rel="icon" type="image/png" href="/3.png" />
     <script is:inline src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
@@ -149,8 +149,8 @@ const { title, requireAuth = true } = Astro.props;
             </button>
             
             <a href="/" class="flex items-center gap-2 group text-decoration-none">
-                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-surface-tint flex items-center justify-center text-on-primary shadow-sm group-hover:shadow transition-all">
-                    <span class="material-symbols-outlined text-[20px]">eco</span>
+                <div class="w-10 h-10 rounded-lg bg-white flex items-center justify-center shadow-sm group-hover:shadow transition-all overflow-hidden p-1">
+                    <img src="/5.png" alt="Logo" class="w-full h-full object-contain" />
                 </div>
                 <div class="flex items-baseline">
                     <h1 class="text-xl md:text-2xl font-bold text-on-surface tracking-tight">BangJelantah</h1>
@@ -191,7 +191,7 @@ const { title, requireAuth = true } = Astro.props;
             <div class="flex items-center justify-between mb-6 pt-2 px-2">
                 <div class="flex items-center gap-2">
                     <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary">
-                        <span class="material-symbols-outlined text-[24px]">local_shipping</span>
+                        <img src="/3.png" alt="Logo" class="w-full h-full object-contain" />
                     </div>
                     <span class="font-bold text-lg text-primary tracking-tight">BJPWK-CMS</span>
                 </div>
@@ -276,10 +276,10 @@ const { title, requireAuth = true } = Astro.props;
         //});
 
         // ==========================================
-        // FITUR NOTIFIKASI REAL-TIME
+        // FITUR NOTIFIKASI REAL-TIME (DIPERBARUI)
         // ==========================================
         function initRealtimeNotifications() {
-            // Minta Izin Notifikasi Browser
+            // Minta Izin Notifikasi Browser saat user pertama kali masuk
             if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
                 Notification.requestPermission();
             }
@@ -292,34 +292,83 @@ const { title, requireAuth = true } = Astro.props;
                 notifBadge?.classList.add('hidden');
             });
 
-            function sendPush(title, body) {
+            // Fungsi Push Notification ke OS / Browser dengan Custom Icon
+            function sendPush(title, body, iconUrl = 'https://ui-avatars.com/api/?name=Bang+Jelantah&background=2e7d32&color=ffffff') {
                 // Tampilkan titik merah di UI Lonceng
                 notifBadge?.classList.remove('hidden');
 
-                // Kirim notifikasi desktop (Chrome)
+                // Kirim notifikasi desktop (Chrome / Firefox / Edge)
                 if ("Notification" in window && Notification.permission === "granted") {
                     new Notification(title, { 
                         body: body,
-                        icon: 'https://ui-avatars.com/api/?name=Bang+Jelantah&background=2e7d32&color=ffffff'
+                        icon: iconUrl
                     });
                 }
             }
 
-            if (supabase) {
-                supabase.channel('dashboard-notifications')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'transaksi' }, payload => {
-                    sendPush('💳 Validasi Pembayaran Baru!', 'Ada setoran lapangan baru yang menunggu divalidasi pembayarannya.');
+            if (window.supabase) {
+                window.supabase.channel('dashboard-notifications')
+                
+                // 1. MONITOR TABEL TRANSAKSI (INSERT & UPDATE)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'transaksi' }, async (payload) => {
+                    // Abaikan kalau datanya dihapus
+                    if (payload.eventType === 'DELETE') return;
+
+                    // Cek apakah statusnya selesai (asumsi lu pakai kolom status='Selesai' atau is_paid_by_admin=true)
+                    const isSelesai = payload.new.status === 'Selesai' || payload.new.is_paid_by_admin === true;
+                    
+                    // Karena Supabase Realtime gak bawa tabel relasi, kita "tarik kilat" nama mitranya!
+                    const { data: relasi } = await window.supabase
+                        .from('transaksi')
+                        .select('metode_bayar, penjemputan(mitra(nama_mitra))')
+                        .eq('id', payload.new.id)
+                        .single();
+
+                    const namaMitra = relasi?.penjemputan?.mitra?.nama_mitra || 'Mitra (Tidak Diketahui)';
+                    const metode = relasi?.metode_bayar || payload.new.metode_bayar || 'Belum diinput';
+
+                    // Logika Notifikasi: Jika Selesai vs Jika Baru Masuk (INSERT)
+                    if (isSelesai) {
+                        sendPush(
+                            '✅ Pembayaran Selesai!', 
+                            `Transaksi dengan ${namaMitra} telah lunas menggunakan metode ${metode}.`,
+                            'https://cdn-icons-png.flaticon.com/512/190/190411.png' // Icon Sukses/Checklist
+                        );
+                    } else if (payload.eventType === 'INSERT') {
+                        sendPush(
+                            '💳 Transaksi Baru Masuk!', 
+                            `Ada setoran lapangan baru dari ${namaMitra} (Metode: ${metode}) menunggu divalidasi.`,
+                            'https://cdn-icons-png.flaticon.com/512/5724/5724036.png' // Icon Dompet/Transaksi
+                        );
+                    }
                 })
+
+                // 2. MONITOR PENGELUARAN
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pengeluaran' }, payload => {
-                    sendPush('💸 Pengeluaran Karyawan', `Pengajuan kas jalan baru sebesar Rp ${payload.new.total_harian} menunggu persetujuan.`);
+                    sendPush(
+                        '💸 Pengeluaran Karyawan', 
+                        `Pengajuan kas jalan baru sebesar Rp ${Number(payload.new.total_harian).toLocaleString('id-ID')} menunggu persetujuan.`,
+                        'https://cdn-icons-png.flaticon.com/512/2489/2489756.png' // Icon Uang Keluar
+                    );
                 })
+
+                // 3. MONITOR PENJUALAN OLAHAN
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'penjualan_olahan' }, payload => {
-                    sendPush('📦 Penjualan Berhasil!', `Terdapat input penjualan olahan baru ke ${payload.new.pembeli}.`);
+                    sendPush(
+                        '📦 Penjualan Berhasil!', 
+                        `Terdapat input penjualan olahan baru ke ${payload.new.pembeli}.`,
+                        'https://cdn-icons-png.flaticon.com/512/3144/3144456.png' // Icon Keranjang Belanja
+                    );
                 })
+
+                // 4. MONITOR GUDANG MASUK
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'gudang_mutasi' }, payload => {
-                    // Hanya notif saat ada barang 'Masuk'
                     if (payload.new.jenis_mutasi === 'Masuk') {
-                        sendPush('🚛 Barang Gudang Masuk', `Stok ${payload.new.komoditas_id} baru saja bertambah sebanyak ${payload.new.jumlah} Kg.`);
+                        sendPush(
+                            '🚛 Barang Gudang Masuk', 
+                            `Stok ${payload.new.komoditas_id.replace('_', ' ')} baru saja bertambah sebanyak ${payload.new.jumlah} Kg.`,
+                            'https://cdn-icons-png.flaticon.com/512/679/679821.png' // Icon Gudang/Box
+                        );
                     }
                 })
                 .subscribe();

@@ -395,7 +395,11 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                 <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 font-label-sm text-[11px]"><span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> ${j.status}</span>
                             </td>
                             <td class="px-md py-md text-right" data-label="Aksi">
-                                <button class="bg-secondary text-on-secondary font-label-sm rounded-full px-4 py-1 hover:opacity-90 transition-all">Pantau Rute</button>
+                                <div class="flex gap-2 justify-end">
+                                    <button onclick="window.kembalikanKeBelum('${j.id}')" class="bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-full font-label-sm text-[11px] font-bold hover:bg-amber-100 transition shadow-sm" title="Tarik kembali ke Belum Diproses">
+                                        <i class="bi bi-arrow-counterclockwise mr-1"></i> Batal Proses
+                                    </button>
+                                </div>
                             </td>
                         </tr>`;
                     });
@@ -696,6 +700,29 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 window.location.reload();
             } catch(e) {
                 alert('Gagal menghapus jadwal: ' + e.message);
+            }
+        };
+
+        // ==========================================
+        // 4. KEMBALIKAN STATUS KE "BELUM DIPROSES"
+        // ==========================================
+        window.kembalikanKeBelum = async function(id) {
+            if(!isAllowed()) return alert('Akses Ditolak: Hanya Admin yang bisa mengembalikan tugas!');
+            if(!confirm("Yakin ingin menarik kembali tugas ini?\n\nStatus akan dikembalikan menjadi 'Belum Diproses' dan armada ditarik dari lapangan.")) return;
+
+            try {
+                // Update kolom status kembali menjadi 'Belum'
+                const { error } = await window.supabase
+                    .from('penjemputan')
+                    .update({ status: 'Belum' })
+                    .eq('id', id);
+                    
+                if(error) throw error;
+                
+                alert('Mantap! Tugas berhasil ditarik dan dikembalikan ke daftar Belum Diproses.');
+                window.location.reload();
+            } catch(e) {
+                alert('Gagal mengembalikan status: ' + e.message);
             }
         };
 

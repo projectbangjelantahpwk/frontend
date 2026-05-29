@@ -1243,14 +1243,104 @@ tabButtons.forEach((button) => {
         alert('Tombol Edit sudah ditekan untuk ID: ' + idPengeluaran + '\n\nMas bro, kasih tau mau nampilin Modal (Pop-up) buat ngedit apanya aja nih? (Misal: Tanggal, Nama Item, atau Nominal). Biar saya buatin sekalian!');
     };
 
-    // VALIDASI PEMBAYARAN MITRA LUNAS
+    // ==========================================
+    // VALIDASI PEMBAYARAN MITRA LUNAS & MULTI-UPDATE DATABASE
+    // ==========================================
     window.validasiBayar = async function(trxId) {
-        if(!confirm('Tandai transaksi ini sudah dibayar LUNAS?')) return;
+        if(!confirm('Tandai transaksi ini sudah dibayar LUNAS?\n\n(Perhatian: Stok gudang akan otomatis bertambah, dan rekap performa Mitra akan di-update)')) return;
         if(!window.supabase) return;
+        
         try {
+            // 1. Tarik detail transaksi, item, dan penjemputan (untuk dapet mitra_id dan tanggal)
+            const { data: trx, error: errTrx } = await window.supabase.from('transaksi')
+                .select('*, transaksi_item(komoditas, volume), penjemputan(mitra_id, tanggal)')
+                .eq('id', trxId).single();
+                
+            if (errTrx) throw errTrx;
+
+            const mitraId = trx.penjemputan?.mitra_id;
+            const tanggalTrx = trx.penjemputan?.tanggal || new Date().toISOString().split('T')[0];
+            const periodeBulan = tanggalTrx.substring(0, 7); // Motong format YYYY-MM-DD jadi YYYY-MM
+
+            // Siapkan wadah update untuk profil Mitra
+            let updateMitraPayload = {};
+            let currentMitraData = null;
+
+            // Tarik data kotor mitra yang sekarang buat nanti dijumlahkan
+            if (mitraId) {
+                const { data: mData } = await window.supabase.from('mitra')
+                    .select('minyak_jelantah, ampas, kriuk, tepung, spinner').eq('id', mitraId).maybeSingle();
+                if (mData) {
+                    currentMitraData = mData;
+                    updateMitraPayload = {
+                        minyak_jelantah: Number(mData.minyak_jelantah || 0),
+                        ampas: Number(mData.ampas || 0),
+                        kriuk: Number(mData.kriuk || 0),
+                        tepung: Number(mData.tepung || 0),
+                        spinner: Number(mData.spinner || 0)
+                    };
+                }
+            }
+
+            // 2. Loop setiap barang untuk Eksekusi 3 Tabel
+            if (trx.transaksi_item && trx.transaksi_item.length > 0) {
+                for (let item of trx.transaksi_item) {
+                    const volMasuk = parseFloat(item.volume) || 0;
+                    if (volMasuk <= 0) continue;
+                    
+                    const namaKom = item.komoditas.toLowerCase();
+
+                    // --- A. UPDATE STOK GUDANG PABRIK ---
+                    const { data: kom } = await window.supabase.from('gudang_komoditas')
+                        .select('id, stok').ilike('nama_komoditas', `%${item.komoditas}%`).maybeSingle();
+
+                    if (kom) {
+                        await window.supabase.from('gudang_komoditas').update({ stok: kom.stok + volMasuk }).eq('id', kom.id);
+                        await window.supabase.from('gudang_mutasi').insert([{ 
+                            jenis_mutasi: 'Masuk', komoditas_id: kom.id, jumlah: volMasuk, keterangan: `Setoran Mitra (ID: ${trxId})` 
+                        }]);
+                    }
+
+                    if (mitraId) {
+                        // --- B. KALKULASI KOLOM PROFIL MITRA ---
+                        if (namaKom.includes('minyak') || namaKom.includes('jelantah')) updateMitraPayload.minyak_jelantah += volMasuk;
+                        else if (namaKom.includes('ampas')) updateMitraPayload.ampas += volMasuk;
+                        else if (namaKom.includes('kriuk')) updateMitraPayload.kriuk += volMasuk;
+                        else if (namaKom.includes('tepung')) updateMitraPayload.tepung += volMasuk;
+                        else if (namaKom.includes('spinner')) updateMitraPayload.tepung += volMasuk;
+
+                        // --- C. UPSERT KE REKAP BULANAN MITRA (Deteksi Bulan Baru / Bulan Sama) ---
+                        const { data: rekapData } = await window.supabase.from('rekap_bulanan_mitra')
+                            .select('id, total_kg')
+                            .eq('mitra_id', mitraId).eq('periode', periodeBulan).eq('komoditas', item.komoditas).maybeSingle();
+
+                        if (rekapData) {
+                            // Kalau bulan ini udah pernah setor komoditas yang sama, Tambahin (Update)
+                            await window.supabase.from('rekap_bulanan_mitra')
+                                .update({ total_kg: Number(rekapData.total_kg || 0) + volMasuk }).eq('id', rekapData.id);
+                        } else {
+                            // Kalau baru pertama kali setor komoditas ini di bulan tersebut, Bikin Baris Baru (Insert)
+                            await window.supabase.from('rekap_bulanan_mitra').insert([{
+                                periode: periodeBulan, mitra_id: mitraId, komoditas: item.komoditas, total_kg: volMasuk
+                            }]);
+                        }
+                    }
+                }
+            }
+
+            // 3. Tembak akumulasi kalkulasi ke tabel Profil Mitra
+            if (mitraId && currentMitraData) {
+                await window.supabase.from('mitra').update(updateMitraPayload).eq('id', mitraId);
+            }
+
+            // 4. Ubah status transaksi jadi LUNAS
             await window.supabase.from('transaksi').update({ is_paid_by_admin: true }).eq('id', trxId);
+            
+            alert('Transaksi divalidasi Lunas. Stok Gudang, Performa Profil Mitra, dan Rekap Bulanan berhasil di-update otomatis.');
             window.location.reload();
-        } catch (err) { alert(err.message); }
+        } catch (err) { 
+            alert('Gagal memproses validasi & stok: ' + err.message); 
+        }
     };
     });
   // ====================================================================

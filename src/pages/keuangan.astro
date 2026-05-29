@@ -24,7 +24,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         <i class="bi bi-clock-history mr-2"></i> Riwayat Gaji Karyawan
       </button>
       <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="pembelian">
-        <i class="bi bi-cart-check mr-2"></i> Beli & Pengeluaran
+        <i class="bi bi-cart-check mr-2"></i> Pembelian Komoditas
+      </button>
+      <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="pengeluaran">
+        <i class="bi bi-wallet2 mr-2"></i> Pengeluaran Ops
       </button>
       <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="validasi">
         <i class="bi bi-shield-check mr-2"></i> Validasi Bayar
@@ -39,9 +42,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
   <div id="gaji" class="tab-content block">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-bold text-gray-900">Rekapitulasi Gaji Karyawan</h2>
-        <button onclick="openModal('modal-pengaturan-global')" class="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition">
-            <i class="bi bi-gear"></i> Setting Gaji Global
-        </button>
     </div>
     <div id="gaji-karyawan-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <p class="text-gray-500">Memuat data gaji...</p>
@@ -73,6 +73,48 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
     </div>
 
   <div id="pembelian" class="tab-content hidden">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-gray-900">Pembelian Komoditas (Mitra)</h2>
+    </div>
+    
+    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex flex-wrap gap-4 items-end">
+        <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Mulai Tanggal</label>
+            <input type="date" id="filter-start-beli" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600">
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Sampai Tanggal</label>
+            <input type="date" id="filter-end-beli" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600">
+        </div>
+        <button onclick="filterTabelBeli()" class="bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-800">Filter Data Pembelian</button>
+    </div>
+
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+        <div class="overflow-x-auto max-h-[600px]">
+            <table class="w-full text-left" id="tabel-pembelian">
+                <thead class="bg-gray-50 sticky top-0 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">Tanggal</th>
+                        <th class="px-6 py-4 text-sm font-bold text-gray-900">Mitra</th>
+                        <th class="px-6 py-4 text-sm font-bold text-gray-900">Komoditas</th>
+                        <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right whitespace-nowrap">Berat (Kg)</th>
+                        <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right whitespace-nowrap">Harga Satuan</th>
+                        <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right whitespace-nowrap">Subtotal Harga</th>
+                    </tr>
+                </thead>
+                <tbody id="pembelian-tbody" class="divide-y divide-gray-200">
+                    <tr><td colspan="6" class="text-center py-4 text-gray-500">Memuat...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+  </div>
+
+  <div id="pengeluaran" class="tab-content hidden">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-gray-900">Pengeluaran Operasional</h2>
+    </div>
+    
     <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex flex-wrap gap-4 items-end">
         <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Mulai Tanggal</label>
@@ -82,50 +124,23 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             <label class="block text-xs font-bold text-gray-600 mb-1">Sampai Tanggal</label>
             <input type="date" id="filter-end-pengeluaran" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600">
         </div>
-        <button onclick="filterTabelPengeluaran()" class="bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-800">Filter Data</button>
+        <button onclick="filterTabelPengeluaran()" class="bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-800">Filter Data Pengeluaran</button>
     </div>
 
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        <div>
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Pembelian Komoditas (Mitra)</h2>
-            <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-                <div class="overflow-x-auto max-h-[500px]">
-                <table class="w-full text-left" id="tabel-pembelian">
-                    <thead class="bg-gray-50 sticky top-0">
-                        <tr>
-                            <th class="px-4 py-3 text-sm font-bold text-gray-900">Tanggal</th>
-                            <th class="px-4 py-3 text-sm font-bold text-gray-900">Komoditas & Volume</th>
-                            <th class="px-4 py-3 text-sm font-bold text-gray-900 text-right">Nilai (Rp)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pembelian-tbody" class="divide-y divide-gray-200">
-                        <tr><td colspan="3" class="text-center py-4">Memuat...</td></tr>
-                    </tbody>
-                </table>
-                </div>
-            </div>
-        </div>
-
-        <div>
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-gray-900">Pengeluaran Operasional</h2>
-            </div>
-            <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-                <div class="overflow-x-auto max-h-[500px]">
-                <table class="w-full text-left" id="tabel-pengeluaran">
-                    <thead class="bg-gray-50 sticky top-0">
-                        <tr>
-                            <th class="px-4 py-3 text-sm font-bold text-gray-900">Tgl & Pengaju</th>
-                            <th class="px-4 py-3 text-sm font-bold text-gray-900">Detail Rincian</th>
-                            <th class="px-4 py-3 text-sm font-bold text-gray-900 text-center">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pengeluaran-tbody" class="divide-y divide-gray-200">
-                        <tr><td colspan="3" class="text-center py-4">Memuat...</td></tr>
-                    </tbody>
-                </table>
-                </div>
-            </div>
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+        <div class="overflow-x-auto max-h-[600px]">
+            <table class="w-full text-left" id="tabel-pengeluaran">
+                <thead class="bg-gray-50 sticky top-0">
+                    <tr>
+                        <th class="px-6 py-4 text-sm font-bold text-gray-900">Tgl & Pengaju</th>
+                        <th class="px-6 py-4 text-sm font-bold text-gray-900">Detail Rincian</th>
+                        <th class="px-6 py-4 text-sm font-bold text-gray-900 text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="pengeluaran-tbody" class="divide-y divide-gray-200">
+                    <tr><td colspan="3" class="text-center py-4">Memuat...</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
   </div>
@@ -240,57 +255,87 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 </div>
 
 <div id="modal-detail-gaji" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
-    <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[95vh]">
+    <div class="bg-white rounded-2xl w-full max-w-2xl overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[95vh]">
         <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-green-50">
             <div>
                 <h3 class="font-bold text-lg text-gray-900" id="m_nama_karyawan">Nama Karyawan</h3>
-                <p class="text-xs text-green-700 font-medium">Kalkulasi Gaji Personal</p>
+                <p class="text-xs text-green-700 font-medium">Setup & Slip Gaji Karyawan</p>
             </div>
             <button onclick="closeModal('modal-detail-gaji')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
         </div>
         
-        <div class="p-5 overflow-y-auto flex-1 space-y-5">
+        <div class="p-5 overflow-y-auto flex-1 space-y-6">
             <input type="hidden" id="m_karyawan_id">
+            <input type="hidden" id="m_setup_id">
+            <input type="hidden" id="m_slip_id">
             
             <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                <label class="block text-sm font-bold text-gray-700 mb-2">Setting Gaji Pokok (Per Jam)</label>
-                <div class="relative">
-                    <span class="absolute left-3 top-3 text-gray-500 font-bold">Rp</span>
-                    <input type="number" id="m_tarif_jam" class="w-full border border-gray-300 rounded-lg p-3 pl-10 outline-none focus:border-green-600 font-bold text-lg text-gray-900">
-                </div>
-                <button onclick="updateTarifJam()" class="mt-2 text-xs bg-green-100 text-green-800 px-3 py-1 rounded font-bold hover:bg-green-200">Update Tarif Khusus Dia</button>
-            </div>
-
-            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 flex flex-col gap-3">
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">Kasbon / Uang Jalan</label>
-                    <div class="flex gap-2">
-                        <input type="number" id="m_input_uang_jalan" value="0" oninput="kalkulasiRealtimeGaji()" class="flex-1 border border-gray-300 rounded p-2 text-sm outline-none focus:border-blue-600">
-                        <button type="button" onclick="window.updateUangJalan()" class="bg-blue-600 text-white px-3 py-2 rounded font-bold text-xs hover:bg-blue-700 whitespace-nowrap transition-colors flex items-center gap-1">
-                            <i class="bi bi-disk"></i> Simpan Uang Jalan
-                        </button>
+                <h4 class="text-sm font-bold text-gray-900 mb-3 border-b pb-2"><i class="bi bi-sliders mr-2"></i>Parameter Setup Gaji Personal</h4>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Gaji per Menit (Rp)</label>
+                        <input type="number" id="setup_gaji_menit" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Uang Lembur per Menit (Rp)</label>
+                        <input type="number" id="setup_lembur_menit" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Uang Kesehatan (Rp)</label>
+                        <input type="number" id="setup_uang_kesehatan" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Uang Makan (Rp)</label>
+                        <input type="number" id="setup_uang_makan" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Bonus Tepat Waktu (Rp)</label>
+                        <input type="number" id="setup_bonus_tepat" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Bonus Mingguan (Rp)</label>
+                        <input type="number" id="setup_bonus_mingguan" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <input type="checkbox" id="m_check_bonus_mingguan" onchange="kalkulasiRealtimeGaji()" class="w-5 h-5 text-green-600 rounded focus:ring-green-500">
-                    <label class="text-xs font-bold text-gray-700">Apply Bonus Mingguan</label>
-                </div>
+                <button onclick="simpanSetupGaji()" class="w-full bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-sm hover:bg-black transition">
+                    <i class="bi bi-floppy mr-1"></i> Simpan Parameter Setup
+                </button>
             </div>
 
             <div>
-                <h4 class="font-bold text-gray-900 mb-3 border-b pb-2">Rincian Komponen Gaji (Otomatis)</h4>
-                <div class="space-y-2 text-sm" id="m_rincian_list"></div>
-            </div>
+                <h4 class="font-bold text-gray-900 mb-3 border-b pb-2"><i class="bi bi-calculator mr-2"></i>Kalkulasi Slip Gaji Bulan Ini</h4>
+                
+                <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 flex flex-wrap gap-4 mb-4">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="chk_uang_kesehatan" onchange="kalkulasiRealtimeGaji()" class="w-4 h-4 text-blue-600 rounded">
+                        <label class="text-xs font-bold text-gray-700">Berikan Uang Kesehatan</label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="chk_bonus_tepat" onchange="kalkulasiRealtimeGaji()" class="w-4 h-4 text-blue-600 rounded">
+                        <label class="text-xs font-bold text-gray-700">Berikan Bonus Tepat Waktu</label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="chk_bonus_mingguan" onchange="kalkulasiRealtimeGaji()" class="w-4 h-4 text-blue-600 rounded">
+                        <label class="text-xs font-bold text-gray-700">Berikan Bonus Mingguan</label>
+                    </div>
+                </div>
 
-            <div class="bg-green-700 text-white p-4 rounded-xl flex justify-between items-center">
-                <span class="font-bold">Total Bersih:</span>
-                <span class="text-2xl font-bold" id="m_total_gaji">Rp 0</span>
+                <div class="space-y-2 text-sm bg-white border border-gray-200 p-4 rounded-xl" id="m_rincian_list">
+                    </div>
+
+                <div class="bg-green-700 text-white p-4 rounded-xl flex justify-between items-center mt-3 shadow-sm">
+                    <span class="font-bold">Total Diterima:</span>
+                    <span class="text-2xl font-bold" id="m_total_gaji">Rp 0</span>
+                </div>
             </div>
         </div>
         
-        <div class="p-5 border-t border-gray-100 bg-white">
-             <button id="btn-bayar-gaji" onclick="prosesBayarGaji()" class="w-full bg-green-700 text-white font-bold py-4 rounded-xl hover:bg-green-800 transition active:scale-95 text-lg shadow-sm">
-                <i class="bi bi-check2-circle mr-2"></i> Setujui & Bayar Gaji
+        <div class="p-4 border-t border-gray-100 bg-gray-50 flex gap-3">
+             <button id="btn-draf-gaji" onclick="simpanSlipGaji('Menunggu')" class="flex-1 bg-white border border-gray-300 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-100 transition shadow-sm">
+                <i class="bi bi-clock-history mr-2"></i> Simpan Saja
+            </button>
+             <button id="btn-bayar-gaji" onclick="simpanSlipGaji('ACC')" class="flex-1 bg-green-700 text-white font-bold py-3 rounded-xl hover:bg-green-800 transition shadow-sm">
+                <i class="bi bi-check-circle-fill mr-2"></i> Approve & Lunas
             </button>
         </div>
     </div>
@@ -330,6 +375,41 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             <div class="bg-gray-50 p-3 rounded text-right font-bold text-lg text-gray-900" id="pj_total_display">Total: Rp 0</div>
             
             <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition">Simpan Penjualan</button>
+        </form>
+    </div>
+</div>
+
+<div id="modal-edit-transaksi" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
+    <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-blue-50">
+            <h3 class="font-bold text-lg text-gray-900">Edit Data Transaksi</h3>
+            <button onclick="closeModal('modal-edit-transaksi')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form id="form-edit-transaksi" onsubmit="window.simpanEditTransaksi(event)" class="p-6 space-y-4">
+            <input type="hidden" id="edit_trx_id">
+            <input type="hidden" id="edit_penjemputan_id">
+            <input type="hidden" id="edit_mitra_id">
+
+            <div class="grid grid-cols-2 gap-4 pb-2 border-b border-gray-100">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Tanggal</label>
+                    <input type="date" id="edit_trx_tgl" class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Nama Mitra</label>
+                    <input type="text" id="edit_trx_mitra" class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600" required>
+                </div>
+            </div>
+            
+            <div id="edit_items_container" class="space-y-4 max-h-[35vh] overflow-y-auto px-1 py-2">
+                </div>
+            
+            <div class="pt-2 border-t border-gray-100">
+                <label class="block text-xs font-bold text-red-600 mb-1">Potongan DP / Kasbon (Rp)</label>
+                <input type="number" id="edit_trx_dp" class="w-full border border-red-300 bg-red-50 rounded-lg p-3 outline-none focus:border-red-600 text-red-900 font-bold font-mono">
+            </div>
+            
+            <button type="submit" id="btn-save-trx" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition">Simpan Perubahan</button>
         </form>
     </div>
 </div>
@@ -389,10 +469,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 document.getElementById('g_lembur').value = globalGaji.tarif_lembur_perjam || 0;
             }
 
-            // B. Fetch Karyawan
+            // B. Fetch Karyawan + Setup Gaji
             const { data: karyawan, error: errKaryawan } = await window.supabase
                 .from('profiles')
-                .select('id, nama, role, tipe_kendaraan, foto_profil, tarif_gaji_perjam, pengeluaran(total_harian, status_approval), presensi(tanggal, status_tiba, status_pulang, waktu_tiba, waktu_pulang), slip_gaji(id, periode, uang_jalan, status)')
+                .select('id, nama, role, foto_profil, setup_gaji(*), presensi(tanggal, status_tiba, waktu_tiba, waktu_pulang), slip_gaji(*)')
                 .neq('role', 'owner');
 
             // JIKA ERROR, MUNCULKAN POP-UP BIAR KETAHUAN SALAHNYA DI MANA
@@ -408,23 +488,23 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             if(dataKaryawan.length > 0) {
                 dataKaryawan.forEach(k => {
                     const jumlahHadir = k.presensi?.length || 0;
-                    // 1. Inisial tetap dipertahankan buat cadangan
                     const inisial = k.nama ? k.nama.charAt(0).toUpperCase() : 'U';
-
-                    // 2. INI TEBENGANNYA: Cek apakah dia punya foto_profil di database
                     const avatarKomponen = k.foto_profil 
                         ? `<img src="${k.foto_profil}" class="w-12 h-12 rounded-full object-cover border border-gray-200 shrink-0" />`
                         : `<div class="w-12 h-12 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-md shrink-0">${inisial}</div>`;
-                    const peran = k.tipe_kendaraan ? k.tipe_kendaraan.replace('_', ' ') : k.role;
-                    const tarif = Number(k.tarif_gaji_perjam || 0).toLocaleString('id-ID');
+                    
+                    // FIX ERROR: Pastikan pakai k.role, bukan cuma role doang
+                    const peran = k.tipe_kendaraan ? k.tipe_kendaraan.replace('_', ' ') : (k.role || 'Karyawan');
+                    
+                    // UPDATE UI: Ambil tarif per menit dari relasi setup_gaji untuk ditampilkan di kartu depan
+                    const setup = k.setup_gaji && k.setup_gaji.length > 0 ? k.setup_gaji[0] : {};
+                    const tarif = Number(setup.gaji_menit || 0).toLocaleString('id-ID');
 
                     htmlKaryawan += `
                     <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
                         <div class="bg-gradient-to-r from-green-50 to-green-100 px-6 py-4 flex items-center justify-between border-b border-green-200">
                             <div class="flex items-center gap-4">
-
                                 ${avatarKomponen} 
-
                                 <div>
                                     <h3 class="font-bold text-gray-900">${k.nama}</h3>
                                     <p class="text-sm text-gray-600 capitalize">${peran}</p>
@@ -433,11 +513,11 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         </div>
                         <div class="p-6 flex-1 flex flex-col">
                             <div class="space-y-2 mb-6 text-sm">
-                                <div class="flex justify-between"><span class="text-gray-500">Tarif per Jam:</span> <span class="font-medium">Rp ${tarif}</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">Gaji per Menit:</span> <span class="font-medium text-gray-900">Rp ${tarif}</span></div>
                                 <div class="flex justify-between"><span class="text-gray-500">Hadir Bulan Ini:</span> <span class="font-medium text-green-600">${jumlahHadir} Hari</span></div>
                             </div>
                             <button onclick="window.openModalGaji('${k.id}')" class="mt-auto w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-green-700 text-green-700 rounded-xl font-bold hover:bg-green-50 transition active:scale-95">
-                            <i class="bi bi-calculator"></i> Hitung & Rincian
+                                <i class="bi bi-calculator"></i> Setup & Slip Gaji
                             </button>
                         </div>
                     </div>`;
@@ -452,7 +532,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 .select('*, transaksi_item(komoditas, volume, harga_unit), penjemputan(tanggal, mitra(nama_mitra))')
                 .order('created_at', { ascending: false });
 
-            // INI JEBAKANNYA BIAR MUNCUL POP-UP ERROR ASLINYA
             if (errTransaksi) {
                 alert("Error Supabase (Transaksi): " + errTransaksi.message);
                 console.error("Detail Error Transaksi:", errTransaksi);
@@ -460,21 +539,33 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             
             const tbodyPembelian = document.getElementById('pembelian-tbody');
             let htmlPembelian = '';
-            transaksi?.forEach(t => {
-                const totalNilai = t.transaksi_item?.reduce((acc, item) => acc + (item.volume * (item.harga_unit || 0)), 0) || 0;
-                let itemsHtml = '';
-                t.transaksi_item?.forEach(item => {
-                    itemsHtml += `<div class="text-gray-900 font-medium">• ${item.komoditas}: ${item.volume} Kg</div>`;
-                });
 
-                htmlPembelian += `
-                <tr class="hover:bg-gray-50" data-date="${t.penjemputan?.tanggal || ''}">
-                    <td class="px-4 py-3 text-sm text-gray-600">${t.penjemputan?.tanggal || '-'}</td>
-                    <td class="px-4 py-3 text-sm">${itemsHtml}</td>
-                    <td class="px-4 py-3 text-sm font-bold text-right text-gray-900">Rp ${totalNilai.toLocaleString('id-ID')}</td>
-                </tr>`;
+            transaksi?.forEach(t => {
+                const tanggal = t.penjemputan?.tanggal || '-';
+                const namaMitra = t.penjemputan?.mitra?.nama_mitra || 'Tanpa Nama Mitra';
+
+                // Cek apakah transaksi punya item
+                if (t.transaksi_item && t.transaksi_item.length > 0) {
+                    t.transaksi_item.forEach(item => {
+                        const hargaSatuan = item.harga_unit || 0;
+                        const subtotal = item.volume * hargaSatuan;
+
+                        // Bikin 6 kolom sesuai urutan header tabel
+                        htmlPembelian += `
+                        <tr class="hover:bg-gray-50" data-date="${t.penjemputan?.tanggal || ''}">
+                            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">${tanggal}</td>
+                            <td class="px-6 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">${namaMitra}</td>
+                            <td class="px-6 py-4 text-sm font-medium text-blue-700 whitespace-nowrap">${item.komoditas}</td>
+                            <td class="px-6 py-4 text-sm text-gray-700 text-right">${item.volume} Kg</td>
+                            <td class="px-6 py-4 text-sm text-gray-600 text-right">Rp ${hargaSatuan.toLocaleString('id-ID')}</td>
+                            <td class="px-6 py-4 text-sm font-bold text-right text-green-700">Rp ${subtotal.toLocaleString('id-ID')}</td>
+                        </tr>`;
+                    });
+                }
             });
-            tbodyPembelian.innerHTML = htmlPembelian || '<tr><td colspan="3" class="text-center py-4">Data kosong</td></tr>';
+
+            // Pastikan colspan error state juga 6
+            tbodyPembelian.innerHTML = htmlPembelian || '<tr><td colspan="6" class="text-center py-4 text-gray-500 italic">Data pembelian kosong</td></tr>';
 
             // D. Fetch Pengeluaran
             const { data: pengeluaran } = await window.supabase.from('pengeluaran')
@@ -483,45 +574,100 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             
             const tbodyPengeluaran = document.getElementById('pengeluaran-tbody');
             let htmlPeng = '';
+            
             pengeluaran?.forEach(p => {
                 let rincianHtml = '';
                 p.rincian_pengeluaran?.forEach(r => {
-                    rincianHtml += `<div class="flex justify-between text-gray-600"><span>${r.nama_item}</span><span class="font-medium">Rp ${Number(r.nominal).toLocaleString('id-ID')}</span></div>`;
+                    // 🔥 TAMBAHAN: Tombol Hapus per Item (Cuma muncul pas statusnya Menunggu)
+                    const btnHapus = p.status_approval === 'Menunggu' 
+                        ? `<button onclick="window.hapusItemPengeluaran('${r.id}', '${p.id}', ${r.nominal}, ${p.total_harian})" class="text-red-500 hover:text-red-700 ml-2" title="Hapus Item ini"><i class="bi bi-trash"></i></button>` 
+                        : '';
+
+                    rincianHtml += `
+                    <div class="flex justify-between items-center text-gray-600 mb-1 border-b border-dashed border-gray-100 pb-1">
+                        <span>- ${r.nama_item}</span>
+                        <div class="flex items-center">
+                            <span class="font-medium">Rp ${Number(r.nominal).toLocaleString('id-ID')}</span>
+                            ${btnHapus}
+                        </div>
+                    </div>`;
                 });
 
                 let statusBtn = '';
                 if(p.status_approval === 'Menunggu') {
+                    // 🔥 TAMBAHAN: Tombol Edit Data ditaruh paling atas
                     statusBtn = `
-                    <div class="flex flex-col gap-1">
-                        <button onclick="window.approvePengeluaran('${p.id}', 'Disetujui')" class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold hover:bg-green-200">Setujui</button>
-                        <button onclick="window.approvePengeluaran('${p.id}', 'Ditolak')" class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold hover:bg-red-200">Tolak</button>
+                    <div class="flex flex-col gap-1.5">
+                        <button onclick="window.approvePengeluaran('${p.id}', 'Disetujui')" class="bg-green-100 text-green-700 px-2 py-1.5 rounded text-xs font-bold hover:bg-green-200 shadow-sm border border-green-200"><i class="bi bi-check2-circle mr-1"></i> Setujui</button>
+                        
+                        <button onclick="window.approvePengeluaran('${p.id}', 'Ditolak')" class="bg-red-100 text-red-700 px-2 py-1.5 rounded text-xs font-bold hover:bg-red-200 shadow-sm border border-red-200"><i class="bi bi-x-circle mr-1"></i> Tolak</button>
                     </div>`;
                 } else {
-                    const color = p.status_approval === 'Disetujui' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
-                    statusBtn = `<span class="inline-flex px-2 py-1 rounded text-xs font-bold ${color}">${p.status_approval}</span>`;
+                    const color = p.status_approval === 'Disetujui' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200';
+                    statusBtn = `<span class="inline-flex px-3 py-1.5 rounded text-xs font-bold ${color}">${p.status_approval}</span>`;
                 }
 
                 htmlPeng += `
                 <tr class="hover:bg-gray-50" data-date="${p.tanggal}">
-                    <td class="px-4 py-3 text-sm">
+                    <td class="px-6 py-4 text-sm align-top">
                         <div class="font-bold text-gray-900">${p.tanggal}</div>
-                        <div class="text-gray-500">${p.profiles?.nama || 'Unknown'}</div>
+                        <div class="text-gray-500 mt-1"><i class="bi bi-person mr-1"></i> ${p.profiles?.nama || 'Unknown'}</div>
                     </td>
-                    <td class="px-4 py-3 text-sm">
-                        ${rincianHtml}
-                        <div class="mt-1 pt-1 border-t border-gray-100 font-bold text-gray-900 flex justify-between">
-                            <span>Total:</span> <span>Rp ${Number(p.total_harian).toLocaleString('id-ID')}</span>
+                    <td class="px-6 py-4 text-sm align-top">
+                        <div class="space-y-1 mb-2">
+                            ${rincianHtml}
+                        </div>
+                        <div class="border-t border-gray-200 pt-2 font-bold text-gray-900 flex justify-between bg-gray-50 px-3 py-2 rounded-lg border">
+                            <span>Total Keseluruhan:</span> <span class="text-green-700">Rp ${Number(p.total_harian).toLocaleString('id-ID')}</span>
                         </div>
                     </td>
-                    <td class="px-4 py-3 text-sm text-center">${statusBtn}</td>
+                    <td class="px-6 py-4 text-sm text-center align-top w-32">
+                        ${statusBtn}
+                    </td>
                 </tr>`;
             });
-            tbodyPengeluaran.innerHTML = htmlPeng || '<tr><td colspan="3" class="text-center py-4">Data kosong</td></tr>';
+            tbodyPengeluaran.innerHTML = htmlPeng || '<tr><td colspan="3" class="text-center py-4 text-gray-500 italic">Data pengeluaran kosong</td></tr>';
+
+            // HAPUS ITEM RINCIAN PENGELUARAN (DAN UPDATE TOTAL OTOMATIS)
+    window.hapusItemPengeluaran = async function(rincianId, pengeluaranId, nominalItem, totalSekarang) {
+        if(!confirm('Hapus rincian ini?\n\nTotal pengeluaran harian akan otomatis dikurangi oleh sistem.')) return;
+        if(!window.supabase) return;
+        
+        try {
+            // 1. Hapus item dari tabel rincian_pengeluaran
+            const { error: errHapus } = await window.supabase.from('rincian_pengeluaran').delete().eq('id', rincianId);
+            if(errHapus) throw errHapus;
+
+            // 2. Hitung sisa total yang baru
+            const totalBaru = totalSekarang - nominalItem;
+
+            if (totalBaru <= 0) {
+                // Kalau itemnya habis (total jadi 0), hapus sekalian pengeluaran induknya
+                await window.supabase.from('pengeluaran').delete().eq('id', pengeluaranId);
+                alert('Item terakhir dihapus! Data pengeluaran otomatis dibatalkan.');
+            } else {
+                // 3. Update total_harian di tabel pengeluaran induk
+                const { error: errUpdate } = await window.supabase.from('pengeluaran').update({ total_harian: totalBaru }).eq('id', pengeluaranId);
+                if(errUpdate) throw errUpdate;
+                alert('Mantap! Item dihapus & Total pengeluaran otomatis disesuaikan.');
+            }
+            
+            window.location.reload();
+        } catch(err) {
+            alert('Gagal menghapus item: ' + err.message);
+        }
+    };
+
+    // TOMBOL EDIT DATA PENGELUARAN (TBD)
+    window.editPengeluaran = function(idPengeluaran) {
+        alert('Tombol Edit sudah ditekan untuk ID: ' + idPengeluaran + '\n\nMas bro, kasih tau mau nampilin Modal (Pop-up) buat ngedit apanya aja nih? (Misal: Tanggal, Nama Item, atau Nominal). Biar saya buatin sekalian!');
+    };
 
             // E. Pisahkan Transaksi untuk Validasi
             const trxMenunggu = transaksi?.filter(t => !t.is_paid_by_admin && t.metode_bayar) || [];
             const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || [];
-
+            
+            window.dataTransaksiGlobal = trxMenunggu;
             // Update Badge
             const badge = document.getElementById('badge-validasi');
             const countEl = document.getElementById('title-validasi-count');
@@ -533,7 +679,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 }
             }
 
-            // Render List Menunggu Validasi
             // Render List Menunggu Validasi
             const valContainer = document.getElementById('validasi-container');
             let htmlVal = '';
@@ -611,9 +756,15 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         <p class="text-sm text-gray-600 mb-1">Total Wajib Dibayar</p>
                         <p class="text-3xl font-bold text-gray-900">Rp ${finalTotal.toLocaleString('id-ID')}</p>
                     </div>
-                    <button onclick="window.validasiBayar('${trx.id}')" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-700 text-white rounded-xl hover:bg-green-800 transition font-bold active:scale-95">
-                        <i class="bi bi-check-circle"></i> Validasi Lunas
-                    </button>
+                    
+                    <div class="flex gap-3">
+                        <button onclick="window.bukaModalEditTrx('${trx.id}')" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl hover:bg-blue-100 transition font-bold active:scale-95">
+                            <i class="bi bi-pencil-square"></i> Edit Data
+                        </button>
+                        <button onclick="window.validasiBayar('${trx.id}')" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-700 text-white rounded-xl hover:bg-green-800 transition font-bold active:scale-95">
+                            <i class="bi bi-check-circle"></i> Validasi Lunas
+                        </button>
+                    </div>
                 </div>`;
             });
             valContainer.innerHTML = htmlVal || '<p class="text-gray-500">Tidak ada transaksi yang menunggu validasi.</p>';
@@ -685,8 +836,9 @@ tabButtons.forEach((button) => {
     // PERBAIKAN: Map data-tab ke ID yang benar di HTML
     const tabIdMap = {
       'gaji': 'gaji',
-      'riwayat-gaji': 'riwayat-gaji-tab',  // ← PENTING: tambah -tab
+      'riwayat-gaji': 'riwayat-gaji-tab',  
       'pembelian': 'pembelian',
+      'pengeluaran': 'pengeluaran', // 🔥 TAMBAHKAN BARIS INI
       'validasi': 'validasi',
       'penjualan': 'penjualan'
     };
@@ -755,112 +907,248 @@ tabButtons.forEach((button) => {
     // VARIABEL GLOBAL UNTUK MENYIMPAN DATA KALKULASI SEMENTARA
     window.currentSalaryData = null;
 
-    // BUKA MODAL DETAIL GAJI KARYAWAN
-    window.openModalGaji = function(empId) {
-        // Pakaikan String() biar tipe data Angka dan Teks bisa nyocok!
+    // BUKA MODAL DETAIL GAJI KARYAWAN (Tarik Data Live)
+    // BUKA MODAL DETAIL GAJI KARYAWAN (Tarik Data Live)
+    window.openModalGaji = async function(empId) {
         const emp = dataKaryawan.find(k => String(k.id) === String(empId));
-        
-        if(!emp) {
-            alert('Waduh, data karyawan gak ketemu bro! Coba refresh.');
-            return;
-        }
+        if(!emp) return alert('Waduh, data karyawan gak ketemu bro!');
 
         document.getElementById('m_karyawan_id').value = emp.id;
         document.getElementById('m_nama_karyawan').innerText = emp.nama;
-        document.getElementById('m_tarif_jam').value = emp.tarif_gaji_perjam || 0;
 
-        // Cari draf slip gaji bulan ini yang statusnya masih 'Menunggu'
-        const periodeSekarang = new Date().toISOString().split('T')[0];// Format: YYYY-MM--DD
-        const draftSlip = (emp.slip_gaji || []).find(s => s.status === 'Menunggu' && s.periode === periodeSekarang);
+        let setup = {};
+        try {
+            const { data: liveSetup } = await window.supabase
+                .from('setup_gaji')
+                .select('*')
+                .eq('user_id', emp.id)
+                .maybeSingle(); 
+            if(liveSetup) setup = liveSetup;
+        } catch(e) { console.error("Gagal narik live setup:", e); }
 
-        // Isi otomatis uang jalan dari kolom 'uang_jalan' draf slip gaji
-        document.getElementById('m_input_uang_jalan').value = draftSlip ? (draftSlip.uang_jalan || 0) : 0;
-        document.getElementById('m_check_bonus_mingguan').checked = false;
+        document.getElementById('m_setup_id').value = setup.id || '';
+        document.getElementById('setup_gaji_menit').value = setup.gaji_menit || 0;
+        document.getElementById('setup_lembur_menit').value = setup.uang_lembur_menit || 0;
+        document.getElementById('setup_uang_kesehatan').value = setup.uang_kesehatan || 0;
+        document.getElementById('setup_uang_makan').value = setup.uang_makan || 0;
+        document.getElementById('setup_bonus_tepat').value = setup.bonus_tepat_waktu || 0;
+        document.getElementById('setup_bonus_mingguan').value = setup.bonus_mingguan || 0;
 
-        let totalNormalJam = 0;
-        let totalLemburJam = 0;
+        // Checkbox yang murni dari Database Setup
+        document.getElementById('chk_uang_kesehatan').checked = setup.activate_uang_kesehatan || false;
+        document.getElementById('chk_bonus_mingguan').checked = setup.activate_bonus_mingguan || false;
+
+        const tglHariIni = new Date().toISOString().split('T')[0]; 
+        const slip = (emp.slip_gaji || []).find(s => s.periode === tglHariIni && s.status === 'Menunggu');
+        document.getElementById('m_slip_id').value = slip ? slip.id : '';
+
+        // --- MENGHITUNG WAKTU KERJA PER MENIT ---
+        let totalNormalMenit = 0;
+        let totalLemburMenit = 0;
         let tepatWaktuCount = 0;
 
-        // 1. Hitung Jam Kerja & Lembur dari Presensi
-        (emp.presensi || []).forEach(p => {
+        const parseJamMenit = (timeStr) => {
+            if(!timeStr) return null;
+            const [h, m] = timeStr.split(':');
+            return (parseInt(h) * 60) + parseInt(m);
+        };
+
+        const presensiHariIni = (emp.presensi || []).filter(p => p.tanggal === tglHariIni);
+        let hariMasuk = presensiHariIni.length > 0 ? 1 : 0; 
+
+        presensiHariIni.forEach(p => {
+            // 🔥 LOGIKA TEPAT WAKTU DIAMBIL DARI ABSENSI 🔥
             if (p.status_tiba === 'Tepat Waktu') tepatWaktuCount++;
             
-            // Konversi string jam (Misal "08:30" -> 8)
-            const getJam = (timeStr) => {
-                if(!timeStr) return 0;
-                return parseInt(timeStr.split(':')[0], 10);
-            };
+            let masukMenit = parseJamMenit(p.waktu_masuk) || (8*60);  
+            let pulangMenit = parseJamMenit(p.waktu_pulang) || (17*60); 
+            let batasPulangNormalMenit = 17 * 60; 
 
-            let masuk = getJam(p.waktu_masuk) || 8; // Default anggap masuk jam 8
-            let pulang = getJam(p.waktu_pulang) || 17; // Default anggap pulang jam 17
+            let actualPulangNormal = Math.min(pulangMenit, batasPulangNormalMenit);
+            let kerjaNormal = Math.max(0, actualPulangNormal - masukMenit);
+            totalNormalMenit += kerjaNormal;
 
-            // Logika Pembulatan Jam Kerja
-            let batasPulangNormal = Math.min(pulang, 17); // Maksimal jam 17
-            let jamKerjaNormal = Math.max(0, batasPulangNormal - masuk);
-            totalNormalJam += jamKerjaNormal;
-
-            // Logika Lembur (Di atas jam 17)
-            if (pulang > 17) {
-                totalLemburJam += (pulang - 17);
+            if (pulangMenit > batasPulangNormalMenit) {
+                totalLemburMenit += (pulangMenit - batasPulangNormalMenit);
             }
         });
 
-        // 2. Hitung Pengeluaran Karyawan (Hanya yang di-ACC)
-        const totalPengeluaranKar = (emp.pengeluaran || [])
-            .filter(peng => peng.status_approval === 'Disetujui')
-            .reduce((sum, peng) => sum + Number(peng.total_harian || 0), 0);
+        // 🔥 OTOMATISASI CHECKBOX BONUS TEPAT WAKTU DI UI 🔥
+        const chkBonusTepat = document.getElementById('chk_bonus_tepat');
+        chkBonusTepat.checked = tepatWaktuCount > 0;
+        chkBonusTepat.disabled = true; // Kunci biar gak bisa dimanipulasi manual
 
-        // 3. Simpan state untuk diakses realtime
         window.currentSalaryData = {
             empId: emp.id,
-            nama: emp.nama,
-            tarifNormal: emp.tarif_gaji_perjam || 0,
-            tarifLembur: dataGlobalGaji?.tarif_lembur_perjam || 0,
-            totalNormalJam,
-            totalLemburJam,
+            totalNormalMenit,
+            totalLemburMenit,
             tepatWaktuCount,
-            bonusTepatWaktu: dataGlobalGaji?.bonus_tepat_waktu || 0,
-            uangKesehatan: dataGlobalGaji?.uang_kesehatan || 0,
-            bonusMingguanVal: dataGlobalGaji?.bonus_mingguan || 0,
-            totalPengeluaranKar
+            hariMasuk,
+            tglHariIni
         };
 
-        // Panggil kalkulasi UI
         kalkulasiRealtimeGaji();
         window.openModal('modal-detail-gaji');
     };
 
-    // FUNGSI KALKULASI REAL-TIME SAAT INPUT DIUBAH
+    // FUNGSI KALKULASI REAL-TIME
+    // FUNGSI KALKULASI REAL-TIME
     window.kalkulasiRealtimeGaji = function() {
         const d = window.currentSalaryData;
         if(!d) return;
 
-        const useBonusMingguan = document.getElementById('m_check_bonus_mingguan').checked;
-        const uangJalan = Number(document.getElementById('m_input_uang_jalan').value) || 0;
-
-        const hitungGajiPokok = d.totalNormalJam * d.tarifNormal;
-        const hitungLembur = d.totalLemburJam * d.tarifLembur;
-        const hitungTepatWaktu = d.tepatWaktuCount * d.bonusTepatWaktu;
-        const hitungMingguan = useBonusMingguan ? d.bonusMingguanVal : 0;
-
-        // TOTAL BERSIH
-        const grandTotal = hitungGajiPokok + d.totalPengeluaranKar + hitungTepatWaktu + hitungLembur + hitungMingguan + d.uangKesehatan - uangJalan;
+        const tarifMenit = parseFloat(document.getElementById('setup_gaji_menit').value) || 0;
+        const tarifLemburMenit = parseFloat(document.getElementById('setup_lembur_menit').value) || 0;
+        const valUangMakan = parseFloat(document.getElementById('setup_uang_makan').value) || 0;
         
-        // Update Objek Data untuk disave nanti
-        d.grandTotal = grandTotal;
-        d.potonganJalan = uangJalan;
+        const isKesehatan = document.getElementById('chk_uang_kesehatan').checked;
+        const isBonusMingguan = document.getElementById('chk_bonus_mingguan').checked;
 
-        // Render Rincian List ke HTML
+        // Perhitungan Matematika
+        const valGaji = d.totalNormalMenit * tarifMenit;
+        const valLembur = d.totalLemburMenit * tarifLemburMenit;
+        
+        const valKesehatan = isKesehatan ? (parseFloat(document.getElementById('setup_uang_kesehatan').value) || 0) : 0;
+        const valBonusMingguan = isBonusMingguan ? (parseFloat(document.getElementById('setup_bonus_mingguan').value) || 0) : 0;
+        
+        // 🔥 BONUS TEPAT WAKTU OTOMATIS DIKALIKAN JIKA DIA TEPAT WAKTU 🔥
+        const valBonusTepat = d.tepatWaktuCount * (parseFloat(document.getElementById('setup_bonus_tepat').value) || 0);
+
+        const grandTotal = valGaji + valLembur + valUangMakan + valKesehatan + valBonusTepat + valBonusMingguan;
+        
+        d.finalState = { valGaji, valLembur, valUangMakan, valKesehatan, valBonusTepat, valBonusMingguan, grandTotal };
+
         document.getElementById('m_rincian_list').innerHTML = `
-            <div class="flex justify-between"><span>Gaji Pokok (${d.totalNormalJam} Jam)</span> <span class="font-medium text-gray-900">Rp ${hitungGajiPokok.toLocaleString('id-ID')}</span></div>
-            <div class="flex justify-between"><span>Pengeluaran (Di-ACC)</span> <span class="font-medium text-green-600">+ Rp ${d.totalPengeluaranKar.toLocaleString('id-ID')}</span></div>
-            <div class="flex justify-between"><span>Bonus Tepat Waktu (${d.tepatWaktuCount}x)</span> <span class="font-medium text-green-600">+ Rp ${hitungTepatWaktu.toLocaleString('id-ID')}</span></div>
-            <div class="flex justify-between"><span>Lembur (${d.totalLemburJam} Jam)</span> <span class="font-medium text-green-600">+ Rp ${hitungLembur.toLocaleString('id-ID')}</span></div>
-            ${useBonusMingguan ? `<div class="flex justify-between"><span>Bonus Mingguan</span> <span class="font-medium text-green-600">+ Rp ${hitungMingguan.toLocaleString('id-ID')}</span></div>` : ''}
-            <div class="flex justify-between border-b pb-2"><span>Uang Kesehatan (Global)</span> <span class="font-medium text-green-600">+ Rp ${d.uangKesehatan.toLocaleString('id-ID')}</span></div>
-            ${uangJalan > 0 ? `<div class="flex justify-between text-red-600 pt-1"><span>Potongan Kasbon/Jalan</span> <span class="font-bold">- Rp ${uangJalan.toLocaleString('id-ID')}</span></div>` : ''}
+            <div class="flex justify-between"><span>Gaji Karyawan (${d.totalNormalMenit} mnt)</span> <span class="font-medium text-gray-900">Rp ${valGaji.toLocaleString('id-ID')}</span></div>
+            <div class="flex justify-between"><span>Uang Lembur (${d.totalLemburMenit} mnt)</span> <span class="font-medium text-gray-900">Rp ${valLembur.toLocaleString('id-ID')}</span></div>
+            <div class="flex justify-between"><span>Uang Makan</span> <span class="font-medium text-gray-900">Rp ${valUangMakan.toLocaleString('id-ID')}</span></div>
+            ${isKesehatan ? `<div class="flex justify-between text-green-700"><span>Uang Kesehatan</span> <span>+ Rp ${valKesehatan.toLocaleString('id-ID')}</span></div>` : ''}
+            ${d.tepatWaktuCount > 0 ? `<div class="flex justify-between text-green-700"><span>Bonus Tepat Waktu (${d.tepatWaktuCount}x)</span> <span>+ Rp ${valBonusTepat.toLocaleString('id-ID')}</span></div>` : ''}
+            ${isBonusMingguan ? `<div class="flex justify-between text-green-700"><span>Bonus Mingguan</span> <span>+ Rp ${valBonusMingguan.toLocaleString('id-ID')}</span></div>` : ''}
         `;
         document.getElementById('m_total_gaji').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+    };
+
+    // FUNGSI SIMPAN SETUP KE DATABASE
+    // FUNGSI SIMPAN SETUP KE DATABASE
+    window.simpanSetupGaji = async function() {
+        if(!window.supabase) return;
+        const empId = document.getElementById('m_karyawan_id').value;
+        const setupId = document.getElementById('m_setup_id').value;
+
+        // Ambil data angka dan status checkbox (Boolean)
+        const payloadSetup = {
+            user_id: empId,
+            gaji_menit: parseFloat(document.getElementById('setup_gaji_menit').value) || 0,
+            uang_lembur_menit: parseFloat(document.getElementById('setup_lembur_menit').value) || 0,
+            uang_kesehatan: parseFloat(document.getElementById('setup_uang_kesehatan').value) || 0,
+            uang_makan: parseFloat(document.getElementById('setup_uang_makan').value) || 0,
+            bonus_tepat_waktu: parseFloat(document.getElementById('setup_bonus_tepat').value) || 0,
+            bonus_mingguan: parseFloat(document.getElementById('setup_bonus_mingguan').value) || 0,
+            
+            // 🔥 HANYA 2 BOOLEAN INI YANG DISIMPAN KE SETUP 🔥
+            activate_uang_kesehatan: document.getElementById('chk_uang_kesehatan').checked,
+            activate_bonus_mingguan: document.getElementById('chk_bonus_mingguan').checked
+        };
+
+        try {
+            if(setupId) {
+                const { error } = await window.supabase.from('setup_gaji').update(payloadSetup).eq('id', setupId);
+                if (error) throw error;
+            } else {
+                const { data, error } = await window.supabase.from('setup_gaji').insert([payloadSetup]).select().single();
+                if (error) throw error;
+                if(data) document.getElementById('m_setup_id').value = data.id;
+            }
+            alert('Mantap bro! Parameter Setup Gaji Berhasil Disimpan ke Database!');
+            kalkulasiRealtimeGaji(); 
+        } catch(err) { 
+            console.error("Error Detail Supabase:", err);
+            alert('Gagal simpan setup! Cek pesan ini:\n' + err.message); 
+        }
+    };
+    
+    // FUNGSI SIMPAN SLIP (DRAF ATAU ACC LUNAS)
+    // FUNGSI SIMPAN SLIP (DRAF ATAU ACC LUNAS)
+    window.simpanSlipGaji = async function(statusTarget) {
+        if(!window.supabase) return;
+        const d = window.currentSalaryData;
+        const fs = d.finalState;
+        const slipId = document.getElementById('m_slip_id').value;
+
+        let txtConfirm = statusTarget === 'ACC' 
+            ? "Approve dan Lunasi Gaji Harian ini?" 
+            : "Simpan Slip Harian ini sebagai Menunggu (Draf)?";
+            
+        if(!confirm(txtConfirm)) return;
+
+        const btnDraf = document.getElementById('btn-draf-gaji');
+        const btnAcc = document.getElementById('btn-bayar-gaji');
+        btnDraf.disabled = true; btnAcc.disabled = true;
+
+        try {
+            // 🔥 TARIK DATA PARAMETER DARI FORM SETUP UNTUK DIJADIKAN RIWAYAT
+            const paramGajiMenit = parseFloat(document.getElementById('setup_gaji_menit').value) || 0;
+            const paramLemburMenit = parseFloat(document.getElementById('setup_lembur_menit').value) || 0;
+            
+            // Masukkan parameter pendukung lainnya
+            const paramUangKesehatan = parseFloat(document.getElementById('setup_uang_kesehatan').value) || 0;
+            const paramUangMakan = parseFloat(document.getElementById('setup_uang_makan').value) || 0;
+            const paramBonusTepat = parseFloat(document.getElementById('setup_bonus_tepat').value) || 0;
+            const paramBonusMingguan = parseFloat(document.getElementById('setup_bonus_mingguan').value) || 0;
+
+            const payloadSlip = {
+                user_id: d.empId,
+                periode: d.tglHariIni, // Tanggal hari ini
+                
+                // --- 1. BAGIAN HASIL KALKULASI MUTLAK ---
+                gaji_karyawan: fs.valGaji,
+                uang_lembur: fs.valLembur,
+                uang_makan: fs.valUangMakan,
+                bonus_tepat_waktu: fs.valBonusTepat,
+                bonus_mingguan: fs.valBonusMingguan,
+                uang_kesehatan: fs.valKesehatan,
+                total_diterima: fs.grandTotal,
+                status: statusTarget,
+                is_paid_by_admin: statusTarget === 'ACC' ? true : false,
+
+                // --- 2. BAGIAN PARAMETER SETUP YANG IKUT DISIMPAN (RIWAYAT) ---
+                gaji_menit: paramGajiMenit,
+                uang_lembur_menit: paramLemburMenit,
+                // Pastikan kolom-kolom di bawah ini juga sudah ada di tabel slip_gaji ya!
+                parameter_uang_kesehatan: paramUangKesehatan,
+                parameter_uang_makan: paramUangMakan,
+                parameter_bonus_tepat_waktu: paramBonusTepat,
+                parameter_bonus_mingguan: paramBonusMingguan
+            };
+
+            if(slipId) {
+                await window.supabase.from('slip_gaji').update(payloadSlip).eq('id', slipId);
+            } else {
+                await window.supabase.from('slip_gaji').insert([payloadSlip]);
+            }
+
+            // 🔥 FULL PEMBERITAHUAN (ALERT) ALA STRUK GAJI 🔥
+            const totalBonus = fs.valBonusTepat + fs.valBonusMingguan + fs.valKesehatan;
+            const pesanSukses = `✅ SUKSES BRO! Data Berhasil Direkam.\n\n` +
+                                `Status Slip    : ${statusTarget === 'ACC' ? 'LUNAS (ACC)' : 'MENUNGGU (Draf)'}\n` +
+                                `Tanggal        : ${d.tglHariIni}\n` +
+                                `-------------------------------------------------\n` +
+                                `Gaji Karyawan  : Rp ${fs.valGaji.toLocaleString('id-ID')}\n` +
+                                `Uang Lembur    : Rp ${fs.valLembur.toLocaleString('id-ID')}\n` +
+                                `Uang Makan     : Rp ${fs.valUangMakan.toLocaleString('id-ID')}\n` +
+                                `Total Bonus    : Rp ${totalBonus.toLocaleString('id-ID')}\n` +
+                                `-------------------------------------------------\n` +
+                                `TOTAL DITERIMA : Rp ${fs.grandTotal.toLocaleString('id-ID')}\n\n` +
+                                `Parameter hitungan juga sudah tersimpan aman sebagai riwayat.`;
+
+            alert(pesanSukses);
+            window.location.reload();
+            
+        } catch(err) {
+            alert('Waduh gagal simpan slip: ' + err.message);
+            btnDraf.disabled = false; btnAcc.disabled = false;
+        }
     };
 
     // UPDATE TARIF GAJI PER JAM PERSONAL
@@ -956,22 +1244,31 @@ tabButtons.forEach((button) => {
     };
 
     // FILTER TANGGAL PEMBELIAN & PENGELUARAN
-    window.filterTabelPengeluaran = function() {
-        const start = document.getElementById('filter-start-pengeluaran').value;
-        const end = document.getElementById('filter-end-pengeluaran').value;
+    // FILTER TANGGAL KHUSUS PEMBELIAN
+    window.filterTabelBeli = function() {
+        const start = document.getElementById('filter-start-beli').value;
+        const end = document.getElementById('filter-end-beli').value;
         if(!start || !end) return alert("Pilih tanggal awal dan akhir!");
-
+        
         document.querySelectorAll('#tabel-pembelian tbody tr').forEach(tr => {
             const date = tr.getAttribute('data-date');
             if(date) tr.style.display = (date >= start && date <= end) ? '' : 'none';
         });
+    };
 
+    // FILTER TANGGAL KHUSUS PENGELUARAN
+    window.filterTabelPengeluaran = function() {
+        const start = document.getElementById('filter-start-pengeluaran').value;
+        const end = document.getElementById('filter-end-pengeluaran').value;
+        if(!start || !end) return alert("Pilih tanggal awal dan akhir!");
+        
         document.querySelectorAll('#tabel-pengeluaran tbody tr').forEach(tr => {
             const date = tr.getAttribute('data-date');
             if(date) tr.style.display = (date >= start && date <= end) ? '' : 'none';
         });
     };
 
+    // APPROVE/REJECT PENGELUARAN KARYAWAN
     // APPROVE/REJECT PENGELUARAN KARYAWAN
     window.approvePengeluaran = async function(id, statusText) {
         if(!confirm(`Yakin ingin mengubah status menjadi ${statusText}?`)) return;
@@ -980,6 +1277,41 @@ tabButtons.forEach((button) => {
             await window.supabase.from('pengeluaran').update({ status_approval: statusText }).eq('id', id);
             window.location.reload();
         } catch (err) { alert(err.message); }
+    };
+
+    // HAPUS ITEM RINCIAN PENGELUARAN (DAN UPDATE TOTAL OTOMATIS)
+    window.hapusItemPengeluaran = async function(rincianId, pengeluaranId, nominalItem, totalSekarang) {
+        if(!confirm('Hapus rincian ini?\n\nTotal pengeluaran harian akan otomatis dikurangi oleh sistem.')) return;
+        if(!window.supabase) return;
+        
+        try {
+            // 1. Hapus item dari tabel rincian_pengeluaran
+            const { error: errHapus } = await window.supabase.from('rincian_pengeluaran').delete().eq('id', rincianId);
+            if(errHapus) throw errHapus;
+
+            // 2. Hitung sisa total yang baru
+            const totalBaru = totalSekarang - nominalItem;
+
+            if (totalBaru <= 0) {
+                // Kalau itemnya habis (total jadi 0), hapus sekalian pengeluaran induknya
+                await window.supabase.from('pengeluaran').delete().eq('id', pengeluaranId);
+                alert('Item terakhir dihapus! Data pengeluaran otomatis dibatalkan.');
+            } else {
+                // 3. Update total_harian di tabel pengeluaran induk
+                const { error: errUpdate } = await window.supabase.from('pengeluaran').update({ total_harian: totalBaru }).eq('id', pengeluaranId);
+                if(errUpdate) throw errUpdate;
+                alert('Mantap! Item dihapus & Total pengeluaran otomatis disesuaikan.');
+            }
+            
+            window.location.reload();
+        } catch(err) {
+            alert('Gagal menghapus item: ' + err.message);
+        }
+    };
+
+    // TOMBOL EDIT DATA PENGELUARAN (TBD)
+    window.editPengeluaran = function(idPengeluaran) {
+        alert('Tombol Edit sudah ditekan untuk ID: ' + idPengeluaran + '\n\nMas bro, kasih tau mau nampilin Modal (Pop-up) buat ngedit apanya aja nih? (Misal: Tanggal, Nama Item, atau Nominal). Biar saya buatin sekalian!');
     };
 
     // VALIDASI PEMBAYARAN MITRA LUNAS
@@ -1176,4 +1508,126 @@ tabButtons.forEach((button) => {
         }
     }
     document.getElementById('btn-filter-gaji')?.addEventListener('click', muatRiwayatGaji);
+    // ==========================================
+    // FUNGSI EDIT TRANSAKSI (MULTI-ITEM)
+    // ==========================================
+    window.bukaModalEditTrx = function(trxId) {
+        const trx = window.dataTransaksiGlobal.find(t => String(t.id) === String(trxId));
+        if(!trx) return alert("Data transaksi tidak ditemukan!");
+
+        document.getElementById('edit_trx_id').value = trx.id;
+        document.getElementById('edit_penjemputan_id').value = trx.penjemputan_id || '';
+        document.getElementById('edit_trx_tgl').value = trx.penjemputan?.tanggal || '';
+        
+        if (trx.penjemputan?.mitra) {
+            document.getElementById('edit_mitra_id').value = trx.penjemputan.mitra.id;
+            document.getElementById('edit_trx_mitra').value = trx.penjemputan.mitra.nama_mitra || '';
+        }
+
+        // 🔥 LOGIKA BARU: LOOPING SEMUA BARANG KE DALAM MODAL 🔥
+        let itemsHtml = '';
+        if (trx.transaksi_item && trx.transaksi_item.length > 0) {
+            trx.transaksi_item.forEach((item, index) => {
+                itemsHtml += `
+                <div class="edit-item-row p-4 bg-gray-50 border border-gray-200 rounded-xl relative mt-3 shadow-sm">
+                    <span class="absolute -top-3 left-3 bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1 rounded-full border border-blue-200">Barang Ke-${index + 1}</span>
+                    <input type="hidden" class="item_id" value="${item.id}">
+                    
+                    <div class="mb-3 mt-1">
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Komoditas</label>
+                        <input type="text" class="item_komoditas w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-blue-600" value="${item.komoditas}" required>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Berat (Kg)</label>
+                            <input type="number" step="0.1" class="item_volume w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-blue-600" value="${item.volume}" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Harga / Kg (Rp)</label>
+                            <input type="number" class="item_harga w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-blue-600" value="${item.harga_unit}" required>
+                        </div>
+                    </div>
+                </div>`;
+            });
+        } else {
+            itemsHtml = `<p class="text-sm text-red-500 italic">Transaksi ini tidak memiliki rincian barang.</p>`;
+        }
+        
+        document.getElementById('edit_items_container').innerHTML = itemsHtml;
+        document.getElementById('edit_trx_dp').value = trx.potongan_dp || 0;
+
+        window.openModal('modal-edit-transaksi');
+    };
+
+    // EKSEKUSI SIMPAN PERUBAHAN KE SEMUA BARANG SEKALIGUS
+    window.simpanEditTransaksi = async function(e) {
+        e.preventDefault();
+        if(!window.supabase) return;
+
+        const btn = document.getElementById('btn-save-trx');
+        btn.innerText = "Menyimpan..."; btn.disabled = true;
+
+        const trxId = document.getElementById('edit_trx_id').value;
+        const penjemputanId = document.getElementById('edit_penjemputan_id').value;
+        const mitraId = document.getElementById('edit_mitra_id').value;
+
+        const tglBaru = document.getElementById('edit_trx_tgl').value;
+        const mitraBaru = document.getElementById('edit_trx_mitra').value;
+        const dpBaru = parseFloat(document.getElementById('edit_trx_dp').value) || 0;
+
+        try {
+            // 1. Update Tanggal & Mitra (Induk)
+            if(penjemputanId) await window.supabase.from('penjemputan').update({ tanggal: tglBaru }).eq('id', penjemputanId);
+            if(mitraId) await window.supabase.from('mitra').update({ nama_mitra: mitraBaru }).eq('id', mitraId);
+
+            // 2. Loop Semua Barang di Modal dan Siapkan Updatenya
+            let subtotalKeseluruhan = 0;
+            const itemRows = document.querySelectorAll('.edit-item-row');
+            
+            // Siapkan Keranjang Janji (Promises) biar update databasenya bisa barengan ngebut
+            const updateItemPromises = [];
+
+            itemRows.forEach(row => {
+                const itemId = row.querySelector('.item_id').value;
+                const komoditasBaru = row.querySelector('.item_komoditas').value;
+                const volBaru = parseFloat(row.querySelector('.item_volume').value) || 0;
+                const hargaBaru = parseFloat(row.querySelector('.item_harga').value) || 0;
+
+                // Hitung subtotal baru setiap barang
+                subtotalKeseluruhan += (volBaru * hargaBaru);
+
+                // Masukkan perintah update ke keranjang
+                if(itemId) {
+                    const updateTask = window.supabase.from('transaksi_item').update({
+                        komoditas: komoditasBaru,
+                        volume: volBaru,
+                        harga_unit: hargaBaru
+                    }).eq('id', itemId);
+                    updateItemPromises.push(updateTask);
+                }
+            });
+
+            // 3. Eksekusi Tembak Database (Update banyak barang sekaligus)
+            if(updateItemPromises.length > 0) {
+                await Promise.all(updateItemPromises);
+            }
+
+            // 4. Update DP & Grand Total Terbaru di tabel Transaksi Induk
+            const grandTotalBaru = subtotalKeseluruhan - dpBaru;
+            if(trxId) {
+                await window.supabase.from('transaksi').update({
+                    potongan_dp: dpBaru,
+                    grand_total: grandTotalBaru
+                }).eq('id', trxId);
+            }
+
+            alert('Mantap bro! Seluruh rincian barang, totalan, dan tanggal berhasil diperbarui.');
+            window.location.reload();
+
+        } catch (err) {
+            alert('Gagal menyimpan: ' + err.message);
+            btn.innerText = "Simpan Perubahan"; btn.disabled = false;
+        }
+    };
 </script>

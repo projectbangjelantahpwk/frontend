@@ -136,28 +136,22 @@ const getRoleColor = (role) => {
 <script is:inline>
   document.addEventListener('DOMContentLoaded', async function() {
     // === 🛡️ GATEKEEPER KEUANGAN ===
-      const allowedRoles = ['owner', 'hrd', 'keuangan'];
-      const client = window.supabase || supabase;
-      
-      const { data: { session } } = await client.auth.getSession();
-      if (!session) return window.location.replace('/'); // Tendang kalau belum login
-      
-      const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
-      if (!allowedRoles.includes(prof?.role)) {
-          alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk ke Keuangan.`);
-          return window.location.replace('/');
-      }
-      document.body.style.display = 'block'; // Buka gembok CSS, tampilkan layar!
+  const allowedRoles = ['owner', 'hrd', 'keuangan'];
+  const client = window.supabase || supabase;
     
-    // 1. Cek Supabase & Sesi Login
-    if (!window.supabase) return;
+  const { data: { session } } = await client.auth.getSession();
+  if (!session) return window.location.replace('/'); // Tendang kalau belum login
     
-    let currentUserRole = 'admin';
-    const { data: { session } } = await window.supabase.auth.getSession();
-    if(session) {
-        const { data: prof } = await window.supabase.from('profiles').select('role').eq('id', session.user.id).single();
-        currentUserRole = prof?.role || 'admin';
-    }
+  const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+  if (!allowedRoles.includes(prof?.role)) {
+      alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk ke Keuangan.`);
+      return window.location.replace('/');
+  }
+  document.body.style.display = 'block'; // Buka gembok CSS, tampilkan layar!
+  
+  // 1. Ambil Role Current User (Langsung gunakan 'prof' dari Gatekeeper)
+  if (!window.supabase) return;
+  let currentUserRole = prof?.role || 'admin';
 
     // 2. Fungsi Warna Role untuk Client-Side
     const getRoleColorJs = (role) => {

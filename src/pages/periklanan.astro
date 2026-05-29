@@ -200,7 +200,7 @@ const getPlatformIcon = (platform) => {
 <script>
     // Import Supabase & Fungsi Upload Gambar lu
     import { supabase } from '../lib/supabase';
-    import { uploadImageToFreeimage } from '../lib/freeimage.js'; // Pastikan path ini sesuai letak file lu
+    import { uploadImageToImgbb } from '../lib/imgbb.js'; // Pastikan path ini sesuai letak file lu
 
     // Format angka ke Rupiah
     const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
@@ -352,9 +352,9 @@ const getPlatformIcon = (platform) => {
         btn.disabled = true;
 
         try {
-            // MENGGUNAKAN FUNGSI DARI file freeimage.js lu
+            // MENGGUNAKAN FUNGSI DARI file imgbb.js lu
             btn.innerHTML = "Mengunggah Gambar...";
-            const imageUrl = await uploadImageToFreeimage(file);
+            const imageUrl = await uploadImageToImgbb(file);
 
             btn.innerHTML = "Menyimpan Data...";
             const { error } = await supabase.from('performa_iklan').insert([{

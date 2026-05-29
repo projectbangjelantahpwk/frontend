@@ -69,13 +69,17 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         </div>
 
                         <div id="filter-history-section" class="hidden border-t border-outline-variant pt-3 mt-2">
-                            <h4 class="font-bold text-sm text-on-surface mb-2">Filter Periode (4 Bulanan)</h4>
-                            <select id="filter-kuartal" class="w-full p-2 border border-outline-variant rounded-lg text-sm bg-surface-container outline-none focus:border-primary">
-                                <option value="semua">Semua Waktu</option>
-                                <option value="Q1">Kuartal 1 (Jan - Apr)</option>
-                                <option value="Q2">Kuartal 2 (Mei - Ags)</option>
-                                <option value="Q3">Kuartal 3 (Sep - Des)</option>
-                            </select>
+                            <h4 class="font-bold text-sm text-on-surface mb-2">Pilih Waktu (Khusus Riwayat)</h4>
+                            <div class="flex flex-col gap-2">
+                                <div>
+                                    <label class="block text-[10px] text-on-surface-variant font-bold uppercase">Mulai Tanggal</label>
+                                    <input type="date" id="filter-start-date" class="w-full p-2 border border-outline-variant rounded-lg text-sm bg-surface-container outline-none focus:border-primary">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-on-surface-variant font-bold uppercase">Sampai Tanggal</label>
+                                    <input type="date" id="filter-end-date" class="w-full p-2 border border-outline-variant rounded-lg text-sm bg-surface-container outline-none focus:border-primary">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -219,29 +223,55 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         <input id="input_tanggal" type="date" class="w-full px-sm py-sm border border-outline-variant rounded-md bg-surface-container focus:border-primary focus:ring-1 focus:ring-primary font-body-md outline-none" required>
                     </div>
 
+                    <div class="mt-4">
+                        <label class="block font-label-sm text-on-surface-variant mb-xs">Wilayah / Kota Tujuan</label>
+                        <select id="input-wilayah" class="w-full px-sm py-sm border border-outline-variant rounded-md bg-surface-container focus:border-primary focus:ring-1 focus:ring-primary font-body-md outline-none" required>
+                            <option value="">-- Pilih Wilayah --</option>
+                            <option value="Purwakarta">Purwakarta</option>
+                            <option value="Subang">Subang</option>
+                            <option value="Karawang">Karawang</option>
+                        </select>
+                    </div>
+
                     <div>
                         <label class="block font-label-sm text-on-surface-variant mb-xs">Potongan DP (Optional - Rupiah)</label>
                         <input id="input_dp" type="number" placeholder="Contoh: 50000" class="w-full px-sm py-sm border border-outline-variant rounded-md bg-surface-container focus:border-primary focus:ring-1 focus:ring-primary font-body-md outline-none">
                     </div>
 
-                    <div class="border-t border-outline-variant pt-3">
-                        <div class="flex justify-between items-center mb-xs">
-                            <label class="block font-label-sm text-on-surface-variant font-bold">Rincian Barang yang Diambil</label>
-                            <button type="button" onclick="addBarangRow()" class="text-xs font-bold text-primary hover:underline flex items-center gap-0.5">+ Tambah</button>
-                        </div>
-                        
-                        <div id="barang-rows-container" class="flex flex-col gap-xs">
-                            <div class="flex gap-xs barang-row items-center">
-                                <select class="row-komoditas flex-1 h-9 px-xs border border-outline-variant rounded bg-surface-container text-xs outline-none focus:border-primary" required>
-                                    <option value="Minyak Jelantah Kotor">Minyak Jelantah Kotor</option>
-                                    <option value="Tepung">Tepung</option>
-                                    <option value="Kriuk">Kriuk</option>
-                                </select>
-                                <input type="number" step="0.1" placeholder="Jumlah (Kg)" class="row-volume w-28 h-9 px-xs border border-outline-variant rounded bg-surface-container text-xs outline-none focus:border-primary" required />
-                                <button type="button" onclick="removeBarangRow(this)" class="text-error hover:bg-error-container/20 w-8 h-9 rounded flex items-center justify-center text-sm">✕</button>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="mt-4 p-4 bg-surface-container-low border border-outline-variant rounded-md">
+    <label class="flex items-center text-primary font-bold text-sm mb-4">
+        <span class="material-symbols-outlined text-[18px] mr-1">inventory_2</span> Rincian Estimasi (KG)
+    </label>
+    
+    <div class="flex flex-col gap-4">
+        
+        <div>
+            <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Estimasi Minyak</label>
+            <input type="number" id="est-minyak" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.1">
+        </div>
+        
+        <div>
+            <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Estimasi Tepung</label>
+            <input type="number" id="est-tepung" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.1">
+        </div>
+        
+        <div>
+            <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Estimasi Kriuk</label>
+            <input type="number" id="est-kriuk" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.1">
+        </div>
+        
+        <div>
+            <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Estimasi Spinner</label>
+            <input type="number" id="est-spinner" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.1">
+        </div>
+        
+        <div>
+            <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Estimasi Ampas</label>
+            <input type="number" id="est-ampas" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.1">
+        </div>
+
+    </div>
+</div>
 
                 </div>
                 
@@ -271,8 +301,12 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             if (!session) return window.location.replace('/'); // Tendang kalau belum login
 
             const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+            
+            // 🔥 FIX: Update variabel global dengan role asli dari Supabase 🔥
+            currentUserRole = prof?.role; 
+
             if (!allowedRoles.includes(prof?.role)) {
-                alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk ke Keuangan.`);
+                alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk ke halaman Operasional.`);
                 return window.location.replace('/');
             }
             document.body.style.display = 'block'; // Buka gembok CSS, tampilkan layar!
@@ -282,13 +316,18 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 const { data: jadwalPenjemputan, error: errJadwal } = await window.supabase
                     .from('penjemputan')
                     .select(`
-                        id, status, tanggal, rute_penjemputan,
+                        id, status, tanggal, rute_penjemputan, kendaraan,
                         mitra ( id, nama_mitra, alamat, link_gmaps ),
-                        driver:driver_id ( id, nama, tipe_kendaraan ),
+                        driver:driver_id ( id, nama ),
                         helper:helper_id ( id, nama ),
                         transaksi ( id, potongan_dp, transaksi_item ( id, komoditas, volume ) )
                     `)
                     .order('tanggal', { ascending: false });
+
+                if (errJadwal) {
+                    alert("🚨 Gagal menarik data operasional!\nPesan: " + errJadwal.message);
+                    return;
+                }
 
                 const pending = jadwalPenjemputan?.filter(j => j.status === 'Belum') || [];
                 const onProgress = jadwalPenjemputan?.filter(j => j.status === 'OTW' || j.status === 'Proses') || [];
@@ -303,24 +342,18 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 if(pending.length > 0) {
                     pending.forEach(j => {
                         htmlPending += `
-                        <tr class="hover:bg-surface-container-low transition-colors" data-rute="${j.rute_penjemputan || ''}">
+                        <tr class="hover:bg-surface-container-low transition-colors" data-rute="${j.rute_penjemputan || ''}" data-tanggal="${j.tanggal || ''}">
                             <td class="px-md py-md whitespace-nowrap font-semibold" data-label="Nama Mitra">${j.mitra?.nama_mitra || '-'}</td>
                             <td class="px-md py-md" data-label="Alamat">
                                 <div class="text-xs font-bold text-gray-800 break-words max-w-[220px]" title="${j.mitra?.alamat || ''}">
                                     ${j.mitra?.alamat || '<span class="text-amber-600 font-normal italic text-[11px]">Teks alamat belum diisi (Data Lama)</span>'}
                                 </div>
-                                ${j.mitra?.link_gmaps ? `
-                                    <a href="${j.mitra.link_gmaps}" target="_blank" class="text-blue-600 text-[11px] hover:underline flex items-center mt-1 font-semibold">
-                                        <i class="bi bi-geo-alt-fill mr-1 text-red-500"></i> Google Maps
-                                    </a>
-                                ` : ''}
+                                ${j.mitra?.link_gmaps ? `<a href="${j.mitra.link_gmaps}" target="_blank" class="text-blue-600 text-[11px] hover:underline flex items-center mt-1 font-semibold"><i class="bi bi-geo-alt-fill mr-1 text-red-500"></i> Google Maps</a>` : ''}
                             </td>
-                            <td class="px-md py-md capitalize" data-label="Kendaraan">${j.driver?.tipe_kendaraan === 'motor' ? 'Motor' : 'Mobil'}</td>
+                            <td class="px-md py-md capitalize font-bold text-gray-700" data-label="Kendaraan">${j.kendaraan || '-'}</td>
                             <td class="px-md py-md" data-label="Kurir">${j.driver?.nama || ''} ${j.helper?.nama ? '& ' + j.helper.nama : ''}</td>
                             <td class="px-md py-md" data-label="Status">
-                                <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 font-label-sm text-[11px]">
-                                    <span class="w-2 h-2 rounded-full bg-amber-500"></span> ${j.status}
-                                </span>
+                                <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 font-label-sm text-[11px]"><span class="w-2 h-2 rounded-full bg-amber-500"></span> ${j.status}</span>
                             </td>
                             <td class="px-md py-md text-right" data-label="Aksi">
                                 <span class="text-xs text-on-surface-variant italic">Menunggu Lapangan...</span>
@@ -335,24 +368,18 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 if(onProgress.length > 0) {
                     onProgress.forEach(j => {
                         htmlProgress += `
-                        <tr class="hover:bg-surface-container-low transition-colors" data-rute="${j.rute_penjemputan || ''}">
+                        <tr class="hover:bg-surface-container-low transition-colors" data-rute="${j.rute_penjemputan || ''}" data-tanggal="${j.tanggal || ''}">
                             <td class="px-md py-md whitespace-nowrap font-semibold" data-label="Nama Mitra">${j.mitra?.nama_mitra || '-'}</td>
                             <td class="px-md py-md" data-label="Alamat">
                                 <div class="text-xs font-bold text-gray-800 break-words max-w-[220px]" title="${j.mitra?.alamat || ''}">
                                     ${j.mitra?.alamat || '<span class="text-amber-600 font-normal italic text-[11px]">Teks alamat belum diisi (Data Lama)</span>'}
                                 </div>
-                                ${j.mitra?.link_gmaps ? `
-                                    <a href="${j.mitra.link_gmaps}" target="_blank" class="text-blue-600 text-[11px] hover:underline flex items-center mt-1 font-semibold">
-                                        <i class="bi bi-geo-alt-fill mr-1 text-red-500"></i> Google Maps
-                                    </a>
-                                ` : ''}
-                            </td> 
-                            <td class="px-md py-md capitalize" data-label="Kendaraan">${j.driver?.tipe_kendaraan === 'motor' ? 'Motor' : 'Mobil'}</td>
+                                ${j.mitra?.link_gmaps ? `<a href="${j.mitra.link_gmaps}" target="_blank" class="text-blue-600 text-[11px] hover:underline flex items-center mt-1 font-semibold"><i class="bi bi-geo-alt-fill mr-1 text-red-500"></i> Google Maps</a>` : ''}
+                            </td>
+                            <td class="px-md py-md capitalize font-bold text-gray-700" data-label="Kendaraan">${j.kendaraan || '-'}</td>
                             <td class="px-md py-md" data-label="Kurir">${j.driver?.nama || ''} ${j.helper?.nama ? '& ' + j.helper.nama : ''}</td>
                             <td class="px-md py-md" data-label="Status">
-                                <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 font-label-sm text-[11px]">
-                                    <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> ${j.status}
-                                </span>
+                                <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 font-label-sm text-[11px]"><span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> ${j.status}</span>
                             </td>
                             <td class="px-md py-md text-right" data-label="Aksi">
                                 <button class="bg-secondary text-on-secondary font-label-sm rounded-full px-4 py-1 hover:opacity-90 transition-all">Pantau Rute</button>
@@ -380,7 +407,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         }
 
                         htmlHistory += `
-                        <tr class="hover:bg-surface-container-low transition-colors" data-rute="${j.rute_penjemputan || ''}" data-tanggal="${j.tanggal || ''}">>
+                        <tr class="hover:bg-surface-container-low transition-colors" data-rute="${j.rute_penjemputan || ''}" data-tanggal="${j.tanggal || ''}">
                             <td class="px-md py-md whitespace-nowrap font-semibold" data-label="Nama Mitra">${j.mitra?.nama_mitra || '-'}</td>
                             <td class="px-md py-md whitespace-nowrap" data-label="Tanggal Selesai">${j.tanggal}</td>
                             <td class="px-md py-md" data-label="Rincian Komoditas">${itemsHtml}</td>
@@ -423,21 +450,20 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 });
 
                 // 4. Fetch Dropdown Karyawan & Filter Logic
-                const { data: karyawanLapangan } = await window.supabase.from('profiles').select('id, nama, tipe_kendaraan').eq('role', 'lapangan');
+                const { data: karyawanLapangan } = await window.supabase.from('profiles').select('id, nama').eq('role', 'lapangan');
                 window.allKaryawan = karyawanLapangan || []; // Simpan global
                 
                 let optMotor = '<option value="">-- Pilih Kurir Motor --</option>';
                 let optSupir = '<option value="">-- Pilih Supir Mobil --</option>';
                 let optKenek = '<option value="">-- Tanpa Helper --</option>';
-
+                
                 window.allKaryawan.forEach(k => {
-                    const labelTipe = k.tipe_kendaraan ? ` (${k.tipe_kendaraan.replace('_', ' ')})` : '';
-                    const namaLengkap = `${k.nama}${labelTipe}`;
+                    const namaLengkap = `${k.nama}`; // Teks tipe kendaraan dihapus
                     optMotor += `<option value="${k.id}">${namaLengkap}</option>`;
                     optSupir += `<option value="${k.id}">${namaLengkap}</option>`;
                     optKenek += `<option value="${k.id}">${namaLengkap}</option>`;
                 });
-
+                
                 document.getElementById('input_driver_motor').innerHTML = optMotor;
                 document.getElementById('input_driver_mobil').innerHTML = optSupir;
                 document.getElementById('input_helper_mobil').innerHTML = optKenek;
@@ -446,20 +472,17 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 document.getElementById('input_driver_mobil').addEventListener('change', function() {
                     const selectedSupirId = this.value;
                     const kenekSelect = document.getElementById('input_helper_mobil');
-                    const prevKenekId = kenekSelect.value; // Simpan pilihan kenek sebelumnya
+                    const prevKenekId = kenekSelect.value; 
                     
                     let newOptKenek = '<option value="">-- Tanpa Helper --</option>';
                     window.allKaryawan.forEach(k => {
-                        // JANGAN MASUKIN ID YANG SAMA DENGAN SUPIR
                         if(k.id !== selectedSupirId) { 
-                            const labelTipe = k.tipe_kendaraan ? ` (${k.tipe_kendaraan.replace('_', ' ')})` : '';
-                            newOptKenek += `<option value="${k.id}">${k.nama}${labelTipe}</option>`;
+                            newOptKenek += `<option value="${k.id}">${k.nama}</option>`;
                         }
                     });
                     
                     kenekSelect.innerHTML = newOptKenek;
-                    // Balikin value kenek lama kalau gak bentrok dengan supir baru
-                    if(prevKenekId !== selectedSupirId) kenekSelect.value = prevKenekId; 
+                    if(prevKenekId !== selectedSupirId) kenekSelect.value = prevKenekId;
                 });
             }
 
@@ -467,77 +490,99 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             const btnFilterMulti = document.getElementById('btn-filter-multi');
             const dropdownMulti = document.getElementById('dropdown-filter-multi');
             const ruteCheckboxes = document.querySelectorAll('.filter-rute-cb');
-            const filterKuartal = document.getElementById('filter-kuartal');
-            const historySection = document.getElementById('filter-history-section');
+            const startInput = document.getElementById('filter-start-date');
+            const endInput = document.getElementById('filter-end-date');
 
-            if(!btnFilterMulti || !dropdownMulti) return;
-
-            // Buka tutup menu
-            btnFilterMulti.addEventListener('click', () => dropdownMulti.classList.toggle('hidden'));
-            document.addEventListener('click', (e) => {
-                if (!btnFilterMulti.contains(e.target) && !dropdownMulti.contains(e.target)) {
-                    dropdownMulti.classList.add('hidden');
-                }
-            });
+            if(btnFilterMulti && dropdownMulti) {
+                // Buka tutup menu
+                btnFilterMulti.addEventListener('click', () => dropdownMulti.classList.toggle('hidden'));
+                document.addEventListener('click', (e) => {
+                    if (!btnFilterMulti.contains(e.target) && !dropdownMulti.contains(e.target)) {
+                        dropdownMulti.classList.add('hidden');
+                    }
+                });
+            }
 
             window.applyMultiFilters = function() {
                 const checkedRoutes = Array.from(ruteCheckboxes).filter(cb => cb.checked).map(cb => cb.value.toLowerCase());
-                const kuartalVal = filterKuartal?.value || 'semua';
+                const startVal = startInput?.value;
+                const endVal = endInput?.value;
                 
                 const allRows = document.querySelectorAll('#tbody-pending tr, #tbody-progress tr, #tbody-history tr');
-                
+
                 allRows.forEach(row => {
-                    if (row.children.length === 1) return; // Abaikan teks loading
+                    // Abaikan baris loading "Memuat data..." atau pesan "Kosong"
+                    if (row.children.length === 1 && row.cells[0].colSpan > 1) return; 
 
                     const rute = (row.getAttribute('data-rute') || '').toLowerCase();
                     const tanggal = row.getAttribute('data-tanggal') || ''; 
                     
-                    let isRuteSesuai = checkedRoutes.some(checked => rute.includes(checked));
-                    let isKuartalSesuai = true; 
-
-                    // Cek Kuartal untuk Tab History
-                    if (row.closest('#tbody-history') && kuartalVal !== 'semua' && tanggal) {
-                        const bulan = parseInt(tanggal.split('-')[1]); 
-                        if (kuartalVal === 'Q1' && (bulan < 1 || bulan > 4)) isKuartalSesuai = false;
-                        if (kuartalVal === 'Q2' && (bulan < 5 || bulan > 8)) isKuartalSesuai = false;
-                        if (kuartalVal === 'Q3' && (bulan < 9 || bulan > 12)) isKuartalSesuai = false;
+                    // 🔥 FIX: Kalau rute di database belum diisi (kosong), loloskan saja biar gak hilang! 🔥
+                    let isRuteSesuai = false;
+                    if (rute === '') {
+                        isRuteSesuai = true; 
+                    } else {
+                        isRuteSesuai = checkedRoutes.some(checked => rute.includes(checked));
+                    }
+                    
+                    // Filter Tanggal KHUSUS untuk tabel Riwayat Selesai
+                    let isTanggalSesuai = true; 
+                    if (row.closest('#tbody-history') && tanggal) {
+                        if (startVal && tanggal < startVal) isTanggalSesuai = false;
+                        if (endVal && tanggal > endVal) isTanggalSesuai = false;
                     }
 
-                    row.style.display = (isRuteSesuai && isKuartalSesuai) ? '' : 'none';
+                    row.style.display = (isRuteSesuai && isTanggalSesuai) ? '' : 'none';
                 });
             };
 
-            // Trigger saat input berubah
+            // Trigger jalan otomatis saat input rute atau tanggal diubah
             ruteCheckboxes.forEach(cb => cb.addEventListener('change', window.applyMultiFilters));
-            if(filterKuartal) filterKuartal.addEventListener('change', window.applyMultiFilters);
+            if(startInput) startInput.addEventListener('change', window.applyMultiFilters);
+            if(endInput) endInput.addEventListener('change', window.applyMultiFilters);
 
-            // Suntik logika filter ke tombol Switch Tab tanpa ngerusak fungsi aslinya
-            const originalSwitchTab = window.switchTab;
-            window.switchTab = function(tabId) {
-                if (originalSwitchTab) originalSwitchTab(tabId); 
-                
-                if (historySection) {
-                    if (tabId === 'history') {
-                        historySection.classList.remove('hidden');
-                    } else {
-                        historySection.classList.add('hidden');
-                    }
-                }
-                setTimeout(window.applyMultiFilters, 50); // Eksekusi filter setelah tab aktif
-            };
-
-
-        // === FUNGSI GLOBAL & UI ===
+        // =======================================================
+        // FUNGSI GANTI TAB SAKTI (UI + LOGIKA TANGGAL)
+        // =======================================================
         window.switchTab = function(tabId) {
-            document.querySelectorAll('[id^="tab-"]').forEach(btn => {
-                btn.className = 'px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap';
+            const tabs = ['pending', 'progress', 'history'];
+            
+            // 1. Reset semua tab menjadi tidak aktif (Sembunyikan)
+            tabs.forEach(id => {
+                const btn = document.getElementById(`tab-${id}`);
+                const content = document.getElementById(`content-${id}`);
+                
+                if (btn && content) {
+                    btn.classList.remove('text-primary', 'border-primary');
+                    btn.classList.add('text-on-surface-variant', 'border-transparent');
+                    content.classList.remove('active');
+                }
             });
-            const activeBtn = document.getElementById('tab-' + tabId);
-            activeBtn.className = 'px-md py-sm font-label-lg text-primary border-b-2 border-primary whitespace-nowrap';
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.getElementById('content-' + tabId).classList.add('active');
+
+            // 2. Aktifkan tab yang di-klik (Munculkan)
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            const activeContent = document.getElementById(`content-${tabId}`);
+            
+            if (activeBtn && activeContent) {
+                activeBtn.classList.remove('text-on-surface-variant', 'border-transparent');
+                activeBtn.classList.add('text-primary', 'border-primary');
+                activeContent.classList.add('active');
+            }
+
+            // 3. Logika Filter Tanggal (Hanya muncul di Riwayat Selesai)
+            const historySection = document.getElementById('filter-history-section');
+            if (historySection) {
+                if (tabId === 'history') {
+                    historySection.classList.remove('hidden');
+                } else {
+                    historySection.classList.add('hidden');
+                }
+            }
+            
+            // 4. Jalankan ulang filter supaya rapi
+            if (typeof window.applyMultiFilters === 'function') {
+                setTimeout(window.applyMultiFilters, 50);
+            }
         };
 
         const isAllowed = () => ['owner', 'hrd', 'admin'].includes(currentUserRole);
@@ -644,11 +689,13 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 if (!window.supabase) throw new Error("Supabase Client tidak ditemukan!");
 
                 // 1. Simpan data utama
+                // 1. Simpan data utama
                 const { data: pickupData, error: errPickup } = await window.supabase.from('penjemputan').insert([{
                     mitra_id: parseInt(mitra_id),
                     driver_id: driver_id,
                     helper_id: helper_id || null,
                     tanggal: tanggal,
+                    kendaraan: tipeKendaraan, // 🔥 TAMBAHAN: Menyimpan tipe kendaraan langsung ke tabel penjemputan
                     status: 'Belum'
                 }]).select().single();
                 if (errPickup) throw errPickup;
@@ -681,9 +728,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 // 3. Simpan estimasi
                 if(itemsToInsert.length > 0) {
                     const { error: errItems } = await window.supabase
-                        .from('transaksi_estimasi') 
+                        .from('transaksi_item') // <--- UBAH DI SINI AJA BRO!
                         .insert(itemsToInsert);
-                        
+
                     if (errItems) throw errItems;
                 }
                 

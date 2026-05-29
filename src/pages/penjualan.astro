@@ -1,0 +1,245 @@
+---
+import GeneralLayout from '../layouts/Layout.astro';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+---
+
+<GeneralLayout title="Penjualan Olahan - Manajemen Bang Jelantah">
+    <style is:global>
+        body { display: none; }
+    </style>
+
+    <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Penjualan Olahan</h1>
+            <p class="text-gray-600">Pantau dan catat hasil penjualan barang produksi pabrik ke customer / PT.</p>
+        </div>
+        <button onclick="window.openModal('modal-tambah-penjualan')" class="flex items-center gap-2 px-4 py-2 bg-green-700 text-white rounded-lg font-medium hover:bg-green-800 transition shadow-sm">
+            <i class="bi bi-plus-circle"></i> Catat Penjualan Baru
+        </button>
+    </div>
+
+    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex flex-wrap gap-4 items-end">
+        <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Mulai Tanggal</label>
+            <input type="date" id="filter-start-jual" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600">
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Sampai Tanggal</label>
+            <input type="date" id="filter-end-jual" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600">
+        </div>
+        <button onclick="window.filterTabelPenjualan()" class="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-900">Hitung Total</button>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+        <table class="w-full text-left" id="tabel-penjualan">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-6 py-4 text-sm font-bold text-gray-900">Tanggal</th>
+                    <th class="px-6 py-4 text-sm font-bold text-gray-900">Pembeli (Customer)</th>
+                    <th class="px-6 py-4 text-sm font-bold text-gray-900">Barang & Qty</th>
+                    <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right">Harga/Kg</th>
+                    <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right">Total Transaksi</th>
+                </tr>
+            </thead>
+            <tbody id="penjualan-tbody" class="divide-y divide-gray-100">
+                <tr><td colspan="5" class="text-center py-4">Memuat data penjualan...</td></tr>
+            </tbody>
+            <tfoot class="bg-gray-50 border-t border-gray-200 hidden" id="footer-total-jual">
+                <tr>
+                    <td colspan="4" class="px-6 py-4 text-sm font-bold text-gray-900 text-right">TOTAL PENDAPATAN (FILTERED):</td>
+                    <td class="px-6 py-4 text-lg font-bold text-green-700 text-right" id="text-total-jual">Rp 0</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div id="modal-tambah-penjualan" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
+        <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-blue-50">
+                <h3 class="font-bold text-lg text-gray-900">Catat Penjualan Olahan</h3>
+                <button onclick="window.closeModal('modal-tambah-penjualan')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <form id="form-penjualan" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Tanggal</label>
+                    <input type="date" id="pj_tgl" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Nama Pembeli / PT</label>
+                    <input type="text" id="pj_pembeli" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Pilih Komoditas</label>
+                    <select id="pj_komoditas" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600" required>
+                        <option value="">-- Memuat Komoditas... --</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Volume (Kg)</label>
+                        <input type="number" step="0.1" id="pj_volume" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Harga Satuan (Rp)</label>
+                        <input type="number" id="pj_harga" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600" required>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-3 rounded text-right font-bold text-lg text-gray-900" id="pj_total_display">Total: Rp 0</div>
+                
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition">Simpan Penjualan</button>
+            </form>
+        </div>
+    </div>
+</GeneralLayout>
+
+<script is:inline>
+    document.addEventListener('DOMContentLoaded', async () => {
+        // === 🛡️ GATEKEEPER KEAMANAN ===
+        const allowedRoles = ['owner', 'hrd', 'keuangan', 'admin'];
+        const client = window.supabase || supabase;
+        
+        const { data: { session } } = await client.auth.getSession();
+        if (!session) return window.location.replace('/');
+        
+        const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+        if (!allowedRoles.includes(prof?.role)) {
+            alert("Akses Ditolak!");
+            return window.location.replace('/');
+        }
+        document.body.style.display = 'block';
+
+        // --- FETCH DATA PENJUALAN & DROPDOWN ---
+        async function loadPenjualanPageData() {
+            if(!window.supabase) return;
+            try {
+                // 1. Ambil Riwayat Penjualan
+                const { data: penjualan } = await window.supabase.from('penjualan_olahan')
+                    .select('*, gudang_komoditas(nama_komoditas)')
+                    .order('tanggal', { ascending: false });
+
+                const tbodyPenjualan = document.getElementById('penjualan-tbody');
+                let htmlPenjualan = '';
+                
+                penjualan?.forEach(p => {
+                    htmlPenjualan += `
+                    <tr class="hover:bg-gray-50 penjualan-row" data-date="${p.tanggal}" data-total="${p.total_harga}">
+                        <td class="px-6 py-4 text-sm text-gray-600">${p.tanggal}</td>
+                        <td class="px-6 py-4 text-sm font-bold text-gray-900">${p.pembeli}</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">
+                            <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold mr-2">${p.gudang_komoditas?.nama_komoditas || '-'}</span>
+                            ${p.volume} Kg
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600 text-right">Rp ${Number(p.harga_satuan).toLocaleString('id-ID')}</td>
+                        <td class="px-6 py-4 text-sm font-bold text-green-700 text-right">Rp ${Number(p.total_harga).toLocaleString('id-ID')}</td>
+                    </tr>`;
+                });
+                if(tbodyPenjualan) {
+                    tbodyPenjualan.innerHTML = htmlPenjualan || '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Belum ada data penjualan.</td></tr>';
+                }
+
+                // 2. Ambil Komoditas untuk Select Pilihan di Modal
+                const { data: komoditas } = await window.supabase.from('gudang_komoditas').select('id, nama_komoditas');
+                const selectKom = document.getElementById('pj_komoditas');
+                let htmlKom = '<option value="">-- Pilih Komoditas Jual --</option>';
+                komoditas?.forEach(k => {
+                    htmlKom += `<option value="${k.id}">${k.nama_komoditas}</option>`;
+                });
+                if(selectKom) selectKom.innerHTML = htmlKom;
+
+            } catch (error) {
+                console.error("Gagal load data penjualan:", error);
+            }
+        }
+
+        await loadPenjualanPageData();
+
+        // --- KONTROL FORM MODAL ---
+        window.openModal = function(id) {
+            const m = document.getElementById(id);
+            if(!m) return;
+            m.classList.remove('hidden'); m.classList.add('flex');
+            setTimeout(() => { m.classList.remove('opacity-0'); m.querySelector('div').classList.remove('scale-95'); }, 10);
+        }
+        
+        window.closeModal = function(id) {
+            const m = document.getElementById(id);
+            if(!m) return;
+            m.classList.add('opacity-0'); m.querySelector('div').classList.add('scale-95');
+            setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
+        }
+
+        // --- HITUNG REALTIME INPUT TOTAL DI FORM ---
+        const pjVol = document.getElementById('pj_volume');
+        const pjHarga = document.getElementById('pj_harga');
+        const pjTotalDisplay = document.getElementById('pj_total_display');
+
+        function calcTotalPj() {
+            const vol = parseFloat(pjVol.value) || 0;
+            const hrg = parseFloat(pjHarga.value) || 0;
+            if(pjTotalDisplay) pjTotalDisplay.innerText = `Total: Rp ${(vol * hrg).toLocaleString('id-ID')}`;
+        }
+        pjVol?.addEventListener('input', calcTotalPj);
+        pjHarga?.addEventListener('input', calcTotalPj);
+
+        // --- SUBMIT FORM CATAT BARU ---
+        document.getElementById('form-penjualan')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if(!window.supabase) return;
+            
+            const btnSubmit = e.target.querySelector('button[type="submit"]');
+            btnSubmit.innerText = "Memproses..."; btnSubmit.disabled = true;
+
+            try {
+                const vol = parseFloat(pjVol.value);
+                const hrg = parseFloat(pjHarga.value);
+                const total = vol * hrg;
+                const k_id = document.getElementById('pj_komoditas').value;
+
+                await window.supabase.from('penjualan_olahan').insert([{
+                    tanggal: document.getElementById('pj_tgl').value,
+                    pembeli: document.getElementById('pj_pembeli').value,
+                    komoditas_id: k_id,
+                    volume: vol,
+                    harga_satuan: hrg,
+                    total_harga: total
+                }]);
+
+                const { data: gudang } = await window.supabase.from('gudang_komoditas').select('stok').eq('id', k_id).single();
+                await window.supabase.from('gudang_komoditas').update({ stok: gudang.stok - vol }).eq('id', k_id);
+                
+                await window.supabase.from('gudang_mutasi').insert([{
+                    jenis_mutasi: 'Keluar', komoditas_id: k_id, jumlah: -vol, keterangan: 'Penjualan ke ' + document.getElementById('pj_pembeli').value
+                }]);
+
+                alert('Penjualan berhasil dicatat & stok terpotong!');
+                window.location.reload();
+            } catch(err) { 
+                alert(err.message);
+                btnSubmit.innerText = "Simpan Penjualan"; btnSubmit.disabled = false;
+            }
+        });
+
+        // --- FILTER TABEL BERDASARKAN RENTANG TANGGAL ---
+        window.filterTabelPenjualan = function() {
+            const start = document.getElementById('filter-start-jual').value;
+            const end = document.getElementById('filter-end-jual').value;
+            if(!start || !end) return alert("Pilih tanggal awal dan akhir!");
+
+            let grandTotal = 0;
+            document.querySelectorAll('.penjualan-row').forEach(tr => {
+                const date = tr.getAttribute('data-date');
+                if (date >= start && date <= end) {
+                    tr.style.display = '';
+                    grandTotal += parseFloat(tr.getAttribute('data-total') || 0);
+                } else {
+                    tr.style.display = 'none';
+                }
+            });
+            const footer = document.getElementById('footer-total-jual');
+            if(footer) {
+                footer.classList.remove('hidden');
+                document.getElementById('text-total-jual').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+            }
+        };
+    });
+</script>

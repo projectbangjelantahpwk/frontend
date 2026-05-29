@@ -33,9 +33,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
       <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="pengeluaran">
         <i class="bi bi-wallet2 mr-2"></i> Pengeluaran Ops
       </button>
-      <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="penjualan">
-        <i class="bi bi-graph-up-arrow mr-2"></i> Penjualan Olahan
-      </button>
     </div>
   </div>
 
@@ -180,50 +177,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
        </div>
     </div>
   </div>
-
-  <div id="penjualan" class="tab-content hidden">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-bold text-gray-900">Data Penjualan Barang Produksi</h2>
-        <button onclick="openModal('modal-tambah-penjualan')" class="flex items-center gap-2 px-4 py-2 bg-green-700 text-white rounded-lg font-medium hover:bg-green-800 transition shadow-sm">
-            <i class="bi bi-plus-circle"></i> Catat Penjualan Baru
-        </button>
-      </div>
-
-      <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex flex-wrap gap-4 items-end">
-          <div>
-              <label class="block text-xs font-bold text-gray-600 mb-1">Mulai Tanggal</label>
-              <input type="date" id="filter-start-jual" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600">
-          </div>
-          <div>
-              <label class="block text-xs font-bold text-gray-600 mb-1">Sampai Tanggal</label>
-              <input type="date" id="filter-end-jual" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600">
-          </div>
-          <button onclick="filterTabelPenjualan()" class="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-900">Hitung Total</button>
-      </div>
-
-      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-          <table class="w-full text-left" id="tabel-penjualan">
-              <thead class="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                      <th class="px-6 py-4 text-sm font-bold text-gray-900">Tanggal</th>
-                      <th class="px-6 py-4 text-sm font-bold text-gray-900">Pembeli (Customer)</th>
-                      <th class="px-6 py-4 text-sm font-bold text-gray-900">Barang & Qty</th>
-                      <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right">Harga/Kg</th>
-                      <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right">Total Transaksi</th>
-                  </tr>
-              </thead>
-              <tbody id="penjualan-tbody" class="divide-y divide-gray-100">
-                  <tr><td colspan="5" class="text-center py-4">Memuat...</td></tr>
-              </tbody>
-              <tfoot class="bg-gray-50 border-t border-gray-200 hidden" id="footer-total-jual">
-                  <tr>
-                      <td colspan="4" class="px-6 py-4 text-sm font-bold text-gray-900 text-right">TOTAL PENDAPATAN (FILTERED):</td>
-                      <td class="px-6 py-4 text-lg font-bold text-green-700 text-right" id="text-total-jual">Rp 0</td>
-                  </tr>
-              </tfoot>
-          </table>
-      </div>
-  </div>
 </GeneralLayout>
 
 <div id="modal-pengaturan-global" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
@@ -341,75 +294,81 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
     </div>
 </div>
 
-<div id="modal-tambah-penjualan" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
-    <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300">
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-blue-50">
-            <h3 class="font-bold text-lg text-gray-900">Catat Penjualan Olahan</h3>
-            <button onclick="closeModal('modal-tambah-penjualan')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
-        </div>
-        <form id="form-penjualan" class="p-6 space-y-4">
-            <div>
-                <label class="block text-sm font-bold text-gray-700 mb-1">Tanggal</label>
-                <input type="date" id="pj_tgl" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600" required>
-            </div>
-            <div>
-                <label class="block text-sm font-bold text-gray-700 mb-1">Nama Pembeli / PT</label>
-                <input type="text" id="pj_pembeli" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600" required>
-            </div>
-            <div>
-                <label class="block text-sm font-bold text-gray-700 mb-1">Pilih Komoditas</label>
-                <select id="pj_komoditas" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600" required>
-                    <option value="">-- Memuat Komoditas... --</option>
-                </select>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Volume (Kg)</label>
-                    <input type="number" step="0.1" id="pj_volume" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Harga Satuan (Rp)</label>
-                    <input type="number" id="pj_harga" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600" required>
-                </div>
-            </div>
-            <div class="bg-gray-50 p-3 rounded text-right font-bold text-lg text-gray-900" id="pj_total_display">Total: Rp 0</div>
-            
-            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition">Simpan Penjualan</button>
-        </form>
-    </div>
-</div>
-
 <div id="modal-edit-transaksi" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
-    <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300">
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-blue-50">
-            <h3 class="font-bold text-lg text-gray-900">Edit Data Transaksi</h3>
-            <button onclick="closeModal('modal-edit-transaksi')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
+    <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-blue-50 shrink-0">
+            <div>
+                <h3 class="font-bold text-lg text-gray-900">Edit Data Transaksi</h3>
+                <p id="edit-step-indicator" class="text-xs text-blue-700 font-medium mt-0.5">Langkah 1 dari 3: Data Pokok</p>
+            </div>
+            <button type="button" onclick="closeModal('modal-edit-transaksi')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
         </div>
-        <form id="form-edit-transaksi" onsubmit="window.simpanEditTransaksi(event)" class="p-6 space-y-4">
+        
+        <form id="form-edit-transaksi" onsubmit="window.simpanEditTransaksi(event)" class="p-6 overflow-y-auto flex-1 flex flex-col justify-between">
             <input type="hidden" id="edit_trx_id">
             <input type="hidden" id="edit_penjemputan_id">
             <input type="hidden" id="edit_mitra_id">
+            <input type="hidden" id="edit_metode_bayar">
 
-            <div class="grid grid-cols-2 gap-4 pb-2 border-b border-gray-100">
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">Tanggal</label>
-                    <input type="date" id="edit_trx_tgl" class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600" required>
+            <div id="edit-step-1" class="flex flex-col gap-4">
+                <div class="w-full">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Tanggal Transaksi</label>
+                    <input type="date" id="edit_trx_tgl" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 font-medium" required>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">Nama Mitra</label>
-                    <input type="text" id="edit_trx_mitra" class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600" required>
+                
+                <div class="w-full">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Nama Mitra Pengumpul</label>
+                    <select id="edit_trx_mitra_select" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 font-medium bg-white" required>
+                        </select>
+                </div>
+                
+                <div class="w-full">
+                    <label class="block text-xs font-bold text-red-600 uppercase tracking-wider mb-1">Potongan DP / Kasbon (Rp)</label>
+                    <input type="number" id="edit_trx_dp" class="w-full border border-red-300 bg-red-50 rounded-xl p-3 outline-none focus:border-red-600 text-red-900 font-bold font-mono" placeholder="0">
                 </div>
             </div>
-            
-            <div id="edit_items_container" class="space-y-4 max-h-[35vh] overflow-y-auto px-1 py-2">
+
+            <div id="edit-step-2" class="hidden flex-col gap-5">
+                <div id="edit_items_container" class="space-y-4"></div>
+
+                <div class="w-full pt-3 border-t border-gray-100">
+                    <label class="block text-xs font-bold text-green-700 uppercase tracking-wider mb-1">Total Harga Transaksi (Rp)</label>
+                    <input type="number" id="edit_trx_grand_total" class="w-full border border-green-300 bg-green-50 rounded-xl p-3 outline-none focus:border-green-600 text-green-900 font-bold font-mono text-lg" required>
                 </div>
-            
-            <div class="pt-2 border-t border-gray-100">
-                <label class="block text-xs font-bold text-red-600 mb-1">Potongan DP / Kasbon (Rp)</label>
-                <input type="number" id="edit_trx_dp" class="w-full border border-red-300 bg-red-50 rounded-lg p-3 outline-none focus:border-red-600 text-red-900 font-bold font-mono">
+            </div>
+
+            <div id="edit-step-3" class="hidden flex-col gap-4">
+                <div class="w-full bg-gray-100 p-3 rounded-xl border border-gray-200">
+                    <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">Metode Pembayaran Asli:</span>
+                    <p id="edit_trx_metode_label" class="text-sm font-bold text-gray-800 mt-0.5 capitalize">-</p>
+                </div>
+                
+                <div id="edit_payment_details_container" class="w-full"></div>
+            </div>
+
+            <div id="footer-edit-1" class="mt-8 flex justify-end shrink-0">
+                <button type="button" onclick="window.goToEditStep(2)" class="w-12 h-12 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition text-xl flex items-center justify-center shadow-sm active:scale-95" title="Selanjutnya">
+                    <i class="bi bi-arrow-right"></i>
+                </button>
             </div>
             
-            <button type="submit" id="btn-save-trx" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition">Simpan Perubahan</button>
+            <div id="footer-edit-2" class="mt-8 hidden w-full justify-between items-center shrink-0">
+                <button type="button" onclick="window.goToEditStep(1)" class="w-12 h-12 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 border border-gray-200 transition text-xl flex items-center justify-center active:scale-95" title="Kembali">
+                    <i class="bi bi-arrow-left"></i>
+                </button>
+                <button type="button" onclick="window.goToEditStep(3)" class="w-12 h-12 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition text-xl flex items-center justify-center shadow-sm active:scale-95" title="Selanjutnya">
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+
+            <div id="footer-edit-3" class="mt-8 hidden w-full justify-between items-center shrink-0">
+                <button type="button" onclick="window.goToEditStep(2)" class="w-12 h-12 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 border border-gray-200 transition text-xl flex items-center justify-center active:scale-95" title="Kembali">
+                    <i class="bi bi-arrow-left"></i>
+                </button>
+                <button type="submit" id="btn-save-trx" class="w-12 h-12 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition text-xl flex items-center justify-center shadow-sm active:scale-95" title="Simpan Perubahan">
+                    <i class="bi bi-floppy-fill"></i>
+                </button>
+            </div>
         </form>
     </div>
 </div>
@@ -460,6 +419,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
         try {
             // A. Fetch Pengaturan Gaji
+            const { data: listMitra } = await window.supabase.from('mitra').select('id, nama_mitra').order('nama_mitra', { ascending: true });
+            window.allMitraGlobal = listMitra || [];
             const { data: globalGaji } = await window.supabase.from('pengaturan_gaji_global').select('*').single();
             dataGlobalGaji = globalGaji;
             if(globalGaji) {
@@ -783,37 +744,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             });
             tbodyLunas.innerHTML = htmlLunas || '<tr><td colspan="4" class="text-center py-4">Data kosong</td></tr>';
 
-            // F. Fetch Penjualan Olahan
-            const { data: penjualan } = await window.supabase.from('penjualan_olahan')
-                .select('*, gudang_komoditas(nama_komoditas)')
-                .order('tanggal', { ascending: false });
-            
-            const tbodyPenjualan = document.getElementById('penjualan-tbody');
-            let htmlPenjualan = '';
-            penjualan?.forEach(p => {
-                htmlPenjualan += `
-                <tr class="hover:bg-gray-50 penjualan-row" data-date="${p.tanggal}" data-total="${p.total_harga}">
-                    <td class="px-6 py-4 text-sm text-gray-600">${p.tanggal}</td>
-                    <td class="px-6 py-4 text-sm font-bold text-gray-900">${p.pembeli}</td>
-                    <td class="px-6 py-4 text-sm text-gray-700">
-                        <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold mr-2">${p.gudang_komoditas?.nama_komoditas || '-'}</span>
-                        ${p.volume} Kg
-                    </td>
-                    <td class="px-6 py-4 text-sm text-gray-600 text-right">Rp ${Number(p.harga_satuan).toLocaleString('id-ID')}</td>
-                    <td class="px-6 py-4 text-sm font-bold text-green-700 text-right">Rp ${Number(p.total_harga).toLocaleString('id-ID')}</td>
-                </tr>`;
-            });
-            tbodyPenjualan.innerHTML = htmlPenjualan || '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Belum ada data penjualan.</td></tr>';
-
-            // G. Dropdown Komoditas untuk Form Penjualan
-            const { data: komoditas } = await window.supabase.from('gudang_komoditas').select('id, nama_komoditas');
-            const selectKom = document.getElementById('pj_komoditas');
-            let htmlKom = '';
-            komoditas?.forEach(k => {
-                htmlKom += `<option value="${k.id}">${k.nama_komoditas}</option>`;
-            });
-            if(selectKom) selectKom.innerHTML = htmlKom;
-
         } catch (error) {
             console.error("Gagal load data keuangan:", error);
         }
@@ -839,8 +769,7 @@ tabButtons.forEach((button) => {
       'riwayat-gaji': 'riwayat-gaji-tab',  
       'pembelian': 'pembelian',
       'pengeluaran': 'pengeluaran', // 🔥 TAMBAHKAN BARIS INI
-      'validasi': 'validasi',
-      'penjualan': 'penjualan'
+      'validasi': 'validasi'
     };
     
     tabName = tabIdMap[tabName] || tabName; // Gunakan mapping, fallback ke original
@@ -1323,85 +1252,7 @@ tabButtons.forEach((button) => {
             window.location.reload();
         } catch (err) { alert(err.message); }
     };
-
-    // ==========================================
-    // 4. PENJUALAN OLAHAN FORM
-    // ==========================================
-    const pjVol = document.getElementById('pj_volume');
-    const pjHarga = document.getElementById('pj_harga');
-    const pjTotalDisplay = document.getElementById('pj_total_display');
-
-    function calcTotalPj() {
-        const vol = parseFloat(pjVol.value) || 0;
-        const hrg = parseFloat(pjHarga.value) || 0;
-        pjTotalDisplay.innerText = `Total: Rp ${(vol * hrg).toLocaleString('id-ID')}`;
-    }
-    pjVol?.addEventListener('input', calcTotalPj);
-    pjHarga?.addEventListener('input', calcTotalPj);
-
-    document.getElementById('form-penjualan')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        if(!window.supabase) return;
-        
-        const btnSubmit = e.target.querySelector('button[type="submit"]');
-        btnSubmit.innerText = "Memproses...";
-        btnSubmit.disabled = true;
-
-        try {
-            const vol = parseFloat(pjVol.value);
-            const hrg = parseFloat(pjHarga.value);
-            const total = vol * hrg;
-            const k_id = document.getElementById('pj_komoditas').value;
-
-            await window.supabase.from('penjualan_olahan').insert([{
-                tanggal: document.getElementById('pj_tgl').value,
-                pembeli: document.getElementById('pj_pembeli').value,
-                komoditas_id: k_id,
-                volume: vol,
-                harga_satuan: hrg,
-                total_harga: total
-            }]);
-
-            const { data: gudang } = await window.supabase.from('gudang_komoditas').select('stok').eq('id', k_id).single();
-            await window.supabase.from('gudang_komoditas').update({ stok: gudang.stok - vol }).eq('id', k_id);
-            
-            await window.supabase.from('gudang_mutasi').insert([{
-                jenis_mutasi: 'Keluar', komoditas_id: k_id, jumlah: -vol, keterangan: 'Penjualan ke ' + document.getElementById('pj_pembeli').value
-            }]);
-
-            alert('Penjualan berhasil dicatat & stok terpotong!');
-            window.location.reload();
-        } catch(err) { 
-            alert(err.message); 
-            btnSubmit.innerText = "Simpan Penjualan";
-            btnSubmit.disabled = false;
-        }
     });
-
-    // FILTER PENJUALAN & TOTAL
-    window.filterTabelPenjualan = function() {
-        const start = document.getElementById('filter-start-jual').value;
-        const end = document.getElementById('filter-end-jual').value;
-        if(!start || !end) return alert("Pilih tanggal awal dan akhir!");
-
-        let grandTotal = 0;
-        document.querySelectorAll('.penjualan-row').forEach(tr => {
-            const date = tr.getAttribute('data-date');
-            if (date >= start && date <= end) {
-                tr.style.display = '';
-                grandTotal += parseFloat(tr.getAttribute('data-total') || 0);
-            } else {
-                tr.style.display = 'none';
-            }
-        });
-
-        const footer = document.getElementById('footer-total-jual');
-        if(footer) {
-            footer.classList.remove('hidden');
-            document.getElementById('text-total-jual').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
-        }
-    };
-  });
   // ====================================================================
     // PERBAIKAN: FUNGSI UNTUK MENAMPILKAN RIWAYAT GAJI (SLIP GAJI)
     // ====================================================================
@@ -1509,58 +1360,166 @@ tabButtons.forEach((button) => {
     }
     document.getElementById('btn-filter-gaji')?.addEventListener('click', muatRiwayatGaji);
     // ==========================================
-    // FUNGSI EDIT TRANSAKSI (MULTI-ITEM)
+    // FUNGSI NAVIGASI FORM EDIT (STEP 1 & 2)
+    // ==========================================
+    window.nextEditStep = function() {
+        document.getElementById('edit-step-1').classList.replace('flex', 'hidden');
+        document.getElementById('footer-edit-1').classList.replace('flex', 'hidden');
+        document.getElementById('edit-step-2').classList.replace('hidden', 'flex');
+        document.getElementById('footer-edit-2').classList.replace('hidden', 'flex');
+    };
+    
+    window.prevEditStep = function() {
+        document.getElementById('edit-step-2').classList.replace('flex', 'hidden');
+        document.getElementById('footer-edit-2').classList.replace('flex', 'hidden');
+        document.getElementById('edit-step-1').classList.replace('hidden', 'flex');
+        document.getElementById('footer-edit-1').classList.replace('hidden', 'flex');
+    };
+
+    // ==========================================
+    // FUNGSI PENGATUR NAVIGASI 3 STEP EDIT
+    // ==========================================
+    window.goToEditStep = function(stepNum) {
+        // Sembunyikan semua step dan footer
+        const steps = [1, 2, 3];
+        steps.forEach(num => {
+            const stepEl = document.getElementById(`edit-step-${num}`);
+            const footEl = document.getElementById(`footer-edit-${num}`);
+            if(stepEl) stepEl.classList.replace('flex', 'hidden');
+            
+            // 🔥 FIX: Footer diubah dari flex kembali ke hidden
+            if(footEl) footEl.classList.replace('flex', 'hidden'); 
+        });
+
+        // Tampilkan step aktif
+        const activeStep = document.getElementById(`edit-step-${stepNum}`);
+        const activeFoot = document.getElementById(`footer-edit-${stepNum}`);
+        if(activeStep) activeStep.classList.replace('hidden', 'flex');
+        
+        // 🔥 FIX: Footer yang tadinya hidden diubah jadi flex (Biar ujung ketemu ujung)
+        if(activeFoot) activeFoot.classList.replace('hidden', 'flex'); 
+
+        // Update Teks Indikator Judul
+        const indicator = document.getElementById('edit-step-indicator');
+        if(indicator) {
+            if(stepNum === 1) indicator.innerText = "Langkah 1 dari 3: Data Pokok";
+            if(stepNum === 2) indicator.innerText = "Langkah 2 dari 3: Komoditas & Harga";
+            if(stepNum === 3) indicator.innerText = "Langkah 3 dari 3: Informasi Pembayaran";
+        }
+    };
+
+    // ==========================================
+    // FUNGSI BUKA MODAL & POPULASI DATA
     // ==========================================
     window.bukaModalEditTrx = function(trxId) {
+        window.goToEditStep(1); // Mulai dari form pertama tiap dibuka
+
         const trx = window.dataTransaksiGlobal.find(t => String(t.id) === String(trxId));
         if(!trx) return alert("Data transaksi tidak ditemukan!");
 
+        // Set ID utama ke form hidden
         document.getElementById('edit_trx_id').value = trx.id;
         document.getElementById('edit_penjemputan_id').value = trx.penjemputan_id || '';
+        document.getElementById('edit_mitra_id').value = trx.penjemputan?.mitra?.id || '';
         document.getElementById('edit_trx_tgl').value = trx.penjemputan?.tanggal || '';
-        
-        if (trx.penjemputan?.mitra) {
-            document.getElementById('edit_mitra_id').value = trx.penjemputan.mitra.id;
-            document.getElementById('edit_trx_mitra').value = trx.penjemputan.mitra.nama_mitra || '';
-        }
 
-        // 🔥 LOGIKA BARU: LOOPING SEMUA BARANG KE DALAM MODAL 🔥
+        // 🔥 FORM 1: Isi Pilihan Dropdown Mitra dari Data Global DB 🔥
+        // 🔥 FORM 1: Isi Pilihan Dropdown Mitra dari Data Global DB 🔥
+        let optMitra = '';
+        const currentMitraId = trx.penjemputan?.mitra?.id || null;
+        
+        // 🔥 SEKARANG MENYISIPKAN PILIHAN TIMBANG MANDIRI (Hardcoded value = "0")
+        optMitra += `<option value="0" ${currentMitraId === null ? 'selected' : ''}>Timbang Mandiri</option>`;
+
+        if(window.allMitraGlobal) {
+            window.allMitraGlobal.forEach(m => {
+                const selected = currentMitraId && String(m.id) === String(currentMitraId) ? 'selected' : '';
+                optMitra += `<option value="${m.id}" ${selected}>${m.nama_mitra}</option>`;
+            });
+        }
+        document.getElementById('edit_trx_mitra_select').innerHTML = optMitra;
+        document.getElementById('edit_trx_dp').value = trx.potongan_dp || 0;
+
+        // 🔥 FORM 2: List Komoditas Barang (Model Vertikal Panjang) 🔥
         let itemsHtml = '';
         if (trx.transaksi_item && trx.transaksi_item.length > 0) {
             trx.transaksi_item.forEach((item, index) => {
                 itemsHtml += `
-                <div class="edit-item-row p-4 bg-gray-50 border border-gray-200 rounded-xl relative mt-3 shadow-sm">
-                    <span class="absolute -top-3 left-3 bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1 rounded-full border border-blue-200">Barang Ke-${index + 1}</span>
+                <div class="edit-item-row p-4 bg-gray-50 border border-gray-200 rounded-xl relative space-y-3 shadow-sm">
+                    <span class="inline-block bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200 mb-1">Barang Ke-${index + 1}: ${item.komoditas}</span>
                     <input type="hidden" class="item_id" value="${item.id}">
+                    <input type="hidden" class="item_komoditas" value="${item.komoditas}">
                     
-                    <div class="mb-3 mt-1">
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Komoditas</label>
-                        <input type="text" class="item_komoditas w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-blue-600" value="${item.komoditas}" required>
+                    <div class="w-full">
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase">Berat (Kg)</label>
+                        <input type="number" step="0.1" class="item_volume w-full border border-gray-300 rounded-lg p-2 text-sm outline-none bg-white font-semibold" value="${item.volume}" required>
                     </div>
-                    
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">Berat (Kg)</label>
-                            <input type="number" step="0.1" class="item_volume w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-blue-600" value="${item.volume}" required>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">Harga / Kg (Rp)</label>
-                            <input type="number" class="item_harga w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-blue-600" value="${item.harga_unit}" required>
-                        </div>
+                    <div class="w-full">
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase">Harga / Kg (Rp)</label>
+                        <input type="number" class="item_harga w-full border border-gray-300 rounded-lg p-2 text-sm outline-none bg-white font-semibold" value="${item.harga_unit}" required>
                     </div>
                 </div>`;
             });
         } else {
-            itemsHtml = `<p class="text-sm text-red-500 italic">Transaksi ini tidak memiliki rincian barang.</p>`;
+            itemsHtml = `<p class="text-sm text-red-500 italic">Transaksi ini tidak memiliki rincian komoditas.</p>`;
         }
-        
         document.getElementById('edit_items_container').innerHTML = itemsHtml;
-        document.getElementById('edit_trx_dp').value = trx.potongan_dp || 0;
+        document.getElementById('edit_trx_grand_total').value = trx.grand_total || 0;
+        
+        // 🔥 FORM 3: Detail Informasi Pembayaran Sesuai Metode Awal 🔥
+        const metode = trx.metode_bayar || 'Cash';
+        document.getElementById('edit_metode_bayar').value = metode;
+        document.getElementById('edit_trx_metode_label').innerText = metode;
+        
+        const payContainer = document.getElementById('edit_payment_details_container');
+        
+        if (metode === 'Bank') {
+            payContainer.innerHTML = `
+                <div class="p-4 bg-blue-50 border border-blue-200 rounded-xl space-y-3 shadow-sm">
+                    <p class="text-xs font-bold text-blue-800 mb-1"><i class="bi bi-bank2"></i> Ubah Rekening Transfer Transaksi</p>
+                    <div class="w-full">
+                        <label class="block text-[10px] font-bold text-gray-600 uppercase mb-0.5">Nama Bank</label>
+                        <input type="text" id="edit_bank_nama" value="${trx.nama_bank || ''}" class="w-full border border-blue-300 p-2.5 rounded-lg text-sm bg-white outline-none focus:border-blue-600 font-medium">
+                    </div>
+                    <div class="w-full">
+                        <label class="block text-[10px] font-bold text-gray-600 uppercase mb-0.5">No. Rekening</label>
+                        <input type="text" id="edit_bank_rek" value="${trx.no_rek || ''}" class="w-full border border-blue-300 p-2.5 rounded-lg text-sm bg-white outline-none focus:border-blue-600 font-mono font-bold">
+                    </div>
+                    <div class="w-full">
+                        <label class="block text-[10px] font-bold text-gray-600 uppercase mb-0.5">Atas Nama Pemilik</label>
+                        <input type="text" id="edit_bank_an" value="${trx.atas_nama || ''}" class="w-full border border-blue-300 p-2.5 rounded-lg text-sm bg-white outline-none focus:border-blue-600 font-medium">
+                    </div>
+                </div>
+            `;
+        } else if (metode === 'QRIS') {
+            payContainer.innerHTML = `
+                <div class="p-4 bg-purple-50 border border-purple-200 rounded-xl space-y-3 shadow-sm">
+                    <p class="text-xs font-bold text-purple-800 mb-1"><i class="bi bi-qr-code-scan"></i> Ubah Tautan Berkas Barcode QRIS</p>
+                    <div class="w-full">
+                        <label class="block text-[10px] font-bold text-gray-600 uppercase mb-0.5">Link URL Gambar QRIS Baru</label>
+                        <textarea id="edit_qris_url" rows="3" class="w-full border border-purple-300 p-2.5 rounded-lg text-xs bg-white outline-none focus:border-purple-600 font-mono">${trx.photo_qris || ''}</textarea>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Metode Tunai (Cash) -> Sesuai request: Cash tidak perlu isian data apa-apa
+            payContainer.innerHTML = `
+                <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3 shadow-sm">
+                    <div class="bg-amber-200 p-1.5 rounded-full text-amber-700 shrink-0"><i class="bi bi-cash-stack"></i></div>
+                    <div>
+                        <p class="text-xs font-bold text-amber-900">Pembayaran Tunai (Cash)</p>
+                        <p class="text-[10px] text-amber-700 leading-normal mt-0.5">Metode tunai dicatat otomatis via dana talang operasional harian. Tidak ada berkas rekening atau barcode khusus yang perlu diubah.</p>
+                    </div>
+                </div>
+            `;
+        }
 
         window.openModal('modal-edit-transaksi');
     };
 
-    // EKSEKUSI SIMPAN PERUBAHAN KE SEMUA BARANG SEKALIGUS
+    // ==========================================
+    // EKSEKUSI SIMPAN DATA PERUBAHAN KE DB
+    // ==========================================
     window.simpanEditTransaksi = async function(e) {
         e.preventDefault();
         if(!window.supabase) return;
@@ -1570,63 +1529,80 @@ tabButtons.forEach((button) => {
 
         const trxId = document.getElementById('edit_trx_id').value;
         const penjemputanId = document.getElementById('edit_penjemputan_id').value;
-        const mitraId = document.getElementById('edit_mitra_id').value;
 
+        // 🔥 LOGIKA BARU: Jika milih "0" (Timbang Mandiri), simpan sebagai null agar aman dari foreign key error
+        const mitraIdRaw = document.getElementById('edit_trx_mitra_select').value;
+        const mitraIdTerpilih = mitraIdRaw === "0" ? null : parseInt(mitraIdRaw);
+        
         const tglBaru = document.getElementById('edit_trx_tgl').value;
-        const mitraBaru = document.getElementById('edit_trx_mitra').value;
         const dpBaru = parseFloat(document.getElementById('edit_trx_dp').value) || 0;
+        const totalManual = parseFloat(document.getElementById('edit_trx_grand_total').value) || 0;
+        
+        const metode = document.getElementById('edit_metode_bayar').value;
 
         try {
-            // 1. Update Tanggal & Mitra (Induk)
-            if(penjemputanId) await window.supabase.from('penjemputan').update({ tanggal: tglBaru }).eq('id', penjemputanId);
-            if(mitraId) await window.supabase.from('mitra').update({ nama_mitra: mitraBaru }).eq('id', mitraId);
+            // 1. Update relasi Tanggal & Mitra Terpilih ke tabel Induk Penjemputan
+            if(penjemputanId) {
+                const { error: errPenjemputan } = await window.supabase.from('penjemputan')
+                    .update({ 
+                        tanggal: tglBaru,
+                        mitra_id: mitraIdTerpilih // Otomatis ter-update jadi null jika mas bro milih Timbang Mandiri
+                    })
+                    .eq('id', penjemputanId);
+                if(errPenjemputan) throw errPenjemputan;
+            }
 
-            // 2. Loop Semua Barang di Modal dan Siapkan Updatenya
-            let subtotalKeseluruhan = 0;
+            // 2. Loop & Update Rincian Berat dan Harga Komoditas
             const itemRows = document.querySelectorAll('.edit-item-row');
-            
-            // Siapkan Keranjang Janji (Promises) biar update databasenya bisa barengan ngebut
             const updateItemPromises = [];
-
+            
             itemRows.forEach(row => {
                 const itemId = row.querySelector('.item_id').value;
-                const komoditasBaru = row.querySelector('.item_komoditas').value;
+                const komoditasNama = row.querySelector('.item_komoditas').value;
                 const volBaru = parseFloat(row.querySelector('.item_volume').value) || 0;
                 const hargaBaru = parseFloat(row.querySelector('.item_harga').value) || 0;
 
-                // Hitung subtotal baru setiap barang
-                subtotalKeseluruhan += (volBaru * hargaBaru);
-
-                // Masukkan perintah update ke keranjang
                 if(itemId) {
-                    const updateTask = window.supabase.from('transaksi_item').update({
-                        komoditas: komoditasBaru,
-                        volume: volBaru,
-                        harga_unit: hargaBaru
-                    }).eq('id', itemId);
+                    const updateTask = window.supabase.from('transaksi_item')
+                        .update({
+                            komoditas: komoditasNama,
+                            volume: volBaru,
+                            harga_unit: hargaBaru
+                        })
+                        .eq('id', itemId);
                     updateItemPromises.push(updateTask);
                 }
             });
 
-            // 3. Eksekusi Tembak Database (Update banyak barang sekaligus)
             if(updateItemPromises.length > 0) {
                 await Promise.all(updateItemPromises);
             }
 
-            // 4. Update DP & Grand Total Terbaru di tabel Transaksi Induk
-            const grandTotalBaru = subtotalKeseluruhan - dpBaru;
+            // 3. Update DP, Total Transaksi, & Berkas Bayar Form 3 ke tabel Transaksi
             if(trxId) {
-                await window.supabase.from('transaksi').update({
+                let payloadUpdate = {
                     potongan_dp: dpBaru,
-                    grand_total: grandTotalBaru
-                }).eq('id', trxId);
+                    grand_total: totalManual // Murni ambil hasil ketikan manual mas bro
+                };
+
+                // Sisipkan detail berdasarkan isi metode
+                if(metode === 'Bank') {
+                    payloadUpdate.nama_bank = document.getElementById('edit_bank_nama')?.value || '';
+                    payloadUpdate.no_rek = document.getElementById('edit_bank_rek')?.value || '';
+                    payloadUpdate.atas_nama = document.getElementById('edit_bank_an')?.value || '';
+                } else if(metode === 'QRIS') {
+                    payloadUpdate.photo_qris = document.getElementById('edit_qris_url')?.value || '';
+                }
+
+                const { error: errTrx } = await window.supabase.from('transaksi').update(payloadUpdate).eq('id', trxId);
+                if(errTrx) throw errTrx;
             }
 
-            alert('Mantap bro! Seluruh rincian barang, totalan, dan tanggal berhasil diperbarui.');
+            alert('Mantap bro! Seluruh data mitra, rincian barang, totalan harga, dan berkas transfer berhasil di-update!');
             window.location.reload();
 
         } catch (err) {
-            alert('Gagal menyimpan: ' + err.message);
+            alert('Gagal menyimpan perubahan transaksi: ' + err.message);
             btn.innerText = "Simpan Perubahan"; btn.disabled = false;
         }
     };

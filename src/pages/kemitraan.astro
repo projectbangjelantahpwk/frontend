@@ -17,14 +17,30 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             </header>
 
             <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-md md:p-lg flex flex-col shadow-sm">
-                <div class="flex justify-between items-center mb-md">
-                    <h3 class="font-headline-md text-headline-md text-on-surface">Pertumbuhan Mitra Langganan</h3>
-                    <div class="flex bg-surface-container-low rounded-lg p-xs">
-                        <button class="px-md py-sm rounded-md bg-secondary-container text-on-secondary-container font-label-sm text-label-sm shadow-sm">Per Bulan</button>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-sm mb-md border-b border-outline-variant pb-3 shrink-0">
+                    <div>
+                        <h3 class="font-headline-md text-headline-md text-on-surface font-bold">Analisis & Peringkat Mitra</h3>
+                        <p class="text-xs text-on-surface-variant mt-0.5">Grafik pertumbuhan akumulasi dan 5 Besar penyetor terbaik bulan ini.</p>
+                    </div>
+                    <div class="flex items-center gap-2 bg-surface-container-low p-1.5 rounded-lg border border-outline-variant">
+                        <input type="month" id="input-periode-leaderboard" class="bg-transparent border-none outline-none font-bold text-xs text-primary cursor-pointer px-1">
                     </div>
                 </div>
-                <div class="w-full h-[30vh] min-h-[200px] relative max-w-4xl mx-auto">
-                    <canvas id="growthChart" style="display: block; box-sizing: border-box; height: 100%; width: 100%;"></canvas>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-lg items-start flex-1">
+                    <div class="lg:col-span-2 w-full h-[30vh] min-h-[220px] relative">
+                        <canvas id="growthChart" style="display: block; box-sizing: border-box; height: 100%; width: 100%;"></canvas>
+                    </div>
+
+                    <div class="bg-surface-container-low border border-outline-variant rounded-xl p-md flex flex-col gap-sm">
+                        <div class="flex items-center gap-2 text-primary font-bold text-xs border-b border-outline-variant pb-2 mb-1">
+                            <i class="bi bi-trophy-fill text-yellow-500"></i>
+                            <span>Top 5 Setoran Komoditas</span>
+                        </div>
+                        <div id="leaderboard-live-list" class="flex flex-col gap-sm max-h-[250px] overflow-y-auto pr-1">
+                            <p class="text-xs text-on-surface-variant italic text-center py-4">Menghitung peringkat live...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -298,7 +314,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 }
 
                 // B. Mitra Langganan
-                const { data: langganan } = await window.supabase.from('mitra').select('*').order('created_at', { ascending: false });
+                const { data: langganan } = await window.supabase.from('mitra')
+                    .select('*')
+                    .eq('activated', true)
+                    .order('created_at', { ascending: false });
                 
                 let htmlLangMobile = '';
                 let htmlLangTable = '';
@@ -316,7 +335,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
                         htmlLangMobile += `
                         <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm relative">
-                            <button onclick="window.nonaktifkanMitra('${l.id}', '${l.nama_mitra}', '${l.nomor_hp || ''}', '${l.link_gmaps || ''}', '${l.total_order || 0}')" class="absolute top-4 right-4 text-error hover:bg-error-container rounded-full p-1 transition-colors" title="Nonaktifkan Mitra">
+                            <button onclick="window.nonaktifkanMitra('${l.id}', '${l.nama_mitra}')" class="absolute top-4 right-4 text-error hover:bg-error-container rounded-full p-1 transition-colors" title="Nonaktifkan Mitra">
                                 <span class="material-symbols-outlined text-[20px]">person_off</span>
                             </button>
                             <div class="border-b border-outline-variant pb-sm">
@@ -335,7 +354,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             <td class="p-md text-center"><a class="text-primary inline-block p-1 rounded-full hover:bg-primary-container" href="${l.link_gmaps || '#'}" target="_blank"><span class="material-symbols-outlined text-[20px]">location_on</span></a></td>
                             <td class="p-md text-center font-body-md">${l.total_order || 0}x</td>
                             <td class="p-md text-right flex justify-end gap-2 items-center">
-                                <button onclick="window.nonaktifkanMitra('${l.id}', '${l.nama_mitra}', '${l.nomor_hp || ''}', '${l.link_gmaps || ''}', '${l.total_order || 0}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-error rounded-full hover:bg-error-container opacity-0 group-hover:opacity-100 transition-opacity" title="Pindah ke Tidak Aktif">
+                                <button onclick="window.nonaktifkanMitra('${l.id}', '${l.nama_mitra}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-error rounded-full hover:bg-error-container opacity-0 group-hover:opacity-100 transition-opacity" title="Pindah ke Tidak Aktif">
                                     <span class="material-symbols-outlined text-[18px]">person_off</span>
                                 </button>
                             </td>
@@ -350,7 +369,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 renderChart(chartDataByMonth); // Update Chart realtime!
 
                 // C. Mitra Tidak Aktif
-                const { data: nonaktif } = await window.supabase.from('mitra_tidak_aktif').select('*').order('created_at', { ascending: false });
+                const { data: nonaktif } = await window.supabase.from('mitra')
+                    .select('*')
+                    .eq('activated', false)
+                    .order('created_at', { ascending: false });
                 
                 let htmlNonMobile = '';
                 let htmlNonTable = '';
@@ -364,7 +386,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                 <div><p class="font-label-sm text-on-surface-variant">No HP</p><p class="font-body-md text-on-surface-variant">${n.nomor_hp || '-'}</p></div>
                                 <div><p class="font-label-sm text-on-surface-variant">Tgl Nonaktif</p><p class="font-body-md text-on-surface-variant">${dateOnly}</p></div>
                             </div>
-                            <button class="mt-sm w-full h-touch-target bg-surface-container text-primary rounded-full font-label-lg border border-primary hover:bg-primary-container transition-colors flex items-center justify-center gap-xs" onclick="window.aktifkanMitra('${n.id}', '${n.nama_mitra}', '${n.nomor_hp || ''}', '${n.link_gmaps || ''}', '${n.total_order || 0}')">
+                            <button class="mt-sm w-full h-touch-target bg-surface-container text-primary rounded-full font-label-lg border border-primary hover:bg-primary-container transition-colors flex items-center justify-center gap-xs" onclick="window.aktifkanMitra('${n.id}', '${n.nama_mitra}')">
                                 <span class="material-symbols-outlined text-[20px]">person_check</span> Aktifkan Kembali
                             </button>
                         </div>`;
@@ -376,7 +398,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             <td class="p-md text-center font-body-md text-on-surface-variant">${n.total_order || 0}x</td>
                             <td class="p-md font-body-md text-on-surface-variant">${dateOnly}</td>
                             <td class="p-md text-right">
-                                <button class="px-md py-sm bg-surface-container text-primary rounded-full font-label-lg border border-primary hover:bg-primary-container transition-colors inline-flex items-center gap-xs h-10" onclick="window.aktifkanMitra('${n.id}', '${n.nama_mitra}', '${n.nomor_hp || ''}', '${n.link_gmaps || ''}', '${n.total_order || 0}')">
+                                <button class="px-md py-sm bg-surface-container text-primary rounded-full font-label-lg border border-primary hover:bg-primary-container transition-colors inline-flex items-center gap-xs h-10" onclick="window.aktifkanMitra('${n.id}', '${n.nama_mitra}')">
                                     Aktifkan Kembali
                                 </button>
                             </td>
@@ -544,30 +566,139 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             });
 
             // C. NONAKTIFKAN MITRA (LANGGANAN -> TIDAK AKTIF)
-            window.nonaktifkanMitra = async function(id, nama, hp, link, order) {
+            window.nonaktifkanMitra = async function(id, nama) {
                 if(!confirm(`Yakin ingin menonaktifkan ${nama}? Data akan dipindah ke tab Tidak Aktif.`)) return;
                 try {
-                    await window.supabase.from('mitra_tidak_aktif').insert([{
-                        nama_mitra: nama, nomor_hp: hp, link_gmaps: link, total_order: parseInt(order) || 0
-                    }]);
-                    await window.supabase.from('mitra').delete().eq('id', id);
+                    const { error } = await window.supabase.from('mitra')
+                        .update({ activated: false })
+                        .eq('id', id);
+                        
+                    if(error) throw error;
                     alert(`${nama} berhasil dinonaktifkan.`);
                     window.location.reload();
                 } catch(err) { alert(err.message); }
             };
 
             // D. AKTIFKAN MITRA (TIDAK AKTIF -> LANGGANAN)
-            window.aktifkanMitra = async function(id, nama, hp, link, order) {
+            window.aktifkanMitra = async function(id, nama) {
                 if(!confirm(`Aktifkan kembali ${nama} menjadi Langganan?`)) return;
                 try {
-                    await window.supabase.from('mitra').insert([{
-                        nama_mitra: nama, nomor_hp: hp, link_gmaps: link, total_order: parseInt(order) || 0, total_transaksi: 0
-                    }]);
-                    await window.supabase.from('mitra_tidak_aktif').delete().eq('id', id);
+                    const { error } = await window.supabase.from('mitra')
+                        .update({ activated: true })
+                        .eq('id', id);
+
+                    if(error) throw error;
                     alert(`${nama} kembali menjadi Mitra Langganan.`);
                     window.location.reload();
                 } catch(err) { alert(err.message); }
             };
         });
+        // ==========================================
+            // LOGIKA LIVE TOP 5 LEADERBOARD (KOTAK UTAMA)
+            // ==========================================
+            const tglSkrg = new Date();
+            const bulanSkrg = `${tglSkrg.getFullYear()}-${String(tglSkrg.getMonth() + 1).padStart(2, '0')}`;
+            const inputPeriode = document.getElementById('input-periode-leaderboard');
+            
+            if(inputPeriode) {
+                inputPeriode.value = bulanSkrg;
+                // Begitu input bulan diganti oleh user, sistem langsung menghitung ulang secara otomatis dan real-time
+                inputPeriode.addEventListener('change', () => window.generateLeaderboard());
+            }
+
+            // Fungsi Utama Menghitung 2 Tabel Sekaligus & Menampilkan Hasil ke Layar
+            window.generateLeaderboard = async function() {
+                const periode = document.getElementById('input-periode-leaderboard').value;
+                if (!periode || !window.supabase) return;
+
+                const listContainer = document.getElementById('leaderboard-live-list');
+
+                try {
+                    // 1. Ambil transaksi berstatus Selesai di bulan terpilih
+                    const { data: riwayat, error } = await window.supabase.from('penjemputan')
+                        .select('mitra_id, tanggal, transaksi(transaksi_item(komoditas, volume)), mitra(nama_mitra)')
+                        .eq('status', 'Selesai')
+                        .like('tanggal', `${periode}-%`);
+                    
+                    if(error) throw error;
+
+                    // 2. Petakan akumulasi volume barang
+                    const rekap = {}; 
+                    const namaMitraMap = {};
+
+                    riwayat.forEach(p => {
+                        if(!p.mitra_id || !p.transaksi || !p.transaksi[0]) return;
+                        if(p.mitra?.nama_mitra) namaMitraMap[p.mitra_id] = p.mitra.nama_mitra;
+
+                        const items = p.transaksi[0].transaksi_item || [];
+                        items.forEach(item => {
+                            const kom = item.komoditas;
+                            const vol = parseFloat(item.volume) || 0;
+                            if(!rekap[kom]) rekap[kom] = {};
+                            if(!rekap[kom][p.mitra_id]) rekap[kom][p.mitra_id] = 0;
+                            rekap[kom][p.mitra_id] += vol;
+                        });
+                    });
+
+                    // 3. Susun Array Rangking & Tampilkan 5 Besar
+                    const payloadRekap = [];
+                    const payloadLeaderboard = [];
+                    let htmlList = '';
+
+                    for (const komoditas in rekap) {
+                        const listMitra = Object.keys(rekap[komoditas]).map(id => ({
+                            mitra_id: parseInt(id),
+                            nama_mitra: namaMitraMap[id] || 'Mitra Lapangan',
+                            total_kg: rekap[komoditas][id]
+                        })).sort((a, b) => b.total_kg - a.total_kg);
+
+                        // Masukkan semua rekap transaksi
+                        listMitra.forEach(m => {
+                            payloadRekap.push({ periode, mitra_id: m.mitra_id, komoditas, total_kg: m.total_kg });
+                        });
+
+                        // Ambil 5 Besar Juara Komoditas untuk Tampilan Live
+                        listMitra.slice(0, 5).forEach((m, index) => {
+                            payloadLeaderboard.push({ periode, mitra_id: m.mitra_id, tingkat: index + 1, jenisnya: komoditas, total_kg: m.total_kg });
+                            
+                            // Variasi Warna Badge Peringkat
+                            let bgMedali = 'bg-gray-100 text-gray-700 border border-gray-200';
+                            if(index === 0) bgMedali = 'bg-yellow-500 text-white font-bold'; // Emas
+                            if(index === 1) bgMedali = 'bg-slate-400 text-white font-bold';  // Perak
+                            if(index === 2) bgMedali = 'bg-amber-700 text-white font-bold';  // Perunggu
+
+                            htmlList += `
+                            <div class="flex items-center justify-between bg-surface-container-lowest p-2 rounded-xl border border-outline-variant shadow-xs">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <span class="w-5 h-5 flex items-center justify-center rounded-full text-[10px] ${bgMedali} shrink-0">#${index + 1}</span>
+                                    <div class="truncate">
+                                        <p class="text-xs font-bold text-on-surface truncate leading-tight">${m.nama_mitra}</p>
+                                        <p class="text-[9px] text-on-surface-variant font-bold uppercase tracking-wider mt-0.5">${komoditas}</p>
+                                    </div>
+                                </div>
+                                <span class="font-mono text-xs font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-md border border-green-100">${m.total_kg} Kg</span>
+                            </div>`;
+                        });
+                    }
+
+                    // 4. Sinkronisasi Data ke Supabase secara aman
+                    await window.supabase.from('rekap_bulanan_mitra').delete().eq('periode', periode);
+                    await window.supabase.from('top_leaderboard').delete().eq('periode', periode);
+                    
+                    if (payloadRekap.length > 0) await window.supabase.from('rekap_bulanan_mitra').insert(payloadRekap);
+                    if (payloadLeaderboard.length > 0) await window.supabase.from('top_leaderboard').insert(payloadLeaderboard);
+
+                    // 5. Render Hasilnya ke Panel Samping Secara Instan
+                    if(listContainer) {
+                        listContainer.innerHTML = htmlList || '<p class="text-xs text-on-surface-variant italic text-center py-4">Belum ada aktivitas setoran.</p>';
+                    }
+
+                } catch (e) {
+                    console.error("Gagal memuat kalkulasi live:", e);
+                }
+            };
+
+            // Pemicu Render Otomatis Saat Pertama Kali Halaman Terbuka
+            if(inputPeriode) window.generateLeaderboard();
     </script>
 </Layout>

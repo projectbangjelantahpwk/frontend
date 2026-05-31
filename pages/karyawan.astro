@@ -1,0 +1,646 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+// Sesuai dengan konsep SSG, frontmatter dikosongkan dari fetch data server
+---
+
+<Layout title="Manajemen Karyawan - Bang Jelantah">
+    <style is:global>
+        /* Mengunci layar menjadi blank (putih) sampai skrip memberi izin masuk */
+        body { display: none; }
+    </style>
+    <div class="max-w-7xl mx-auto flex flex-col h-full relative">
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-md mb-lg">
+            <div>
+                <h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg font-bold text-primary">Karyawan</h1>
+                <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Pantau absensi dan informasi tim operasional lapangan.</p>
+            </div>
+            
+            <div class="w-full md:w-auto flex items-center bg-surface-container-lowest rounded-full px-sm h-12 md:h-10 border border-outline-variant focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all shadow-sm">
+                <span class="material-symbols-outlined text-on-surface-variant ml-sm">search</span>
+                <input class="bg-transparent border-none focus:ring-0 text-on-surface w-full md:w-64 font-body-md text-body-md h-full placeholder:text-on-surface-variant outline-none px-2" placeholder="Cari nama, posisi..." type="text"/>
+            </div>
+        </div>
+
+        <div id="karyawan-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-md">
+            <div class="p-md text-on-surface-variant font-body-md">
+                Memuat data karyawan...
+            </div>
+        </div>
+    </div>
+
+    <div id="employee-detail-backdrop" class="fixed inset-0 bg-on-background/50 z-[60] hidden transition-opacity opacity-0" onclick="closeEmployeeDetail()"></div>
+
+    <div id="employee-detail-panel" class="fixed inset-y-0 right-0 w-full md:w-[480px] bg-surface shadow-[0_0_24px_rgba(0,0,0,0.1)] border-l border-outline-variant z-[70] flex flex-col transform transition-transform duration-300 translate-x-full">
+        
+        <div class="flex items-center justify-between px-lg py-md border-b border-outline-variant bg-surface-container-lowest">
+            <h2 class="font-headline-md text-headline-md font-bold text-on-surface">Detail Karyawan</h2>
+            <button class="w-10 h-10 rounded-full hover:bg-surface-container-low flex items-center justify-center text-on-surface-variant transition-colors" onclick="closeEmployeeDetail()">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto bg-surface-container-lowest">
+            <div id="detail-content" class="p-lg flex flex-col">
+                <p class="text-on-surface-variant font-body-md">Pilih salah satu karyawan untuk melihat detail.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        import { supabase } from '../lib/supabase';
+
+        const container = document.getElementById('karyawan-container');
+        const waktuLokal = new Date();
+        const offset = waktuLokal.getTimezoneOffset() * 60000;
+        const today = new Date(waktuLokal - offset).toISOString().split('T')[0];
+
+        // Menyimpan data secara global di browser agar bisa diakses saat diklik
+        window.daftarKaryawan = [];
+
+        // 1. Ambil data dari Supabase di sisi Client (Browser)
+        async function fetchKaryawan() {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select(`
+                    id,
+                    id_lapangan,
+                    nama,
+                    nomor_hp,
+                    foto_profil,
+                    role,
+                    presensi (
+                        id,
+                        tanggal,
+                        waktu_tiba,
+                        waktu_pulang,
+                        status_tiba,
+                        status_pulang
+                    ),
+                    izin_karyawan (
+                        id,
+                        tanggal,
+                        tipe_izin,
+                        status_pengajuan,
+                        alasan,
+                        foto_bukti,
+                        jam_rencana_keluar
+                    )
+                `)
+                .order('nama', { ascending: true });
+
+            // 🔥 PERBAIKAN: PENANGKAP ERROR SUPER DETAIL 🔥
+            if (error) {
+                const pesanError = error.message || JSON.stringify(error);
+                const hintError = error.hint || 'Tidak ada petunjuk tambahan.';
+                
+                alert(`🚨 DATABASE ERROR!\nPesan: ${pesanError}\n\nPetunjuk: ${hintError}`);
+                console.error("Full Error Supabase:", error);
+                
+                document.getElementById('karyawan-container').innerHTML = `
+                    <div class="col-span-full bg-red-100 border border-red-300 text-red-700 p-4 rounded-xl">
+                        <h3 class="font-bold mb-1">Gagal Menarik Data!</h3>
+                        <p class="font-mono text-sm">${pesanError}</p>
+                    </div>`;
+                return;
+            }
+
+            window.daftarKaryawan = data || [];
+            renderKaryawan(window.daftarKaryawan);
+        }
+
+        // 2. Tampilkan daftar kartu karyawan di halaman utama
+        // 2. Tampilkan daftar kartu karyawan di halaman utama
+        function renderKaryawan(dataKaryawan) {
+            if (dataKaryawan.length === 0) {
+                container.innerHTML = '<p class="text-on-surface-variant p-md">Belum ada data karyawan.</p>';
+                return;
+            }
+
+            const html = dataKaryawan.map((karyawan) => {
+                const absenHariIni = karyawan.presensi?.find(p => p.tanggal === today);
+                const izinHariIni = karyawan.izin_karyawan?.find(i => i.tanggal === today);
+                
+                let statusBadgeBg = 'bg-surface-variant text-on-surface-variant';
+                let statusBadgeText = 'Belum Absen';
+
+                // 🔥 1. CEK DULU: Apakah ada form izin/sakit resmi di tabel izin_karyawan? 🔥
+                if (izinHariIni) {
+                    const statusApp = izinHariIni.status_pengajuan || 'Menunggu';
+                    const tipe = String(izinHariIni.tipe_izin || '').toLowerCase().trim();
+                    
+                    let teksTipe = 'Izin';
+                    if (tipe === 'izin pulang cepat') teksTipe = 'Izin Pulang Cepat';
+                    if (tipe === 'sakit') teksTipe = 'Sakit';
+
+                    statusBadgeText = `${teksTipe} (${statusApp})`;
+                    
+                    if (statusApp === 'Disetujui') statusBadgeBg = 'bg-green-100 text-green-700 border border-green-200';
+                    else if (statusApp === 'Ditolak') statusBadgeBg = 'bg-red-100 text-red-700 border border-red-200';
+                    else statusBadgeBg = 'bg-amber-100 text-amber-700 border border-amber-200';
+                    
+                } 
+                // 🔥 2. KALAU GAK ADA FORM: Cek data absen mentahnya! 🔥
+                else if (absenHariIni) {
+                    const statusTiba = absenHariIni.status_tiba || '';
+                    const statusPulang = absenHariIni.status_pulang || '';
+                    
+                    // Cek apakah di absennya dia milih Izin/Sakit/Pulang Cepat tapi belum ada formnya
+                    if (statusTiba === 'Izin' || statusTiba === 'Sakit' || statusPulang === 'Izin Pulang Cepat') {
+                        const labelIzin = statusPulang === 'Izin Pulang Cepat' ? 'Izin P. Cepat' : statusTiba;
+                        statusBadgeText = `${labelIzin} (Berkas Belum Ada)`;
+                        statusBadgeBg = 'bg-amber-100 text-amber-700 border border-amber-200';
+                    } 
+                    // Cek kalau dia Telat
+                    else if (statusTiba === 'Telat') {
+                        statusBadgeText = 'Telat';
+                        statusBadgeBg = 'bg-red-100 text-red-700 border border-red-200';
+                    } 
+                    // Nah, kalau TIDAK ADA tipe izin sama sekali dan tidak telat, baru sah dianggap HADIR!
+                    else {
+                        statusBadgeText = 'Hadir';
+                        statusBadgeBg = 'bg-primary-container text-on-primary-container';
+                    }
+                }
+
+                const inisial = karyawan.nama ? karyawan.nama.substring(0, 2).toUpperCase() : 'KY';
+                const jabatan = karyawan.tipe_kendaraan ? karyawan.tipe_kendaraan.replace('_', ' ') : karyawan.role;
+
+                return `
+                    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex items-center gap-md hover:shadow-md cursor-pointer transition-shadow relative overflow-hidden" onclick="openEmployeeDetail('${karyawan.id}')">
+                        ${absenHariIni || izinHariIni ? '<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>' : ''}
+                        
+                        ${karyawan.foto_profil 
+                            ? `<img src="${karyawan.foto_profil}" class="w-12 h-12 rounded-full object-cover border border-outline-variant shrink-0" />`
+                            : `<div class="w-12 h-12 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-md shrink-0">${inisial}</div>`
+                        }
+                        
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-label-lg text-label-lg text-on-surface truncate font-bold">${karyawan.nama}</h3>
+                            <p class="font-body-md text-body-md text-on-surface-variant truncate capitalize text-xs mt-0.5">${jabatan}</p>
+                        </div>
+                        <div class="${statusBadgeBg} font-label-sm text-label-sm px-2.5 py-1 rounded-full shrink-0 font-bold text-xs">
+                            ${statusBadgeText}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        // Jalankan fetch saat dokumen siap
+        // === 🛡️ GATEKEEPER KARYAWAN ===
+        document.addEventListener('DOMContentLoaded', async () => {
+            const allowedRoles = ['owner', 'hrd', 'keuangan'];
+            const client = window.supabase || supabase;
+            
+            const { data: { session } } = await client.auth.getSession();
+            if (!session) return window.location.replace('/');
+            
+            const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+            if (!allowedRoles.includes(prof?.role)) {
+                alert(`Akses Ditolak! Data karyawan terbatas untuk Owner & HRD.`);
+                return window.location.replace('/');
+            }
+            document.body.style.display = 'block';
+            
+            // Lolos Sensor? Baru panggil fetch data karyawannya!
+            fetchKaryawan();
+        });
+        // =================================
+        // Simpan data karyawan yang sedang dibuka ke variabel global agar bisa difilter
+        window.currentEmployee = null;
+        // =======================================================
+        // FUNGSI ISI DATA PANEL SAMPING SAAT KARTU DIKLIK
+        // =======================================================
+        window.openEmployeeDetail = function(id) {
+            const karyawan = window.daftarKaryawan.find(k => k.id === id);
+            if (!karyawan) return;
+            
+            window.currentEmployee = karyawan; // Set karyawan aktif
+
+            const detailContent = document.getElementById('detail-content');
+            const jabatan = karyawan.tipe_kendaraan ? karyawan.tipe_kendaraan.replace('_', ' ') : karyawan.role;
+            const inisial = karyawan.nama.substring(0, 2).toUpperCase();
+
+            // Buat variabel pengecekan sebelum detailContent.innerHTML dimasukkan:
+            const detailAvatar = karyawan.foto_profil
+                ? `<img src="${karyawan.foto_profil}" class="w-20 h-20 rounded-full object-cover border border-outline-variant mb-xs shadow-sm" />`
+                : `<div class="w-20 h-20 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-lg mb-xs">${inisial}</div>`;
+
+            // Suntikkan seluruh kerangka detail & Input Filter Tanggal
+            detailContent.innerHTML = `
+                <div class="flex flex-col items-center gap-sm border-b border-outline-variant pb-lg mb-lg">
+                    ${karyawan.foto_profil 
+                        ? `<img src="${karyawan.foto_profil}" class="w-12 h-12 rounded-full object-cover border border-outline-variant shrink-0" />`
+                        : `<div class="w-12 h-12 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-md shrink-0">${inisial}</div>`
+                    }
+                    <h3 class="font-headline-sm text-on-surface font-bold text-center">${karyawan.nama}</h3>
+                    <span class="bg-surface-variant text-on-surface-variant px-3 py-1 rounded-full font-label-md capitalize">${jabatan}</span>
+                </div>
+
+                <div class="flex flex-col gap-md border-b border-outline-variant pb-lg mb-lg">
+                    <h4 class="font-label-lg text-primary font-bold">Informasi Profil</h4>
+                    <div class="grid grid-cols-3 gap-y-xs font-body-md">
+                        <div class="text-on-surface-variant">ID Lapangan</div>
+                        <div class="col-span-2 text-on-surface font-medium">: ${karyawan.id_lapangan || '-'}</div>
+                        
+                        <div class="text-on-surface-variant">No. HP</div>
+                        <div class="col-span-2 text-on-surface font-medium">: ${karyawan.nomor_hp || '-'}</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-md">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-label-lg text-primary font-bold">Riwayat Presensi</h4>
+                    </div>
+
+                    <div class="flex gap-2 items-center bg-surface-container-lowest p-2 rounded-lg border border-outline-variant">
+                        <div class="flex flex-col w-full">
+                            <label class="text-[10px] text-on-surface-variant">Dari</label>
+                            <input type="date" id="filter-start" max="${today}" class="text-sm bg-transparent border-none outline-none text-on-surface cursor-pointer" onchange="filterRiwayat()">
+                        </div>
+                        <span class="text-on-surface-variant">-</span>
+                        <div class="flex flex-col w-full">
+                            <label class="text-[10px] text-on-surface-variant">Sampai</label>
+                            <input type="date" id="filter-end" max="${today}" value="${today}" class="text-sm bg-transparent border-none outline-none text-on-surface cursor-pointer" onchange="filterRiwayat()">
+                        </div>
+                    </div>
+
+                    <div id="riwayat-container" class="flex flex-col gap-sm max-h-[350px] overflow-y-auto pr-xs mt-xs">
+                    </div>
+                </div>
+            `;
+
+            // Panggil render riwayat pertama kali saat panel dibuka
+            filterRiwayat();
+
+            // Jalankan Animasi Slide Panel Samping
+            const panel = document.getElementById('employee-detail-panel');
+            const backdrop = document.getElementById('employee-detail-backdrop');
+            
+            backdrop.classList.remove('hidden');
+            setTimeout(() => { backdrop.classList.remove('opacity-0'); }, 10);
+            
+            panel.classList.remove('translate-x-full');
+            panel.classList.add('translate-x-0');
+        };
+
+        // =======================================================
+        // FUNGSI FILTER & RENDER RIWAYAT ABSEN
+        // =======================================================
+        window.filterRiwayat = function() {
+            if (!window.currentEmployee) return;
+            const startDate = document.getElementById('filter-start').value;
+            const endDate = document.getElementById('filter-end').value || today;
+            const riwayatContainer = document.getElementById('riwayat-container');
+
+            let presensi = window.currentEmployee.presensi || [];
+            let izinList = window.currentEmployee.izin_karyawan || [];
+
+            // Gabungkan semua tanggal unik dari kedua tabel
+            let semuaTanggal = new Set();
+            presensi.forEach(p => semuaTanggal.add(p.tanggal));
+            izinList.forEach(i => semuaTanggal.add(i.tanggal));
+
+            let tanggalSorted = Array.from(semuaTanggal).filter(tgl => {
+                let valid = true;
+                if (startDate) valid = valid && tgl >= startDate;
+                if (endDate) valid = valid && tgl <= endDate;
+                return valid;
+            }).sort((a, b) => new Date(b) - new Date(a));
+
+            if (tanggalSorted.length === 0) {
+                riwayatContainer.innerHTML = '<p class="text-on-surface-variant font-body-md text-center py-md">Tidak ada riwayat absen atau izin pada tanggal tersebut.</p>';
+                return;
+            }
+
+            riwayatContainer.innerHTML = tanggalSorted.map(tgl => {
+                const p = presensi.find(x => x.tanggal === tgl);
+                const iz = izinList.find(x => x.tanggal === tgl);
+
+                let statusText = p ? p.status_tiba : (iz ? 'Izin/Sakit' : '-');
+                let statusColor = 'bg-primary-container text-on-primary-container';
+                
+                if (p?.status_tiba === 'Telat') statusColor = 'bg-error-container text-on-error-container';
+
+                let btnDetailHtml = '';
+                
+                // Jika terdeteksi ada record di tabel izin_karyawan
+                if (iz) {
+                    const appStatus = iz.status_pengajuan || 'Menunggu Verifikasi';
+                    statusText = iz.jam_rencana_keluar ? 'Pulang Cepat' : statusText;
+
+                    if (appStatus === 'Disetujui') statusColor = 'bg-green-100 text-green-700';
+                    else if (appStatus === 'Ditolak') statusColor = 'bg-red-100 text-red-700';
+                    else statusColor = 'bg-amber-100 text-amber-700';
+
+                    btnDetailHtml = `
+                        <div class="mt-3 pt-2 border-t border-gray-100 flex justify-between items-center">
+                            <span class="text-[11px] text-gray-500 font-medium">Validasi: <b class="capitalize">${appStatus}</b></span>
+                            <button onclick="window.bukaModalDetailIzin('${iz.id}')" class="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-lg text-xs font-bold hover:bg-blue-100 transition shadow-sm">
+                                <i class="bi bi-file-earmark-text mr-1"></i> Periksa Bukti
+                            </button>
+                        </div>
+                    `;
+                } 
+                // Jika BUKAN Izin (Artinya Hadir / Telat murni), TAMPILKAN TOMBOL PERIKSA DETAIL SAJA
+                else if (p) {
+                    btnDetailHtml = `
+                        <div class="mt-3 pt-2 border-t border-gray-100 flex justify-end items-center">
+                            <button onclick="window.bukaModalDetailAbsen('${p.id}')" class="bg-gray-50 text-gray-700 border border-gray-200 px-3 py-1 rounded-lg text-xs font-bold hover:bg-gray-200 transition shadow-sm">
+                                <i class="bi bi-search mr-1"></i> Periksa Kehadiran
+                            </button>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="border border-outline-variant rounded-xl p-3 mb-sm bg-surface-container-lowest shadow-sm">
+                        <div class="flex justify-between items-center mb-xs">
+                            <span class="font-label-md text-on-surface font-semibold text-sm">${tgl}</span>
+                            <span class="${statusColor} text-[10px] px-2 py-0.5 rounded-full font-bold tracking-wider uppercase">${statusText}</span>
+                        </div>
+                        <p class="font-body-md text-body-md text-on-surface-variant text-xs">
+                            Tiba: ${p?.waktu_tiba ? p.waktu_tiba.substring(0,5) : '-'} | 
+                            Pulang: ${p?.waktu_pulang ? p.waktu_pulang.substring(0,5) : '-'} ${p?.status_pulang ? `(${p.status_pulang})` : ''}
+                        </p>
+                        ${btnDetailHtml}
+                    </div>
+                `;
+            }).join('');
+        };
+
+        // Fungsi Menutup Panel
+        window.closeEmployeeDetail = function() {
+            const panel = document.getElementById('employee-detail-panel');
+            const backdrop = document.getElementById('employee-detail-backdrop');
+            
+            panel.classList.remove('translate-x-0');
+            panel.classList.add('translate-x-full');
+            
+            backdrop.classList.add('opacity-0');
+            setTimeout(() => { backdrop.classList.add('hidden'); }, 300);
+        };
+        // =======================================================
+        // FUNGSI PROSES ACC / TOLAK LANGSUNG DARI DALAM SIDE PANEL
+        // =======================================================
+        window.approveAbsenSide = async function(idAbsen, statusTarget, btn) {
+            if(!confirm(`Yakin ingin memproses status absen ini menjadi ${statusTarget.toUpperCase()}?`)) return;
+            
+            btn.disabled = true;
+            const originalText = btn.innerText;
+            btn.innerText = '...';
+
+            try {
+                // 1. Update status_approval di database
+                const { error } = await supabase.from('presensi').update({ status_approval: statusTarget }).eq('id', idAbsen);
+                if (error) throw error;
+                
+                alert(`Status absen berhasil diubah menjadi: ${statusTarget}`);
+                
+                // 2. Tarik data fresh terupdate untuk sinkronisasi instan di UI
+                const currentEmpId = window.currentEmployee.id;
+                const { data: freshData } = await supabase
+                    .from('profiles')
+                    .select('id, id_lapangan, nama, nomor_hp, foto_profil, role, tipe_kendaraan, presensi(id, tanggal, waktu_tiba, waktu_pulang, status_tiba, status_pulang), izin_karyawan(id, tanggal, tipe_izin, status_pengajuan, alasan, foto_bukti, jam_rencana_keluar)')
+                    .order('nama', { ascending: true });
+                
+                if(freshData) {
+                    window.daftarKaryawan = freshData;
+                    // Ambil ulang data object karyawan aktif agar data array presensi-nya diperbarui
+                    window.currentEmployee = freshData.find(k => k.id === currentEmpId);
+                    
+                    renderKaryawan(window.daftarKaryawan); // Refresh grid kartu depan
+                    filterRiwayat(); // Refresh list riwayat di side panel langsung tanpa close modal
+                }
+                
+            } catch (err) {
+                alert('Gagal memproses persetujuan: ' + err.message);
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        };
+        // =======================================================
+        // OPERASIONAL POP-UP MODAL DETAIL & VERIFIKASI IZIN
+        // =======================================================
+        window.bukaModalDetailIzin = function(izinId) {
+            const iz = window.currentEmployee?.izin_karyawan?.find(x => String(x.id) === String(izinId));
+            if(!iz) return alert("Data berkas izin tidak ditemukan!");
+
+            document.getElementById('detail_izin_id').value = iz.id;
+            document.getElementById('detail_izin_alasan').innerText = iz.alasan || 'Tidak ada alasan tertulis.';
+
+            const wrapJam = document.getElementById('wrapper_jam_keluar');
+            if(iz.jam_rencana_keluar) {
+                wrapJam.classList.remove('hidden');
+                document.getElementById('detail_izin_jam_keluar').innerText = iz.jam_rencana_keluar.substring(0,5);
+            } else {
+                wrapJam.classList.add('hidden');
+            }
+
+            const imgContainer = document.getElementById('detail_izin_foto_container');
+            if(iz.foto_bukti) {
+                imgContainer.innerHTML = `
+                    <a href="${iz.foto_bukti}" target="_blank" class="block mt-2 hover:opacity-90 transition">
+                        <img src="${iz.foto_bukti}" alt="Berkas Lampiran" class="w-full h-44 object-contain bg-gray-100 rounded-xl border border-gray-200 shadow-sm" />
+                    </a>
+                    <p class="text-[10px] text-center text-gray-500 mt-1.5 italic">Klik gambar untuk memperbesar</p>
+                `;
+            } else {
+                imgContainer.innerHTML = `
+                    <div class="p-4 bg-gray-50 border border-gray-200 border-dashed rounded-xl text-center text-xs text-gray-400 italic mt-1">
+                        Karyawan tidak menyertakan foto bukti lampiran.
+                    </div>
+                `;
+            }
+
+            // Tampilkan tombol ACC/Tolak hanya jika status_pengajuan bernilai 'Menunggu'
+            const containerAksi = document.getElementById('detail_izin_aksi_container');
+            if((iz.status_pengajuan || 'Menunggu') === 'Menunggu') {
+                containerAksi.classList.remove('hidden');
+            } else {
+                containerAksi.classList.add('hidden');
+            }
+
+            window.openModal('modal-detail-izin');
+        };
+
+        // =======================================================
+        // OPERASIONAL POP-UP DETAIL HADIR/TELAT (TANPA APPROVAL)
+        // =======================================================
+        window.bukaModalDetailAbsen = function(idAbsen) {
+            const p = window.currentEmployee?.presensi?.find(x => String(x.id) === String(idAbsen));
+            if(!p) return alert("Data absensi tidak ditemukan!");
+
+            document.getElementById('det_abs_tgl').innerText = p.tanggal || '-';
+            document.getElementById('det_abs_masuk').innerText = p.waktu_tiba ? p.waktu_tiba.substring(0,5) : '-';
+            document.getElementById('det_abs_pulang').innerText = p.waktu_pulang ? p.waktu_pulang.substring(0,5) : '-';
+            
+            // Ganti warna badge sesuai status
+            const setBadge = (elId, status) => {
+                const el = document.getElementById(elId);
+                el.innerText = status || '-';
+                if(status === 'Telat') el.className = 'inline-block mt-2 text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-bold uppercase tracking-wider';
+                else el.className = 'inline-block mt-2 text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold uppercase tracking-wider';
+            };
+
+            setBadge('det_abs_status_masuk', p.status_tiba);
+            setBadge('det_abs_status_pulang', p.status_pulang);
+
+            window.openModal('modal-detail-absen');
+        };
+
+        // =======================================================
+        // 2. FUNGSI EKSEKUSI (UBAH STATUS PENGAJUAN DI DATABASE)
+        // =======================================================
+        window.approveIzinMurni = async function(statusTarget) {
+            if(!confirm(`Yakin ingin memproses keputusan: ${statusTarget.toUpperCase()}?`)) return;
+            if(!window.supabase) return;
+
+            const idIzin = document.getElementById('detail_izin_id').value;
+            const btnAcc = document.getElementById('btn-acc-izin');
+            const btnTolak = document.getElementById('btn-tolak-izin');
+            
+            btnAcc.disabled = true; btnTolak.disabled = true;
+
+            try {
+                // 🔥 TEMBAK UPDATE KE TABEL izin_karyawan 🔥
+                const { error } = await supabase
+                    .from('izin_karyawan')
+                    .update({ status_pengajuan: statusTarget })
+                    .eq('id', idIzin);
+                    
+                if (error) throw error;
+
+                alert(`Berkas pengajuan berhasil di-${statusTarget.toLowerCase()}.`);
+                window.closeModal('modal-detail-izin');
+
+                // Sinkronisasi Data Baru dari Supabase (Biar layar otomatis update)
+                const currentEmpId = window.currentEmployee.id;
+                const { data: freshData } = await supabase
+                    .from('profiles')
+                    .select('id, id_lapangan, nama, nomor_hp, foto_profil, role, tipe_kendaraan, presensi(tanggal, waktu_tiba, waktu_pulang, status_tiba, status_pulang), izin_karyawan(id, tanggal, status_pengajuan, alasan, foto_bukti, jam_rencana_keluar)')
+                    .order('nama', { ascending: true });
+                
+                if(freshData) {
+                    window.daftarKaryawan = freshData;
+                    window.currentEmployee = freshData.find(k => k.id === currentEmpId);
+                    
+                    renderKaryawan(window.daftarKaryawan); // Update kartu depan
+                    filterRiwayat(); // Update timeline di side panel
+                }
+
+            } catch (err) {
+                alert('Gagal memproses keputusan berkas: ' + err.message);
+                btnAcc.disabled = false; btnTolak.disabled = false;
+            }
+        };
+        // =======================================================
+        // FUNGSI KONTROL MODAL (BUKA TUTUP POP-UP)
+        // =======================================================
+        window.openModal = function(id) {
+            const m = document.getElementById(id);
+            if(!m) return;
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+            // Delay dikit biar animasi transisinya jalan mulus
+            setTimeout(() => { 
+                m.classList.remove('opacity-0'); 
+                const isi = m.querySelector('div');
+                if(isi) isi.classList.remove('scale-95'); 
+            }, 10);
+        };
+        
+        window.closeModal = function(id) {
+            const m = document.getElementById(id);
+            if(!m) return;
+            m.classList.add('opacity-0'); 
+            const isi = m.querySelector('div');
+            if(isi) isi.classList.add('scale-95');
+            // Tunggu animasi selesai baru di-hide beneran
+            setTimeout(() => { 
+                m.classList.add('hidden'); 
+                m.classList.remove('flex'); 
+            }, 300);
+        };
+    </script>
+    <div id="modal-detail-izin" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[80] p-4 transition-opacity opacity-0">
+    <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 shadow-2xl">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-amber-50">
+            <div>
+                <h3 class="font-bold text-lg text-gray-900">Lembar Bukti Pengajuan</h3>
+                <p class="text-xs text-amber-800 font-medium">Verifikasi berkas izin lapangan</p>
+            </div>
+            <button onclick="closeModal('modal-detail-izin')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="p-6 space-y-4">
+            <input type="hidden" id="detail_izin_id">
+            
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Alasan / Keterangan Karyawan:</label>
+                <p id="detail_izin_alasan" class="text-sm text-gray-800 bg-gray-50 p-3 rounded-xl border border-gray-200 italic leading-relaxed">"-"</p>
+            </div>
+
+            <div id="wrapper_jam_keluar" class="hidden">
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Rencana Jam Keluar (Pulang Cepat):</label>
+                <div class="text-sm font-bold text-red-700 bg-red-50 px-3 py-2 rounded-lg border border-red-100 inline-flex items-center gap-1.5">
+                    <i class="bi bi-clock-history"></i> <span id="detail_izin_jam_keluar">00:00</span> WIB
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Berkas Lampiran Foto / SKD:</label>
+                <div id="detail_izin_foto_container"></div>
+            </div>
+
+            <div id="detail_izin_aksi_container" class="pt-3 border-t border-gray-100 flex gap-3 hidden">
+                <button id="btn-tolak-izin" onclick="window.approveIzinMurni('Ditolak')" class="flex-1 bg-red-100 text-red-700 font-bold py-3 rounded-xl hover:bg-red-200 transition text-sm active:scale-95">
+                    Tolak Izin
+                </button>
+                <button id="btn-acc-izin" onclick="window.approveIzinMurni('Disetujui')" class="flex-1 bg-green-700 text-white font-bold py-3 rounded-xl hover:bg-green-800 transition text-sm shadow-sm active:scale-95">
+                    ACC / Setujui
+                </button>
+            </div>
+
+            <button onclick="closeModal('modal-detail-izin')" class="w-full bg-gray-100 text-gray-700 font-bold py-2.5 rounded-xl hover:bg-gray-200 transition text-sm border border-gray-200">
+                Kembali / Tutup
+            </button>
+        </div>
+    </div>
+</div>
+<div id="modal-detail-absen" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[80] p-4 transition-opacity opacity-0">
+    <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 shadow-2xl">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-blue-50">
+            <div>
+                <h3 class="font-bold text-lg text-gray-900">Detail Kehadiran</h3>
+                <p class="text-xs text-blue-800 font-medium">Rincian absensi reguler harian</p>
+            </div>
+            <button onclick="closeModal('modal-detail-absen')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="text-center pb-3 border-b border-gray-100">
+                <p class="text-xs text-gray-500 uppercase tracking-wider font-bold">Tanggal Absen</p>
+                <p id="det_abs_tgl" class="font-bold text-gray-900 text-lg mt-0.5"></p>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 text-center shadow-sm">
+                    <p class="text-[10px] font-bold text-gray-500 uppercase mb-1">Jam Masuk</p>
+                    <p id="det_abs_masuk" class="text-2xl font-bold text-gray-900">-</p>
+                    <span id="det_abs_status_masuk" class="inline-block mt-2 text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold uppercase tracking-wider">-</span>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 text-center shadow-sm">
+                    <p class="text-[10px] font-bold text-gray-500 uppercase mb-1">Jam Pulang</p>
+                    <p id="det_abs_pulang" class="text-2xl font-bold text-gray-900">-</p>
+                    <span id="det_abs_status_pulang" class="inline-block mt-2 text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold uppercase tracking-wider">-</span>
+                </div>
+            </div>
+            <button onclick="closeModal('modal-detail-absen')" class="w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-200 transition text-sm border border-gray-200 mt-2">
+                Kembali / Tutup
+            </button>
+        </div>
+    </div>
+</div>
+</Layout>

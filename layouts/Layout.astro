@@ -1,0 +1,770 @@
+---
+interface Props {
+    title: string;
+    requireAuth?: boolean;
+}
+
+const { title, requireAuth = true } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>{title}</title>
+    <link rel="icon" type="image/png" href="/5.png" />
+    <script is:inline src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    
+    <script is:inline id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#1b6d24",
+                        "on-tertiary-fixed": "#311300",
+                        "tertiary-fixed": "#ffdcc6",
+                        "secondary-fixed": "#acf4a4",
+                        "outline": "#707a6c",
+                        "secondary-container": "#acf4a4",
+                        "secondary": "#2a6b2c",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#f2f0f0",
+                        "surface-container": "#efeded",
+                        "primary-container": "#2e7d32",
+                        "on-secondary-fixed": "#002203",
+                        "on-secondary-container": "#307231",
+                        "background": "#fbf9f9",
+                        "tertiary": "#884200",
+                        "error-container": "#ffdad6",
+                        "error": "#ba1a1a",
+                        "primary": "#0d631b",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-high": "#e9e8e7",
+                        "on-primary-fixed-variant": "#005312",
+                        "on-surface-variant": "#40493d",
+                        "surface": "#fbf9f9",
+                        "on-surface": "#1b1c1c",
+                        "on-tertiary-container": "#ffeee6",
+                        "tertiary-fixed-dim": "#ffb786",
+                        "on-secondary": "#ffffff",
+                        "surface-bright": "#fbf9f9",
+                        "on-primary-container": "#cbffc2",
+                        "surface-dim": "#dbdad9",
+                        "surface-container-highest": "#e3e2e2",
+                        "on-tertiary-fixed-variant": "#723600",
+                        "inverse-primary": "#88d982",
+                        "tertiary-container": "#ad5600",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#91d78a",
+                        "on-secondary-fixed-variant": "#0c5216",
+                        "outline-variant": "#bfcaba",
+                        "primary-fixed-dim": "#88d982",
+                        "surface-container-low": "#f5f3f3",
+                        "on-background": "#1b1c1c",
+                        "surface-variant": "#e3e2e2",
+                        "on-error-container": "#93000a",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#303031",
+                        "primary-fixed": "#a3f69c",
+                        "on-primary-fixed": "#002204"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "lg": "24px",
+                        "xs": "4px",
+                        "container-margin": "16px",
+                        "gutter": "12px",
+                        "base": "8px",
+                        "xl": "32px",
+                        "touch-target": "48px",
+                        "sm": "8px",
+                        "safe": "env(safe-area-inset-bottom)"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter", "sans-serif"],
+                        "label-sm": ["Inter", "sans-serif"],
+                        "label-lg": ["Inter", "sans-serif"],
+                        "headline-lg": ["Inter", "sans-serif"],
+                        "display-data": ["Inter", "sans-serif"],
+                        "headline-md": ["Inter", "sans-serif"],
+                        "body-md": ["Inter", "sans-serif"],
+                        "headline-lg-mobile": ["Inter", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style is:global>
+        /* 🛡️ GLOBAL AUTH BLOCKER: Sembunyikan layar jika butuh login */
+        body[data-require-auth="true"] {
+            display: none;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        /* Animasi Transisi Sidebar & Overlay */
+        .sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar.active {
+            transform: translateX(0);
+        }
+
+        .sidebar-overlay {
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+<body
+    class="bg-background text-on-background min-h-screen font-body-lg text-body-lg overflow-x-hidden"
+    data-require-auth={requireAuth ? 'true' : 'false'}
+>
+    <header class="fixed top-0 left-0 w-full z-40 flex justify-between items-center px-4 md:px-lg h-16 bg-surface-container-lowest border-b border-outline-variant shadow-sm">
+        <div class="flex items-center gap-2 md:gap-4">
+            <button id="hamburger-btn" class="hidden w-10 h-10 items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full focus:outline-none">
+                <span class="material-symbols-outlined text-[24px]">menu</span>
+            </button>
+            
+            <a href="/" class="flex items-center gap-2 group text-decoration-none">
+                <div class="w-10 h-10 rounded-lg bg-white flex items-center justify-center shadow-sm group-hover:shadow transition-all overflow-hidden p-1">
+                    <img src="/5.png" alt="Logo" class="w-full h-full object-contain" />
+                </div>
+                <div class="flex items-baseline">
+                    <h1 class="text-xl md:text-2xl font-bold text-on-surface tracking-tight">BangJelantah</h1>
+                    <span class="hidden sm:inline-block ml-1.5 text-sm font-medium text-on-surface-variant uppercase tracking-widest">CMS</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="flex items-center gap-1 md:gap-2">
+            <div id="auth-logged-out" class="hidden items-center gap-2">
+                <a href="/login" class="hidden sm:flex items-center px-4 py-2 text-sm font-semibold text-primary hover:bg-surface-container-low rounded-full transition-colors">
+                    Masuk
+                </a>
+            </div>
+
+            <div id="auth-logged-in" class="hidden items-center gap-1 md:gap-2">
+                
+                <!-- BUNGKUS LONCENG DENGAN DIV RELATIVE -->
+                <div class="relative">
+                    <button id="notif-btn" class="relative w-10 h-10 hidden sm:flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full" type="button" aria-label="Notifikasi">
+                        <span class="material-symbols-outlined">notifications</span>
+                        <span id="notif-badge" class="hidden absolute top-2 right-2.5 w-2.5 h-2.5 bg-error rounded-full outline outline-2 outline-surface-container-lowest"></span>
+                    </button>
+                    
+                    <!-- KOTAK DROPDOWN NOTIFIKASI -->
+                    <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant overflow-hidden z-50">
+                        <div class="p-3 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+                            <h3 class="font-bold text-sm text-on-surface">Notifikasi Terbaru</h3>
+                            <button id="clear-notif" class="text-xs text-primary hover:underline font-medium">Bersihkan</button>
+                        </div>
+                        <div id="notif-list" class="max-h-80 overflow-y-auto p-2 space-y-1">
+                            <p id="empty-notif" class="text-xs text-on-surface-variant text-center py-4">Belum ada notifikasi baru.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ml-2 w-9 h-9 rounded-full overflow-hidden border-2 border-primary-container cursor-pointer hover:opacity-90 transition-opacity">
+                    <img
+                        id="user-avatar"
+                        alt="User Avatar"
+                        class="w-full h-full object-cover"
+                        src="https://ui-avatars.com/api/?name=Bang+Jelantah&background=2e7d32&color=ffffff"
+                    >
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="relative">
+        <div id="sidebar-overlay" class="sidebar-overlay fixed inset-0 bg-on-surface/40 backdrop-blur-sm z-[50]"></div>
+
+        <nav id="sidebar" class="sidebar fixed left-0 top-0 w-[280px] h-screen z-[60] bg-surface-container-lowest border-r border-outline-variant shadow-2xl flex flex-col p-4 overflow-y-auto">
+            <div class="flex items-center justify-between mb-6 pt-2 px-2">
+                <div class="flex items-center gap-2">
+                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary">
+                        <img src="/3.png" alt="Logo" class="w-full h-full object-contain" />
+                    </div>
+                    <span class="font-bold text-lg text-primary tracking-tight">BJPWK-CMS</span>
+                </div>
+                <button id="close-sidebar" class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full" type="button" aria-label="Tutup sidebar">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+
+            <div class="flex-1 flex flex-col gap-1">
+                <p class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Menu Utama</p>
+                
+                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/" data-nav>
+                    <span class="material-symbols-outlined text-[22px]" data-weight="fill">dashboard</span>
+                    <span class="font-medium text-sm">Dashboard</span>
+                </a>
+                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/kemitraan" data-nav>
+                    <span class="material-symbols-outlined text-[22px]">handshake</span>
+                    <span class="font-medium text-sm">Kemitraan</span>
+                </a>
+                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/operasional" data-nav>
+                    <span class="material-symbols-outlined text-[22px]">local_shipping</span>
+                    <span class="font-medium text-sm">Operasional</span>
+                </a>
+                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/gudang" data-nav>
+                    <span class="material-symbols-outlined text-[22px]">inventory_2</span>
+                    <span class="font-medium text-sm">Gudang</span>
+                </a>
+                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/pengolahan-external" data-nav>
+                    <span class="material-symbols-outlined text-[22px]">factory</span>
+                    <span class="font-medium text-sm">Pengolahan Eksternal</span>
+                </a>
+                
+                <p class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mt-4 mb-1">Manajemen</p>
+                
+                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/karyawan" data-nav>
+                    <span class="material-symbols-outlined text-[22px]">people</span>
+                    <span class="font-medium text-sm">Karyawan</span>
+                </a>
+                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/gaji_karyawan" data-nav>
+                    <span class="material-symbols-outlined text-[22px]">payments</span>
+                    <span class="font-medium text-sm">Gajian Karyawan</span>
+                </a>
+                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/pembelian" data-nav>
+                    <span class="material-symbols-outlined text-[22px]">shopping_cart_checkout</span>
+                    <span class="font-medium text-sm">Pembelian</span>
+                </a>
+                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/pengeluaran" data-nav>
+                   <span class="material-symbols-outlined text-[22px]">account_balance_wallet</span>
+                    <span class="font-medium text-sm">Pengeluaran</span>
+                </a>
+                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/penjualan" data-nav>
+                    <span class="material-symbols-outlined text-[22px]">trending_up</span>
+                    <span class="font-medium text-sm">Penjualan</span>
+                </a>
+                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/periklanan" data-nav>
+                    <span class="material-symbols-outlined text-[22px]">campaign</span>
+                    <span class="font-medium text-sm">Periklanan</span>
+                </a>
+                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/hak-akses" data-nav>
+                    <span class="material-symbols-outlined text-[22px]">manage_accounts</span>
+                    <span class="font-medium text-sm">Hak Akses</span>
+                </a>
+            </div>
+
+            <div id="sidebar-footer" class="hidden mt-6 pt-4 border-t border-outline-variant">
+                <button id="btn-logout" class="w-full flex items-center justify-center gap-2 bg-error-container text-on-error-container px-4 py-3 rounded-xl font-medium text-sm hover:opacity-90 transition-opacity active:scale-[0.98]" type="button">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span>Akhiri Sesi</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <main id="app-content" class="w-full min-h-screen pt-20 pb-8 px-4 md:px-lg overflow-x-hidden">
+        <slot />
+    </main>
+
+    <script>
+        import { supabase } from '../lib/supabase.js';
+
+// 🧹 PENYAPU BERSIH WEBSOCKET (SOLUSI ERROR "CLOSED BEFORE CONNECTION")
+        window.addEventListener('beforeunload', () => {
+            if (window.supabase) {
+                window.supabase.removeAllChannels(); // Tutup koneksi dengan sopan sebelum pindah/reload halaman
+            }
+        });
+
+        function runWhenReady(callback) {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', callback, { once: true });
+                return;
+            }
+            callback();
+        }
+        
+        // 👇 TARUH KODE STERILNYA TEPAT DI SINI (DI LUAR FUNGSI) 👇
+        //document.addEventListener('contextmenu', function(e) {
+        //    e.preventDefault();
+        //}, false);
+        //
+        //document.addEventListener('keydown', function(e) {
+        //    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+        //        e.preventDefault();
+        //    }
+        //});
+
+        // ==========================================
+        // FITUR NOTIFIKASI REAL-TIME (DIPERBARUI)
+        // ==========================================
+        function initRealtimeNotifications() {
+            if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+                Notification.requestPermission();
+            }
+
+            const notifBadge = document.getElementById('notif-badge');
+            const notifBtn = document.getElementById('notif-btn');
+            const notifDropdown = document.getElementById('notif-dropdown');
+            const notifList = document.getElementById('notif-list');
+            const clearNotif = document.getElementById('clear-notif');
+
+            // 1. Toggle Dropdown saat lonceng diklik
+            notifBtn?.addEventListener('click', (e) => {
+                e.stopPropagation(); // Mencegah klik tembus ke luar
+                notifBadge?.classList.add('hidden'); // Hilangkan titik merah
+                notifDropdown?.classList.toggle('hidden'); // Muncul/Sembunyikan kotak dropdown
+            });
+
+            // 2. Tutup dropdown kalau user ngeklik di luar kotak
+            window.addEventListener('click', (e) => {
+                if (!notifBtn?.contains(e.target) && !notifDropdown?.contains(e.target)) {
+                    notifDropdown?.classList.add('hidden');
+                }
+            });
+
+            // 3. Tombol "Bersihkan" Notifikasi
+            clearNotif?.addEventListener('click', () => {
+                if(notifList) {
+                    notifList.innerHTML = '<p id="empty-notif" class="text-xs text-on-surface-variant text-center py-4">Belum ada notifikasi baru.</p>';
+                }
+            });
+
+            // 4. Fungsi Menambah Notifikasi ke UI dan Push Browser
+            function sendPush(title, body, iconUrl = 'https://ui-avatars.com/api/?name=Bang+Jelantah&background=2e7d32&color=ffffff') {
+                // Munculkan titik merah di lonceng
+                notifBadge?.classList.remove('hidden');
+
+                // Tambahkan elemen baru ke daftar Dropdown
+                const emptyMsg = document.getElementById('empty-notif');
+                if (emptyMsg) emptyMsg.remove(); // Hapus tulisan "Belum ada notifikasi"
+
+                const waktu = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                const notifItem = document.createElement('div');
+                notifItem.className = 'p-3 bg-surface-container-low hover:bg-surface-container rounded-lg cursor-pointer transition-colors border-l-4 border-primary mb-1';
+                notifItem.innerHTML = `
+                    <p class="font-bold text-sm text-on-surface">${title}</p>
+                    <p class="text-xs text-on-surface-variant mt-1">${body}</p>
+                    <p class="text-[10px] text-outline mt-2 text-right">${waktu}</p>
+                `;
+                notifList?.prepend(notifItem); // Prepend = Masukkan paling atas (terbaru)
+
+                // Push ke Desktop/Browser
+                if ("Notification" in window && Notification.permission === "granted") {
+                    new Notification(title, { 
+                        body: body,
+                        icon: iconUrl
+                    });
+                }
+            }
+
+            if (window.supabase) {
+                // TAMBAHKAN BARIS INI: Bersihkan koneksi channel lama sebelum bikin baru
+                window.supabase.removeAllChannels();
+
+                window.supabase.channel('dashboard-notifications')
+                
+                // 1. MONITOR TRANSAKSI (Hanya Jika Status Berubah Jadi 'Selesai')
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'transaksi' }, async (payload) => {
+                    const newData = payload.new;
+                    const oldData = payload.old || {};
+
+                    if (newData.status === 'Selesai' && oldData.status !== 'Selesai') {
+                        const { data: relasi } = await window.supabase
+                            .from('transaksi')
+                            .select('metode_bayar, penjemputan(mitra(nama_mitra))')
+                            .eq('id', newData.id)
+                            .single();
+
+                        const namaMitra = relasi?.penjemputan?.mitra?.nama_mitra || 'Mitra';
+                        const metode = relasi?.metode_bayar || newData.metode_bayar || 'Kas/Transfer';
+
+                        sendPush(
+                            '✅ Pembayaran Selesai!', 
+                            `Setoran dari ${namaMitra} telah divalidasi dan lunas (Metode: ${metode}).`,
+                            'https://cdn-icons-png.flaticon.com/512/190/190411.png'
+                        );
+                    }
+                })
+
+                // 2. MONITOR PRESENSI KARYAWAN
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'presensi' }, async (payload) => {
+                    if (payload.eventType === 'DELETE') return;
+                    
+                    const newData = payload.new;
+                    const oldData = payload.old || {};
+
+                    const isWaktuPulangDiisi = newData.waktu_pulang && !oldData.waktu_pulang;
+                    const statusAlerts = ['Pulang', 'Izin', 'Izin Pulang Cepat', 'Sakit'];
+                    
+                    const isStatusTibaTrigger = statusAlerts.includes(newData.status_tiba) && newData.status_tiba !== oldData.status_tiba;
+                    const isStatusPulangTrigger = statusAlerts.includes(newData.status_pulang) && newData.status_pulang !== oldData.status_pulang;
+
+                    if (isWaktuPulangDiisi || isStatusTibaTrigger || isStatusPulangTrigger) {
+                        const { data: user } = await window.supabase.from('profiles').select('nama').eq('id', newData.user_id).single();
+                        const namaKaryawan = user?.nama || 'Karyawan';
+                        
+                        let pesan = '';
+                        let title = '📋 Update Presensi';
+                        let icon = 'https://cdn-icons-png.flaticon.com/512/3237/3237447.png';
+
+                        if (newData.status_tiba === 'Sakit' || newData.status_tiba === 'Izin') {
+                            title = '⚠️ Info Kehadiran';
+                            pesan = `${namaKaryawan} mengajukan ${newData.status_tiba} hari ini.`;
+                            icon = 'https://cdn-icons-png.flaticon.com/512/4203/4203250.png';
+                        } else if (newData.status_pulang === 'Izin Pulang Cepat') {
+                            title = '🏃 Pulang Lebih Awal';
+                            pesan = `${namaKaryawan} baru saja izin pulang cepat.`;
+                        } else if (isWaktuPulangDiisi || newData.status_pulang === 'Pulang') {
+                            title = '👋 Karyawan Pulang';
+                            pesan = `${namaKaryawan} telah melakukan absen pulang.`;
+                            icon = 'https://cdn-icons-png.flaticon.com/512/6009/6009864.png';
+                        }
+
+                        if(pesan) sendPush(title, pesan, icon);
+                    }
+                })
+
+                // 3. MONITOR PENGELUARAN KARYAWAN (Dari kodingan asli lu)
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pengeluaran' }, payload => {
+                    sendPush(
+                        '💸 Pengeluaran Karyawan', 
+                        `Pengajuan kas jalan baru sebesar Rp ${Number(payload.new.total_harian).toLocaleString('id-ID')} menunggu persetujuan.`,
+                        'https://cdn-icons-png.flaticon.com/512/2489/2489756.png'
+                    );
+                })
+
+                // 4. MONITOR PENJUALAN OLAHAN
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'penjualan_olahan' }, payload => {
+                    // Pakai fallback 'Distributor' seandainya data pembeli kosong
+                    const pembeli = payload.new.pembeli || 'Distributor'; 
+                    sendPush(
+                        '📦 Penjualan Berhasil!', 
+                        `Terdapat input penjualan olahan baru ke ${pembeli}.`,
+                        'https://cdn-icons-png.flaticon.com/512/3144/3144456.png'
+                    );
+                })
+
+                // 5. MONITOR GUDANG MASUK
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'gudang_mutasi' }, payload => {
+                    if (payload.new.jenis_mutasi === 'Masuk') {
+                        // Regex /_/g untuk mengubah semua underscore jadi spasi (contoh: minyak_jelantah -> minyak jelantah)
+                        const komoditas = payload.new.komoditas_id ? payload.new.komoditas_id.replace(/_/g, ' ') : 'Barang';
+                        sendPush(
+                            '🚛 Barang Gudang Masuk', 
+                            `Stok ${komoditas} baru saja bertambah sebanyak ${payload.new.jumlah} Kg.`,
+                            'https://cdn-icons-png.flaticon.com/512/679/679821.png' 
+                        );
+                    }
+                })
+                
+                .subscribe();
+            }
+        }
+
+        function initSidebar() {
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const sidebar = document.getElementById('sidebar');
+            const closeBtn = document.getElementById('close-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const navLinks = document.querySelectorAll('[data-nav]');
+            const currentPath = window.location.pathname;
+
+            function openSidebar() {
+                if (!sidebar || !overlay) return;
+                sidebar.classList.add('active');
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                if (!sidebar || !overlay) return;
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            // @ts-ignore
+            window.closeAppSidebar = closeSidebar;
+
+            hamburgerBtn?.addEventListener('click', openSidebar);
+            closeBtn?.addEventListener('click', closeSidebar);
+            overlay?.addEventListener('click', closeSidebar);
+
+            navLinks.forEach((link) => {
+                link.classList.remove('bg-primary-container', 'text-on-primary-container', 'font-bold');
+                link.classList.add('text-on-surface-variant', 'hover:bg-surface-container-low');
+                
+                const href = link.getAttribute('href');
+                const isActive =
+                    (currentPath === '/' && href === '/') ||
+                    (currentPath !== '/' && currentPath === href);
+
+                if (isActive) {
+                    link.classList.remove('text-on-surface-variant', 'hover:bg-surface-container-low');
+                    link.classList.add('bg-primary-container', 'text-on-primary-container', 'font-bold');
+                }
+            });
+        }
+
+        async function renderAuthUI(session) {
+            const loggedOutView = document.getElementById('auth-logged-out');
+            const loggedInView = document.getElementById('auth-logged-in');
+            const sidebarFooter = document.getElementById('sidebar-footer');
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const avatarImg = document.getElementById('user-avatar');
+
+            if (session) {
+                loggedOutView?.classList.add('hidden');
+                loggedOutView?.classList.remove('flex');
+
+                loggedInView?.classList.remove('hidden');
+                loggedInView?.classList.add('flex');
+
+                hamburgerBtn?.classList.remove('hidden');
+                hamburgerBtn?.classList.add('flex');
+
+                sidebarFooter?.classList.remove('hidden');
+
+                // LOGIKA CACHE HEMAT API (HANYA FETCH JIKA BELUM ADA)
+                if (avatarImg) {
+                    const cacheKey = `profile_${session.user.id}`;
+                    const cachedData = localStorage.getItem(cacheKey);
+
+                    // 1. Kalo data login user ini SAMA dan SUDAH ADA di cache, langsung pakai! 
+                    // Gak bakal fetch ke Supabase lagi walaupun di-refresh berkali-kali.
+                    if (cachedData) {
+                        const profile = JSON.parse(cachedData);
+                        updateAvatarElement(avatarImg, profile.nama, profile.foto_profil);
+                    } else {
+                        // 2. Kalo BEDA user / belum ada cache-nya, baru fetch sekali ke Supabase
+                        try {
+                            const { data: profileData, error } = await supabase
+                                .from('profiles')
+                                .select('nama, foto_profil')
+                                .eq('id', session.user.id)
+                                .single();
+
+                            if (!error && profileData) {
+                                // Simpan ke penyimpanan lokal browser permanent
+                                localStorage.setItem(cacheKey, JSON.stringify(profileData));
+                                
+                                updateAvatarElement(avatarImg, profileData.nama, profileData.foto_profil);
+                            }
+                        } catch (err) {
+                            console.error("Gagal memuat foto profil dari database:", err);
+                        }
+                    }
+                }
+                return;
+            }
+
+            // Kondisi saat User Logout (Hapus Cache)
+            if (session === null) {
+                // Cari key profile lokal lalu hapus saat logout
+                const semuaKey = Object.keys(localStorage);
+                semuaKey.forEach(key => {
+                    if (key.startsWith('profile_')) localStorage.removeItem(key);
+                });
+            }
+
+            loggedOutView?.classList.remove('hidden');
+            loggedOutView?.classList.add('flex');
+
+            loggedInView?.classList.add('hidden');
+            loggedInView?.classList.remove('flex');
+
+            hamburgerBtn?.classList.add('hidden');
+            hamburgerBtn?.classList.remove('flex');
+
+            sidebarFooter?.classList.add('hidden');
+            // @ts-ignore
+            window.closeAppSidebar?.();
+        }
+
+        // Helper fungsi pembantu untuk mengganti attribute src pada tag img
+        function updateAvatarElement(element, nama, urlFoto) {
+            if (urlFoto) {
+                element.setAttribute('src', urlFoto);
+            } else {
+                const namaUser = nama || 'Karyawan';
+                element.setAttribute('src', `https://ui-avatars.com/api/?name=${encodeURIComponent(namaUser)}&background=2e7d32&color=ffffff`);
+            }
+        }
+
+        async function initAuthCheck() {
+            const requireAuth = document.body.dataset.requireAuth === 'true';
+            const currentPath = window.location.pathname;
+
+            const { data, error } = await supabase.auth.getSession();
+            const session = data?.session ?? null;
+
+            if (error) {
+                console.error('Gagal membaca session Supabase:', error.message);
+            }
+
+            // JIKA BELUM LOGIN: Layar tetap 'display: none', langsung tendang!
+            if (requireAuth && !session && currentPath !== '/login') {
+                window.location.replace('/login');
+                return; // Proses berhenti di sini, jadi WebSocket nggak akan terpicu!
+            }
+
+            // 🔥 JIKA LOLOS AUTH: Buka gembok layarnya!
+            if (requireAuth) {
+                document.body.style.display = 'block';
+            }
+
+            renderAuthUI(session);
+
+            // 🔥 JALANKAN WEBSOCKET HANYA JIKA USER SUDAH VALID LOGIN 🔥
+            if (session) {
+                initRealtimeNotifications();
+            }
+
+            supabase.auth.onAuthStateChange((_event, session) => {
+                if (requireAuth && !session && window.location.pathname !== '/login') {
+                    document.body.style.display = 'none';
+                    // Bersihkan WebSocket sebelum ditendang keluar
+                    if(window.supabase) window.supabase.removeAllChannels(); 
+                    window.location.replace('/login');
+                    return;
+                }
+                renderAuthUI(session);
+            });
+        }
+
+        function initLogout() {
+            const logoutButton = document.getElementById('btn-logout');
+
+            logoutButton?.addEventListener('click', async () => {
+                logoutButton.setAttribute('disabled', 'true');
+
+                const { error } = await supabase.auth.signOut();
+
+                if (error) {
+                    console.error('Gagal logout:', error.message);
+                    logoutButton.removeAttribute('disabled');
+                    return;
+                }
+                window.location.replace('/login');
+            });
+        }
+
+        runWhenReady(() => {
+            initSidebar();
+            initAuthCheck();
+            initLogout();
+            //initRealtimeNotifications(); // Menjalankan Notifikasi Real-Time
+        });
+    </script>
+    <!-- Script Integrasi FCM -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
+
+        // ⚠️ GANTI DENGAN CONFIG DARI FIREBASE CONSOLE LU ⚠️
+        const firebaseConfig = {
+          apiKey: "AIzaSyBhSvulo8KRVoe7Fo09dL6t6aqmfSS1yRE",
+          authDomain: "project-bang-jelantah.firebaseapp.com",
+          projectId: "project-bang-jelantah",
+          storageBucket: "project-bang-jelantah.firebasestorage.app",
+          messagingSenderId: "422054168481",
+          appId: "1:422054168481:web:9e8159f56b2de70778ade0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const messaging = getMessaging(app);
+
+        // Minta Izin & Dapatkan Token
+        async function requestFCMToken() {
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    // ⚠️ GANTI VAPID KEY DI BAWAH INI ⚠️
+                    const currentToken = await getToken(messaging, { 
+                        vapidKey: 'VAPID_KEY_LU_DARI_FIREBASE_CONSOLE' 
+                    });
+                    
+                    if (currentToken) {
+                        console.log('✅ FCM Token sukses didapatkan:', currentToken);
+                        
+                        /* 
+                         * TODO MASA DEPAN: 
+                         * Lu bisa kirim 'currentToken' ini ke Supabase table 'profiles', 
+                         * biar server backend lu tau harus kirim notif ke token mana 
+                         * saat ada transaksi atau pengajuan baru.
+                         */
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Gagal mendapatkan FCM token:', error);
+            }
+        }
+
+        // Tangkap notifikasi dari Firebase saat user SEDANG ngebuka webnya (Foreground)
+        onMessage(messaging, (payload) => {
+            console.log("Notifikasi Foreground FCM masuk: ", payload);
+            
+            // Nyalakan titik merah di lonceng UI
+            const notifBadge = document.getElementById('notif-badge');
+            if(notifBadge) notifBadge.classList.remove('hidden');
+        });
+
+        // 1. Daftarkan Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/firebase-messaging-sw.js')
+            .then((registration) => console.log('✅ [Sistem] Service Worker terdaftar!'))
+            .catch((err) => console.error('❌ [Sistem] Gagal daftar Service Worker:', err));
+        }
+
+        // 2. Klik lonceng dengan laporan lengkap
+        document.getElementById('notif-btn')?.addEventListener('click', async () => {
+            console.log('🔔 [Sistem] Lonceng diklik! Mengecek status izin saat ini:', Notification.permission);
+            
+            try {
+                // Minta izin ke browser
+                const permission = await Notification.requestPermission();
+                console.log('🔔 [Sistem] Hasil permintaan izin:', permission);
+
+                if (permission === 'granted') {
+                    console.log('⏳ [Sistem] Izin diberikan, sedang menghubungi Firebase untuk ambil Token...');
+                    
+                    // ⚠️ PASTIKAN VAPID KEY LU UDAH BENAR DI SINI ⚠️
+                    const currentToken = await getToken(messaging, { 
+                        vapidKey: 'VAPID_KEY_LU_DARI_FIREBASE_CONSOLE' 
+                    });
+                    
+                    if (currentToken) {
+                        console.log('✅ [SUKSES] FCM Token didapatkan:', currentToken);
+                        alert("Berhasil terhubung ke FCM! Cek console untuk lihat Token.");
+                    } else {
+                        console.log('❌ [GAGAL] Token tidak didapat. Periksa VAPID Key lu.');
+                    }
+                } else {
+                    console.log('❌ [GAGAL] User menolak izin notifikasi.');
+                }
+            } catch (err) {
+                console.error('❌ [ERROR] Terjadi masalah fatal saat request token:', err);
+            }
+        });
+    </script>
+</body>
+</html>

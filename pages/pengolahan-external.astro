@@ -1,0 +1,308 @@
+---
+import GeneralLayout from '../layouts/Layout.astro';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+---
+
+<GeneralLayout title="Pengolahan Eksternal - Manajemen Bang Jelantah">
+    <style is:global>
+        body { display: none; }
+    </style>
+
+    <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Pengolahan Eksternal (Spinner)</h1>
+            <p class="text-gray-600">Catat penyaringan bahan baku dengan pihak luar, update stok, dan otomatis rekap biaya jasa.</p>
+        </div>
+    </div>
+
+    <div class="mb-6 border-b border-gray-200 overflow-x-auto hide-scrollbar">
+        <div class="flex gap-8 min-w-max">
+            <button class="tab-btn active px-4 py-3 font-bold transition border-b-2 border-orange-600 text-orange-600" data-tab="tab-input">
+                <i class="bi bi-funnel-fill mr-2"></i> Input Pengolahan
+            </button>
+            <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="tab-riwayat">
+                <i class="bi bi-clock-history mr-2"></i> Riwayat Pengolahan
+            </button>
+        </div>
+    </div>
+
+    <div id="tab-input" class="tab-content block">
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm lg:w-2/3">
+            <div class="p-6 border-b border-gray-100 bg-orange-50/50">
+                <h3 class="font-bold text-lg text-gray-900">Form Proses Spinner / Penyaringan</h3>
+            </div>
+            
+            <form id="form-pengolahan" class="p-6 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Tanggal Proses</label>
+                        <input type="date" id="tgl_proses" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-orange-500 font-medium" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Pihak / Vendor Eksternal</label>
+                        <input type="text" id="nama_vendor" placeholder="Nama orang / bengkel..." class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-orange-500 font-medium" required>
+                    </div>
+                </div>
+
+                <hr class="border-dashed">
+
+                <div>
+                    <h4 class="text-sm font-bold text-red-600 mb-3"><i class="bi bi-box-arrow-up-right"></i> Bahan Mentah Keluar</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-red-50/30 p-4 rounded-xl border border-red-100">
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Pilih Komoditas Asal (Ampas/Kriuk)</label>
+                            <select id="komoditas_asal" class="opsi-komoditas w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none bg-white font-medium" required></select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Volume Diproses (Kg)</label>
+                            <input type="number" step="0.1" id="vol_asal" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none font-bold text-red-700" placeholder="0" oninput="hitungTotalBiaya()" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-sm font-bold text-green-600 mb-3"><i class="bi bi-box-arrow-in-down-left"></i> Barang Jadi (Hasil)</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-green-50/30 p-4 rounded-xl border border-green-100">
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Minyak Jelantah</label>
+                                <select id="komoditas_minyak" class="opsi-komoditas w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-medium" required></select>
+                            </div>
+                            <div>
+                                <input type="number" step="0.1" id="vol_minyak" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none font-bold text-green-700" placeholder="Hasil Minyak (Kg)" required>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Ampas Kering / Spinner</label>
+                                <select id="komoditas_spinner" class="opsi-komoditas w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-medium" required></select>
+                            </div>
+                            <div>
+                                <input type="number" step="0.1" id="vol_spinner" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none font-bold text-green-700" placeholder="Hasil Spinner (Kg)" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-900 p-5 rounded-xl shadow-inner text-white grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Harga Jasa Per Kg (Rp)</label>
+                        <input type="number" id="harga_jasa" class="w-full border-none bg-gray-800 rounded-lg p-3 text-sm outline-none font-bold text-white focus:ring-2 focus:ring-orange-500" placeholder="Cth: 500" oninput="hitungTotalBiaya()" required>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Total Biaya Masuk Pengeluaran</span>
+                        <span class="font-bold text-2xl text-orange-400 font-mono" id="display_total_biaya">Rp 0</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" id="btn-save-pengolahan" class="px-6 py-3 bg-orange-600 text-white font-bold rounded-xl hover:bg-orange-700 transition shadow-sm active:scale-95 flex items-center gap-2">
+                        <i class="bi bi-gear-fill"></i> Eksekusi & Catat ke Sistem
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="tab-riwayat" class="tab-content hidden">
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-4 py-3 text-sm font-bold text-gray-900">Tgl & Vendor</th>
+                            <th class="px-4 py-3 text-sm font-bold text-gray-900">Diproses</th>
+                            <th class="px-4 py-3 text-sm font-bold text-gray-900">Hasil Jadi</th>
+                            <th class="px-4 py-3 text-sm font-bold text-gray-900 text-right">Biaya Jasa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="riwayat-tbody" class="divide-y divide-gray-100">
+                        <tr><td colspan="4" class="text-center py-4 text-gray-500">Memuat riwayat...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</GeneralLayout>
+
+<script>
+    import { supabase } from '../lib/supabase';
+    window.supabase = supabase;
+    
+    // Variabel Global
+    let currentUserId = '';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const allowedRoles = ['owner', 'hrd', 'keuangan', 'admin'];
+        const client = window.supabase; 
+        
+        const { data: { session } } = await client.auth.getSession();
+        if (!session) return window.location.replace('/');
+        
+        currentUserId = session.user.id;
+        const { data: prof } = await client.from('profiles').select('role').eq('id', currentUserId).single();
+        if (!allowedRoles.includes(prof?.role)) {
+            alert("Akses Ditolak!"); return window.location.replace('/');
+        }
+        document.body.style.display = 'block';
+
+        // Tab Logic
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-tab');
+                tabBtns.forEach(b => {
+                    b.classList.remove('active', 'border-orange-600', 'text-orange-600', 'font-bold');
+                    b.classList.add('border-transparent', 'text-gray-600', 'font-medium');
+                });
+                tabContents.forEach(c => { c.classList.remove('block'); c.classList.add('hidden'); });
+                
+                this.classList.add('active', 'border-orange-600', 'text-orange-600', 'font-bold');
+                this.classList.remove('border-transparent', 'text-gray-600', 'font-medium');
+                document.getElementById(targetId)?.classList.replace('hidden', 'block');
+            });
+        });
+
+        // ===================================
+        // 1. KALKULASI & LOAD DATA
+        // ===================================
+        window.hitungTotalBiaya = function() {
+            const vol = parseFloat(document.getElementById('vol_asal').value) || 0;
+            const harga = parseFloat(document.getElementById('harga_jasa').value) || 0;
+            const total = vol * harga;
+            document.getElementById('display_total_biaya').innerText = 'Rp ' + total.toLocaleString('id-ID');
+        };
+
+        async function loadDataHalaman() {
+            // Load Komoditas ke Dropdowns
+            const { data: kom } = await client.from('gudang_komoditas').select('id, nama_komoditas');
+            let opsiHtml = '<option value="">-- Pilih Komoditas --</option>';
+            kom?.forEach(k => opsiHtml += `<option value="${k.id}">${k.nama_komoditas}</option>`);
+            document.querySelectorAll('.opsi-komoditas').forEach(el => el.innerHTML = opsiHtml);
+
+            // Set Tanggal Hari Ini
+            document.getElementById('tgl_proses').value = new Date().toISOString().split('T')[0];
+
+            // Load Riwayat
+            const { data: riwayat } = await client.from('pengolahan_eksternal')
+                .select(`*, asal:komoditas_asal_id(nama_komoditas), min:komoditas_minyak_id(nama_komoditas), spin:komoditas_spinner_id(nama_komoditas)`)
+                .order('tanggal', { ascending: false });
+            
+            let htmlRow = '';
+            riwayat?.forEach(r => {
+                htmlRow += `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 align-top">
+                        <div class="font-bold text-gray-900 text-sm">${r.tanggal}</div>
+                        <div class="text-xs text-gray-500 mt-1"><i class="bi bi-person mr-1"></i> ${r.nama_vendor}</div>
+                    </td>
+                    <td class="px-4 py-3 align-top">
+                        <span class="bg-red-50 text-red-700 px-2 py-1 rounded text-[10px] font-bold block w-fit mb-1">${r.asal?.nama_komoditas}</span>
+                        <div class="text-sm font-bold text-gray-700">${r.vol_asal} Kg</div>
+                    </td>
+                    <td class="px-4 py-3 align-top">
+                        <div class="flex flex-col gap-1.5">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded text-[10px] font-bold w-16 text-center">Minyak</span>
+                                <span class="text-sm font-bold text-gray-700">${r.vol_minyak} Kg</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="bg-green-50 text-green-700 px-2 py-0.5 rounded text-[10px] font-bold w-16 text-center">Spinner</span>
+                                <span class="text-sm font-bold text-gray-700">${r.vol_spinner} Kg</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 align-top text-right">
+                        <div class="text-sm font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded inline-block">Rp ${Number(r.total_biaya).toLocaleString('id-ID')}</div>
+                        <div class="text-[10px] text-gray-500 mt-1">@Rp${r.harga_jasa_per_kg}/Kg</div>
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('riwayat-tbody').innerHTML = htmlRow || '<tr><td colspan="4" class="text-center py-4 text-gray-500">Belum ada riwayat.</td></tr>';
+        }
+
+        await loadDataHalaman();
+
+        // ===================================
+        // 2. SUBMIT EKSEKUSI PENGOLAHAN
+        // ===================================
+        document.getElementById('form-pengolahan')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save-pengolahan');
+            btn.innerHTML = `<i class="bi bi-hourglass-split"></i> Memproses...`; btn.disabled = true;
+
+            try {
+                // Ambil Nilai Form
+                const tgl = document.getElementById('tgl_proses').value;
+                const vendor = document.getElementById('nama_vendor').value;
+                const komAsal = document.getElementById('komoditas_asal').value;
+                const volAsal = parseFloat(document.getElementById('vol_asal').value);
+                const komMinyak = document.getElementById('komoditas_minyak').value;
+                const volMinyak = parseFloat(document.getElementById('vol_minyak').value);
+                const komSpinner = document.getElementById('komoditas_spinner').value;
+                const volSpinner = parseFloat(document.getElementById('vol_spinner').value);
+                const harga = parseFloat(document.getElementById('harga_jasa').value);
+                const totalBiaya = volAsal * harga;
+
+                if(komAsal === komMinyak || komAsal === komSpinner) throw new Error("Komoditas hasil tidak boleh sama dengan komoditas asal!");
+
+                // 1. Simpan Riwayat Utama
+                await client.from('pengolahan_eksternal').insert([{
+                    tanggal: tgl, nama_vendor: vendor, 
+                    komoditas_asal_id: komAsal, vol_asal: volAsal,
+                    komoditas_minyak_id: komMinyak, vol_minyak: volMinyak,
+                    komoditas_spinner_id: komSpinner, vol_spinner: volSpinner,
+                    harga_jasa_per_kg: harga, total_biaya: totalBiaya
+                }]);
+
+                // 2. Potong & Tambah Stok Gudang + Mutasi
+                // Keluar: Bahan Asal
+                const { data: gA } = await client.from('gudang_komoditas').select('stok').eq('id', komAsal).single();
+                await client.from('gudang_komoditas').update({ stok: gA.stok - volAsal }).eq('id', komAsal);
+                await client.from('gudang_mutasi').insert([{ jenis_mutasi: 'Keluar', komoditas_id: komAsal, jumlah: -volAsal, keterangan: `Diproses oleh ${vendor} (Pengolahan)` }]);
+
+                // Masuk: Minyak
+                const { data: gM } = await client.from('gudang_komoditas').select('stok').eq('id', komMinyak).single();
+                await client.from('gudang_komoditas').update({ stok: gM.stok + volMinyak }).eq('id', komMinyak);
+                await client.from('gudang_mutasi').insert([{ jenis_mutasi: 'Masuk', komoditas_id: komMinyak, jumlah: volMinyak, keterangan: `Hasil proses ${vendor} (Pengolahan)` }]);
+
+                // Masuk: Spinner
+                const { data: gS } = await client.from('gudang_komoditas').select('stok').eq('id', komSpinner).single();
+                await client.from('gudang_komoditas').update({ stok: gS.stok + volSpinner }).eq('id', komSpinner);
+                await client.from('gudang_mutasi').insert([{ jenis_mutasi: 'Masuk', komoditas_id: komSpinner, jumlah: volSpinner, keterangan: `Hasil proses ${vendor} (Pengolahan)` }]);
+
+                // 3. Masukkan ke Tagihan Pengeluaran Keuangan
+                // Cek ketersediaan induk data harian
+                const { data: existPeng } = await client.from('pengeluaran')
+                    .select('id, total_harian').eq('user_id', currentUserId).eq('tanggal', tgl).maybeSingle();
+                
+                let pengeluaranId;
+                if (existPeng) {
+                    pengeluaranId = existPeng.id;
+                    await client.from('pengeluaran').update({ total_harian: (existPeng.total_harian || 0) + totalBiaya }).eq('id', pengeluaranId);
+                } else {
+                    const { data: newPeng } = await client.from('pengeluaran')
+                        .insert({ user_id: currentUserId, tanggal: tgl, total_harian: totalBiaya, status_approval: 'Menunggu' }) 
+                        .select('id').single();
+                    pengeluaranId = newPeng.id;
+                }
+
+                // Insert Rincian Jasa
+                await client.from('rincian_pengeluaran').insert([{
+                    pengeluaran_id: pengeluaranId,
+                    nama_item: 'Jasa Pengolahan',
+                    nominal: totalBiaya,
+                    keterangan: `Pengolahan ${volAsal}Kg via Vendor: ${vendor}`
+                }]);
+
+                alert('SUKSES! Stok telah diupdate, mutasi dicatat, dan tagihan pengeluaran dibuat (Menunggu Persetujuan).');
+                window.location.reload();
+
+            } catch (err) {
+                alert('Gagal: ' + err.message);
+                btn.innerHTML = `<i class="bi bi-gear-fill"></i> Eksekusi & Catat ke Sistem`; btn.disabled = false;
+            }
+        });
+    });
+</script>

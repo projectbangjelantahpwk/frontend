@@ -1,0 +1,767 @@
+---
+import GeneralLayout from '../layouts/Layout.astro';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+---
+
+<GeneralLayout title="Keuangan - Manajemen Bang Jelantah">
+    <style is:global>
+        /* Mengunci layar menjadi blank (putih) sampai skrip memberi izin masuk */
+        body { display: none; }
+    </style>
+  <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Manajemen Keuangan</h1>
+      <p class="text-gray-600">Kelola arus kas, penggajian, dan rekapitulasi slip gaji karyawan.</p>
+    </div>
+  </div>
+
+  <div class="mb-6 border-b border-gray-200 overflow-x-auto hide-scrollbar">
+    <div class="flex gap-8 min-w-max">
+      <button class="tab-btn active px-4 py-3 font-medium transition border-b-2 border-green-700 text-green-700" data-tab="gaji">
+        <i class="bi bi-wallet2 mr-2"></i> Gaji Karyawan
+      </button>
+      <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="riwayat-gaji">
+        <i class="bi bi-clock-history mr-2"></i> Riwayat Gaji Karyawan
+      </button>
+    </div>
+  </div>
+
+  <div id="gaji" class="tab-content block">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold text-gray-900">Rekapitulasi Gaji Karyawan</h2>
+    </div>
+    <div id="gaji-karyawan-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <p class="text-gray-500">Memuat data gaji...</p>
+    </div>
+  </div>
+
+  <div class="tab-content hidden" id="riwayat-gaji-tab">
+    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-6">
+      <h3 class="text-lg font-bold text-gray-900 mb-4">Filter Riwayat Gaji Tahun Berjalan</h3>
+
+      <div class="flex flex-wrap gap-4 items-end">
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Dari Tanggal</label>
+          <input type="date" id="filter-gaji-start" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-700" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+          <input type="date" id="filter-gaji-end" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-700" />
+        </div>
+        <button id="btn-filter-gaji" class="bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-800 transition">
+          Saring Riwayat
+        </button>
+      </div>
+    </div>
+
+    <div id="riwayat-gaji-container" class="space-y-4">
+      <p class="text-gray-500 text-sm italic">Pilih filter tanggal untuk memuat riwayat.</p>
+    </div>
+  </div>
+</GeneralLayout>
+
+<div id="modal-pengaturan-global" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
+    <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 class="font-bold text-lg text-gray-990">Pengaturan Gaji Global</h3>
+            <button onclick="closeModal('modal-pengaturan-global')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form id="form-global-gaji" class="p-6 space-y-4">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Uang Kesehatan (Rp)</label>
+                <input type="number" id="g_kesehatan" value="0" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Bonus Tepat Waktu (Rp)</label>
+                <input type="number" id="g_tepatwaktu" value="0" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Bonus Mingguan (Rp)</label>
+                <input type="number" id="g_mingguan" value="0" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Tarif Lembur per Jam (Rp)</label>
+                <input type="number" id="g_lembur" value="0" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-green-600">
+            </div>
+            <button type="submit" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-black transition">Simpan Pengaturan</button>
+        </form>
+    </div>
+</div>
+
+<div id="modal-detail-gaji" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
+    <div class="bg-white rounded-2xl w-full max-w-2xl overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[95vh]">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-green-50">
+            <div>
+                <h3 class="font-bold text-lg text-gray-900" id="m_nama_karyawan">Nama Karyawan</h3>
+                <p class="text-xs text-green-700 font-medium">Setup & Slip Gaji Karyawan</p>
+            </div>
+            <button onclick="closeModal('modal-detail-gaji')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
+        </div>
+        
+        <div class="p-5 overflow-y-auto flex-1 space-y-6">
+            <input type="hidden" id="m_karyawan_id">
+            <input type="hidden" id="m_setup_id">
+            <input type="hidden" id="m_slip_id">
+            
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <h4 class="text-sm font-bold text-gray-900 mb-3 border-b pb-2"><i class="bi bi-sliders mr-2"></i>Parameter Setup Gaji Personal</h4>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Gaji per Menit (Rp)</label>
+                        <input type="number" id="setup_gaji_menit" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Uang Lembur per Menit (Rp)</label>
+                        <input type="number" id="setup_lembur_menit" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-xs font-bold text-gray-700">Uang Rapat (Rp)</label>
+                            <div class="flex items-center gap-1">
+                                <input type="checkbox" id="chk_uang_rapat" onchange="window.kalkulasiRealtimeGaji()" class="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer">
+                                <span class="text-[10px] text-gray-500 font-bold">Aktifkan</span>
+                            </div>
+                        </div>
+                        <input type="number" id="setup_uang_rapat" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-xs font-bold text-gray-700">Uang Nginep (Rp)</label>
+                            <div class="flex items-center gap-1">
+                                <input type="checkbox" id="chk_uang_nginep" onchange="window.kalkulasiRealtimeGaji()" class="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer">
+                                <span class="text-[10px] text-gray-500 font-bold">Aktifkan</span>
+                            </div>
+                        </div>
+                        <input type="number" id="setup_uang_nginep" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-xs font-bold text-gray-700">Uang Kesehatan (Rp)</label>
+                            <div class="flex items-center gap-1">
+                                <input type="checkbox" id="chk_uang_kesehatan" onchange="window.kalkulasiRealtimeGaji()" class="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer">
+                                <span class="text-[10px] text-gray-500 font-bold">Aktifkan</span>
+                            </div>
+                        </div>
+                        <input type="number" id="setup_uang_kesehatan" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Bonus Tepat Waktu (Rp)</label>
+                        <input type="number" id="setup_bonus_tepat" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Bonus Mingguan (Rp)</label>
+                        <input type="number" id="setup_bonus_mingguan" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-xs font-bold text-gray-700">Tadarus Al-Quran</label>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <input type="checkbox" id="chk_uang_kesehatan" onchange="window.kalkulasiRealtimeGaji()" class="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer">
+                            <span class="text-[10px] text-gray-500 font-bold">Sudah</span>
+                        </div>
+
+                    </div>
+                </div>
+                <button onclick="simpanSetupGaji()" class="w-full bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-sm hover:bg-black transition">
+                    <i class="bi bi-floppy mr-1"></i> Simpan Parameter Setup
+                </button>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-gray-900 mb-3 border-b pb-2"><i class="bi bi-calculator mr-2"></i>Kalkulasi Slip Gaji Bulan Ini</h4>
+                <div class="space-y-2 text-sm bg-white border border-gray-200 p-4 rounded-xl" id="m_rincian_list"></div>
+
+                <div class="bg-green-700 text-white p-4 rounded-xl flex justify-between items-center mt-3 shadow-sm">
+                    <span class="font-bold">Total Diterima:</span>
+                    <span class="text-2xl font-bold" id="m_total_gaji">Rp 0</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-4 border-t border-gray-100 bg-gray-50 flex gap-3">
+             <button id="btn-draf-gaji" onclick="simpanSlipGaji('Menunggu')" class="flex-1 bg-white border border-gray-300 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-100 transition shadow-sm">
+                <i class="bi bi-clock-history mr-2"></i> Simpan Saja
+             </button>
+             <button id="btn-bayar-gaji" onclick="simpanSlipGaji('ACC')" class="flex-1 bg-green-700 text-white font-bold py-3 rounded-xl hover:bg-green-800 transition shadow-sm">
+                <i class="bi bi-check-circle-fill mr-2"></i> Approve & Lunas
+            </button>
+        </div>
+    </div>
+</div>
+
+<script is:inline>
+  let dataGlobalGaji = null;
+  let dataKaryawan = [];
+
+  document.addEventListener('DOMContentLoaded', async () => {
+      // === 🛡️ GATEKEEPER KEUANGAN ===
+      const allowedRoles = ['owner', 'hrd', 'keuangan'];
+      const client = window.supabase || supabase;
+      
+      const { data: { session } } = await client.auth.getSession();
+      if (!session) return window.location.replace('/');
+      
+      const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+      
+      if (!allowedRoles.includes(prof?.role)) {
+          alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk ke Keuangan.`);
+          return window.location.replace('/');
+      }
+      document.body.style.display = 'block';
+      
+      // Setup Batasan Tanggal Otomatis
+      const tahunAktif = new Date().getFullYear();
+      const awalTahun = `${tahunAktif}-01-01`; 
+      const waktuLokal = new Date();
+    const offset = waktuLokal.getTimezoneOffset() * 60000;
+    const hariIni = new Date(waktuLokal - offset).toISOString().split('T')[0];
+
+      const inputStart = document.getElementById('filter-gaji-start');
+      const inputEnd = document.getElementById('filter-gaji-end');
+      if (inputStart && inputEnd) {
+          inputStart.min = awalTahun;
+          inputStart.max = hariIni;
+          inputStart.value = awalTahun; 
+
+          inputEnd.min = awalTahun;
+          inputEnd.max = hariIni;
+          inputEnd.value = hariIni;
+      }
+    
+    // ==========================================
+    // 1. FETCH DATA KEUANGAN (CLIENT-SIDE)
+    // ==========================================
+    async function loadKeuanganData() {
+        if(!window.supabase) return;
+        try {
+            // A. Fetch Pengaturan Gaji
+            const { data: listMitra } = await window.supabase.from('mitra').select('id, nama_mitra').order('nama_mitra', { ascending: true });
+            window.allMitraGlobal = listMitra || [];
+            const { data: globalGaji } = await window.supabase.from('pengaturan_gaji_global').select('*').single();
+            dataGlobalGaji = globalGaji;
+            if(globalGaji) {
+                document.getElementById('g_kesehatan').value = globalGaji.uang_kesehatan || 0;
+                document.getElementById('g_tepatwaktu').value = globalGaji.bonus_tepat_waktu || 0;
+                document.getElementById('g_mingguan').value = globalGaji.bonus_mingguan || 0;
+                document.getElementById('g_lembur').value = globalGaji.tarif_lembur_perjam || 0;
+            }
+
+            // B. Fetch Karyawan + Setup Gaji
+            const { data: karyawan, error: errKaryawan } = await window.supabase
+                .from('profiles')
+                .select('id, nama, role, foto_profil, setup_gaji(*), presensi(tanggal, status_tiba, waktu_tiba, waktu_pulang), slip_gaji(*)')
+                .neq('role', 'owner');
+
+            if (errKaryawan) {
+                alert("Error Supabase (Data Karyawan): " + errKaryawan.message);
+                console.error("Detail Error:", errKaryawan);
+            }
+
+            dataKaryawan = karyawan || [];
+            const contKaryawan = document.getElementById('gaji-karyawan-container');
+            let htmlKaryawan = '';
+            if(dataKaryawan.length > 0) {
+                dataKaryawan.forEach(k => {
+                    const jumlahHadir = k.presensi?.length || 0;
+                    const inisial = k.nama ? k.nama.charAt(0).toUpperCase() : 'U';
+                   
+                    const avatarKomponen = k.foto_profil 
+                        ? `<img src="${k.foto_profil}" class="w-12 h-12 rounded-full object-cover border border-gray-200 shrink-0" />`
+                        : `<div class="w-12 h-12 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-md shrink-0">${inisial}</div>`;
+                    
+                    const peran = k.tipe_kendaraan ? k.tipe_kendaraan.replace('_', ' ') : (k.role || 'Karyawan');
+                    const setup = k.setup_gaji && k.setup_gaji.length > 0 ? k.setup_gaji[0] : {};
+                    const tarif = Number(setup.gaji_menit || 0).toLocaleString('id-ID');
+
+                    htmlKaryawan += `
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+                        <div class="bg-gradient-to-r from-green-50 to-green-100 px-6 py-4 flex items-center justify-between border-b border-green-200">
+                            <div class="flex items-center gap-4">
+                                ${avatarKomponen} 
+                                <div>
+                                    <h3 class="font-bold text-gray-900">${k.nama}</h3>
+                                    <p class="text-sm text-gray-600 capitalize">${peran}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6 flex-1 flex flex-col">
+                            <div class="space-y-2 mb-6 text-sm">
+                                <div class="flex justify-between"><span class="text-gray-500">Gaji per Menit:</span> <span class="font-medium text-gray-900">Rp ${tarif}</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">Hadir Bulan Ini:</span> <span class="font-medium text-green-600">${jumlahHadir} Hari</span></div>
+                            </div>
+                            <button onclick="window.openModalGaji('${k.id}')" class="mt-auto w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-green-700 text-green-700 rounded-xl font-bold hover:bg-green-50 transition active:scale-95">
+                                <i class="bi bi-calculator"></i> Setup & Slip Gaji
+                            </button>
+                        </div>
+                    </div>`;
+                });
+            } else {
+                htmlKaryawan = '<p class="text-gray-500">Belum ada data karyawan.</p>';
+            }
+            contKaryawan.innerHTML = htmlKaryawan;
+
+        } catch (error) {
+            console.error("Gagal load data keuangan:", error);
+        }
+    }
+
+    await loadKeuanganData();
+
+    // ==========================================
+    // 2. TAB SWITCHING LOGIC
+    // ==========================================
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabButtons.forEach((button) => {
+      button.addEventListener('click', function() {
+        let tabName = this.getAttribute('data-tab');
+        
+        const tabIdMap = {
+          'gaji': 'gaji',
+          'riwayat-gaji': 'riwayat-gaji-tab',  
+        };
+        
+        tabName = tabIdMap[tabName] || tabName;
+        
+        tabButtons.forEach((btn) => {
+          btn.classList.remove('active', 'border-green-700', 'text-green-700');
+          btn.classList.add('border-transparent', 'text-gray-600');
+        });
+        tabContents.forEach((content) => {
+          content.classList.add('hidden');
+          content.classList.remove('block');
+        });
+        
+        this.classList.add('active', 'border-green-700', 'text-green-700');
+        this.classList.remove('border-transparent', 'text-gray-600');
+        
+        const activeTab = document.getElementById(tabName);
+        if(activeTab) {
+          activeTab.classList.remove('hidden');
+          activeTab.classList.add('block');
+        } else {
+          console.warn(`Tab dengan ID '${tabName}' tidak ditemukan!`);
+        }
+      });
+    });
+
+    // ==========================================
+    // 3. MODAL CONTROLS & FUNCTIONS
+    // ==========================================
+    window.openModal = function(id) {
+        const m = document.getElementById(id);
+        m.classList.remove('hidden'); m.classList.add('flex');
+        setTimeout(() => { m.classList.remove('opacity-0'); m.querySelector('div').classList.remove('scale-95'); }, 10);
+    }
+    
+    window.closeModal = function(id) {
+        const m = document.getElementById(id);
+        m.classList.add('opacity-0'); m.querySelector('div').classList.add('scale-95');
+        setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
+    }
+
+    // UPDATE PENGATURAN GLOBAL
+    document.getElementById('form-global-gaji')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if(!window.supabase) return;
+        const btn = e.target.querySelector('button[type="submit"]');
+        btn.innerText = "Menyimpan...";
+        
+        try {
+            await window.supabase.from('pengaturan_gaji_global').update({
+                uang_kesehatan: document.getElementById('g_kesehatan').value,
+                bonus_tepat_waktu: document.getElementById('g_tepatwaktu').value,
+                bonus_mingguan: document.getElementById('g_mingguan').value,
+                tarif_lembur_perjam: document.getElementById('g_lembur').value,
+            }).eq('id', 1);
+            alert('Pengaturan Global berhasil diperbarui!');
+            window.location.reload();
+        } catch (err) { alert(err.message); btn.innerText = "Simpan Pengaturan"; }
+    });
+
+    window.currentSalaryData = null;
+
+    // BUKA MODAL DETAIL GAJI KARYAWAN
+    window.openModalGaji = async function(empId) {
+        const emp = dataKaryawan.find(k => String(k.id) === String(empId));
+        if(!emp) return alert('Waduh, data karyawan gak ketemu!');
+
+        document.getElementById('m_karyawan_id').value = emp.id;
+        document.getElementById('m_nama_karyawan').innerText = emp.nama;
+
+        let setup = {};
+        try {
+            const { data: liveSetup } = await window.supabase
+                .from('setup_gaji')
+                .select('*')
+                .eq('user_id', emp.id)
+                .maybeSingle();
+            if(liveSetup) setup = liveSetup;
+        } catch(e) { console.error("Gagal narik live setup:", e); }
+
+        document.getElementById('m_setup_id').value = setup.id || '';
+        document.getElementById('setup_gaji_menit').value = setup.gaji_menit || 0;
+        document.getElementById('setup_lembur_menit').value = setup.uang_lembur_menit || 0;
+        document.getElementById('setup_uang_kesehatan').value = setup.uang_kesehatan || 0;
+        document.getElementById('setup_uang_rapat').value = setup.uang_rapat || 0;
+        document.getElementById('setup_uang_nginep').value = setup.uang_nginep || 0;
+        document.getElementById('setup_bonus_tepat').value = setup.bonus_tepat_waktu || 0;
+        document.getElementById('setup_bonus_mingguan').value = setup.bonus_mingguan || 0;
+        //checked box
+        document.getElementById('chk_uang_rapat').checked = setup.activate_uang_rapat || false;
+        document.getElementById('chk_uang_nginep').checked = setup.activate_uang_nginep || false;
+        document.getElementById('chk_uang_kesehatan').checked = setup.activate_uang_kesehatan || false;
+
+        const tglLokalObj = new Date(waktuLokal - offset);
+        const tglHariIni = tglLokalObj.toISOString().split('T')[0];
+        const hariDalamMinggu = tglLokalObj.getUTCDay(); // 0 = Minggu, 1 = Senin ... 6 = Sabtu
+        
+        // Cek apakah hari ini Sabtu
+        const isSabtu = hariDalamMinggu === 6;
+        let kehadiranMingguIni = 0;
+
+        // Hitung kehadiran Senin s/d Sabtu MINGGU INI (Pastikan status_tiba ada isinya)
+        if (isSabtu) {
+            const tglSeninObj = new Date(tglLokalObj.getTime() - (5 * 24 * 60 * 60 * 1000));
+            const strSenin = tglSeninObj.toISOString().split('T')[0];
+            
+            const presensiMingguIni = (emp.presensi || []).filter(p => 
+                p.tanggal >= strSenin && 
+                p.tanggal <= tglHariIni && 
+                p.status_tiba // <-- Pastikan dia absen/hadir apapun statusnya
+            );
+            kehadiranMingguIni = presensiMingguIni.length;
+        }
+
+        const slip = (emp.slip_gaji || []).find(s => s.periode === tglHariIni && s.status === 'Menunggu');
+        document.getElementById('m_slip_id').value = slip ? slip.id : '';
+
+        let totalNormalMenit = 0;
+        let totalLemburMenit = 0;
+        let tepatWaktuCount = 0;
+
+        const parseJamMenit = (timeStr) => {
+            if(!timeStr) return null;
+            const [h, m] = timeStr.split(':');
+            return (parseInt(h) * 60) + parseInt(m);
+        };
+        const presensiHariIni = (emp.presensi || []).filter(p => p.tanggal === tglHariIni);
+        let hariMasuk = presensiHariIni.length > 0 ? 1 : 0;
+        let jamTibaStr = '-';
+        let jamPulangStr = '-';
+
+        presensiHariIni.forEach(p => {
+            if (p.status_tiba === 'Tepat Waktu') tepatWaktuCount++;
+            jamTibaStr = p.waktu_tiba || '-';
+            jamPulangStr = p.waktu_pulang || '-';
+
+            let masukMenit = parseJamMenit(p.waktu_tiba) || (8*60);  
+            let pulangMenit = p.waktu_pulang ? parseJamMenit(p.waktu_pulang) : masukMenit; 
+            
+            let batasPulangNormalMenit = 17 * 60; 
+            let actualPulangNormal = Math.min(pulangMenit, batasPulangNormalMenit);
+            let kerjaNormal = Math.max(0, actualPulangNormal - masukMenit);
+            totalNormalMenit += kerjaNormal;
+
+            if (pulangMenit > batasPulangNormalMenit) {
+                totalLemburMenit += (pulangMenit - batasPulangNormalMenit);
+            }
+        });
+
+        window.currentSalaryData = {
+            empId: emp.id, totalNormalMenit, totalLemburMenit, tepatWaktuCount, hariMasuk, tglHariIni, jamTibaStr, jamPulangStr,
+            isSabtu, kehadiranMingguIni // <--- TAMBAHKAN INI
+        };
+        window.kalkulasiRealtimeGaji();
+        window.openModal('modal-detail-gaji');
+    };
+
+    // FUNGSI KALKULASI REAL-TIME
+    window.kalkulasiRealtimeGaji = function() {
+        const d = window.currentSalaryData;
+        if(!d) return;
+
+        const tarifMenit = parseFloat(document.getElementById('setup_gaji_menit').value) || 0;
+        const tarifLemburMenit = parseFloat(document.getElementById('setup_lembur_menit').value) || 0;
+        const paramBonusMingguan = parseFloat(document.getElementById('setup_bonus_mingguan').value) || 0;
+        const isKesehatan = document.getElementById('chk_uang_kesehatan').checked;
+        const isRapat = document.getElementById('chk_uang_rapat').checked;
+        const isNginep = document.getElementById('chk_uang_nginep').checked;
+        
+        let valBonusMingguan = 0;
+        let labelBonusMingguan = '';
+
+        // LOGIKA BONUS HANYA KELUAR DI HARI SABTU
+        if (d.isSabtu) {
+            if (d.kehadiranMingguIni >= 6) {
+                valBonusMingguan = paramBonusMingguan;
+                labelBonusMingguan = 'Full 6 Hari (5/5)';
+            } else if (d.kehadiranMingguIni >= 2) {
+                // Prorata x/5 (Misal masuk 3x -> fraction = 2 -> 2/5 dari bonus full)
+                const fraction = d.kehadiranMingguIni - 1;
+                valBonusMingguan = Math.round((fraction / 5) * paramBonusMingguan);
+                labelBonusMingguan = `Prorata ${fraction}/5 (${d.kehadiranMingguIni}x Hadir)`;
+            } else {
+                // Jika cuma masuk 1x atau tidak masuk sama sekali
+                valBonusMingguan = 0; 
+                labelBonusMingguan = `Hadir ${d.kehadiranMingguIni}x (Tidak Dapat)`;
+            }
+        }
+
+        const valGaji = d.totalNormalMenit * tarifMenit;
+        const valLembur = d.totalLemburMenit * tarifLemburMenit;
+        const valKesehatan = isKesehatan ? (parseFloat(document.getElementById('setup_uang_kesehatan').value) || 0) : 0;
+        const valBonusTepat = d.tepatWaktuCount * (parseFloat(document.getElementById('setup_bonus_tepat').value) || 0);
+        const valRapat = isRapat ? (parseFloat(document.getElementById('setup_uang_rapat').value) || 0) : 0;
+        const valNginep = isNginep ? (parseFloat(document.getElementById('setup_uang_nginep').value) || 0) : 0;
+
+        const grandTotal = valGaji + valLembur + valKesehatan + valBonusTepat + valBonusMingguan + valRapat + valNginep;
+        d.finalState = { valGaji, valLembur, valKesehatan, valBonusTepat, valBonusMingguan, valRapat, valNginep, grandTotal };
+
+        document.getElementById('m_rincian_list').innerHTML = `
+            <div class="bg-gray-50 p-2.5 rounded mb-3 border border-gray-200">
+                <div class="text-xs font-bold text-gray-700 mb-1.5"><i class="bi bi-clock-history mr-1"></i> Jam Absen Hari Ini (Bisa Diedit):</div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] text-gray-500 block font-medium">Jam Tiba:</label>
+                        <input type="time" id="edit_absen_tiba" value="${d.jamTibaStr !== '-' ? d.jamTibaStr.substring(0,5) : ''}" class="w-full text-xs p-1 rounded border border-gray-300 bg-white font-semibold" onchange="window.updateJamAbsenManual()" />
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-500 block font-medium">Jam Pulang:</label>
+                        <input type="time" id="edit_absen_pulang" value="${d.jamPulangStr !== '-' ? d.jamPulangStr.substring(0,5) : ''}" class="w-full text-xs p-1 rounded border border-gray-300 bg-white font-semibold" onchange="window.updateJamAbsenManual()" />
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between"><span>Gaji Karyawan (${d.totalNormalMenit} mnt)</span> <span class="font-medium text-gray-900">Rp ${valGaji.toLocaleString('id-ID')}</span></div>
+            <div class="flex justify-between"><span>Uang Lembur (${d.totalLemburMenit} mnt)</span> <span class="font-medium text-gray-900">Rp ${valLembur.toLocaleString('id-ID')}</span></div>
+            ${d.tepatWaktuCount > 0 ? `<div class="flex justify-between text-green-700"><span>Bonus Tepat Waktu (${d.tepatWaktuCount}x)</span> <span>+ Rp ${valBonusTepat.toLocaleString('id-ID')}</span></div>` : ''}
+            ${isKesehatan ? `<div class="flex justify-between text-green-700"><span>Uang Kesehatan</span> <span>+ Rp ${valKesehatan.toLocaleString('id-ID')}</span></div>` : ''}
+            ${d.isSabtu ? `<div class="flex justify-between text-green-700"><span>Bonus Mingguan (${labelBonusMingguan})</span> <span>+ Rp ${valBonusMingguan.toLocaleString('id-ID')}</span></div>` : ''}
+            ${isRapat ? `<div class="flex justify-between text-green-700"><span>Uang Rapat</span> <span>+ Rp ${valRapat.toLocaleString('id-ID')}</span></div>` : ''}
+            ${isNginep ? `<div class="flex justify-between text-green-700"><span>Uang Nginep</span> <span>+ Rp ${valNginep.toLocaleString('id-ID')}</span></div>` : ''}
+        `;
+        document.getElementById('m_total_gaji').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+    };
+
+    window.updateJamAbsenManual = () => {
+        const valTiba = document.getElementById('edit_absen_tiba').value;
+        const valPulang = document.getElementById('edit_absen_pulang').value;
+        if (!valTiba) return;
+
+        window.currentSalaryData.jamTibaStr = valTiba + ":00";
+        window.currentSalaryData.jamPulangStr = valPulang ? valPulang + ":00" : '-';
+
+        let masukMenit = parseJamMenit(window.currentSalaryData.jamTibaStr);
+        let pulangMenit = valPulang ? parseJamMenit(window.currentSalaryData.jamPulangStr) : masukMenit;
+
+        let totalNormalMenit = 0;
+        let totalLemburMenit = 0;
+        const batasPulangNormalMenit = 17 * 60;
+        let actualPulangNormal = Math.min(pulangMenit, batasPulangNormalMenit);
+        totalNormalMenit = Math.max(0, actualPulangNormal - masukMenit);
+        if (pulangMenit > batasPulangNormalMenit) {
+            totalLemburMenit = (pulangMenit - batasPulangNormalMenit);
+        }
+
+        window.currentSalaryData.totalNormalMenit = totalNormalMenit;
+        window.currentSalaryData.totalLemburMenit = totalLemburMenit;
+        window.kalkulasiRealtimeGaji();
+    };
+
+    // FUNGSI SIMPAN SETUP KE DATABASE
+    window.simpanSetupGaji = async function() {
+        if(!window.supabase) return;
+        const empId = document.getElementById('m_karyawan_id').value;
+        const setupId = document.getElementById('m_setup_id').value;
+
+        const payloadSetup = {
+            user_id: empId,
+            gaji_menit: parseFloat(document.getElementById('setup_gaji_menit').value) || 0,
+            uang_lembur_menit: parseFloat(document.getElementById('setup_lembur_menit').value) || 0,
+            bonus_tepat_waktu: parseFloat(document.getElementById('setup_bonus_tepat').value) || 0,
+            bonus_mingguan: parseFloat(document.getElementById('setup_bonus_mingguan').value) || 0,
+            uang_kesehatan: parseFloat(document.getElementById('setup_uang_kesehatan').value) || 0,
+            uang_rapat: parseFloat(document.getElementById('setup_uang_rapat').value) || 0,
+            uang_nginep: parseFloat(document.getElementById('setup_uang_nginep').value) || 0,
+            //checkedbox
+            activate_uang_rapat: document.getElementById('chk_uang_rapat').checked,
+            activate_uang_nginep: document.getElementById('chk_uang_nginep').checked,
+            activate_uang_kesehatan: document.getElementById('chk_uang_kesehatan').checked,
+        };
+        try {
+            if(setupId) {
+                const { error } = await window.supabase.from('setup_gaji').update(payloadSetup).eq('id', setupId);
+                if (error) throw error;
+            } else {
+                const { data, error } = await window.supabase.from('setup_gaji').insert([payloadSetup]).select().single();
+                if (error) throw error;
+                if(data) document.getElementById('m_setup_id').value = data.id;
+            }
+            alert('Mantap! Parameter Setup Gaji Berhasil Disimpan ke Database!');
+            kalkulasiRealtimeGaji(); 
+        } catch(err) { 
+            console.error("Error Detail Supabase:", err);
+            alert('Gagal simpan setup! Cek pesan ini:\n' + err.message); 
+        }
+    };
+
+    // FUNGSI SIMPAN SLIP (DRAF ATAU ACC LUNAS)
+    window.simpanSlipGaji = async function(statusTarget) {
+        if(!window.supabase) return;
+        const d = window.currentSalaryData;
+        const fs = d.finalState;
+        const slipId = document.getElementById('m_slip_id').value;
+        let txtConfirm = statusTarget === 'ACC' ? "Approve dan Lunasi Gaji Harian ini?" : "Simpan Slip Harian ini sebagai Menunggu (Draf)?";
+            
+        if(!confirm(txtConfirm)) return;
+
+        const btnDraf = document.getElementById('btn-draf-gaji');
+        const btnAcc = document.getElementById('btn-bayar-gaji');
+        btnDraf.disabled = true; btnAcc.disabled = true;
+        try {
+            const payloadSlip = {
+                user_id: d.empId,
+                periode: d.tglHariIni, 
+                gaji_karyawan: fs.valGaji,
+                uang_lembur: fs.valLembur,
+                bonus_tepat_waktu: fs.valBonusTepat,
+                bonus_mingguan: fs.valBonusMingguan,
+                uang_kesehatan: fs.valKesehatan,
+                uang_rapat: fs.valRapat,
+                uang_nginep: fs.valNginep,
+                total_diterima: fs.grandTotal,
+                status: statusTarget,
+                is_paid_by_admin: statusTarget === 'ACC'
+            };
+            if(slipId) {
+                await window.supabase.from('slip_gaji').update(payloadSlip).eq('id', slipId);
+            } else {
+                await window.supabase.from('slip_gaji').insert([payloadSlip]);
+            }
+
+            if (d.jamTibaStr !== '-') {
+                await window.supabase
+                    .from('presensi')
+                    .update({
+                        waktu_tiba: d.jamTibaStr,
+                        waktu_pulang: d.jamPulangStr !== '-' ? d.jamPulangStr : null
+                    })
+                    .eq('user_id', d.empId)
+                    .eq('tanggal', d.tglHariIni);
+            }
+
+            const totalBonus = fs.valBonusTepat + fs.valBonusMingguan + fs.valKesehatan;
+            const pesanSukses = `✅ SUKSES! Data Berhasil Direkam.\n\n` +
+                                `Status Slip    : ${statusTarget === 'ACC' ? 'LUNAS (ACC)' : 'MENUNGGU (Draf)'}\n` +
+                                `Tanggal        : ${d.tglHariIni}\n` +
+                                `-------------------------------------------------\n` +
+                                `Gaji Karyawan  : Rp ${fs.valGaji.toLocaleString('id-ID')}\n` +
+                                `Uang Lembur    : Rp ${fs.valLembur.toLocaleString('id-ID')}\n` +
+                                `Uang Kesehatan : Rp ${fs.valKesehatan.toLocaleString('id-ID')}\n` +
+                                `Bonus Mingguan : Rp ${fs.valBonusMingguan.toLocaleString('id-ID')}\n` +
+                                `Bonus Tepat Wkt: Rp ${fs.valBonusTepat.toLocaleString('id-ID')}\n` +
+                                `Uang Rapat     : Rp ${fs.valRapat.toLocaleString('id-ID')}\n` +
+                                `Uang Nginep    : Rp ${fs.valNginep.toLocaleString('id-ID')}\n` +
+                                `-------------------------------------------------\n` +
+                                `TOTAL DITERIMA : Rp ${fs.grandTotal.toLocaleString('id-ID')}\n\n` +
+                                `Parameter hitungan juga sudah tersimpan aman sebagai riwayat.`;
+            alert(pesanSukses);
+            window.location.reload();
+            
+        } catch(err) {
+            alert('Waduh gagal simpan slip: ' + err.message);
+            btnDraf.disabled = false; btnAcc.disabled = false;
+        }
+    };
+
+    // RIWAYAT GAJI LOADER
+    async function muatRiwayatGaji() {
+        const container = document.getElementById('riwayat-gaji-container');
+        if (!container) return;
+
+        const start = document.getElementById('filter-gaji-start')?.value || awalTahun;
+        const end = document.getElementById('filter-gaji-end')?.value || hariIni;
+        const cacheKey = `riwayat_gaji_${start}_${end}`;
+        const cachedData = localStorage.getItem(cacheKey);
+
+        const renderHTML = (dataGaji) => {
+            if (!dataGaji || dataGaji.length === 0) {
+                container.innerHTML = `<p class="text-gray-500 text-sm italic py-4">Tidak ada riwayat pengeluaran gaji dari tanggal ${start} sampai ${end}.</p>`;
+                return;
+            }
+
+            container.innerHTML = dataGaji.map(slip => {
+                const isACC = slip.status === 'ACC' || slip.status_persetujuan === 'ACC';
+                const inisial = slip.profiles?.nama ? slip.profiles.nama.substring(0, 2).toUpperCase() : 'KY';
+                const avatarKomponen = slip.profiles?.foto_profil 
+                    ? `<img src="${slip.profiles.foto_profil}" class="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0" />`
+                    : `<div class="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 font-bold text-xs shrink-0">${inisial}</div>`;
+
+                return `
+                    <div class="p-4 border border-gray-200 rounded-xl mb-3 bg-white shadow-sm flex gap-3 items-center">
+                        ${avatarKomponen}
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="font-bold text-gray-900">${slip.profiles?.nama || 'Karyawan'}</p>
+                                    <p class="text-xs text-gray-500">Periode: ${slip.periode || '-'}</p>
+                                </div>
+                                <span class="px-2 py-1 rounded text-xs font-bold ${isACC ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}">
+                                    ${slip.status || 'Menunggu'}
+                                </span>
+                            </div>
+                            ${isACC ? `
+                                <div class="mt-2 text-xs space-y-1 border-t pt-2 border-dashed border-gray-300">
+                                    <div class="flex justify-between"><span>Gaji Pokok:</span> <span>Rp ${Number(slip.gaji_karyawan || 0).toLocaleString('id-ID')}</span></div>
+                                    <div class="flex justify-between text-gray-500"><span>Uang Lembur:</span> <span>Rp ${Number(slip.uang_lembur || 0).toLocaleString('id-ID')}</span></div>
+                                    <div class="flex justify-between text-green-700"><span>Total Bonus (Tepat Waktu, Mingguan, Sehat):</span> <span>+Rp ${Number((slip.bonus_tepat_waktu || 0) + (slip.bonus_mingguan || 0) + (slip.uang_kesehatan || 0)).toLocaleString('id-ID')}</span></div>
+                                    <div class="flex justify-between font-bold text-green-700 mt-1 pt-1 border-t">
+                                        <span>Total Diterima (ACC):</span> 
+                                        <span>Rp ${Number(slip.total_diterima || 0).toLocaleString('id-ID')}</span>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="mt-2 text-xs text-amber-700 italic border-t pt-2 border-dashed border-gray-300">
+                                    * Rincian disembunyikan sampai status disetujui (ACC).
+                                </div>
+                            `}
+                        </div>
+                    </div>`;
+            }).join('');
+        };
+
+        if (cachedData) {
+            renderHTML(JSON.parse(cachedData));
+        } else {
+            container.innerHTML = '<p class="text-gray-500 text-sm italic animate-pulse">Memuat data riwayat gaji...</p>';
+        }
+
+        try {
+            const { data: dataGaji, error } = await supabase
+                .from('slip_gaji')
+                .select(`*, profiles!inner(nama, role, foto_profil)`)
+                .neq('profiles.role', 'owner')
+                .gte('created_at', `${start} 00:00:00`)
+                .lte('created_at', `${end} 23:59:59`)
+                .order('created_at', { ascending: false });
+            if (error) throw error;
+
+            localStorage.setItem(cacheKey, JSON.stringify(dataGaji));
+            renderHTML(dataGaji);
+        } catch (error) {
+            console.error("Supabase Error:", error);
+            if (!cachedData) {
+                container.innerHTML = `
+                    <div class="p-4 bg-red-50 text-red-700 rounded-xl text-xs">
+                        <p class="font-bold">Gagal sinkronisasi data dengan server:</p>
+                        <p class="italic mt-1">${error.message}</p>
+                    </div>`;
+            }
+        }
+    }
+    document.getElementById('btn-filter-gaji')?.addEventListener('click', muatRiwayatGaji);
+  });
+</script>

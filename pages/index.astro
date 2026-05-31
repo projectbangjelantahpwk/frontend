@@ -1,0 +1,113 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Dashboard - Manajemen Bang Jelantah">
+    <div class="max-w-7xl mx-auto space-y-lg">
+        
+        <div class="mb-lg">
+            <h2 class="font-headline-lg text-headline-lg md:font-headline-lg md:text-headline-lg text-on-surface">Overview</h2>
+            <p class="text-on-surface-variant mt-xs">Real-time metrics for eco-logistics operations.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md">
+            <div class="bg-surface-container-lowest rounded-xl p-md border border-outline-variant shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-primary-container/10 rounded-full blur-xl group-hover:bg-primary-container/20 transition-colors"></div>
+                <div class="flex items-center justify-between mb-sm relative z-10">
+                    <span class="font-label-lg text-label-lg text-on-surface-variant">Total Jelantah Terkumpul</span>
+                    <div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center">
+                        <span class="material-symbols-outlined" data-icon="oil_barrel">oil_barrel</span>
+                    </div>
+                </div>
+                <div class="relative z-10 mt-sm">
+                    <span class="font-display-data text-display-data text-primary">1,250 <span class="text-headline-md text-on-surface-variant font-normal">KG</span></span>
+                </div>
+            </div>
+            
+            <div class="bg-surface-container-lowest rounded-xl p-md border border-outline-variant shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-tertiary-container/10 rounded-full blur-xl group-hover:bg-tertiary-container/20 transition-colors"></div>
+                <div class="flex items-center justify-between mb-sm relative z-10">
+                    <span class="font-label-lg text-label-lg text-on-surface-variant">Penjemputan Pending</span>
+                    <div class="w-10 h-10 rounded-full bg-tertiary-container text-on-tertiary-container flex items-center justify-center">
+                        <span class="material-symbols-outlined" data-icon="schedule">schedule</span>
+                    </div>
+                </div>
+                <div class="relative z-10 mt-sm">
+                    <span class="font-display-data text-display-data text-tertiary">12</span>
+                </div>
+            </div>
+            
+            <div class="bg-surface-container-lowest rounded-xl p-md border border-outline-variant shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-secondary-container/20 rounded-full blur-xl group-hover:bg-secondary-container/40 transition-colors"></div>
+                <div class="flex items-center justify-between mb-sm relative z-10">
+                    <span class="font-label-lg text-label-lg text-on-surface-variant">Mitra Aktif</span>
+                    <div class="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center">
+                        <span class="material-symbols-outlined" data-icon="group">group</span>
+                    </div>
+                </div>
+                <div class="relative z-10 mt-sm">
+                    <span class="font-display-data text-display-data text-secondary">45</span>
+                </div>
+            </div>
+            
+            <div class="bg-surface-container-lowest rounded-xl p-md border border-outline-variant shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-primary/5 rounded-full blur-xl group-hover:bg-primary/10 transition-colors"></div>
+                <div class="flex items-center justify-between mb-sm relative z-10">
+                    <span class="font-label-lg text-label-lg text-on-surface-variant">Saldo Kas</span>
+                    <div class="w-10 h-10 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center">
+                        <span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+                    </div>
+                </div>
+                <div class="relative z-10 mt-sm">
+                    <span class="font-headline-md text-headline-md text-on-surface">Rp 5.000.000</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-surface-container-lowest rounded-xl p-lg border border-outline-variant shadow-sm mt-lg">
+            <div class="flex justify-between items-center mb-lg">
+                <h3 class="font-headline-md text-headline-md text-on-surface">Monthly Collection Volume</h3>
+                <button class="flex items-center gap-xs text-primary font-label-lg text-label-lg hover:bg-surface-container-low px-sm py-xs rounded-md transition-colors">
+                    <span class="">This Month</span>
+                    <span class="material-symbols-outlined" data-icon="expand_more">expand_more</span>
+                </button>
+            </div>
+            
+            <div class="w-full h-64 chart-grid relative rounded-lg overflow-hidden border border-surface-variant">
+                <div class="absolute left-0 top-0 h-full flex flex-col justify-between py-2 px-2 text-label-sm font-label-sm text-on-surface-variant bg-surface-container-lowest/80 backdrop-blur-sm z-10">
+                    <span class="">500k</span>
+                    <span class="">400k</span>
+                    <span class="">300k</span>
+                    <span class="">200k</span>
+                    <span class="">100k</span>
+                    <span class="">0</span>
+                </div>
+                
+                <svg class="w-full h-full absolute inset-0 pl-12 pt-4 pb-8 pr-4" preserveAspectRatio="none" viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+                            <stop offset="0%" stop-color="#2e7d32" stop-opacity="0.3"></stop>
+                            <stop offset="100%" stop-color="#2e7d32" stop-opacity="0"></stop>
+                        </linearGradient>
+                    </defs>
+                    <polygon fill="url(#chartGradient)" points="0,100 0,80 15,60 30,70 45,40 60,50 75,20 90,30 100,10 100,100"></polygon>
+                    <polyline class="chart-line" fill="none" points="0,80 15,60 30,70 45,40 60,50 75,20 90,30 100,10" stroke="#2e7d32" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></polyline>
+                    <circle cx="15" cy="60" fill="#ffffff" r="1.5" stroke="#2e7d32" stroke-width="1"></circle>
+                    <circle cx="30" cy="70" fill="#ffffff" r="1.5" stroke="#2e7d32" stroke-width="1"></circle>
+                    <circle cx="45" cy="40" fill="#ffffff" r="1.5" stroke="#2e7d32" stroke-width="1"></circle>
+                    <circle cx="60" cy="50" fill="#ffffff" r="1.5" stroke="#2e7d32" stroke-width="1"></circle>
+                    <circle cx="75" cy="20" fill="#ffffff" r="1.5" stroke="#2e7d32" stroke-width="1"></circle>
+                    <circle cx="90" cy="30" fill="#ffffff" r="1.5" stroke="#2e7d32" stroke-width="1"></circle>
+                </svg>
+                
+                <div class="absolute bottom-0 left-0 w-full flex justify-between pl-12 pr-4 py-1 text-label-sm font-label-sm text-on-surface-variant bg-surface-container-lowest/80 backdrop-blur-sm z-10">
+                    <span class="">W1</span>
+                    <span class="">W2</span>
+                    <span class="">W3</span>
+                    <span class="">W4</span>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</Layout>

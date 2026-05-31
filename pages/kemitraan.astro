@@ -1,0 +1,790 @@
+---
+import Layout from '../layouts/Layout.astro';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+---
+
+<Layout title="Kemitraan - Manajemen Bang Jelantah">
+    <style is:global>
+    /* Mengunci layar menjadi blank (putih) sampai skrip memberi izin masuk */
+        body { display: none; }
+    </style>
+    <div class="max-w-7xl mx-auto flex flex-col h-full gap-lg">
+        
+        <div class="content-view flex flex-col gap-lg" id="view-kemitraan">
+            <header class="">
+                    <h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary">Kemitraan</h2>
+                    <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Manajemen relasi dan pendaftaran mitra pengumpul.</p>
+            </header>
+
+            <div class="flex flex-col flex-1 gap-md">
+                <div class="flex overflow-x-auto border-b border-outline-variant scrollbar-hide">
+                    <button class="tab-btn px-md py-sm font-label-lg text-label-lg border-b-2 border-primary text-primary whitespace-nowrap active" data-tab="mitra-baru">Mitra Baru</button>
+                    <button class="tab-btn px-md py-sm font-label-lg text-label-lg border-b-2 border-transparent text-on-surface-variant hover:text-primary whitespace-nowrap" data-tab="mitra-langganan">Mitra Langganan</button>
+                    <button class="tab-btn px-md py-sm font-label-lg text-label-lg border-b-2 border-transparent text-on-surface-variant hover:text-primary whitespace-nowrap" data-tab="mitra-tidak-aktif">Mitra Tidak Aktif</button>
+                    <button class="tab-btn px-md py-sm font-label-lg text-label-lg border-b-2 border-transparent text-on-surface-variant hover:text-primary whitespace-nowrap" data-tab="top_leaderboard">Top Leaderboard</button>
+                </div>
+
+                <div class="tab-content block" id="tab-mitra-baru">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-headline-md text-on-surface">Daftar Prospek</h3>
+                        <button onclick="window.openModal('modal-tambah-prospek')" class="bg-primary text-on-primary px-4 py-2 rounded-full font-label-lg flex items-center gap-2 shadow-sm hover:bg-surface-tint transition-colors">
+                            <span class="material-symbols-outlined text-[20px]">add</span> Prospek Baru
+                        </button>
+                    </div>
+                    <div class="md:hidden flex flex-col gap-md" id="mitra-baru-mobile">
+                        <p class="text-on-surface-variant text-center py-4">Memuat data...</p>
+                    </div>
+                    <div class="hidden md:block overflow-x-auto bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm">
+                        <table class="w-full text-left border-collapse min-w-[600px]">
+                            <thead>
+                                <tr class="border-b border-outline-variant bg-surface-container-low">
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">No HP</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Sumber Customer</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold text-center">Follow Up Ke-</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-outline-variant" id="mitra-baru-tbody">
+                                <tr><td colspan="4" class="p-md text-center text-on-surface-variant">Memuat...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-content hidden" id="tab-mitra-langganan">
+                    <div class="md:hidden flex flex-col gap-md" id="mitra-langganan-mobile"></div>
+                    <div class="hidden md:block overflow-x-auto bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm">
+                        <table class="w-full text-left border-collapse min-w-[800px]">
+                            <thead>
+                                <tr class="border-b border-outline-variant bg-surface-container-low">
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Nama</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">No HP</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold text-center">Alamat</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold text-center">Jml Transaksi</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-outline-variant" id="mitra-langganan-tbody">
+                                <tr><td colspan="5" class="p-md text-center text-on-surface-variant">Memuat...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-content hidden" id="tab-mitra-tidak-aktif">
+                    <div class="md:hidden flex flex-col gap-md" id="mitra-tidak-aktif-mobile"></div>
+                    <div class="hidden md:block overflow-x-auto bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm">
+                        <table class="w-full text-left border-collapse min-w-[800px]">
+                            <thead>
+                                <tr class="border-b border-outline-variant bg-surface-container-low">
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Nama</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">No HP</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold text-center">Jml Transaksi</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Tgl Nonaktif</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-outline-variant opacity-75" id="mitra-tidak-aktif-tbody">
+                                <tr><td colspan="5" class="p-md text-center text-on-surface-variant">Memuat...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-content hidden" id="tab-top_leaderboard">
+                    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-md md:p-lg flex flex-col shadow-sm">
+                        
+                        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-md mb-5 border-b border-outline-variant pb-4 shrink-0">
+                            
+                            <div class="max-w-md">
+                                <h3 class="font-headline-md text-headline-md text-on-surface font-bold flex items-center gap-2">
+                                    <i class="bi bi-trophy-fill text-yellow-500"></i> Papan Peringkat Mitra
+                                </h3>
+                                <p class="text-xs text-on-surface-variant mt-0.5">Peringkat 5 Besar penyetor tertinggi berdasarkan kategori komoditas.</p>
+                            </div>
+
+                            <div class="flex flex-nowrap items-center overflow-x-auto hide-scrollbar bg-surface-container-low p-1 rounded-xl border border-outline-variant gap-1 shadow-inner w-full lg:w-auto max-w-full">
+                                <button onclick="window.changeLeaderboardTab(this, 'Juara Umum')" class="leaderboard-tab-btn px-3 py-2 text-xs font-bold rounded-lg bg-white shadow-sm text-primary transition-all whitespace-nowrap">Umum</button>
+                                <button onclick="window.changeLeaderboardTab(this, 'Minyak Jelantah')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Minyak</button>
+                                <button onclick="window.changeLeaderboardTab(this, 'Ampas')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Ampas</button>
+                                <button onclick="window.changeLeaderboardTab(this, 'Kriuk')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Kriuk</button>
+                                <button onclick="window.changeLeaderboardTab(this, 'Tepung')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Tepung</button>
+                                <button onclick="window.changeLeaderboardTab(this, 'Spinner')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Spinner</button>
+                                
+                                <div class="w-px h-5 bg-outline-variant mx-1 shrink-0"></div>
+
+                                <div class="relative min-w-[125px] shrink-0">
+                                    <input type="month" id="input-periode-leaderboard" class="w-full px-2 py-1.5 text-xs font-bold rounded-lg bg-primary-container text-on-primary-container border border-primary/20 outline-none cursor-pointer text-center block shadow-sm transition-all hover:brightness-95 font-mono" title="Ubah Periode">
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div id="leaderboard-live-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md overflow-y-auto p-1 min-h-[160px] flex-1">
+                            <p class="text-sm text-on-surface-variant italic text-center py-8 col-span-full">Menghitung peringkat live...</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-container-margin opacity-0 transition-opacity duration-300" id="modal-tambah-prospek">
+        <div class="bg-surface-container-lowest rounded-xl shadow-lg w-full max-w-md p-lg transform scale-95 transition-transform duration-300 relative">
+            <button class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors" onclick="closeModal('modal-tambah-prospek')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Tambah Prospek Baru</h3>
+            <p class="font-body-md text-body-md text-on-surface-variant mb-md">Masukkan data calon mitra yang baru dihubungi.</p>
+            <form class="flex flex-col gap-md" id="form-tambah-prospek">
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">No HP / WhatsApp</label>
+                    <input id="input_hp_baru" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="0812..." type="text" required>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Sumber Mendapatkan Kontak</label>
+                    <select id="input_sumber_baru" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none">
+                        <option value="Instagram">Instagram</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="Tiktok">Tiktok</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+                <div class="mt-sm flex justify-end gap-sm">
+                    <button class="px-md h-touch-target rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="closeModal('modal-tambah-prospek')" type="button">Batal</button>
+                    <button class="px-md h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors" type="submit" id="btn-submit-prospek">Simpan Prospek</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-container-margin opacity-0 transition-opacity duration-300" id="conversionModal">
+        <div class="bg-surface-container-lowest rounded-xl shadow-lg w-full max-w-md p-lg transform scale-95 transition-transform duration-300 relative">
+            <button class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors" onclick="closeModal('conversionModal')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Jadikan Langganan</h3>
+            <p class="font-body-md text-body-md text-on-surface-variant mb-md">Prospek ini akan dipindahkan ke daftar Mitra Langganan.</p>
+            <form class="flex flex-col gap-md" id="formKonversiLangganan">
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">No HP Prospek</label>
+                    <input class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container text-on-surface outline-none font-bold" id="konversi_hp" type="text" readonly>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Nama Lengkap Toko/Mitra</label>
+                    <input id="konversi_nama" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="Masukkan nama mitra" type="text" required>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Alamat Lengkap Domisili</label>
+                    <textarea id="konversi_alamat" class="w-full p-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none" placeholder="Contoh: Jl. Raya Purwakarta No. 123, Mulyamekar" rows="2" required></textarea>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Link Google Maps (G-Maps)</label>
+                    <input id="konversi_gmaps" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="https://maps.google.com/..." type="url" required>
+                </div>
+                <div class="mt-sm flex justify-end gap-sm">
+                    <button class="px-md h-touch-target rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="closeModal('conversionModal')" type="button">Batal</button>
+                    <button class="px-md h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors" type="submit" id="btn-submit-konversi">Simpan & Pindahkan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-container-margin opacity-0 transition-opacity duration-300" id="modal-tambah-langganan">
+        <div class="bg-surface-container-lowest rounded-xl shadow-lg w-full max-w-md p-lg transform scale-95 transition-transform duration-300 relative">
+            <button class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors" onclick="closeModal('modal-tambah-langganan')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Tambah Langganan Baru</h3>
+            <p class="font-body-md text-body-md text-on-surface-variant mb-md">Pilih prospek untuk dikonversi menjadi Mitra Langganan.</p>
+            <form class="flex flex-col gap-md" id="form-tambah-langganan">
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Pilih Prospek (No HP)</label>
+                    <select id="tambah_langganan_hp" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none cursor-pointer" required>
+                        <option value="">-- Memuat Data Prospek... --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Nama Lengkap Toko/Mitra</label>
+                    <input id="tambah_langganan_nama" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="Masukkan nama mitra" type="text" required>
+                </div>
+                <div>
+                <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Alamat Lengkap Domisili</label>
+                <textarea id="tambah_langganan_alamat" class="w-full p-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none" placeholder="Contoh: Jl. Raya Purwakarta No. 123, Mulyamekar" rows="2" required></textarea>
+            </div>
+            <div>
+                <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Link Google Maps (G-Maps)</label>
+                <input id="tambah_langganan_gmaps" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="https://maps.google.com/..." type="url" required>
+            </div>
+                <div class="mt-sm flex justify-end gap-sm">
+                    <button class="px-md h-touch-target rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="closeModal('modal-tambah-langganan')" type="button">Batal</button>
+                    <button class="px-md h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors" type="submit" id="btn-submit-tambah-langganan">Simpan & Konversi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script is:inline>
+        document.addEventListener('DOMContentLoaded', async () => {
+            if(!window.supabase) return console.error('Supabase tidak terhubung!');
+
+            // === TAMBAHAN: CEK ROLE USER YANG LOGIN ===
+            // === 🛡️ GATEKEEPER KEUANGAN ===
+            const allowedRoles = ['owner', 'hrd', 'admin','periklanan'];
+            const client = window.supabase || supabase;
+
+            const { data: { session } } = await client.auth.getSession();
+            if (!session) return window.location.replace('/'); // Tendang kalau belum login
+
+            const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+            if (!allowedRoles.includes(prof?.role)) {
+                alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk ke Keuangan.`);
+                return window.location.replace('/');
+            }
+            document.body.style.display = 'block'; // Buka gembok CSS, tampilkan layar!
+
+            // ==========================================
+            // 1. TAB LOGIC
+            // ==========================================
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Reset semua warna tombol tab
+                    tabBtns.forEach(b => {
+                        b.classList.remove('border-primary', 'text-primary', 'active');
+                        b.classList.add('border-transparent', 'text-on-surface-variant');
+                    });
+                    // Aktifkan warna tombol tab yang diklik
+                    btn.classList.remove('border-transparent', 'text-on-surface-variant');
+                    btn.classList.add('border-primary', 'text-primary', 'active');
+                    
+                    // Sembunyikan semua isi tab
+                    tabContents.forEach(content => {
+                        content.classList.add('hidden');
+                        content.classList.remove('block'); // Pastikan class block dihapus
+                    });
+                    
+                    // Tampilkan isi tab yang sesuai dengan data-tab
+                    const targetId = btn.getAttribute('data-tab');
+                    const targetElement = document.getElementById(`tab-${targetId}`);
+                    
+                    if(targetElement) {
+                        targetElement.classList.remove('hidden');
+                        targetElement.classList.add('block');
+                    }
+
+                    // 🌟 KHUSUS LEADERBOARD: Render ulang data live setiap tabnya dibuka 🌟
+                    if (targetId === 'top_leaderboard') {
+                        if(typeof window.generateLeaderboard === 'function') {
+                            window.generateLeaderboard();
+                        }
+                    }
+                });
+            });
+
+            // ==========================================
+            // 2. FETCH DATA & RENDER CSR
+            // ==========================================
+            async function loadDataKemitraan() {
+                // A. Mitra Baru (Prospek)
+                const { data: prospek } = await window.supabase.from('mitra_baru').select('*').order('created_at', { ascending: false });
+                
+                let htmlProspekMobile = '';
+                let htmlProspekTable = '';
+                if(prospek && prospek.length > 0) {
+                    prospek.forEach(p => {
+                        const sumber = p.sumber_customer || 'Lainnya';
+                        const currentFollowUp = p.follow_up_ke || 1; // Ambil nilai saat ini
+
+                        // Tampilan Card untuk Mobile
+                        htmlProspekMobile += `
+                        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-label-sm text-label-sm text-on-surface-variant">No HP</p>
+                                    <p class="font-body-md text-on-surface font-semibold">${p.nomor_hp}</p>
+                                    <p class="text-xs text-on-surface-variant mt-1 font-medium">Follow up ke: <span class="font-bold text-secondary">${currentFollowUp}</span></p>
+                                </div>
+                                <span class="px-xs py-xs bg-primary-container text-on-primary-container rounded font-label-sm text-xs">${sumber}</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 mt-xs">
+                                <button class="group h-touch-target bg-secondary-container text-on-secondary-container rounded-full font-label-lg hover:bg-secondary hover:text-white transition-colors flex items-center justify-center gap-xs" onclick="window.tambahFollowUp('${p.nomor_hp}', ${currentFollowUp})">
+                                    <span class="material-symbols-outlined text-[18px] transition-colors group-hover:text-white">add_call</span> +1
+                                </button>
+                                <button class="h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint transition-colors flex items-center justify-center gap-xs" onclick="window.openModalKonversi('${p.nomor_hp}')">
+                                    <span class="material-symbols-outlined text-[18px]">person_add</span> Langganan
+                                </button>
+                            </div>
+                        </div>`;
+
+                        // Tampilan Baris untuk Tabel Desktop
+                        htmlProspekTable += `
+                        <tr class="hover:bg-surface-container-low transition-colors">
+                            <td class="p-md font-body-md text-on-surface font-semibold">${p.nomor_hp}</td>
+                            <td class="p-md"><span class="px-2 py-1 bg-primary-container text-on-primary-container rounded font-label-sm text-xs">${sumber}</span></td>
+                            <td class="p-md text-center"><span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-secondary text-on-secondary font-label-sm text-xs font-bold">${currentFollowUp}</span></td>
+                            <td class="p-md text-right">
+                                <div class="flex justify-end gap-2 items-center">
+                                    <button class="group px-3 py-1.5 bg-secondary-container text-on-secondary-container rounded-full font-label-sm hover:bg-secondary hover:text-white transition-colors inline-flex items-center gap-1 h-10 shadow-sm" onclick="window.tambahFollowUp('${p.nomor_hp}', ${currentFollowUp})" title="Tambah Hitungan Follow Up">
+                                        <span class="material-symbols-outlined text-[18px] transition-colors group-hover:text-white">add_call</span> +1
+                                    </button>
+                                    <button class="px-md py-sm bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint transition-colors inline-flex items-center gap-xs h-10 shadow-sm" onclick="window.openModalKonversi('${p.nomor_hp}')">
+                                        <span class="material-symbols-outlined text-[18px]">person_add</span> Langganan
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>`;
+                    });
+                } else {
+                    const empty = '<p class="text-on-surface-variant text-center p-md">Tidak ada prospek baru.</p>';
+                    htmlProspekMobile = empty; htmlProspekTable = `<tr><td colspan="4">${empty}</td></tr>`;
+                }
+                document.getElementById('mitra-baru-mobile').innerHTML = htmlProspekMobile;
+                document.getElementById('mitra-baru-tbody').innerHTML = htmlProspekTable;
+
+                const selectProspek = document.getElementById('tambah_langganan_hp');
+                if(selectProspek) {
+                    let optHtml = '<option value="">-- Pilih Prospek --</option>';
+                    if(prospek && prospek.length > 0) {
+                        prospek.forEach(p => {
+                            optHtml += `<option value="${p.nomor_hp}">${p.nomor_hp} (${p.sumber_customer || 'Lainnya'})</option>`;
+                        });
+                    } else {
+                        optHtml = '<option value="">-- Tidak ada prospek baru --</option>';
+                    }
+                    selectProspek.innerHTML = optHtml;
+                }
+
+                // B. Mitra Langganan
+                const { data: langganan } = await window.supabase.from('mitra')
+                    .select('*')
+                    .eq('activated', true)
+                    .order('created_at', { ascending: false });
+                
+                let htmlLangMobile = '';
+                let htmlLangTable = '';
+                let chartDataByMonth = { 'Jan':0, 'Feb':0, 'Mar':0, 'Apr':0, 'May':0, 'Jun':0, 'Jul':0, 'Aug':0, 'Sep':0, 'Oct':0, 'Nov':0, 'Dec':0 };
+
+                if(langganan && langganan.length > 0) {
+                    langganan.forEach(l => {
+                        // Data untuk Grafik (Hitung per bulan)
+                        if(l.created_at) {
+                            const date = new Date(l.created_at);
+                            const monthIndex = date.getMonth(); // 0-11
+                            const monthKeys = Object.keys(chartDataByMonth);
+                            chartDataByMonth[monthKeys[monthIndex]] += 1;
+                        }
+
+                        htmlLangMobile += `
+                        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm relative">
+                            <button onclick="window.nonaktifkanMitra('${l.id}', '${l.nama_mitra}')" class="absolute top-4 right-4 text-error hover:bg-error-container rounded-full p-1 transition-colors" title="Nonaktifkan Mitra">
+                                <span class="material-symbols-outlined text-[20px]">person_off</span>
+                            </button>
+                            <div class="border-b border-outline-variant pb-sm">
+                                <p class="font-headline-md text-on-surface font-semibold pr-8">${l.nama_mitra}</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-sm pt-xs">
+                                <div><p class="font-label-sm text-on-surface-variant">No HP</p><p class="font-body-md text-on-surface">${l.nomor_hp || '-'}</p></div>
+                                <div><p class="font-label-sm text-on-surface-variant">Transaksi</p><p class="font-body-md text-on-surface">${l.total_order || 0}x</p></div>
+                            </div>
+                        </div>`;
+                        
+                        htmlLangTable += `
+                        <tr class="hover:bg-surface-container-low transition-colors group">
+                            <td class="p-md font-body-md text-on-surface font-semibold">${l.nama_mitra}</td>
+                            <td class="p-md font-body-md text-on-surface">${l.nomor_hp || '-'}</td>
+                            <td class="p-md text-center"><a class="text-primary inline-block p-1 rounded-full hover:bg-primary-container" href="${l.link_gmaps || '#'}" target="_blank"><span class="material-symbols-outlined text-[20px]">location_on</span></a></td>
+                            <td class="p-md text-center font-body-md">${l.total_order || 0}x</td>
+                            <td class="p-md text-right flex justify-end gap-2 items-center">
+                                <button onclick="window.nonaktifkanMitra('${l.id}', '${l.nama_mitra}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-error rounded-full hover:bg-error-container opacity-0 group-hover:opacity-100 transition-opacity" title="Pindah ke Tidak Aktif">
+                                    <span class="material-symbols-outlined text-[18px]">person_off</span>
+                                </button>
+                            </td>
+                        </tr>`;
+                    });
+                } else {
+                    const empty = '<p class="text-on-surface-variant text-center p-md">Tidak ada mitra langganan.</p>';
+                    htmlLangMobile = empty; htmlLangTable = `<tr><td colspan="5">${empty}</td></tr>`;
+                }
+                document.getElementById('mitra-langganan-mobile').innerHTML = htmlLangMobile;
+                document.getElementById('mitra-langganan-tbody').innerHTML = htmlLangTable;
+                renderChart(chartDataByMonth); // Update Chart realtime!
+
+                // C. Mitra Tidak Aktif
+                const { data: nonaktif } = await window.supabase.from('mitra')
+                    .select('*')
+                    .eq('activated', false)
+                    .order('created_at', { ascending: false });
+                
+                let htmlNonMobile = '';
+                let htmlNonTable = '';
+                if(nonaktif && nonaktif.length > 0) {
+                    nonaktif.forEach(n => {
+                        const dateOnly = n.created_at ? new Date(n.created_at).toLocaleDateString('id-ID') : '-';
+                        htmlNonMobile += `
+                        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm opacity-75">
+                            <div class="border-b border-outline-variant pb-sm"><p class="font-headline-md text-on-surface-variant font-semibold">${n.nama_mitra}</p></div>
+                            <div class="grid grid-cols-2 gap-sm pt-xs">
+                                <div><p class="font-label-sm text-on-surface-variant">No HP</p><p class="font-body-md text-on-surface-variant">${n.nomor_hp || '-'}</p></div>
+                                <div><p class="font-label-sm text-on-surface-variant">Tgl Nonaktif</p><p class="font-body-md text-on-surface-variant">${dateOnly}</p></div>
+                            </div>
+                            <button class="mt-sm w-full h-touch-target bg-surface-container text-primary rounded-full font-label-lg border border-primary hover:bg-primary-container transition-colors flex items-center justify-center gap-xs" onclick="window.aktifkanMitra('${n.id}', '${n.nama_mitra}')">
+                                <span class="material-symbols-outlined text-[20px]">person_check</span> Aktifkan Kembali
+                            </button>
+                        </div>`;
+                        
+                        htmlNonTable += `
+                        <tr class="hover:bg-surface-container-low transition-colors">
+                            <td class="p-md font-body-md text-on-surface-variant font-semibold">${n.nama_mitra}</td>
+                            <td class="p-md font-body-md text-on-surface-variant">${n.nomor_hp || '-'}</td>
+                            <td class="p-md text-center font-body-md text-on-surface-variant">${n.total_order || 0}x</td>
+                            <td class="p-md font-body-md text-on-surface-variant">${dateOnly}</td>
+                            <td class="p-md text-right">
+                                <button class="px-md py-sm bg-surface-container text-primary rounded-full font-label-lg border border-primary hover:bg-primary-container transition-colors inline-flex items-center gap-xs h-10" onclick="window.aktifkanMitra('${n.id}', '${n.nama_mitra}')">
+                                    Aktifkan Kembali
+                                </button>
+                            </td>
+                        </tr>`;
+                    });
+                } else {
+                    const empty = '<p class="text-on-surface-variant text-center p-md">Tidak ada mitra tidak aktif.</p>';
+                    htmlNonMobile = empty; htmlNonTable = `<tr><td colspan="5">${empty}</td></tr>`;
+                }
+                document.getElementById('mitra-tidak-aktif-mobile').innerHTML = htmlNonMobile;
+                document.getElementById('mitra-tidak-aktif-tbody').innerHTML = htmlNonTable;
+            }
+
+            // Jalankan Render CSR
+            await loadDataKemitraan();
+
+
+            // ==========================================
+            // 3. GRAFIK (CHART.JS)
+            // ==========================================
+            let chartInstance = null;
+            function renderChart(dataBulan) {
+                const canvas = document.getElementById('growthChart');
+                if (!canvas || typeof Chart === 'undefined') return;
+                
+                const ctx = canvas.getContext('2d');
+                if(chartInstance) chartInstance.destroy(); // Hapus yang lama kalau di-refresh
+
+                // Hitung akumulasi (Bulan Feb = Jan+Feb, dsb) biar grafiknya naik
+                let dataAkumulasi = [];
+                let total = 0;
+                Object.values(dataBulan).forEach(val => {
+                    total += val;
+                    dataAkumulasi.push(total);
+                });
+
+                chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: Object.keys(dataBulan),
+                        datasets: [{
+                            label: 'Total Mitra Langganan',
+                            data: dataAkumulasi,
+                            borderColor: '#2e7d32',
+                            backgroundColor: 'rgba(46, 125, 50, 0.1)',
+                            borderWidth: 2, fill: true, tension: 0.4,
+                            pointBackgroundColor: '#2e7d32', pointBorderColor: '#fff',
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, grid: { drawBorder: false }, ticks: { stepSize: 1 } },
+                            x: { grid: { display: false, drawBorder: false } }
+                        }
+                    }
+                });
+            }
+
+            // ==========================================
+            // 4. LOGIKA MODAL & AKSI DATABASE
+            // ==========================================
+            window.openModal = function(id) {
+                const modal = document.getElementById(id);
+                modal.classList.remove('hidden'); void modal.offsetWidth;
+                modal.classList.remove('opacity-0'); modal.querySelector('div').classList.remove('scale-95');
+            };
+
+            window.closeModal = function(id) {
+                const modal = document.getElementById(id);
+                modal.classList.add('opacity-0'); modal.querySelector('div').classList.add('scale-95');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            };
+
+            // A. TAMBAH PROSPEK BARU
+            // TAMBAHAN: TAMBAH LANGGANAN LANGSUNG (INPUT MANUAL)
+            document.getElementById('form-tambah-langganan').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btn-submit-tambah-langganan');
+                btn.innerText = "Menyimpan..."; btn.disabled = true;
+
+                const hp = document.getElementById('tambah_langganan_hp').value;
+
+                try {
+                    // 1. Simpan ke tabel Mitra (Langganan)
+                    await window.supabase.from('mitra').insert([{
+                        nama_mitra: document.getElementById('tambah_langganan_nama').value,
+                        nomor_hp: hp,
+                        link_gmaps: document.getElementById('tambah_langganan_alamat').value,
+                        total_order: 0,
+                        total_transaksi: 0
+                    }]);
+                    
+                    // 2. HAPUS otomatis dari prospek (mitra_baru) biar nyambung alurnya!
+                    await window.supabase.from('mitra_baru').delete().eq('nomor_hp', hp);
+
+                    alert('Prospek berhasil dikonversi menjadi Mitra Langganan!');
+                    window.location.reload();
+                } catch(err) { 
+                    alert(err.message); 
+                    btn.innerText = "Simpan & Konversi"; 
+                    btn.disabled = false; 
+                }
+            });
+
+            document.getElementById('form-tambah-prospek').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btn-submit-prospek');
+                btn.innerText = "Menyimpan..."; btn.disabled = true;
+
+                try {
+                    await window.supabase.from('mitra_baru').insert([{
+                        nomor_hp: document.getElementById('input_hp_baru').value,
+                        sumber_customer: document.getElementById('input_sumber_baru').value,
+                        follow_up_ke: 1
+                    }]);
+                    alert('Prospek baru berhasil disimpan!');
+                    window.location.reload();
+                } catch(err) { alert(err.message); btn.innerText = "Simpan Prospek"; btn.disabled = false; }
+            });
+
+            // B. KONVERSI (PROSPEK -> LANGGANAN)
+            window.openModalKonversi = function(hp) {
+                document.getElementById('konversi_hp').value = hp;
+                window.openModal('conversionModal');
+            };
+
+            // FUNGSI TAMBAH FOLLOW UP PROSPEK
+            window.tambahFollowUp = async function(hp, currentCount) {
+                // Konfirmasi singkat biar gak salah pencet
+                if(!confirm(`Catat riwayat telah mem-follow up kontak ${hp} ini?`)) return;
+
+                try {
+                    const nextCount = currentCount + 1;
+                    const { error } = await window.supabase.from('mitra_baru')
+                        .update({ follow_up_ke: nextCount })
+                        .eq('nomor_hp', hp);
+                    
+                    if(error) throw error;
+                    
+                    window.location.reload(); // Refresh halaman biar angkanya nambah
+                } catch(err) {
+                    alert("Gagal menambah jumlah follow up: " + err.message);
+                }
+            };
+
+            // CARI DAN PASTIKAN BAGIAN INI DI SCRIPT LU SUDAH SEPERTI INI:
+            // TIMPA LISTENER SUBMIT FORM KONVERSI PROSPEK
+            document.getElementById('formKonversiLangganan').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btn-submit-konversi');
+                btn.innerText = "Memproses..."; btn.disabled = true;
+                const hp = document.getElementById('konversi_hp').value;
+
+                try {
+                    // 1. Simpan ke tabel mitra (TANGKAP ERROR-NYA!)
+                    const { error: insertError } = await window.supabase.from('mitra').insert([{
+                        nama_mitra: document.getElementById('konversi_nama').value,
+                        nomor_hp: hp,
+                        alamat: document.getElementById('konversi_alamat').value,
+                        link_gmaps: document.getElementById('konversi_gmaps').value,
+                        total_order: 0,
+                        total_transaksi: 0
+                    }]);
+                    
+                    // JIKA INSERT GAGAL, LEMPAR ERROR DAN BERHENTI DI SINI! (Data Prospek Aman)
+                    if (insertError) throw insertError;
+
+                    // 2. Jika insert lolos, baru Hapus dari prospek
+                    const { error: deleteError } = await window.supabase.from('mitra_baru').delete().eq('nomor_hp', hp);
+                    
+                    // JIKA DELETE GAGAL, KASIH TAU
+                    if (deleteError) throw deleteError;
+                    
+                    alert('Berhasil! Prospek dikonversi menjadi Mitra Langganan.');
+                    window.location.reload();
+                } catch(err) { 
+                    // Nanti bakal ketahuan aslinya error Supabase lu apa dari sini
+                    alert('Gagal Konversi: ' + err.message); 
+                    btn.innerText = "Simpan & Pindahkan"; 
+                    btn.disabled = false; 
+                }
+            });
+
+            // C. NONAKTIFKAN MITRA (LANGGANAN -> TIDAK AKTIF)
+            window.nonaktifkanMitra = async function(id, nama) {
+                if(!confirm(`Yakin ingin menonaktifkan ${nama}? Data akan dipindah ke tab Tidak Aktif.`)) return;
+                try {
+                    const { error } = await window.supabase.from('mitra')
+                        .update({ activated: false })
+                        .eq('id', id);
+                        
+                    if(error) throw error;
+                    alert(`${nama} berhasil dinonaktifkan.`);
+                    window.location.reload();
+                } catch(err) { alert(err.message); }
+            };
+
+            // D. AKTIFKAN MITRA (TIDAK AKTIF -> LANGGANAN)
+            window.aktifkanMitra = async function(id, nama) {
+                if(!confirm(`Aktifkan kembali ${nama} menjadi Langganan?`)) return;
+                try {
+                    const { error } = await window.supabase.from('mitra')
+                        .update({ activated: true })
+                        .eq('id', id);
+
+                    if(error) throw error;
+                    alert(`${nama} kembali menjadi Mitra Langganan.`);
+                    window.location.reload();
+                } catch(err) { alert(err.message); }
+            };
+        });
+        // ==========================================
+            // LOGIKA LIVE TOP 5 LEADERBOARD (KOTAK UTAMA)
+            // ==========================================
+            const tglSkrg = new Date();
+            const bulanSkrg = `${tglSkrg.getFullYear()}-${String(tglSkrg.getMonth() + 1).padStart(2, '0')}`;
+            const inputPeriode = document.getElementById('input-periode-leaderboard');
+            
+            if(inputPeriode) {
+                inputPeriode.value = bulanSkrg;
+                // Begitu input bulan diganti oleh user, sistem langsung menghitung ulang secara otomatis dan real-time
+                inputPeriode.addEventListener('change', () => window.generateLeaderboard());
+            }
+
+            // Wadah penyimpanan sementara hasil kalkulasi biar pindah tab/filter jadi kilat
+            window.leaderboardCache = { "Juara Umum": [], "Minyak Jelantah": [], "Ampas": [], "Kriuk": [], "Tepung": [], "Spinner": [] };
+
+            window.generateLeaderboard = async function() {
+                const periode = document.getElementById('input-periode-leaderboard').value;
+                if (!periode || !window.supabase) return;
+
+                try {
+                    const { data: rekapData, error } = await window.supabase
+                        .from('rekap_bulanan_mitra').select('mitra_id, komoditas, total_kg, mitra(nama_mitra)').eq('periode', periode);
+                    
+                    if(error) throw error;
+
+                    // Reset Cache
+                    window.leaderboardCache = { "Juara Umum": [], "Minyak Jelantah": [], "Ampas": [], "Kriuk": [], "Tepung": [], "Spinner": [] };
+                    const totalUmumMap = {};
+
+                    rekapData.forEach(r => {
+                        const kg = parseFloat(r.total_kg) || 0;
+                        const nama = r.mitra?.nama_mitra || 'Mitra Lapangan';
+                        
+                        // 1. Masukkan ke Kategori Komoditas (Normalisasi nama agar masuk ke cache)
+                        for (let kat in window.leaderboardCache) {
+                            if (r.komoditas.toLowerCase().includes(kat.toLowerCase())) {
+                                window.leaderboardCache[kat].push({ nama, kg, id: r.mitra_id });
+                            }
+                        }
+
+                        // 2. Hitung Juara Umum (Total Semua Komoditas Digabung)
+                        if (!totalUmumMap[r.mitra_id]) totalUmumMap[r.mitra_id] = { nama, kg: 0, id: r.mitra_id };
+                        totalUmumMap[r.mitra_id].kg += kg;
+                    });
+
+                    window.leaderboardCache["Juara Umum"] = Object.values(totalUmumMap);
+
+                    // 4. Tampilkan data default (Sesuai filter dropdown yang lagi aktif)
+                    window.renderLeaderboardSesuaiFilter();
+
+                } catch (e) { console.error("Gagal Generate Leaderboard:", e); }
+            };
+
+            // Variabel Pencatat Tab Aktif Saat Ini
+            window.activeLeaderboardKat = 'Juara Umum';
+
+            // Fungsi Mengubah Tampilan Tab & Trigger Data
+            window.changeLeaderboardTab = function(btn, kategori) {
+                window.activeLeaderboardKat = kategori;
+                
+                // Reset semua warna tab kembali ke pasif
+                document.querySelectorAll('.leaderboard-tab-btn').forEach(b => {
+                    b.classList.remove('bg-white', 'shadow-sm', 'text-primary', 'font-bold');
+                    b.classList.add('text-on-surface-variant', 'font-medium');
+                });
+                
+                // Beri highlight putih menyala di tab yang diklik
+                btn.classList.add('bg-white', 'shadow-sm', 'text-primary', 'font-bold');
+                btn.classList.remove('text-on-surface-variant', 'font-medium');
+                
+                // Render ulang kartunya sesuai kategori baru
+                window.renderLeaderboardSesuaiFilter();
+            };
+
+            // Fungsi Merender Kartu Grid ke Layar
+            window.renderLeaderboardSesuaiFilter = function() {
+                const kategori = window.activeLeaderboardKat; // Ambil dari variabel Tab
+                const container = document.getElementById('leaderboard-live-list');
+                if (!container) return;
+
+                // Sortir kargo terbesar, ambil Top 5
+                const data = (window.leaderboardCache[kategori] || []).sort((a, b) => b.kg - a.kg).slice(0, 5);
+
+                if (data.length === 0) {
+                    container.innerHTML = `<p class="text-xs text-on-surface-variant italic text-center py-10 col-span-full border-2 border-dashed border-outline-variant rounded-xl">Belum ada penyetor di kategori ${kategori} pada bulan ini.</p>`;
+                    return;
+                }
+
+                container.innerHTML = data.map((m, i) => {
+                    let bgMedali = 'bg-surface-variant text-on-surface-variant border-outline-variant';
+                    let iconMedali = '';
+                    if(i === 0) { bgMedali = 'bg-yellow-500 text-white font-bold border-yellow-600'; iconMedali = '🥇 '; }
+                    else if(i === 1) { bgMedali = 'bg-slate-400 text-white font-bold border-slate-500'; iconMedali = '🥈 '; }
+                    else if(i === 2) { bgMedali = 'bg-amber-700 text-white font-bold border-amber-800'; iconMedali = '🥉 '; }
+
+                    return `
+                    <div class="flex items-center justify-between bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant shadow-xs hover:border-primary/50 transition-all duration-200 animate-in fade-in slide-in-from-bottom-2">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs ${bgMedali} shrink-0 shadow-xs">#${i + 1}</span>
+                            <div class="truncate">
+                                <p class="text-sm font-bold text-on-surface truncate leading-tight">${iconMedali}${m.nama}</p>
+                                <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mt-0.5">${kategori}</p>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0 ml-2">
+                            <span class="font-mono text-xs font-bold text-green-700 bg-green-50 border border-green-100 px-3 py-1.5 rounded-xl shadow-sm block">${m.kg.toFixed(1)} Kg</span>
+                        </div>
+                    </div>`;
+                }).join('');
+            };
+
+            // Fungsi Kurir: Menghapus data ranking lama di bulan itu, lalu menyuntikkan ranking Top 5 yang baru
+            window.syncLeaderboardToDB = async function(periode) {
+                const payload = [];
+                for (let kat in window.leaderboardCache) {
+                    const top5 = window.leaderboardCache[kat].sort((a, b) => b.kg - a.kg).slice(0, 5);
+                    top5.forEach((m, i) => {
+                        payload.push({ periode, mitra_id: m.id, tingkat: i+1, jenisnya: kat, total_kg: m.kg });
+                    });
+                }
+                
+                // Bersihkan dulu data bulan tersebut biar gak numpuk/double
+                await window.supabase.from('top_leaderboard').delete().eq('periode', periode);
+                // Tembak data terbarunya
+                if (payload.length > 0) await window.supabase.from('top_leaderboard').insert(payload);
+            };
+
+            // Pemicu Render Otomatis Saat Pertama Kali Halaman Terbuka
+            if(inputPeriode) window.generateLeaderboard();
+    </script>
+</Layout>

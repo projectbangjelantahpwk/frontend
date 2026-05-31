@@ -1,0 +1,310 @@
+---
+import GeneralLayout from '../layouts/Layout.astro';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
+const platforms = [
+  { label: 'TikTok', value: 'TikTok' },
+  { label: 'Facebook Reels', value: 'Facebook' },
+  { label: 'YouTube Shorts', value: 'YouTube' },
+  { label: 'Instagram', value: 'Instagram' }
+];
+
+const tabs = [
+  { id: 'reach', label: 'Input Jangkauan (Reach)', icon: 'eye' },
+  { id: 'leads', label: 'Input Leads & Bukti', icon: 'chat-bubble' }
+];
+---
+
+<GeneralLayout title="Periklanan - Manajemen Bang Jelantah">
+  <style is:global>
+      body { display: none; }
+  </style>
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">Manajemen Periklanan & Promosi</h1>
+    <p class="text-gray-600">Kelola performa iklan digital secara terpisah antara Jangkauan dan Leads.</p>
+  </div>
+
+  <div class="mb-6 border-b border-gray-200">
+    <div class="flex gap-8">
+      {tabs.map((tab) => (
+        <button
+          class={`tab-button px-4 py-3 font-medium transition border-b-2 flex items-center gap-2 ${
+            tab.id === 'reach'
+              ? 'border-blue-700 text-blue-700'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+          }`}
+          data-tab={tab.id}
+        >
+          <i class={`bi bi-${tab.icon}`}></i>
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  </div>
+
+  <div>
+    <div id="reach-tab" class="tab-content block">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-1 bg-white rounded-lg border border-gray-200 p-6 h-fit">
+          <h3 class="text-lg font-bold text-gray-900 mb-6">Input Jangkauan (Reach)</h3>
+          <form id="reachForm" class="space-y-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Platform Iklan</label>
+              <select id="reach_platform" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100">
+                {platforms.map((p) => <option value={p.value}>{p.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Waktu Tayang</label>
+              <input type="date" id="reach_tanggal" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100" required />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"><i class="bi bi-eye"></i> Total Jangkauan / Reach</label>
+              <div class="flex gap-2">
+                <input type="number" id="reach_input_val" placeholder="Masukkan jumlah reach" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100 font-bold text-blue-700" required />
+                <span class="flex items-center px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-600">Views</span>
+              </div>
+            </div>
+            <button type="submit" id="btnSubmitReach" class="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-bold active:scale-95">
+              <i class="bi bi-send"></i> Simpan Reach
+            </button>
+          </form>
+        </div>
+        <div class="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-6">Riwayat Jangkauan (Reach)</h3>
+          <div id="reach-history-container" class="space-y-4 max-h-[700px] overflow-y-auto pr-2">
+            <p class="text-center text-gray-500 py-4 animate-pulse">Memuat data...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="leads-tab" class="tab-content hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-1 bg-white rounded-lg border border-gray-200 p-6 h-fit">
+          <h3 class="text-lg font-bold text-gray-900 mb-6">Input Leads & Bukti</h3>
+          <form id="leadsForm" class="space-y-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Platform Iklan</label>
+              <select id="leads_platform" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100">
+                {platforms.map((p) => <option value={p.value}>{p.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Waktu Tayang</label>
+              <input type="date" id="leads_tanggal" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100" required />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"><i class="bi bi-chat-bubble"></i> Jumlah Tanya / Leads</label>
+              <input type="number" id="leads_input_val" placeholder="Masukkan jumlah leads" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 font-bold text-green-700" required />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Bukti Screenshot</label>
+              <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-green-700 hover:bg-green-50 transition">
+                <i class="bi bi-cloud-upload text-3xl text-gray-400 mb-2"></i>
+                <p class="text-sm text-gray-600 mb-1">Tarik & Lepas Gambar</p>
+                <p class="text-xs text-gray-500">atau klik untuk memilih (JPG, PNG)</p>
+                <input type="file" id="buktiInput" accept="image/jpeg,image/png" class="hidden" required />
+              </div>
+              <p id="fileName" class="text-sm text-gray-600 mt-2"></p>
+            </div>
+            <button type="submit" id="btnSubmitLeads" class="w-full flex items-center justify-center gap-2 px-6 py-3 bg-green-700 text-white rounded-lg hover:bg-green-800 transition font-bold active:scale-95">
+              <i class="bi bi-cloud-arrow-up"></i> Simpan Leads
+            </button>
+          </form>
+        </div>
+        <div class="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-6">Riwayat Input Leads</h3>
+          <div id="leads-history-container" class="space-y-4 max-h-[700px] overflow-y-auto pr-2">
+            <p class="text-center text-gray-500 py-4 animate-pulse">Memuat data...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</GeneralLayout>
+
+<script>
+    import { supabase } from '../lib/supabase';
+    import { uploadImageToImgbb } from '../lib/imgbb.js';
+
+    // ============================================
+    // 1. GATEKEEPER & LOAD DATA
+    // ============================================
+    document.addEventListener('DOMContentLoaded', async () => {
+        const allowedRoles = ['owner', 'hrd', 'periklanan'];
+        const client = window.supabase || supabase;
+        
+        const { data: { session } } = await client.auth.getSession();
+        if (!session) return window.location.replace('/');
+        
+        const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+        if (!allowedRoles.includes(prof?.role)) {
+            alert(`Akses Ditolak! Data periklanan terbatas untuk tim terkait.`);
+            return window.location.replace('/');
+        }
+        document.body.style.display = 'block';
+        
+        loadHistory();
+    });
+
+    // ============================================
+    // 2. FUNGSI TARIK DATA (PISAH REACH DAN LEADS)
+    // ============================================
+    async function loadHistory() {
+        const reachContainer = document.getElementById('reach-history-container');
+        const leadsContainer = document.getElementById('leads-history-container');
+
+        if (!reachContainer || !leadsContainer) return;
+
+        const { data: performaData } = await supabase
+            .from('performa_iklan')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (performaData) {
+            // History Reach
+            const dataReach = performaData.filter(item => item.reach > 0);
+            if (dataReach.length === 0) {
+                reachContainer.innerHTML = '<p class="text-gray-500 text-sm">Belum ada data jangkauan.</p>';
+            } else {
+                reachContainer.innerHTML = dataReach.map(item => `
+                    <div class="border-b border-gray-100 pb-3 mb-3 last:border-none flex justify-between items-center">
+                        <div>
+                            <h4 class="font-bold text-gray-900 text-sm">${item.platform}</h4>
+                            <p class="text-[10px] text-gray-500">${item.waktu_tayang}</p>
+                        </div>
+                        <span class="font-bold text-blue-700 bg-blue-50 px-3 py-1 rounded-lg border border-blue-100"><i class="bi bi-eye"></i> ${item.reach} Views</span>
+                    </div>
+                `).join('');
+            }
+
+            // History Leads
+            const dataLeads = performaData.filter(item => item.leads > 0 || item.bukti_url);
+            if (dataLeads.length === 0) {
+                leadsContainer.innerHTML = '<p class="text-gray-500 text-sm">Belum ada data leads.</p>';
+            } else {
+                leadsContainer.innerHTML = dataLeads.map(item => `
+                    <div class="border-b border-gray-100 pb-3 mb-3 last:border-none flex gap-4 items-start">
+                        ${item.bukti_url ? `<img src="${item.bukti_url}" alt="Bukti" class="w-16 h-16 object-cover rounded-lg border border-gray-200 shrink-0" />` : '<div class="w-16 h-16 bg-gray-100 rounded-lg shrink-0 flex items-center justify-center text-xs text-gray-400">No Img</div>'}
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold text-gray-900 text-sm">${item.platform}</span>
+                                <span class="text-[10px] text-gray-500">${item.waktu_tayang}</span>
+                            </div>
+                            <p class="text-xs font-bold text-green-700 bg-green-50 w-fit px-2 py-1 rounded border border-green-100 mt-1">
+                                <i class="bi bi-chat-bubble"></i> ${item.leads} Leads
+                            </p>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+    }
+
+    // ============================================
+    // 3. LOGIKA UI (UPLOAD GAMBAR & TAB BROWSER)
+    // ============================================
+    const dropZone = document.getElementById('dropZone');
+    const buktiInput = document.getElementById('buktiInput');
+    const fileNameDisplay = document.getElementById('fileName');
+    
+    dropZone?.addEventListener('click', () => buktiInput.click());
+    
+    buktiInput?.addEventListener('change', (e) => {
+        if(e.target.files && e.target.files.length > 0) {
+            fileNameDisplay.innerText = "Siap diupload: " + e.target.files[0].name;
+            dropZone.classList.add('border-green-700', 'bg-green-50');
+            dropZone.classList.remove('border-gray-300');
+        } else {
+            fileNameDisplay.innerText = "";
+            dropZone.classList.remove('border-green-700', 'bg-green-50');
+            dropZone.classList.add('border-gray-300');
+        }
+    });
+
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            tabButtons.forEach(btn => {
+                btn.classList.remove('border-blue-700', 'text-blue-700', 'border-green-700', 'text-green-700');
+                btn.classList.add('border-transparent', 'text-gray-600');
+            });
+            
+            tabContents.forEach(content => {
+                content.classList.remove('block');
+                content.classList.add('hidden');
+            });
+
+            const targetId = button.getAttribute('data-tab');
+            if (targetId === 'reach') {
+                button.classList.add('border-blue-700', 'text-blue-700');
+            } else {
+                button.classList.add('border-green-700', 'text-green-700');
+            }
+            button.classList.remove('border-transparent', 'text-gray-600');
+
+            document.getElementById(targetId + '-tab').classList.remove('hidden');
+            document.getElementById(targetId + '-tab').classList.add('block');
+        });
+    });
+
+    // ============================================
+    // 4. SUBMIT FORM REACH & LEADS
+    // ============================================
+    document.getElementById('reachForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnSubmitReach');
+        btn.innerHTML = "Menyimpan..."; btn.disabled = true;
+
+        try {
+            const { error } = await supabase.from('performa_iklan').insert([{
+                platform: document.getElementById('reach_platform').value,
+                waktu_tayang: document.getElementById('reach_tanggal').value,
+                reach: parseInt(document.getElementById('reach_input_val').value),
+                leads: 0,
+                bukti_url: null
+            }]);
+            if (error) throw error;
+            
+            alert('Data Reach berhasil disimpan!');
+            document.getElementById('reachForm').reset();
+            loadHistory();
+        } catch (err) { alert('Gagal: ' + err.message); } 
+        finally { btn.innerHTML = "<i class=\"bi bi-send\"></i> Simpan Reach"; btn.disabled = false; }
+    });
+
+    document.getElementById('leadsForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnSubmitLeads');
+        const fileInput = document.getElementById('buktiInput');
+        const file = fileInput?.files[0];
+
+        if (!file) return alert("Harap pilih gambar bukti tayang.");
+
+        btn.innerHTML = "Mengunggah..."; btn.disabled = true;
+
+        try {
+            const imageUrl = await uploadImageToImgbb(file);
+            btn.innerHTML = "Menyimpan Data...";
+
+            const { error } = await supabase.from('performa_iklan').insert([{
+                platform: document.getElementById('leads_platform').value,
+                waktu_tayang: document.getElementById('leads_tanggal').value,
+                reach: 0,
+                leads: parseInt(document.getElementById('leads_input_val').value),
+                bukti_url: imageUrl
+            }]);
+            if (error) throw error;
+            
+            alert('Data Leads & Bukti berhasil disimpan!');
+            document.getElementById('leadsForm').reset();
+            document.getElementById('fileName').innerText = "";
+            document.getElementById('dropZone').classList.remove('border-green-700', 'bg-green-50');
+            loadHistory();
+        } catch (err) { alert('Gagal: ' + err.message); } 
+        finally { btn.innerHTML = "<i class=\"bi bi-cloud-arrow-up\"></i> Simpan Leads"; btn.disabled = false; }
+    });
+</script>

@@ -1,0 +1,710 @@
+---
+// [cite: 1]
+import GeneralLayout from '../layouts/Layout.astro';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+---
+
+<GeneralLayout title="Pembelian & Validasi - Manajemen Bang Jelantah">
+    <style is:global>
+        /* [cite: 1, 2] Mengunci layar menjadi blank (putih) sampai skrip memberi izin masuk */
+        body { display: none; }
+    </style>
+  <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Pembelian Mitra</h1>
+      <p class="text-gray-600">Kelola riwayat pembelian komoditas mitra dan validasi pembayaran.</p>
+    </div>
+  </div>
+
+  <div class="mb-6 border-b border-gray-200 overflow-x-auto hide-scrollbar">
+    <div class="flex gap-8 min-w-max">
+      <button class="tab-btn active px-4 py-3 font-medium transition border-b-2 border-green-700 text-green-700" data-tab="validasi">
+        <i class="bi bi-shield-check mr-2"></i> Validasi Bayar
+        <span id="badge-validasi" class="hidden ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-red-700 text-xs font-bold">0</span>
+      </button>
+      <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="pembelian">
+        <i class="bi bi-cart-check mr-2"></i> Pembelian Komoditas
+      </button>
+    </div>
+  </div>
+
+  <div id="validasi" class="tab-content block"> <div class="mb-8">
+      <div class="flex items-center gap-2 mb-6">
+        <i class="bi bi-exclamation-triangle text-red-600 text-xl"></i>
+        <h2 class="text-xl font-bold text-gray-900">Menunggu Validasi (<span id="title-validasi-count">0</span>)</h2> </div>
+
+      <div id="validasi-container" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+         <p class="text-gray-500">Memuat data validasi...</p> </div>
+    </div>
+
+    <div class="mt-12 border-t border-gray-200 pt-8">
+      <div class="flex items-center gap-2 mb-6"> <i class="bi bi-clock-history text-blue-600 text-xl"></i>
+        <h2 class="text-xl font-bold text-gray-900">Riwayat Pembayaran Selesai</h2>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+          <table class="w-full text-left">
+              <thead class="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                      <th class="px-6 py-4 text-sm font-bold text-gray-900">Mitra</th> <th class="px-6 py-4 text-sm font-bold text-gray-900">Tanggal</th>
+                      <th class="px-6 py-4 text-sm font-bold text-gray-900">Metode Bayar</th>
+                      <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right">Nominal</th> </tr>
+              </thead>
+              <tbody id="riwayat-lunas-tbody" class="divide-y divide-gray-100">
+                  <tr><td colspan="4" class="text-center py-4">Memuat...</td></tr> </tbody>
+          </table>
+      </div> </div>
+  </div>
+
+  <div id="pembelian" class="tab-content hidden"> <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-gray-900">Pembelian Komoditas (Mitra)</h2> </div>
+    
+    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex flex-wrap gap-4 items-end">
+        <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Mulai Tanggal</label> <input type="date" id="filter-start-beli" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600">
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Sampai Tanggal</label> <input type="date" id="filter-end-beli" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600">
+        </div>
+        <button onclick="filterTabelBeli()" class="bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-800">Filter Data Pembelian</button> </div>
+
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+        <div class="overflow-x-auto max-h-[600px]">
+            <table class="w-full text-left" id="tabel-pembelian"> <thead class="bg-gray-50 sticky top-0 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">Tanggal</th> <th class="px-6 py-4 text-sm font-bold text-gray-900">Mitra</th> <th class="px-6 py-4 text-sm font-bold text-gray-900">Komoditas</th>
+                        <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right whitespace-nowrap">Berat (Kg)</th>
+                        <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right whitespace-nowrap">Harga Satuan</th> <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right whitespace-nowrap">Subtotal Harga</th> </tr>
+                </thead>
+                <tbody id="pembelian-tbody" class="divide-y divide-gray-200">
+                    <tr><td colspan="6" class="text-center py-4 text-gray-500">Memuat...</td></tr> </tbody>
+            </table>
+        </div>
+    </div>
+  </div>
+</GeneralLayout>
+
+<div id="modal-edit-transaksi" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0"> <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-blue-50 shrink-0">
+            <div>
+                <h3 class="font-bold text-lg text-gray-900">Edit Data Transaksi</h3> <p id="edit-step-indicator" class="text-xs text-blue-700 font-medium mt-0.5">Langkah 1 dari 3: Data Pokok</p>
+            </div>
+            <button type="button" onclick="closeModal('modal-edit-transaksi')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button> </div>
+        
+        <form id="form-edit-transaksi" onsubmit="window.simpanEditTransaksi(event)" class="p-6 overflow-y-auto flex-1 flex flex-col justify-between"> <input type="hidden" id="edit_trx_id">
+            <input type="hidden" id="edit_penjemputan_id"> <input type="hidden" id="edit_mitra_id">
+            <input type="hidden" id="edit_metode_bayar">
+
+            <div id="edit-step-1" class="flex flex-col gap-4">
+                <div class="w-full">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Tanggal Transaksi</label> <input type="date" id="edit_trx_tgl" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 font-medium" required>
+                </div>
+                
+                <div class="w-full"> <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Nama Mitra Pengumpul</label>
+                    <select id="edit_trx_mitra_select" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 font-medium bg-white" required>
+                    </select> </div>
+                
+                <div class="w-full"> <label class="block text-xs font-bold text-red-600 uppercase tracking-wider mb-1">Potongan DP / Kasbon (Rp)</label>
+                    <input type="number" id="edit_trx_dp" class="w-full border border-red-300 bg-red-50 rounded-xl p-3 outline-none focus:border-red-600 text-red-900 font-bold font-mono" placeholder="0"> </div>
+            </div>
+
+            <div id="edit-step-2" class="hidden flex-col gap-5"> <div id="edit_items_container" class="space-y-4"></div>
+
+                <div class="w-full pt-3 border-t border-gray-100">
+                    <label class="block text-xs font-bold text-green-700 uppercase tracking-wider mb-1">Total Harga Transaksi (Rp)</label> <input type="number" id="edit_trx_grand_total" class="w-full border border-green-300 bg-green-50 rounded-xl p-3 outline-none focus:border-green-600 text-green-900 font-bold font-mono text-lg" required>
+                </div>
+            </div>
+
+            <div id="edit-step-3" class="hidden flex-col gap-4"> 
+    <div class="w-full bg-blue-50 p-3 rounded-xl border border-blue-200 shadow-sm">
+        <label class="block text-xs font-bold text-blue-800 uppercase tracking-wider mb-1">Metode Pembayaran 1</label>
+        <select id="edit_metode_bayar" onchange="window.renderMetodeDetails()" class="w-full border border-blue-300 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-blue-600 font-bold mb-3">
+            <option value="Cash (UMKM)">Cash (Dana UMKM)</option>
+            <option value="Cash (Karyawan)">Cash (Talangan Karyawan)</option>
+            <option value="Bank">Transfer Bank</option>
+            <option value="QRIS">QRIS</option>
+        </select>
+
+        <label class="flex items-center gap-2 cursor-pointer mb-2">
+            <input type="checkbox" id="cb_split_payment" onchange="window.toggleMetode2()" class="w-4 h-4 text-blue-600 rounded">
+            <span class="text-xs font-bold text-blue-900">Ada kekurangan? (Tambah metode ke-2)</span>
+        </label>
+
+        <div id="container_metode_2" style="display: none; margin-bottom: 12px;">
+            <select id="edit_metode_bayar_2" onchange="window.renderMetodeDetails()" class="w-full border border-blue-300 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-blue-600 font-bold">
+                <option value="Cash (UMKM)">Cash (Dana UMKM)</option>
+                <option value="Cash (Karyawan)">Cash (Talangan Karyawan)</option>
+                <option value="Bank">Transfer Bank</option>
+                <option value="QRIS">QRIS</option>
+            </select>
+        </div>
+
+        <div id="container_toggle_3" style="display: none;">
+            <label class="flex items-center gap-2 cursor-pointer mb-2">
+                <input type="checkbox" id="cb_split_payment_3" onchange="window.toggleMetode3()" class="w-4 h-4 text-blue-600 rounded">
+                <span class="text-xs font-bold text-blue-900">Masih kurang? (Tambah metode ke-3)</span>
+            </label>
+        </div>
+
+        <div id="container_metode_3" style="display: none;">
+            <select id="edit_metode_bayar_3" onchange="window.renderMetodeDetails()" class="w-full border border-blue-300 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-blue-600 font-bold">
+                <option value="Cash (UMKM)">Cash (Dana UMKM)</option>
+                <option value="Cash (Karyawan)">Cash (Talangan Karyawan)</option>
+                <option value="Bank">Transfer Bank</option>
+                <option value="QRIS">QRIS</option>
+            </select>
+        </div>
+    </div>
+    
+    <div id="edit_payment_details_container" class="w-full transition-all duration-300 space-y-3"></div> 
+</div>
+
+            <div id="footer-edit-1" class="mt-8 flex justify-end shrink-0">
+                <button type="button" onclick="window.goToEditStep(2)" class="w-12 h-12 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition text-xl flex items-center justify-center shadow-sm active:scale-95" title="Selanjutnya"> <i class="bi bi-arrow-right"></i> </button>
+            </div>
+            
+            <div id="footer-edit-2" class="mt-8 hidden w-full justify-between items-center shrink-0">
+                <button type="button" onclick="window.goToEditStep(1)" class="w-12 h-12 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 border border-gray-200 transition text-xl flex items-center justify-center active:scale-95" title="Kembali"> <i class="bi bi-arrow-left"></i> </button>
+                <button type="button" onclick="window.goToEditStep(3)" class="w-12 h-12 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition text-xl flex items-center justify-center shadow-sm active:scale-95" title="Selanjutnya"> <i class="bi bi-arrow-right"></i>
+                </button> </div>
+
+            <div id="footer-edit-3" class="mt-8 hidden w-full justify-between items-center shrink-0"> <button type="button" onclick="window.goToEditStep(2)" class="w-12 h-12 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 border border-gray-200 transition text-xl flex items-center justify-center active:scale-95" title="Kembali">
+                    <i class="bi bi-arrow-left"></i>
+                </button> <button type="submit" id="btn-save-trx" class="w-12 h-12 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition text-xl flex items-center justify-center shadow-sm active:scale-95" title="Simpan Perubahan">
+                    <i class="bi bi-floppy-fill"></i> </button>
+            </div>
+        </form> </div>
+</div>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', async () => {
+    // === 🛡️ GATEKEEPER KEUANGAN ===
+    const allowedRoles = ['owner', 'hrd', 'keuangan'];
+    const client = window.supabase || supabase;
+      
+    const { data: { session } } = await client.auth.getSession();
+    if (!session) return window.location.replace('/'); // Tendang kalau belum login
+      
+    const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+    if (!allowedRoles.includes(prof?.role)) { 
+        alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk ke Keuangan.`);
+        return window.location.replace('/');
+    }
+    document.body.style.display = 'block'; // Buka gembok CSS, tampilkan layar!
+    
+    // ==========================================
+    // 1. FETCH DATA PEMBELIAN & VALIDASI
+    // ==========================================
+    async function loadData() {
+        if(!window.supabase) return;
+        try {
+            const { data: listMitra } = await window.supabase.from('mitra').select('id, nama_mitra').order('nama_mitra', { ascending: true });
+            window.allMitraGlobal = listMitra || []; 
+
+            const { data: transaksi, error: errTransaksi } = await window.supabase.from('transaksi')
+                .select('*, transaksi_item(komoditas, volume, harga_unit, id), penjemputan(tanggal, mitra(nama_mitra, id), mitra_id)')
+                .order('created_at', { ascending: false });
+            
+            if (errTransaksi) { 
+                alert("Error Supabase (Transaksi): " + errTransaksi.message);
+                console.error("Detail Error Transaksi:", errTransaksi);
+            }
+            
+            // Render Tabel Pembelian
+            const tbodyPembelian = document.getElementById('pembelian-tbody');
+            let htmlPembelian = ''; 
+            transaksi?.forEach(t => {
+                const tanggal = t.penjemputan?.tanggal || '-';
+                const namaMitra = t.penjemputan?.mitra?.nama_mitra || 'Tanpa Nama Mitra'; 
+                if (t.transaksi_item && t.transaksi_item.length > 0) {
+                    t.transaksi_item.forEach(item => { 
+                        const hargaSatuan = item.harga_unit || 0;
+                        const subtotal = item.volume * hargaSatuan;
+                        htmlPembelian += ` 
+                        <tr class="hover:bg-gray-50" data-date="${t.penjemputan?.tanggal || ''}">
+                            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">${tanggal}</td>
+                            <td class="px-6 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">${namaMitra}</td> 
+                            <td class="px-6 py-4 text-sm font-medium text-blue-700 whitespace-nowrap">${item.komoditas}</td>
+                            <td class="px-6 py-4 text-sm text-gray-700 text-right">${item.volume} Kg</td>
+                            <td class="px-6 py-4 text-sm text-gray-600 text-right">Rp ${hargaSatuan.toLocaleString('id-ID')}</td> 
+                            <td class="px-6 py-4 text-sm font-bold text-right text-green-700">Rp ${subtotal.toLocaleString('id-ID')}</td>
+                        </tr>`;
+                    }); 
+                }
+            });
+            tbodyPembelian.innerHTML = htmlPembelian || '<tr><td colspan="6" class="text-center py-4 text-gray-500 italic">Data pembelian kosong</td></tr>'; 
+
+            // Pisahkan Data Validasi
+            const trxMenunggu = transaksi?.filter(t => !t.is_paid_by_admin && t.metode_bayar) || []; 
+            const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || []; 
+            window.dataTransaksiGlobal = trxMenunggu;
+            
+            const badge = document.getElementById('badge-validasi');
+            const countEl = document.getElementById('title-validasi-count'); 
+            if(badge && countEl) {
+                countEl.innerText = trxMenunggu.length;
+                if(trxMenunggu.length > 0) { 
+                    badge.innerText = trxMenunggu.length;
+                    badge.classList.remove('hidden'); 
+                }
+            }
+
+            const valContainer = document.getElementById('validasi-container');
+            let htmlVal = ''; 
+            trxMenunggu.forEach(trx => {
+                const subtotal = trx.transaksi_item?.reduce((acc, i) => acc + (i.volume * (i.harga_unit||0)), 0) || 0;
+                const finalTotal = subtotal - (trx.potongan_dp || 0); 
+                let itemHtml = '';
+                trx.transaksi_item?.forEach(i => { 
+                    itemHtml += `<div class="flex justify-between text-gray-700"><span>${i.komoditas} (${i.volume}kg @ ${i.harga_unit})</span><span>Rp ${(i.volume * (i.harga_unit||0)).toLocaleString('id-ID')}</span></div>`;
+                }); 
+                
+                let infoBayarHtml = ''; 
+                // Cek apakah ada metode 2 untuk dimunculkan di UI
+                const m1 = trx.metode_bayar;
+                const m2 = trx.metode_bayar_2;
+                const textMetode = m2 ? `${m1} + ${m2}` : m1;
+
+                if (m1 === 'Bank' || m2 === 'Bank') { 
+                    infoBayarHtml = `
+                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 mb-4 mt-3">
+                            <p class="text-xs font-bold text-blue-800 mb-2"><i class="bi bi-bank2 mr-1"></i> Informasi Transfer Bank (${textMetode})</p> 
+                            <div class="grid grid-cols-3 gap-y-2 text-sm bg-white p-3 rounded-lg border border-blue-100 shadow-sm">
+                                <div class="text-gray-500">Bank</div><div class="col-span-2 font-bold text-gray-900">: ${trx.nama_bank || '-'}</div> 
+                                <div class="text-gray-500">No. Rek</div><div class="col-span-2 font-bold text-gray-900">: ${trx.no_rek || '-'}</div> 
+                                <div class="text-gray-500">Atas Nama</div><div class="col-span-2 font-bold text-gray-900">: ${trx.atas_nama || '-'}</div> 
+                            </div>
+                        </div>`;
+                } else if (m1 === 'QRIS' || m2 === 'QRIS') { 
+                    infoBayarHtml = `
+                        <div class="bg-purple-50 p-4 rounded-xl border border-purple-200 mb-4 mt-3">
+                            <p class="text-xs font-bold text-purple-800 mb-2"><i class="bi bi-qr-code-scan mr-1"></i> Bukti Pembayaran QRIS (${textMetode})</p> 
+                            ${trx.photo_qris  ?
+                            `<a href="${trx.photo_qris}" target="_blank" class="block w-full h-36 bg-white rounded-lg border border-purple-200 overflow-hidden hover:opacity-90 transition shadow-sm"> 
+                                <img src="${trx.photo_qris}" alt="QRIS" class="w-full h-full object-contain">
+                             </a>
+                             <p class="text-[11px] text-center text-purple-600 mt-2 font-medium italic">Klik gambar untuk memperbesar</p>` : 
+                            `<p class="text-xs text-red-500 italic bg-white p-2 rounded border border-red-100">Foto QRIS belum diunggah.</p>`}
+                        </div>`;
+                } else {
+                    infoBayarHtml = `
+                        <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 mb-4 mt-3 flex items-start gap-3 shadow-sm">
+                            <div class="bg-amber-200 p-2 rounded-full text-amber-700"> <i class="bi bi-cash-stack text-xl"></i></div>
+                            <div>
+                                 <p class="text-sm font-bold text-amber-900">Pembayaran ${textMetode}</p> 
+                                 <p class="text-xs text-amber-800 leading-relaxed mt-1">Cek silang tabel <b>Pengeluaran (Dana Talang)</b> untuk kesesuaian nilai transaksi ini.</p> 
+                            </div>
+                        </div>`;
+                } 
+                
+                htmlVal += `
+                <div class="bg-white rounded-xl border border-red-200 p-6 shadow-sm"> 
+                    <div class="flex items-start justify-between mb-4 border-b border-gray-100 pb-4">
+                        <div> 
+                            <h3 class="font-bold text-gray-900 text-lg">${trx.penjemputan?.mitra?.nama_mitra || 'Tanpa Nama Mitra'}</h3> 
+                            <p class="text-sm text-gray-500">Tgl Angkut: ${trx.penjemputan?.tanggal || '-'}</p> 
+                        </div>
+                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Belum Lunas</span> 
+                    </div>
+                    
+                    <div class="space-y-2 mb-2 text-sm"> ${itemHtml}
+                        <div class="flex justify-between text-red-600 pt-2">
+                            <span>Potongan DP</span><span>- Rp ${Number(trx.potongan_dp || 0).toLocaleString('id-ID')}</span> 
+                        </div>
+                    </div>
+
+                    ${infoBayarHtml}
+
+                    <div class="border-t border-gray-200 pt-4 mb-6"> 
+                        <p class="text-sm text-gray-600 mb-1">Total Wajib Dibayar</p> 
+                        <p class="text-3xl font-bold text-gray-900">Rp ${finalTotal.toLocaleString('id-ID')}</p>
+                    </div>
+                    
+                    <div class="flex gap-3"> 
+                        <button onclick="window.bukaModalEditTrx('${trx.id}')" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl hover:bg-blue-100 transition font-bold active:scale-95">
+                            <i class="bi bi-pencil-square"></i> Edit Data 
+                        </button>
+                        <button onclick="window.validasiBayar('${trx.id}')" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-700 text-white rounded-xl hover:bg-green-800 transition font-bold active:scale-95">
+                            <i class="bi bi-check-circle"></i> Validasi Lunas 
+                        </button>
+                    </div>
+                </div>`;
+            }); 
+            valContainer.innerHTML = htmlVal || '<p class="text-gray-500">Tidak ada transaksi yang menunggu validasi.</p>';
+
+            const tbodyLunas = document.getElementById('riwayat-lunas-tbody');
+            let htmlLunas = ''; 
+            trxSelesai.forEach(t => {
+                htmlLunas += `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 text-sm font-bold text-gray-900">${t.penjemputan?.mitra?.nama_mitra || 'Tanpa Nama Mitra'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">${t.penjemputan?.tanggal || '-'}</td> 
+                    <td class="px-6 py-4 text-sm text-gray-600">${t.metode_bayar || '-'} ${t.metode_bayar_2 ? ' + '+t.metode_bayar_2 : ''}</td> 
+                    <td class="px-6 py-4 text-sm font-bold text-green-700 text-right">Rp ${Number(t.grand_total || 0).toLocaleString('id-ID')}</td>
+                </tr>`;
+            });
+            tbodyLunas.innerHTML = htmlLunas || '<tr><td colspan="4" class="text-center py-4">Data kosong</td></tr>'; 
+        } catch (error) {
+            console.error("Gagal load data:", error);
+        }
+    }
+    await loadData();
+
+    // ==========================================
+    // 2. TAB SWITCHING LOGIC
+    // ==========================================
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach((button) => { 
+        button.addEventListener('click', function() {
+            let tabName = this.getAttribute('data-tab');
+            tabButtons.forEach((btn) => { 
+                btn.classList.remove('active', 'border-green-700', 'text-green-700');
+                btn.classList.add('border-transparent', 'text-gray-600');
+            });
+            tabContents.forEach((content) => { 
+                content.classList.add('hidden');
+                content.classList.remove('block');
+            });
+            this.classList.add('active', 'border-green-700', 'text-green-700'); 
+            this.classList.remove('border-transparent', 'text-gray-600');
+            
+            const activeTab = document.getElementById(tabName); 
+            if(activeTab) {
+                activeTab.classList.remove('hidden'); activeTab.classList.add('block');
+            }
+        });
+    });
+
+    // ==========================================
+    // 3. MODAL CONTROLS & FILTER
+    // ==========================================
+    window.openModal = function(id) { 
+        const m = document.getElementById(id);
+        m.classList.remove('hidden'); m.classList.add('flex');
+        setTimeout(() => { m.classList.remove('opacity-0'); m.querySelector('div').classList.remove('scale-95'); }, 10);
+    }
+    window.closeModal = function(id) { 
+        const m = document.getElementById(id);
+        m.classList.add('opacity-0'); m.querySelector('div').classList.add('scale-95'); 
+        setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
+    }
+    window.filterTabelBeli = function() { 
+        const start = document.getElementById('filter-start-beli').value;
+        const end = document.getElementById('filter-end-beli').value; 
+        if(!start || !end) return alert("Pilih tanggal awal dan akhir!");
+        document.querySelectorAll('#tabel-pembelian tbody tr').forEach(tr => { 
+            const date = tr.getAttribute('data-date');
+            if(date) tr.style.display = (date >= start && date <= end) ? '' : 'none';
+        });
+    }; 
+
+    // ==========================================
+    // 4. NAVIGASI STEP MODAL EDIT
+    // ==========================================
+    window.goToEditStep = function(step) {
+        [1, 2, 3].forEach(num => {
+            const stepEl = document.getElementById(`edit-step-${num}`);
+            const footerEl = document.getElementById(`footer-edit-${num}`);
+            if (stepEl) { stepEl.classList.add('hidden'); stepEl.classList.remove('flex'); }
+            if (footerEl) { footerEl.classList.add('hidden'); footerEl.classList.remove('flex'); }
+        });
+
+        const targetStep = document.getElementById(`edit-step-${step}`);
+        const targetFooter = document.getElementById(`footer-edit-${step}`);
+        if (targetStep) { targetStep.classList.remove('hidden'); targetStep.classList.add('flex'); }
+        if (targetFooter) { targetFooter.classList.remove('hidden'); targetFooter.classList.add('flex'); }
+
+        const indicator = document.getElementById('edit-step-indicator');
+        if (indicator) {
+            if (step === 1) indicator.innerText = 'Langkah 1 dari 3: Data Pokok';
+            if (step === 2) indicator.innerText = 'Langkah 2 dari 3: Rincian Komoditas';
+            if (step === 3) indicator.innerText = 'Langkah 3 dari 3: Metode Pembayaran';
+        }
+    };
+
+    // ==========================================
+    // 5. AUTO KALKULASI & METODE BAYAR DINAMIS
+    // ==========================================
+    window.hitungTotalEdit = function() {
+        let subtotal = 0;
+        document.querySelectorAll('.edit-item-row').forEach(row => {
+            const vol = parseFloat(row.querySelector('.item_volume').value) || 0;
+            const hrg = parseFloat(row.querySelector('.item_harga').value) || 0;
+            subtotal += (vol * hrg);
+        });
+        const dp = parseFloat(document.getElementById('edit_trx_dp').value) || 0;
+        document.getElementById('edit_trx_grand_total').value = subtotal - dp;
+    };
+
+    const inputDp = document.getElementById('edit_trx_dp');
+    if(inputDp) inputDp.addEventListener('input', window.hitungTotalEdit);
+
+    window.toggleMetode2 = function() {
+        const isChecked = document.getElementById('cb_split_payment').checked;
+        document.getElementById('container_metode_2').style.display = isChecked ? 'block' : 'none';
+        document.getElementById('container_toggle_3').style.display = isChecked ? 'block' : 'none';
+        
+        // Kalau metode 2 dimatikan, otomatis reset dan matikan juga metode 3
+        if (!isChecked) {
+            document.getElementById('edit_metode_bayar_2').value = 'Cash (UMKM)';
+            document.getElementById('cb_split_payment_3').checked = false;
+            window.toggleMetode3();
+        }
+        window.renderMetodeDetails(); 
+    };
+
+    window.toggleMetode3 = function() {
+        const isChecked = document.getElementById('cb_split_payment_3').checked;
+        document.getElementById('container_metode_3').style.display = isChecked ? 'block' : 'none';
+        if (!isChecked) document.getElementById('edit_metode_bayar_3').value = 'Cash (UMKM)';
+        window.renderMetodeDetails(); 
+    };
+
+    window.renderMetodeDetails = function(trxData = null) {
+        const m1 = document.getElementById('edit_metode_bayar').value;
+        const isSplit2 = document.getElementById('cb_split_payment').checked;
+        const isSplit3 = document.getElementById('cb_split_payment_3').checked;
+        
+        const m2 = isSplit2 ? document.getElementById('edit_metode_bayar_2').value : '';
+        const m3 = isSplit3 ? document.getElementById('edit_metode_bayar_3').value : '';
+
+        const hasBank = (m1 === 'Bank' || m2 === 'Bank' || m3 === 'Bank');
+        const hasQris = (m1 === 'QRIS' || m2 === 'QRIS' || m3 === 'QRIS');
+
+        const payContainer = document.getElementById('edit_payment_details_container');
+        let html = '';
+
+        if (hasBank) {
+            html += `
+                <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-3 shadow-sm">
+                    <p class="text-xs font-bold text-gray-700 uppercase"><i class="bi bi-bank2"></i> Detail Transfer Bank</p>
+                    <input type="text" id="edit_bank_nama" placeholder="Nama Bank" value="${trxData?.nama_bank || ''}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
+                    <input type="text" id="edit_bank_rek" placeholder="No Rekening" value="${trxData?.no_rek || ''}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
+                    <input type="text" id="edit_bank_an" placeholder="Atas Nama" value="${trxData?.atas_nama || ''}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
+                </div>`;
+        }
+        if (hasQris) {
+            html += `
+                <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-3 shadow-sm">
+                    <p class="text-xs font-bold text-gray-700 uppercase"><i class="bi bi-qr-code"></i> Tautan QRIS</p>
+                    <textarea id="edit_qris_url" rows="2" placeholder="Link gambar QRIS" class="w-full border border-gray-300 p-2.5 rounded-lg text-xs outline-none">${trxData?.photo_qris || ''}</textarea> 
+                </div>`;
+        }
+        
+        if (m1.includes('Cash') || m2.includes('Cash') || m3.includes('Cash')) {
+            let sumber = [];
+            if (m1 === 'Cash (UMKM)' || m2 === 'Cash (UMKM)' || m3 === 'Cash (UMKM)') sumber.push('Dana UMKM');
+            if (m1 === 'Cash (Karyawan)' || m2 === 'Cash (Karyawan)' || m3 === 'Cash (Karyawan)') sumber.push('Talangan Karyawan');
+            
+            let pesanTambahan = sumber.includes('Dana UMKM') 
+                ? '<span class="text-green-700">Dana UMKM aman, tidak perlu update rincian pengeluaran lagi.</span>' 
+                : '<span class="text-red-600">Perhatian: Pastikan talangan karyawan dicatat di Pengeluaran!</span>';
+
+            html += `
+                <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3 shadow-sm">
+                    <div class="bg-amber-200 p-1.5 rounded-full text-amber-700 shrink-0"><i class="bi bi-cash-stack"></i></div>
+                    <div>
+                        <p class="text-xs font-bold text-amber-900">Pembayaran Tunai</p>
+                        <p class="text-[10px] text-amber-800 mt-1 leading-relaxed">
+                            Sumber Dana: <b>${sumber.join(' & ')}</b>.<br/>
+                            ${pesanTambahan}
+                        </p>
+                    </div>
+                </div>`;
+        }
+        payContainer.innerHTML = html;
+    };
+
+
+    // ==========================================
+    // 6. VALIDASI & EDIT TRANSAKSI (FUNGSI UTAMA)
+    // ==========================================
+    window.validasiBayar = async function(trxId) {
+       if(!confirm('Tandai transaksi ini sudah dibayar LUNAS?\n\n(Perhatian: Stok gudang akan otomatis bertambah, dan rekap performa Mitra akan di-update)')) return;
+       if(!window.supabase) return;
+        
+       try {
+           const { error } = await window.supabase.rpc('validasi_pembayaran_mitra', { p_trx_id: trxId });
+           if (error) throw error;
+        
+           alert('Transaksi divalidasi Lunas. Stok Gudang, Performa Profil Mitra, dan Rekap Bulanan berhasil di-update otomatis.'); 
+           window.location.reload();
+       } catch (err) {
+           alert('Gagal memproses validasi & stok: ' + err.message);
+       } 
+    };
+
+    window.bukaModalEditTrx = function(trxId) { 
+        window.goToEditStep(1); 
+        const trx = window.dataTransaksiGlobal.find(t => String(t.id) === String(trxId)); 
+        if(!trx) return alert("Data transaksi tidak ditemukan!");
+        
+        document.getElementById('edit_trx_id').value = trx.id; 
+        document.getElementById('edit_penjemputan_id').value = trx.penjemputan_id || ''; 
+        document.getElementById('edit_trx_tgl').value = trx.penjemputan?.tanggal || '';
+        document.getElementById('edit_trx_dp').value = trx.potongan_dp || 0;
+
+        let optMitra = ''; 
+        const currentMitraId = trx.penjemputan?.mitra?.id || null; 
+        optMitra += `<option value="0" ${currentMitraId === null ? 'selected' : ''}>Timbang Mandiri</option>`;
+        if(window.allMitraGlobal) {
+            window.allMitraGlobal.forEach(m => {
+                const selected = currentMitraId && String(m.id) === String(currentMitraId) ? 'selected' : '';
+                optMitra += `<option value="${m.id}" ${selected}>${m.nama_mitra}</option>`;
+            });
+        } 
+        document.getElementById('edit_trx_mitra_select').innerHTML = optMitra;
+        
+        let itemsHtml = '';
+        if (trx.transaksi_item && trx.transaksi_item.length > 0) { 
+            trx.transaksi_item.forEach((item, index) => {
+                itemsHtml += `
+                <div class="edit-item-row p-4 bg-gray-50 border border-gray-200 rounded-xl relative space-y-3 shadow-sm">
+                    <span class="inline-block bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200 mb-1">Barang Ke-${index + 1}: ${item.komoditas}</span> 
+                    <input type="hidden" class="item_id" value="${item.id}"> 
+                    
+                    <div class="w-full">
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase">Berat (Kg)</label> 
+                        <input type="number" step="0.1" class="item_volume w-full border border-gray-300 rounded-lg p-2 text-sm outline-none bg-white font-semibold" value="${item.volume}" oninput="window.hitungTotalEdit()" required>
+                    </div>
+                    <div class="w-full">
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase">Harga / Kg (Rp)</label> 
+                        <input type="number" class="item_harga w-full border border-gray-300 rounded-lg p-2 text-sm outline-none bg-white font-semibold" value="${item.harga_unit}" oninput="window.hitungTotalEdit()" required>
+                    </div>
+                 </div>`; 
+            });
+        } else {
+            itemsHtml = `<p class="text-sm text-red-500 italic">Transaksi ini tidak memiliki rincian komoditas.</p>`;
+        }
+        document.getElementById('edit_items_container').innerHTML = itemsHtml;
+        document.getElementById('edit_trx_grand_total').value = trx.grand_total || 0; 
+
+        // ==========================================
+        // LOGIKA PECAH METODE BAYAR (SUPPORT 3 METODE)
+        // ==========================================
+        let rawM1 = trx.metode_bayar || '';
+        let rawM2 = trx.metode_bayar_2 || '';
+        let rawM3 = trx.metode_bayar_3 || '';
+
+        // Kalau ada simbol '&', belah sampai 3 bagian (jika ada)
+        if (rawM1.includes('&')) {
+            const splitData = rawM1.split('&').map(s => s.trim());
+            rawM1 = splitData[0] || '';
+            rawM2 = splitData[1] || '';
+            rawM3 = splitData[2] || '';
+        }
+
+        const mappingMetode = (val) => {
+            if (!val) return null;
+            val = val.toLowerCase();
+            if (val.includes('talangan') || val.includes('karyawan')) return 'Cash (Karyawan)';
+            if (val.includes('transfer') || val.includes('bank')) return 'Bank';
+            if (val.includes('qris')) return 'QRIS';
+            if (val.includes('cash') || val.includes('tunai') || val.includes('umkm')) return 'Cash (UMKM)';
+            return 'Cash (UMKM)'; 
+        };
+
+        const finalM1 = mappingMetode(rawM1) || 'Cash (UMKM)';
+        const finalM2 = mappingMetode(rawM2);
+        const finalM3 = mappingMetode(rawM3);
+
+        document.getElementById('edit_metode_bayar').value = finalM1;
+        
+        // Aktifkan Checkbox 2
+        if (finalM2) {
+            document.getElementById('cb_split_payment').checked = true;
+            document.getElementById('container_metode_2').style.display = 'block';
+            document.getElementById('edit_metode_bayar_2').value = finalM2;
+            document.getElementById('container_toggle_3').style.display = 'block';
+        } else {
+            document.getElementById('cb_split_payment').checked = false;
+            document.getElementById('container_metode_2').style.display = 'none';
+            document.getElementById('edit_metode_bayar_2').value = 'Cash (UMKM)';
+            document.getElementById('container_toggle_3').style.display = 'none';
+        }
+
+        // Aktifkan Checkbox 3
+        if (finalM3) {
+            document.getElementById('cb_split_payment_3').checked = true;
+            document.getElementById('container_metode_3').style.display = 'block';
+            document.getElementById('edit_metode_bayar_3').value = finalM3;
+        } else {
+            document.getElementById('cb_split_payment_3').checked = false;
+            document.getElementById('container_metode_3').style.display = 'none';
+            document.getElementById('edit_metode_bayar_3').value = 'Cash (UMKM)';
+        }
+
+        window.renderMetodeDetails(trx);
+        window.openModal('modal-edit-transaksi');
+    };
+
+    window.simpanEditTransaksi = async function(e) { 
+        e.preventDefault();
+        if(!window.supabase) return; 
+        
+        const btn = document.getElementById('btn-save-trx');
+        btn.innerText = "Menyimpan..."; 
+        btn.disabled = true;
+
+        const trxId = document.getElementById('edit_trx_id').value;
+        const penjemputanId = document.getElementById('edit_penjemputan_id').value;
+        const mitraIdRaw = document.getElementById('edit_trx_mitra_select').value; 
+        const mitraIdTerpilih = mitraIdRaw === "0" ? null : parseInt(mitraIdRaw); 
+        const tglBaru = document.getElementById('edit_trx_tgl').value;
+        const dpBaru = parseFloat(document.getElementById('edit_trx_dp').value) || 0; 
+        const totalManual = parseFloat(document.getElementById('edit_trx_grand_total').value) || 0; 
+        
+        // Cek Logika Metode & Auto-Wipe
+        const m1 = document.getElementById('edit_metode_bayar').value;
+        const isSplit = document.getElementById('cb_split_payment').checked;
+        const m2 = isSplit ? document.getElementById('edit_metode_bayar_2').value : null;
+
+        const hasBank = (m1 === 'Bank' || m2 === 'Bank');
+        const hasQris = (m1 === 'QRIS' || m2 === 'QRIS');
+
+        const namaBank = hasBank ? (document.getElementById('edit_bank_nama')?.value || '') : '';
+        const noRek = hasBank ? (document.getElementById('edit_bank_rek')?.value || '') : '';
+        const atasNama = hasBank ? (document.getElementById('edit_bank_an')?.value || '') : '';
+        const photoQris = hasQris ? (document.getElementById('edit_qris_url')?.value || '') : '';
+
+        const itemRows = document.querySelectorAll('.edit-item-row');
+        const itemsPayload = [];
+        
+        itemRows.forEach(row => {
+            const itemId = row.querySelector('.item_id').value;
+            const volBaru = parseFloat(row.querySelector('.item_volume').value) || 0;
+            const hargaBaru = parseFloat(row.querySelector('.item_harga').value) || 0; 
+            if(itemId) itemsPayload.push({ id: itemId, volume: volBaru, harga_unit: hargaBaru });
+        });
+
+        try { 
+            const { error } = await window.supabase.rpc('edit_transaksi_mitra', {
+                p_trx_id: trxId,
+                p_penjemputan_id: penjemputanId || null,
+                p_mitra_id: mitraIdTerpilih,
+                p_tanggal: tglBaru,
+                p_potongan_dp: dpBaru,
+                p_grand_total: totalManual,
+                p_metode_bayar: m1, 
+                p_metode_bayar_2: m2,
+                p_metode_bayar_3: m3, 
+                p_nama_bank: namaBank,
+                p_no_rek: noRek,
+                p_atas_nama: atasNama,
+                p_photo_qris: photoQris,
+                p_items: itemsPayload 
+            });
+
+            if (error) throw error;
+            alert('Mantap! Seluruh data transaksi & pembayaran berhasil di-update!');
+            window.location.reload(); 
+        } catch (err) {
+            alert('Gagal menyimpan perubahan transaksi: ' + err.message);
+            btn.innerText = "Simpan Perubahan"; 
+            btn.disabled = false; 
+        }
+    };
+  });
+</script>

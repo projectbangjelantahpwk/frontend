@@ -1,0 +1,948 @@
+---
+import Layout from '../layouts/Layout.astro';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+---
+
+<Layout title="Operasional Penjemputan - Manajemen Bang Jelantah">
+    <style is:global>
+    /* Mengunci layar menjadi blank (putih) sampai skrip memberi izin masuk */
+        body { display: none; }
+    </style>
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .modal { display: none; }
+        .modal.active { display: flex; }
+        
+        /* Mobile Table Cards Style */
+        /* Mobile Table Cards Style (DIPERBAIKI) */
+        @media (max-width: 768px) {
+            .mobile-table-card thead { display: none; }
+            .mobile-table-card tbody tr {
+                display: flex; flex-direction: column; margin-bottom: 1rem;
+                border: 1px solid #e0e4d6; border-radius: 0.75rem; background-color: #ffffff;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            }
+            .mobile-table-card tbody td {
+                display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start;
+                padding: 12px 16px; border-bottom: 1px solid #f0f2ec;
+                font-size: 13px; text-align: right; gap: 16px;
+            }
+            .mobile-table-card tbody td:last-child {
+                border-bottom: none; background-color: #fdfdf5; align-items: center; justify-content: flex-end;
+            }
+            .mobile-table-card tbody td::before {
+                content: attr(data-label); font-weight: 700; color: #5d624c; font-size: 11px;
+                text-transform: uppercase; text-align: left; flex-shrink: 0; width: 35%;
+            }
+            /* Paksa elemen di dalam kolom agar membungkus teks dengan rapi */
+            .mobile-table-card tbody td > div, .mobile-table-card tbody td > span, .mobile-table-card tbody td > a {
+                word-break: break-word; text-align: right; justify-content: flex-end;
+            }
+        }
+    </style>
+
+    <div class="max-w-7xl mx-auto flex flex-col h-full">
+        <div class="mb-lg flex flex-col md:flex-row md:items-end justify-between gap-md">
+            <div>
+                <h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary">Operasional Penjemputan</h1>
+                <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Manajemen lapangan, komoditas masuk, dan monitoring tim harian.</p>
+            </div>
+           <div class="flex flex-wrap gap-sm md:gap-md w-full md:w-auto mt-4 md:mt-0 justify-stretch"> 
+                <div class="relative inline-block text-left">
+                    <button id="btn-filter-multi" class="bg-surface-container border border-outline-variant text-on-surface font-label-lg text-label-lg rounded-full px-lg py-sm flex items-center gap-sm hover:bg-surface-container-high transition-colors min-h-touch-target">
+                        <span class="material-symbols-outlined text-[18px]">filter_list</span> Filter Data
+                    </button>
+                    
+                    <div id="dropdown-filter-multi" class="hidden absolute left-0 md:left-auto md:right-0 z-20 mt-2 w-64 rounded-xl bg-surface-container-lowest shadow-lg border border-outline-variant p-4">
+                        <h4 class="font-bold text-sm text-on-surface mb-3 border-b pb-1">Filter Rute Lapangan</h4>
+                        <div class="flex flex-col gap-2 mb-2">
+                            <label class="flex items-center gap-2 text-sm text-on-surface cursor-pointer">
+                                <input type="checkbox" class="filter-rute-cb w-4 h-4 accent-primary" value="Purwakarta" checked> Purwakarta
+                            </label>
+                            <label class="flex items-center gap-2 text-sm text-on-surface cursor-pointer">
+                                <input type="checkbox" class="filter-rute-cb w-4 h-4 accent-primary" value="Karawang" checked> Karawang
+                            </label>
+                            <label class="flex items-center gap-2 text-sm text-on-surface cursor-pointer">
+                                <input type="checkbox" class="filter-rute-cb w-4 h-4 accent-primary" value="Subang" checked> Subang
+                            </label>
+                        </div>
+
+                        <div id="filter-history-section" class="hidden border-t border-outline-variant pt-3 mt-2">
+                            <h4 class="font-bold text-sm text-on-surface mb-2">Pilih Waktu (Khusus Riwayat)</h4>
+                            <div class="flex flex-col gap-2">
+                                <div>
+                                    <label class="block text-[10px] text-on-surface-variant font-bold uppercase">Mulai Tanggal</label>
+                                    <input type="date" id="filter-start-date" class="w-full p-2 border border-outline-variant rounded-lg text-sm bg-surface-container outline-none focus:border-primary">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-on-surface-variant font-bold uppercase">Sampai Tanggal</label>
+                                    <input type="date" id="filter-end-date" class="w-full p-2 border border-outline-variant rounded-lg text-sm bg-surface-container outline-none focus:border-primary">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="bg-primary text-on-primary font-label-lg text-label-lg rounded-full px-lg py-sm flex items-center gap-sm hover:opacity-90 shadow-sm transition-all min-h-touch-target active:scale-95" onclick="window.tambahPenjemputan()">
+                    <span class="material-symbols-outlined text-[18px]">add</span> Buat Penjemputan Baru
+                </button>
+            </div>
+        </div>
+
+        <div class="flex border-b border-outline-variant mb-md overflow-x-auto hide-scrollbar">
+            <button class="px-md py-sm font-label-lg text-primary border-b-2 border-primary whitespace-nowrap" id="tab-pending" onclick="switchTab('pending')">Belum Diproses (<span id="count-pending">0</span>)</button>
+            <button class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap" id="tab-progress" onclick="switchTab('progress')">Sedang Diproses (<span id="count-progress">0</span>)</button>
+            <button class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap" id="tab-history" onclick="switchTab('history')">Riwayat Selesai</button>
+        </div>
+
+        <div class="tab-content active" id="content-pending">
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse mobile-table-card md:min-w-[800px]">
+                        <thead>
+                            <tr class="bg-surface-container-low border-b border-outline-variant">
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Nama Mitra</th>
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Alamat Pengambilan</th>
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Kendaraan</th>
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Kurir Ditugaskan</th>
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Status</th>
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-outline-variant font-body-md text-body-md text-on-surface bg-surface-container-lowest" id="tbody-pending">
+                            <tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Memuat data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="content-progress">
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse mobile-table-card md:min-w-[800px]">
+                        <thead>
+                            <tr class="bg-surface-container-low border-b border-outline-variant">
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Nama Mitra</th>
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Alamat</th>
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Kendaraan</th>
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Kurir</th>
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Status Operasional</th>
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-outline-variant font-body-md text-body-md text-on-surface bg-surface-container-lowest" id="tbody-progress">
+                            <tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Memuat data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="content-history">
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse mobile-table-card md:min-w-[900px]">
+                        <thead>
+                            <tr class="bg-surface-container-low border-b border-outline-variant">
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Nama Mitra</th>
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Tanggal Selesai</th>
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Rincian Komoditas (Real)</th>
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase text-right">Potongan DP</th>
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase text-right">Total Berat Real</th>
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-outline-variant font-body-md text-body-md text-on-surface bg-surface-container-lowest" id="tbody-history">
+                            <tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Memuat data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fixed inset-0 z-[100] bg-on-background/50 items-center justify-center p-md transition-opacity" id="new-pickup-modal">
+        <div class="bg-surface rounded-xl shadow-lg w-full max-w-md flex flex-col max-h-[90vh]">
+            <div class="p-md border-b border-outline-variant flex justify-between items-center bg-surface-container-low rounded-t-xl">
+                <h2 id="modal-title-pickup" class="font-headline-md text-on-surface">Tugaskan Jadwal Baru</h2>
+                <button class="text-on-surface-variant hover:text-on-surface transition-colors p-sm rounded-full hover:bg-surface-variant flex items-center justify-center" onclick="closeModal()">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <form id="formPenjemputan" class="flex flex-col h-full overflow-hidden">
+                <input type="hidden" id="edit_penjemputan_id" value="">
+                <div class="p-md overflow-y-auto flex-1 flex flex-col gap-md">
+
+                    <div id="form-step-1" class="flex flex-col gap-md">
+                        <div>
+                            <label class="block font-label-sm text-on-surface-variant mb-xs">Pilih Lokasi Mitra</label>
+                            <select id="input_mitra" class="w-full px-sm py-sm border border-outline-variant rounded-md bg-surface-container focus:border-primary focus:ring-1 focus:ring-primary font-body-md outline-none" required>
+                                <option value="">-- Memuat Mitra... --</option>
+                            </select>
+
+                            <div id="detail_mitra_box" class="hidden mt-2 p-3 bg-surface-container-low border border-outline-variant rounded-md">
+                                 <p id="detail_alamat_mitra" class="text-xs text-on-surface-variant mb-2 leading-relaxed"></p>
+                                 <a id="detail_gmaps_mitra" href="#" target="_blank" class="text-white hover:underline flex items-center font-bold text-xs w-fit bg-primary-container px-2 py-1 rounded">
+                                     <span class="material-symbols-outlined text-[16px] mr-1">location_on</span> Buka di Google Maps
+                                 </a>
+                            </div>
+                        </div>
+                    
+                        <div>
+                            <label class="block font-label-sm text-on-surface-variant mb-xs">Jenis Armada</label>
+                            <input type="hidden" id="tipe_kendaraan_input" value="motor">
+                            <div class="flex bg-surface-container-low rounded-lg p-1 gap-1">
+                                <button type="button" class="flex-1 py-2 rounded-md font-label-sm bg-surface shadow text-primary font-bold transition-all" id="btn-motor" onclick="setVehicle('motor')">Motor</button>
+                                <button type="button" class="flex-1 py-2 rounded-md font-label-sm text-on-surface-variant hover:bg-surface-variant transition-all" id="btn-mobil" onclick="setVehicle('mobil')">Mobil</button>
+                            </div>
+                        </div>
+                    
+                        <div class="block" id="kurir-motor-select">
+                            <label class="block font-label-sm text-on-surface-variant mb-xs">Pilih Driver Motor</label>
+                            <select id="input_driver_motor" class="w-full px-sm py-sm border border-outline-variant rounded-md bg-surface-container focus:border-primary focus:ring-1 focus:ring-primary font-body-md outline-none" required>
+                                <option value="">-- Memuat Kurir... --</option>
+                            </select>
+                        </div>
+                    
+                        <div class="hidden gap-md flex-col" id="kurir-mobil-select">
+                            <div class="flex-1">
+                                <label class="block font-label-sm text-on-surface-variant mb-xs">Pilih Supir (Driver)</label>
+                                <select id="input_driver_mobil" class="w-full px-sm py-sm border border-outline-variant rounded-md bg-surface-container focus:border-primary focus:ring-1 focus:ring-primary font-body-md outline-none">
+                                    <option value="">-- Memuat Supir... --</option>
+                                </select>
+                            </div>
+                            <div class="flex-1 mt-2">
+                                <label class="block font-label-sm text-on-surface-variant mb-xs">Pilih Pendamping (Helper)</label>
+                                <select id="input_helper_mobil" class="w-full px-sm py-sm border border-outline-variant rounded-md bg-surface-container focus:border-primary focus:ring-1 focus:ring-primary font-body-md outline-none">
+                                    <option value="">-- Tanpa Helper --</option>
+                                </select>
+                            </div>
+                        </div>
+                    
+                        <div>
+                            <label class="block font-label-sm text-on-surface-variant mb-xs">Tanggal Eksekusi</label>
+                            <input id="input_tanggal" type="date" class="w-full px-sm py-sm border border-outline-variant rounded-md bg-surface-container focus:border-primary focus:ring-1 focus:ring-primary font-body-md outline-none" required>
+                        </div>
+                    
+                        <div>
+                            <label class="block font-label-sm text-on-surface-variant mb-xs">Wilayah / Kota Tujuan</label>
+                            <select id="input-wilayah" class="w-full px-sm py-sm border border-outline-variant rounded-md bg-surface-container focus:border-primary focus:ring-1 focus:ring-primary font-body-md outline-none" required>
+                                <option value="">-- Pilih Wilayah --</option>
+                                <option value="Purwakarta">Purwakarta</option>
+                                <option value="Subang">Subang</option>
+                                <option value="Karawang">Karawang</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="form-step-2" class="hidden flex-col gap-md">
+
+                        <div>
+                            <label class="block font-label-sm text-on-surface-variant mb-xs">Potongan DP (Optional - Rupiah)</label>
+                            <input id="input_dp" type="number" placeholder="Contoh: 50000" class="w-full px-sm py-sm border border-outline-variant rounded-md bg-surface-container focus:border-primary focus:ring-1 focus:ring-primary font-body-md outline-none">
+                        </div>
+                    
+                        <div class="p-4 bg-surface-container-low border border-outline-variant rounded-md">
+                            <label class="flex items-center text-primary font-bold text-sm mb-4">
+                                <span class="material-symbols-outlined text-[18px] mr-1">inventory_2</span> Rincian Estimasi (KG)
+                            </label>
+
+                            <div class="flex flex-col gap-4">
+                                <div>
+                                    <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Estimasi Minyak</label>
+                                    <input type="number" id="est-minyak" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.1">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Estimasi Tepung</label>
+                                    <input type="number" id="est-tepung" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.1">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Estimasi Kriuk</label>
+                                    <input type="number" id="est-kriuk" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.1">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Estimasi Spinner</label>
+                                    <input type="number" id="est-spinner" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.1">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Estimasi Ampas</label>
+                                    <input type="number" id="est-ampas" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.1">
+                                </div>
+                            </div>
+                        </div>
+                    
+                    </div>
+                    </div>
+                
+                <div id="footer-step-1" class="p-md border-t border-outline-variant bg-surface-container-lowest rounded-b-xl flex gap-sm shrink-0">
+                    <button type="button" class="flex-1 bg-surface-container-low text-on-surface-variant font-label-lg rounded-full py-md hover:bg-surface-variant transition-all" onclick="closeModal()">Batal</button>
+                    <button type="button" onclick="nextStep()" class="flex-1 flex justify-center items-center bg-primary text-on-primary font-label-lg rounded-full py-md hover:opacity-90 transition-all shadow-sm active:scale-95">
+                        Selanjutnya <span class="material-symbols-outlined ml-2 text-[18px]">arrow_forward</span>
+                    </button>
+                </div>
+            
+                <div id="footer-step-2" class="hidden p-md border-t border-outline-variant bg-surface-container-lowest rounded-b-xl gap-sm shrink-0">
+                    <button type="button" onclick="prevStep()" class="flex-1 flex justify-center items-center bg-surface-container-low text-on-surface-variant font-label-lg rounded-full py-md hover:bg-surface-variant transition-all border border-outline-variant">
+                        <span class="material-symbols-outlined mr-2 text-[18px]">arrow_back</span> Kembali
+                    </button>
+                    <button type="submit" id="btnSubmitPenjemputan" class="flex-1 bg-primary text-on-primary font-label-lg rounded-full py-md hover:opacity-90 transition-all shadow-sm active:scale-95">
+                        Kirim Perintah Jalan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script is:inline>
+        // Cek Role Keamanan
+        let currentUserRole = 'lapangan';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+
+            if (!window.supabase) return console.error("Supabase Client tidak ditemukan!");
+            // === 🛡️ GATEKEEPER KEUANGAN ===
+            // 1. Dapatkan Role Login
+            const allowedRoles = ['owner', 'hrd', 'admin'];
+            const client = window.supabase || supabase;
+
+            const { data: { session } } = await client.auth.getSession();
+            if (!session) return window.location.replace('/'); // Tendang kalau belum login
+
+            const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+            
+            // 🔥 FIX: Update variabel global dengan role asli dari Supabase 🔥
+            currentUserRole = prof?.role; 
+
+            if (!allowedRoles.includes(prof?.role)) {
+                alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk ke halaman Operasional.`);
+                return window.location.replace('/');
+            }
+            document.body.style.display = 'block'; // Buka gembok CSS, tampilkan layar!
+
+            // 2. Fetch Data Jadwal Operasional
+            async function loadOperasionalData() {
+                const { data: jadwalPenjemputan, error: errJadwal } = await window.supabase
+                    .from('penjemputan')
+                    .select(`
+                        id, status, tanggal, rute_penjemputan, kendaraan,
+                        mitra ( id, nama_mitra, alamat, link_gmaps ),
+                        driver:driver_id ( id, nama ),
+                        helper:helper_id ( id, nama ),
+                        transaksi ( id, potongan_dp, transaksi_item ( id, komoditas, volume ) )
+                    `)
+                    .order('tanggal', { ascending: false });
+
+                if (errJadwal) {
+                    alert("🚨 Gagal menarik data operasional!\nPesan: " + errJadwal.message);
+                    return;
+                }
+
+                const pending = jadwalPenjemputan?.filter(j => j.status === 'Belum') || [];
+                const onProgress = jadwalPenjemputan?.filter(j => j.status === 'OTW' || j.status === 'Proses') || [];
+                const history = jadwalPenjemputan?.filter(j => j.status === 'Selesai') || [];
+
+                // Update Notif Tab
+                document.getElementById('count-pending').innerText = pending.length;
+                document.getElementById('count-progress').innerText = onProgress.length;
+                
+                window.allJadwalPending = pending;
+                // Render Tab Pending
+                let htmlPending = '';
+                if(pending.length > 0) {
+                    pending.forEach(j => {
+                        htmlPending += `
+                        <tr class="hover:bg-surface-container-low transition-colors" data-rute="${j.rute_penjemputan || ''}" data-tanggal="${j.tanggal || ''}">
+                            <td class="px-md py-md whitespace-nowrap font-semibold" data-label="Nama Mitra">${j.mitra?.nama_mitra || '-'}</td>
+                            <td class="px-md py-md" data-label="Alamat">
+                                <div class="text-xs font-bold text-gray-800 break-words max-w-[220px]" title="${j.mitra?.alamat || ''}">
+                                    ${j.mitra?.alamat || '<span class="text-amber-600 font-normal italic text-[11px]">Teks alamat belum diisi (Data Lama)</span>'}
+                                </div>
+                                ${j.mitra?.link_gmaps ? `<a href="${j.mitra.link_gmaps}" target="_blank" class="text-blue-600 text-[11px] hover:underline flex items-center mt-1 font-semibold"><i class="bi bi-geo-alt-fill mr-1 text-red-500"></i> Google Maps</a>` : ''}
+                            </td>
+                            <td class="px-md py-md capitalize font-bold text-gray-700" data-label="Kendaraan">${j.kendaraan || '-'}</td>
+                            <td class="px-md py-md" data-label="Kurir">${j.driver?.nama || ''} ${j.helper?.nama ? '& ' + j.helper.nama : ''}</td>
+                            <td class="px-md py-md" data-label="Status">
+                                <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 font-label-sm text-[11px]"><span class="w-2 h-2 rounded-full bg-amber-500"></span> ${j.status}</span>
+                            </td>
+                            <td class="px-md py-md text-right" data-label="Aksi">
+                                <div class="flex gap-2 justify-end">
+                                    <button onclick="window.editPenjemputan('${j.id}')" class="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded text-[11px] font-bold hover:bg-blue-100 transition shadow-sm"><i class="bi bi-pencil-square mr-1"></i>Edit</button>
+                                    <button onclick="window.hapusPenjemputan('${j.id}')" class="bg-red-50 text-red-600 border border-red-200 px-2 py-1 rounded text-[11px] font-bold hover:bg-red-100 transition shadow-sm" title="Hapus"><i class="bi bi-trash3"></i></button>
+                                </div>
+                            </td>
+                        </tr>`;
+                    });
+                } else { htmlPending = '<tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Tidak ada jadwal penjemputan baru.</td></tr>'; }
+                document.getElementById('tbody-pending').innerHTML = htmlPending;
+
+                // Render Tab Progress
+                let htmlProgress = '';
+                if(onProgress.length > 0) {
+                    onProgress.forEach(j => {
+                        htmlProgress += `
+                        <tr class="hover:bg-surface-container-low transition-colors" data-rute="${j.rute_penjemputan || ''}" data-tanggal="${j.tanggal || ''}">
+                            <td class="px-md py-md whitespace-nowrap font-semibold" data-label="Nama Mitra">${j.mitra?.nama_mitra || '-'}</td>
+                            <td class="px-md py-md" data-label="Alamat">
+                                <div class="text-xs font-bold text-gray-800 break-words max-w-[220px]" title="${j.mitra?.alamat || ''}">
+                                    ${j.mitra?.alamat || '<span class="text-amber-600 font-normal italic text-[11px]">Teks alamat belum diisi (Data Lama)</span>'}
+                                </div>
+                                ${j.mitra?.link_gmaps ? `<a href="${j.mitra.link_gmaps}" target="_blank" class="text-blue-600 text-[11px] hover:underline flex items-center mt-1 font-semibold"><i class="bi bi-geo-alt-fill mr-1 text-red-500"></i> Google Maps</a>` : ''}
+                            </td>
+                            <td class="px-md py-md capitalize font-bold text-gray-700" data-label="Kendaraan">${j.kendaraan || '-'}</td>
+                            <td class="px-md py-md" data-label="Kurir">${j.driver?.nama || ''} ${j.helper?.nama ? '& ' + j.helper.nama : ''}</td>
+                            <td class="px-md py-md" data-label="Status">
+                                <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 font-label-sm text-[11px]"><span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> ${j.status}</span>
+                            </td>
+                            <td class="px-md py-md text-right" data-label="Aksi">
+                                <div class="flex gap-2 justify-end">
+                                    <button onclick="window.kembalikanKeBelum('${j.id}')" class="bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-full font-label-sm text-[11px] font-bold hover:bg-amber-100 transition shadow-sm" title="Tarik kembali ke Belum Diproses">
+                                        <i class="bi bi-arrow-counterclockwise mr-1"></i> Batal Proses
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>`;
+                    });
+                } else { htmlProgress = '<tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Tidak ada armada yang sedang di perjalanan.</td></tr>'; }
+                document.getElementById('tbody-progress').innerHTML = htmlProgress;
+
+                // Render Tab History
+                let htmlHistory = '';
+                if(history.length > 0) {
+                    history.forEach(j => {
+                        const tData = j.transaksi?.[0];
+                        const items = tData?.transaksi_item || [];
+                        const totalRealKg = items.reduce((acc, curr) => acc + parseFloat(curr.volume || 0), 0);
+                        
+                        let itemsHtml = '';
+                        if(items.length > 0) {
+                            items.forEach(item => {
+                                itemsHtml += `<span class="inline-flex items-center gap-1 text-xs font-medium text-on-surface-variant bg-surface-container px-2 py-0.5 rounded border border-outline-variant w-fit mb-1">📦 <strong class="text-primary">${item.komoditas}:</strong> ${item.volume} Kg</span><br>`;
+                            });
+                        } else {
+                            itemsHtml = '<span class="text-xs italic text-red-600">Data belum diinput lapangan</span>';
+                        }
+
+                        htmlHistory += `
+                        <tr class="hover:bg-surface-container-low transition-colors" data-rute="${j.rute_penjemputan || ''}" data-tanggal="${j.tanggal || ''}">
+                            <td class="px-md py-md whitespace-nowrap font-semibold" data-label="Nama Mitra">${j.mitra?.nama_mitra || '-'}</td>
+                            <td class="px-md py-md whitespace-nowrap" data-label="Tanggal Selesai">${j.tanggal}</td>
+                            <td class="px-md py-md" data-label="Rincian Komoditas">${itemsHtml}</td>
+                            <td class="px-md py-md text-right text-amber-700 font-medium" data-label="Potongan DP">${tData?.potongan_dp ? 'Rp ' + Number(tData.potongan_dp).toLocaleString('id-ID') : '-'}</td>
+                            <td class="px-md py-md font-bold text-right text-primary" data-label="Total Berat Real">${totalRealKg} KG</td>
+                            <td class="px-md py-md" data-label="Status">
+                                <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 font-label-sm text-[11px]">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Selesai
+                                </span>
+                            </td>
+                        </tr>`;
+                    });
+                } else { htmlHistory = '<tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Riwayat transaksi operasional kosong.</td></tr>'; }
+                document.getElementById('tbody-history').innerHTML = htmlHistory;
+
+                // 3. Fetch Dropdown Mitra & Tampilkan Detail Gmaps
+                const { data: daftarMitra } = await window.supabase.from('mitra').select('id, nama_mitra, alamat, link_gmaps').order('nama_mitra', { ascending: true });
+                window.allMitra = daftarMitra || []; // Simpan global
+                
+                let optMitra = '<option value="">-- Pilih Mitra Pengumpul --</option>';
+                window.allMitra.forEach(m => optMitra += `<option value="${m.id}">${m.nama_mitra} - ${(m.alamat || '').substring(0,30)}...</option>`);
+                document.getElementById('input_mitra').innerHTML = optMitra;
+
+                // Event Listener biar alamat & Gmaps muncul saat dipilih
+                document.getElementById('input_mitra').addEventListener('change', function() {
+                    const box = document.getElementById('detail_mitra_box');
+                    const alamatTxt = document.getElementById('detail_alamat_mitra');
+                    const gmapsBtn = document.getElementById('detail_gmaps_mitra');
+                    
+                    const selectedMitra = window.allMitra.find(m => String(m.id) === String(this.value));
+                    
+                    if(selectedMitra && (selectedMitra.alamat || selectedMitra.link_gmaps)) {
+                        box.classList.remove('hidden');
+                        alamatTxt.innerText = selectedMitra.alamat || 'Alamat tidak tersedia di sistem';
+                        if(selectedMitra.link_gmaps) {
+                            gmapsBtn.href = selectedMitra.link_gmaps;
+                            gmapsBtn.style.display = 'flex';
+                        } else { gmapsBtn.style.display = 'none'; }
+                    } else { box.classList.add('hidden'); }
+                });
+
+                // 4. Fetch Dropdown Karyawan & Filter Logic
+                const { data: karyawanLapangan } = await window.supabase.from('profiles').select('id, nama').eq('role', 'lapangan');
+                window.allKaryawan = karyawanLapangan || []; // Simpan global
+                
+                let optMotor = '<option value="">-- Pilih Kurir Motor --</option>';
+                let optSupir = '<option value="">-- Pilih Supir Mobil --</option>';
+                let optKenek = '<option value="">-- Tanpa Helper --</option>';
+                
+                window.allKaryawan.forEach(k => {
+                    const namaLengkap = `${k.nama}`; // Teks tipe kendaraan dihapus
+                    optMotor += `<option value="${k.id}">${namaLengkap}</option>`;
+                    optSupir += `<option value="${k.id}">${namaLengkap}</option>`;
+                    optKenek += `<option value="${k.id}">${namaLengkap}</option>`;
+                });
+                
+                document.getElementById('input_driver_motor').innerHTML = optMotor;
+                document.getElementById('input_driver_mobil').innerHTML = optSupir;
+                document.getElementById('input_helper_mobil').innerHTML = optKenek;
+
+                // 🔥 LOGIKA MENCEGAH SUPIR DIPILIH LAGI JADI KENEK 🔥
+                document.getElementById('input_driver_mobil').addEventListener('change', function() {
+                    const selectedSupirId = this.value;
+                    const kenekSelect = document.getElementById('input_helper_mobil');
+                    const prevKenekId = kenekSelect.value; 
+                    
+                    let newOptKenek = '<option value="">-- Tanpa Helper --</option>';
+                    window.allKaryawan.forEach(k => {
+                        if(k.id !== selectedSupirId) { 
+                            newOptKenek += `<option value="${k.id}">${k.nama}</option>`;
+                        }
+                    });
+                    
+                    kenekSelect.innerHTML = newOptKenek;
+                    if(prevKenekId !== selectedSupirId) kenekSelect.value = prevKenekId;
+                });
+            }
+
+            await loadOperasionalData();
+            const btnFilterMulti = document.getElementById('btn-filter-multi');
+            const dropdownMulti = document.getElementById('dropdown-filter-multi');
+            const ruteCheckboxes = document.querySelectorAll('.filter-rute-cb');
+            const startInput = document.getElementById('filter-start-date');
+            const endInput = document.getElementById('filter-end-date');
+
+            if(btnFilterMulti && dropdownMulti) {
+                // Buka tutup menu
+                btnFilterMulti.addEventListener('click', () => dropdownMulti.classList.toggle('hidden'));
+                document.addEventListener('click', (e) => {
+                    if (!btnFilterMulti.contains(e.target) && !dropdownMulti.contains(e.target)) {
+                        dropdownMulti.classList.add('hidden');
+                    }
+                });
+            }
+
+            window.applyMultiFilters = function() {
+                const checkedRoutes = Array.from(ruteCheckboxes).filter(cb => cb.checked).map(cb => cb.value.toLowerCase());
+                const startVal = startInput?.value;
+                const endVal = endInput?.value;
+                
+                const allRows = document.querySelectorAll('#tbody-pending tr, #tbody-progress tr, #tbody-history tr');
+
+                allRows.forEach(row => {
+                    // Abaikan baris loading "Memuat data..." atau pesan "Kosong"
+                    if (row.children.length === 1 && row.cells[0].colSpan > 1) return; 
+
+                    const rute = (row.getAttribute('data-rute') || '').toLowerCase();
+                    const tanggal = row.getAttribute('data-tanggal') || ''; 
+                    
+                    // 🔥 FIX: Kalau rute di database belum diisi (kosong), loloskan saja biar gak hilang! 🔥
+                    let isRuteSesuai = false;
+                    if (rute === '') {
+                        isRuteSesuai = true; 
+                    } else {
+                        isRuteSesuai = checkedRoutes.some(checked => rute.includes(checked));
+                    }
+                    
+                    // Filter Tanggal KHUSUS untuk tabel Riwayat Selesai
+                    let isTanggalSesuai = true; 
+                    if (row.closest('#tbody-history') && tanggal) {
+                        if (startVal && tanggal < startVal) isTanggalSesuai = false;
+                        if (endVal && tanggal > endVal) isTanggalSesuai = false;
+                    }
+
+                    row.style.display = (isRuteSesuai && isTanggalSesuai) ? '' : 'none';
+                });
+            };
+
+            // Trigger jalan otomatis saat input rute atau tanggal diubah
+            ruteCheckboxes.forEach(cb => cb.addEventListener('change', window.applyMultiFilters));
+            if(startInput) startInput.addEventListener('change', window.applyMultiFilters);
+            if(endInput) endInput.addEventListener('change', window.applyMultiFilters);
+
+        // =======================================================
+        // FUNGSI GANTI TAB SAKTI (UI + LOGIKA TANGGAL)
+        // =======================================================
+        window.switchTab = function(tabId) {
+            const tabs = ['pending', 'progress', 'history'];
+            
+            // 1. Reset semua tab menjadi tidak aktif (Sembunyikan)
+            tabs.forEach(id => {
+                const btn = document.getElementById(`tab-${id}`);
+                const content = document.getElementById(`content-${id}`);
+                
+                if (btn && content) {
+                    btn.classList.remove('text-primary', 'border-primary');
+                    btn.classList.add('text-on-surface-variant', 'border-transparent');
+                    content.classList.remove('active');
+                }
+            });
+
+            // 2. Aktifkan tab yang di-klik (Munculkan)
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            const activeContent = document.getElementById(`content-${tabId}`);
+            
+            if (activeBtn && activeContent) {
+                activeBtn.classList.remove('text-on-surface-variant', 'border-transparent');
+                activeBtn.classList.add('text-primary', 'border-primary');
+                activeContent.classList.add('active');
+            }
+
+            // 3. Logika Filter Tanggal (Hanya muncul di Riwayat Selesai)
+            const historySection = document.getElementById('filter-history-section');
+            if (historySection) {
+                if (tabId === 'history') {
+                    historySection.classList.remove('hidden');
+                } else {
+                    historySection.classList.add('hidden');
+                }
+            }
+            
+            // 4. Jalankan ulang filter supaya rapi
+            if (typeof window.applyMultiFilters === 'function') {
+                setTimeout(window.applyMultiFilters, 50);
+            }
+        };
+
+        const isAllowed = () => ['owner', 'hrd', 'admin'].includes(currentUserRole);
+
+        // ==========================================
+        // 1. BUAT PENJEMPUTAN BARU (KOSONGKAN FORM)
+        // ==========================================
+        window.tambahPenjemputan = function() {
+            if(!isAllowed()) return alert('Akses Ditolak: Hanya Admin, HRD, dan Owner yang diizinkan menerbitkan penugasan!');
+            
+            document.getElementById('edit_penjemputan_id').value = '';
+            document.getElementById('modal-title-pickup').innerText = "Tugaskan Jadwal Baru";
+            
+            // Reset isian HTML manual
+            document.getElementById('input_mitra').value = '';
+            document.getElementById('detail_mitra_box').classList.add('hidden');
+            document.getElementById('input_tanggal').valueAsDate = new Date();
+            document.getElementById('input-wilayah').value = '';
+            document.getElementById('input_dp').value = '';
+            
+            const estimasiIds = ['est-minyak', 'est-tepung', 'est-kriuk', 'est-spinner', 'est-ampas'];
+            estimasiIds.forEach(id => { const el = document.getElementById(id); if(el) el.value = '0'; });
+
+            window.setVehicle('motor');
+            document.getElementById('new-pickup-modal').classList.add('active');
+        };
+
+        // ==========================================
+        // 2. EDIT PENJEMPUTAN (ISI OTOMATIS DATA LAMA)
+        // ==========================================
+        window.editPenjemputan = function(id) {
+            if(!isAllowed()) return alert('Akses Ditolak!');
+            
+            const p = window.allJadwalPending.find(x => x.id == id);
+            if(!p) return alert("Data tidak ditemukan di sesi ini, silakan refresh halaman.");
+
+            document.getElementById('edit_penjemputan_id').value = id;
+            document.getElementById('modal-title-pickup').innerText = "Edit Jadwal Penugasan";
+
+            // Tempel data Utama
+            document.getElementById('input_mitra').value = p.mitra?.id || '';
+            document.getElementById('input_mitra').dispatchEvent(new Event('change')); // Trigger Gmaps box
+            document.getElementById('input_tanggal').value = p.tanggal;
+            document.getElementById('input-wilayah').value = p.rute_penjemputan || '';
+
+            // Tempel Kendaraan & Kurir
+            window.setVehicle(p.kendaraan === 'mobil' ? 'mobil' : 'motor');
+            if(p.kendaraan === 'mobil') {
+                document.getElementById('input_driver_mobil').value = p.driver?.id || '';
+                document.getElementById('input_driver_mobil').dispatchEvent(new Event('change')); // Trigger helper options
+                setTimeout(() => { document.getElementById('input_helper_mobil').value = p.helper?.id || ''; }, 100);
+            } else {
+                document.getElementById('input_driver_motor').value = p.driver?.id || '';
+            }
+
+            // Tempel Rincian & DP
+            const tx = p.transaksi?.[0];
+            document.getElementById('input_dp').value = tx?.potongan_dp || '';
+            
+            const estimasiIds = ['est-minyak', 'est-tepung', 'est-kriuk', 'est-spinner', 'est-ampas'];
+            estimasiIds.forEach(eid => document.getElementById(eid).value = '0');
+
+            if(tx && tx.transaksi_item) {
+                tx.transaksi_item.forEach(item => {
+                    const k = item.komoditas.toLowerCase();
+                    if(k.includes('minyak')) document.getElementById('est-minyak').value = item.volume;
+                    else if(k.includes('tepung')) document.getElementById('est-tepung').value = item.volume;
+                    else if(k.includes('kriuk')) document.getElementById('est-kriuk').value = item.volume;
+                    else if(k.includes('spinner')) document.getElementById('est-spinner').value = item.volume;
+                    else if(k.includes('ampas')) document.getElementById('est-ampas').value = item.volume;
+                });
+            }
+
+            document.getElementById('new-pickup-modal').classList.add('active');
+        };
+
+        // ==========================================
+        // 3. HAPUS PENJEMPUTAN (DELETE CASCADE BERANTAI)
+        // ==========================================
+        window.hapusPenjemputan = async function(id) {
+            if(!isAllowed()) return alert('Akses Ditolak!');
+            if(!confirm("Yakin ingin membatalkan/menghapus penugasan ini secara permanen?")) return;
+
+            try {
+                const p = window.allJadwalPending.find(x => x.id == id);
+                if(p && p.transaksi && p.transaksi[0]) {
+                    const txId = p.transaksi[0].id;
+                    // Hapus Item dulu
+                    await window.supabase.from('transaksi_item').delete().eq('transaksi_id', txId);
+                    // Hapus Induk Transaksi
+                    await window.supabase.from('transaksi').delete().eq('id', txId);
+                }
+                // Terakhir hapus Jadwal Utamanya
+                const { error } = await window.supabase.from('penjemputan').delete().eq('id', id);
+                if(error) throw error;
+                
+                alert('Jadwal berhasil dihapus!');
+                window.location.reload();
+            } catch(e) {
+                alert('Gagal menghapus jadwal: ' + e.message);
+            }
+        };
+
+        // ==========================================
+        // 4. KEMBALIKAN STATUS KE "BELUM DIPROSES"
+        // ==========================================
+        window.kembalikanKeBelum = async function(id) {
+            if(!isAllowed()) return alert('Akses Ditolak: Hanya Admin yang bisa mengembalikan tugas!');
+            if(!confirm("Yakin ingin menarik kembali tugas ini?\n\nStatus akan dikembalikan menjadi 'Belum Diproses' dan armada ditarik dari lapangan.")) return;
+
+            try {
+                // Update kolom status kembali menjadi 'Belum'
+                const { error } = await window.supabase
+                    .from('penjemputan')
+                    .update({ status: 'Belum' })
+                    .eq('id', id);
+                    
+                if(error) throw error;
+                
+                alert('Mantap! Tugas berhasil ditarik dan dikembalikan ke daftar Belum Diproses.');
+                window.location.reload();
+            } catch(e) {
+                alert('Gagal mengembalikan status: ' + e.message);
+            }
+        };
+
+        window.closeModal = function() {
+            document.getElementById('new-pickup-modal').classList.remove('active');
+        };
+        
+        window.closeModal = function() {
+            document.getElementById('new-pickup-modal').classList.remove('active');
+        };
+
+        window.addBarangRow = function() {
+            const container = document.getElementById('barang-rows-container');
+            const div = document.createElement('div');
+            div.className = 'flex gap-xs barang-row items-center';
+            div.innerHTML = `
+                <select class="row-komoditas flex-1 h-9 px-xs border border-outline-variant rounded bg-surface-container text-xs outline-none focus:border-primary" required>
+                    <option value="Minyak Jelantah Kotor">Minyak Jelantah Kotor</option>
+                    <option value="Tepung">Tepung</option>
+                    <option value="Kriuk">Kriuk</option>
+                </select>
+                <input type="number" step="0.1" placeholder="Jumlah (Kg)" class="row-volume w-28 h-9 px-xs border border-outline-variant rounded bg-surface-container text-xs outline-none focus:border-primary" required />
+                <button type="button" onclick="removeBarangRow(this)" class="text-error hover:bg-error-container/20 w-8 h-9 rounded flex items-center justify-center text-sm">✕</button>
+            `;
+            container.appendChild(div);
+        };
+
+        window.removeBarangRow = function(button) {
+            const container = document.getElementById('barang-rows-container');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            } else {
+                alert('Minimal harus ada 1 rincian barang yang dicatat!');
+            }
+        };
+
+        window.setVehicle = function(type) {
+            document.getElementById('tipe_kendaraan_input').value = type;
+            const btnMotor = document.getElementById('btn-motor');
+            const btnMobil = document.getElementById('btn-mobil');
+            const selectMotor = document.getElementById('kurir-motor-select');
+            const selectMobil = document.getElementById('kurir-mobil-select');
+
+            if (type === 'motor') {
+                btnMotor.className = 'flex-1 py-2 rounded-md font-label-sm bg-surface shadow text-primary font-bold transition-all';
+                btnMobil.className = 'flex-1 py-2 rounded-md font-label-sm text-on-surface-variant hover:bg-surface-variant transition-all';
+                selectMotor.classList.replace('hidden', 'block');
+                selectMobil.classList.replace('flex', 'hidden');
+                document.getElementById('input_driver_motor').required = true;
+                document.getElementById('input_driver_mobil').required = false;
+            } else {
+                btnMobil.className = 'flex-1 py-2 rounded-md font-label-sm bg-surface shadow text-primary font-bold transition-all';
+                btnMotor.className = 'flex-1 py-2 rounded-md font-label-sm text-on-surface-variant hover:bg-surface-variant transition-all';
+                selectMotor.classList.replace('block', 'hidden');
+                selectMobil.classList.replace('hidden', 'flex');
+                document.getElementById('input_driver_motor').required = false;
+                document.getElementById('input_driver_mobil').required = true;
+            }
+        };
+
+        // ==========================================
+        // SUBMIT TUGAS BARU ATAU UPDATE
+        // ==========================================
+        document.getElementById('formPenjemputan')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+                
+            if(!isAllowed()) return alert('Akses Ditolak!');
+            
+            const btn = document.getElementById('btnSubmitPenjemputan');
+            btn.innerHTML = 'Menyimpan...'; btn.disabled = true;
+
+            try {
+                const editId = document.getElementById('edit_penjemputan_id').value;
+                const tipeKendaraan = document.getElementById('tipe_kendaraan_input').value;
+                const mitra_id = document.getElementById('input_mitra').value;
+                const tanggal = document.getElementById('input_tanggal').value;
+                const dpValue = document.getElementById('input_dp').value;
+                const wilayah = document.getElementById('input-wilayah').value;
+                
+                let driver_id = null; let helper_id = null;
+                if (tipeKendaraan === 'motor') {
+                    driver_id = document.getElementById('input_driver_motor').value;
+                } else {
+                    driver_id = document.getElementById('input_driver_mobil').value;
+                    const helper = document.getElementById('input_helper_mobil').value;
+                    if(helper) helper_id = helper;
+                }
+
+                if (!window.supabase) throw new Error("Supabase Client tidak ditemukan!");
+
+                // 🔥 AMBIL DATA ESTIMASI DARI FORM 🔥
+                const estMinyak = parseFloat(document.getElementById('est-minyak').value) || 0;
+                const estTepung = parseFloat(document.getElementById('est-tepung').value) || 0;
+                const estKriuk = parseFloat(document.getElementById('est-kriuk').value) || 0;
+                const estSpinner = parseFloat(document.getElementById('est-spinner').value) || 0;
+                const estAmpas = parseFloat(document.getElementById('est-ampas').value) || 0;
+                
+                // Kalkulasi Total Estimasi (Penjumlahan KG)
+                const totalEstimasi = estMinyak + estTepung + estKriuk + estSpinner + estAmpas;
+                
+                // Estimasi Transaksi (Diisi 0 sementara karena belum ada form estimasi harga)
+                const estimasiTransaksi = 0; 
+
+                // 🔥 BUNGKUS PAYLOAD UNTUK TABEL PENJEMPUTAN 🔥
+                const payloadPenjemputan = {
+                    mitra_id: parseInt(mitra_id), 
+                    driver_id: driver_id, 
+                    helper_id: helper_id || null,
+                    tanggal: tanggal, 
+                    kendaraan: tipeKendaraan, 
+                    rute_penjemputan: wilayah,
+                    estimasi_minyak: estMinyak,
+                    estimasi_tepung: estTepung,
+                    estimasi_kriuk: estKriuk,
+                    estimasi_spinner: estSpinner,
+                    estimasi_ampas: estAmpas,
+                    total_estimasi: totalEstimasi,
+                    estimasi_transaksi: estimasiTransaksi
+                };
+
+                // ==========================
+                // JALUR A: UPDATE JADWAL (EDIT)
+                // ==========================
+                if (editId) {
+                    // Update Penjemputan dengan data estimasi
+                    const { error: errUpdate } = await window.supabase
+                        .from('penjemputan')
+                        .update(payloadPenjemputan)
+                        .eq('id', editId);
+                    
+                    if (errUpdate) throw errUpdate;
+
+                    const p = window.allJadwalPending.find(x => x.id == editId);
+                    let txId = p?.transaksi?.[0]?.id;
+                    
+                    if (txId) {
+                        // Update Transaksi Induk
+                        await window.supabase.from('transaksi').update({ 
+                            kalkulator_user_id: driver_id, 
+                            potongan_dp: dpValue ? parseFloat(dpValue) : 0 
+                        }).eq('id', txId);
+                    } else {
+                        // Buat Transaksi Baru Kalau Datanya Bolong
+                        const {data: newTx} = await window.supabase.from('transaksi').insert([{
+                            penjemputan_id: editId, 
+                            kalkulator_user_id: driver_id, 
+                            potongan_dp: dpValue ? parseFloat(dpValue) : 0, 
+                            subtotal: 0, 
+                            grand_total: 0
+                        }]).select().single();
+                        txId = newTx.id;
+                    }
+                    
+                    alert('Jadwal dan estimasi berhasil diperbarui!');
+
+                // ==========================
+                // JALUR B: INSERT JADWAL BARU
+                // ==========================
+                } else {
+                    // Masukkan status 'Belum' ke dalam payload untuk insert baru
+                    payloadPenjemputan.status = 'Belum';
+
+                    const { data: pickupData, error: errPickup } = await window.supabase
+                        .from('penjemputan')
+                        .insert([payloadPenjemputan])
+                        .select()
+                        .single();
+                        
+                    if (errPickup) throw errPickup;
+
+                    // Buat Data Transaksi Awal Kosong
+                    const { data: txData, error: errTx } = await window.supabase.from('transaksi').insert([{
+                        penjemputan_id: pickupData.id, 
+                        kalkulator_user_id: driver_id, 
+                        potongan_dp: dpValue ? parseFloat(dpValue) : 0, 
+                        subtotal: 0, 
+                        grand_total: 0
+                    }]).select().single();
+                    
+                    if (errTx) throw errTx;
+
+                    alert('Tugas penjemputan baru beserta estimasi berhasil diterbitkan!');
+                }
+
+                window.location.reload();
+
+            } catch (error) {
+                alert('Gagal memproses penugasan: ' + error.message);
+                btn.innerHTML = 'Kirim Perintah Jalan'; btn.disabled = false;
+            }
+        });
+    });
+    function nextStep() {
+    // Validasi singkat sebelum ke step 2 (opsional, biar rapi)
+    const mitra = document.getElementById('input_mitra').value;
+    const tanggal = document.getElementById('input_tanggal').value;
+    const wilayah = document.getElementById('input-wilayah').value;
+
+    if(!mitra || !tanggal || !wilayah) {
+        alert("Harap lengkapi Lokasi Mitra, Tanggal, dan Wilayah terlebih dahulu!");
+        return;
+    }
+
+    // Sembunyikan Step 1 & Footernya
+    document.getElementById('form-step-1').classList.replace('flex', 'hidden');
+    document.getElementById('footer-step-1').classList.replace('flex', 'hidden');
+    
+    // Munculkan Step 2 & Footernya
+    document.getElementById('form-step-2').classList.replace('hidden', 'flex');
+    document.getElementById('footer-step-2').classList.replace('hidden', 'flex');
+}
+
+function prevStep() {
+    // Sembunyikan Step 2 & Footernya
+    document.getElementById('form-step-2').classList.replace('flex', 'hidden');
+    document.getElementById('footer-step-2').classList.replace('flex', 'hidden');
+    
+    // Munculkan Step 1 & Footernya
+    document.getElementById('form-step-1').classList.replace('hidden', 'flex');
+    document.getElementById('footer-step-1').classList.replace('hidden', 'flex');
+}
+    </script>
+</Layout>

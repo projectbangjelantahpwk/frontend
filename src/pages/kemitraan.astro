@@ -16,42 +16,12 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Manajemen relasi dan pendaftaran mitra pengumpul.</p>
             </header>
 
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-md md:p-lg flex flex-col shadow-sm">
-                
-                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-md mb-5 border-b border-outline-variant pb-4 shrink-0">
-                    <div class="max-w-md">
-                        <h3 class="font-headline-md text-headline-md text-on-surface font-bold flex items-center gap-2">
-                            <i class="bi bi-trophy-fill text-yellow-500"></i> Papan Peringkat Mitra
-                        </h3>
-                        <p class="text-xs text-on-surface-variant mt-0.5">Peringkat 5 Besar penyetor tertinggi berdasarkan kategori komoditas.</p>
-                    </div>
-
-                    <div class="flex flex-nowrap items-center overflow-x-auto hide-scrollbar bg-surface-container-low p-1 rounded-xl border border-outline-variant gap-1 shadow-inner w-full lg:w-auto max-w-full">
-                        <button onclick="window.changeLeaderboardTab(this, 'Juara Umum')" class="leaderboard-tab-btn px-3 py-2 text-xs font-bold rounded-lg bg-white shadow-sm text-primary transition-all whitespace-nowrap">Umum</button>
-                        <button onclick="window.changeLeaderboardTab(this, 'Minyak Jelantah')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Minyak</button>
-                        <button onclick="window.changeLeaderboardTab(this, 'Ampas')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Ampas</button>
-                        <button onclick="window.changeLeaderboardTab(this, 'Kriuk')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Kriuk</button>
-                        <button onclick="window.changeLeaderboardTab(this, 'Tepung')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Tepung</button>
-                        <button onclick="window.changeLeaderboardTab(this, 'Spinner')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Spinner</button>
-                        
-                        <div class="w-px h-5 bg-outline-variant mx-1 shrink-0"></div>
-
-                        <div class="relative min-w-[125px] shrink-0">
-                            <input type="month" id="input-periode-leaderboard" class="w-full px-2 py-1.5 text-xs font-bold rounded-lg bg-primary-container text-on-primary-container border border-primary/20 outline-none cursor-pointer text-center block shadow-sm transition-all hover:brightness-95 font-mono" title="Ubah Periode">
-                        </div>
-                    </div>
-                </div>
-
-                <div id="leaderboard-live-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md overflow-y-auto p-1 min-h-[160px] flex-1">
-                    <p class="text-sm text-on-surface-variant italic text-center py-8 col-span-full">Menghitung peringkat live...</p>
-                </div>
-            </div>
-
             <div class="flex flex-col flex-1 gap-md">
                 <div class="flex overflow-x-auto border-b border-outline-variant scrollbar-hide">
                     <button class="tab-btn px-md py-sm font-label-lg text-label-lg border-b-2 border-primary text-primary whitespace-nowrap active" data-tab="mitra-baru">Mitra Baru</button>
                     <button class="tab-btn px-md py-sm font-label-lg text-label-lg border-b-2 border-transparent text-on-surface-variant hover:text-primary whitespace-nowrap" data-tab="mitra-langganan">Mitra Langganan</button>
                     <button class="tab-btn px-md py-sm font-label-lg text-label-lg border-b-2 border-transparent text-on-surface-variant hover:text-primary whitespace-nowrap" data-tab="mitra-tidak-aktif">Mitra Tidak Aktif</button>
+                    <button class="tab-btn px-md py-sm font-label-lg text-label-lg border-b-2 border-transparent text-on-surface-variant hover:text-primary whitespace-nowrap" data-tab="top_leaderboard">Top Leaderboard</button>
                 </div>
 
                 <div class="tab-content block" id="tab-mitra-baru">
@@ -120,7 +90,41 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         </table>
                     </div>
                 </div>
+                <div class="tab-content hidden" id="tab-top_leaderboard">
+                    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-md md:p-lg flex flex-col shadow-sm">
+                        
+                        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-md mb-5 border-b border-outline-variant pb-4 shrink-0">
+                            
+                            <div class="max-w-md">
+                                <h3 class="font-headline-md text-headline-md text-on-surface font-bold flex items-center gap-2">
+                                    <i class="bi bi-trophy-fill text-yellow-500"></i> Papan Peringkat Mitra
+                                </h3>
+                                <p class="text-xs text-on-surface-variant mt-0.5">Peringkat 5 Besar penyetor tertinggi berdasarkan kategori komoditas.</p>
+                            </div>
 
+                            <div class="flex flex-nowrap items-center overflow-x-auto hide-scrollbar bg-surface-container-low p-1 rounded-xl border border-outline-variant gap-1 shadow-inner w-full lg:w-auto max-w-full">
+                                <button onclick="window.changeLeaderboardTab(this, 'Juara Umum')" class="leaderboard-tab-btn px-3 py-2 text-xs font-bold rounded-lg bg-white shadow-sm text-primary transition-all whitespace-nowrap">Umum</button>
+                                <button onclick="window.changeLeaderboardTab(this, 'Minyak Jelantah')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Minyak</button>
+                                <button onclick="window.changeLeaderboardTab(this, 'Ampas')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Ampas</button>
+                                <button onclick="window.changeLeaderboardTab(this, 'Kriuk')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Kriuk</button>
+                                <button onclick="window.changeLeaderboardTab(this, 'Tepung')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Tepung</button>
+                                <button onclick="window.changeLeaderboardTab(this, 'Spinner')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Spinner</button>
+                                
+                                <div class="w-px h-5 bg-outline-variant mx-1 shrink-0"></div>
+
+                                <div class="relative min-w-[125px] shrink-0">
+                                    <input type="month" id="input-periode-leaderboard" class="w-full px-2 py-1.5 text-xs font-bold rounded-lg bg-primary-container text-on-primary-container border border-primary/20 outline-none cursor-pointer text-center block shadow-sm transition-all hover:brightness-95 font-mono" title="Ubah Periode">
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div id="leaderboard-live-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md overflow-y-auto p-1 min-h-[160px] flex-1">
+                            <p class="text-sm text-on-surface-variant italic text-center py-8 col-span-full">Menghitung peringkat live...</p>
+                        </div>
+
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -247,17 +251,36 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
             tabBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
+                    // Reset semua warna tombol tab
                     tabBtns.forEach(b => {
                         b.classList.remove('border-primary', 'text-primary', 'active');
                         b.classList.add('border-transparent', 'text-on-surface-variant');
                     });
+                    // Aktifkan warna tombol tab yang diklik
                     btn.classList.remove('border-transparent', 'text-on-surface-variant');
                     btn.classList.add('border-primary', 'text-primary', 'active');
                     
-                    tabContents.forEach(content => content.classList.add('hidden'));
+                    // Sembunyikan semua isi tab
+                    tabContents.forEach(content => {
+                        content.classList.add('hidden');
+                        content.classList.remove('block'); // Pastikan class block dihapus
+                    });
+                    
+                    // Tampilkan isi tab yang sesuai dengan data-tab
                     const targetId = btn.getAttribute('data-tab');
-                    document.getElementById(`tab-${targetId}`).classList.remove('hidden');
-                    document.getElementById(`tab-${targetId}`).classList.add('block');
+                    const targetElement = document.getElementById(`tab-${targetId}`);
+                    
+                    if(targetElement) {
+                        targetElement.classList.remove('hidden');
+                        targetElement.classList.add('block');
+                    }
+
+                    // 🌟 KHUSUS LEADERBOARD: Render ulang data live setiap tabnya dibuka 🌟
+                    if (targetId === 'top_leaderboard') {
+                        if(typeof window.generateLeaderboard === 'function') {
+                            window.generateLeaderboard();
+                        }
+                    }
                 });
             });
 

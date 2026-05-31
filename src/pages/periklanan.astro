@@ -9,42 +9,19 @@ const platforms = [
   { label: 'Instagram', value: 'Instagram' }
 ];
 
-const adPlatforms = [
-  { label: 'TikTok Ads', value: 'TikTok Ads' },
-  { label: 'Meta Ads (FB/IG)', value: 'Meta Ads (FB/IG)' },
-  { label: 'Google Ads', value: 'Google Ads' }
-];
-
 const tabs = [
-  { id: 'performa', label: 'Input Performa Iklan', icon: 'bar-chart' },
-  { id: 'pengeluaran', label: 'Pengeluaran Biaya Ads', icon: 'credit-card' }
+  { id: 'reach', label: 'Input Jangkauan (Reach)', icon: 'eye' },
+  { id: 'leads', label: 'Input Leads & Bukti', icon: 'chat-bubble' }
 ];
-
-// Helper UI Warna Platform
-const getStatusColor = (platform) => {
-    if(platform.includes('TikTok')) return 'bg-gray-100 text-gray-800';
-    if(platform.includes('Instagram')) return 'bg-pink-100 text-pink-700';
-    if(platform.includes('Facebook')) return 'bg-blue-100 text-blue-700';
-    if(platform.includes('YouTube')) return 'bg-red-100 text-red-700';
-    return 'bg-green-100 text-green-700';
-}
-const getPlatformIcon = (platform) => {
-    if(platform.includes('TikTok')) return 'tiktok';
-    if(platform.includes('Instagram')) return 'instagram';
-    if(platform.includes('Facebook')) return 'facebook';
-    if(platform.includes('YouTube')) return 'youtube';
-    return 'Megaphone';
-}
 ---
 
 <GeneralLayout title="Periklanan - Manajemen Bang Jelantah">
   <style is:global>
-      /* Mengunci layar menjadi blank (putih) sampai skrip memberi izin masuk */
       body { display: none; }
   </style>
   <div class="mb-8">
     <h1 class="text-3xl font-bold text-gray-900 mb-2">Manajemen Periklanan & Promosi</h1>
-    <p class="text-gray-600">Kelola performa iklan digital dan pengeluaran promosi secara terpusat.</p>
+    <p class="text-gray-600">Kelola performa iklan digital secara terpisah antara Jangkauan dan Leads.</p>
   </div>
 
   <div class="mb-6 border-b border-gray-200">
@@ -52,8 +29,8 @@ const getPlatformIcon = (platform) => {
       {tabs.map((tab) => (
         <button
           class={`tab-button px-4 py-3 font-medium transition border-b-2 flex items-center gap-2 ${
-            tab.id === 'performa'
-              ? 'border-green-700 text-green-700'
+            tab.id === 'reach'
+              ? 'border-blue-700 text-blue-700'
               : 'border-transparent text-gray-600 hover:text-gray-900'
           }`}
           data-tab={tab.id}
@@ -66,130 +43,80 @@ const getPlatformIcon = (platform) => {
   </div>
 
   <div>
-    <div id="performa-tab" class="tab-content block">
+    <div id="reach-tab" class="tab-content block">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-1 bg-white rounded-lg border border-gray-200 p-6">
-          <h3 class="text-lg font-bold text-gray-900 mb-6">Data Metrik Performa</h3>
-
-          <form id="performaForm" class="space-y-6">
+        <div class="lg:col-span-1 bg-white rounded-lg border border-gray-200 p-6 h-fit">
+          <h3 class="text-lg font-bold text-gray-900 mb-6">Input Jangkauan (Reach)</h3>
+          <form id="reachForm" class="space-y-6">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Platform Iklan</label>
-              <select id="p_konten" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100">
+              <select id="reach_platform" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100">
                 {platforms.map((p) => <option value={p.value}>{p.label}</option>)}
               </select>
             </div>
-
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Waktu Tayang</label>
-              <input type="date" id="p_tanggal" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100" required />
+              <input type="date" id="reach_tanggal" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100" required />
             </div>
-
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2"><i class="bi bi-eye"></i> Jangkauan / Reach</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2"><i class="bi bi-eye"></i> Total Jangkauan / Reach</label>
               <div class="flex gap-2">
-                <input type="number" id="reachInput" placeholder="Masukkan jumlah" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100" required />
-                <span class="flex items-center px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-600">Orang</span>
+                <input type="number" id="reach_input_val" placeholder="Masukkan jumlah reach" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100 font-bold text-blue-700" required />
+                <span class="flex items-center px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-600">Views</span>
               </div>
             </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2"><i class="bi bi-chat-bubble"></i> Jumlah Tanya / Leads</label>
-              <input type="number" id="leadsInput" placeholder="Masukkan jumlah" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100" required />
-            </div>
-
-            <div class="bg-gray-50 p-4 rounded-lg flex justify-between items-center">
-              <p class="text-sm text-gray-600 mb-1">Conversion Rate:</p>
-              <p id="conversionRate" class="text-2xl font-bold text-gray-900">0%</p>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Bukti Screenshot</label>
-              <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-green-700 hover:bg-green-50 transition">
-                <i class="bi bi-cloud-upload text-3xl text-gray-400 mb-2"></i>
-                <p class="text-sm text-gray-600 mb-1">Tarik & Lepas Gambar</p>
-                <p class="text-xs text-gray-500">atau klik untuk memilih file (JPG, PNG)</p>
-                <input type="file" id="buktiInput" accept="image/jpeg,image/png" class="hidden" />
-              </div>
-              <p id="fileName" class="text-sm text-gray-600 mt-2"></p>
-            </div>
-
-            <button type="submit" id="btnSubmitPerforma" class="w-full flex items-center justify-center gap-2 px-6 py-3 bg-green-700 text-white rounded-lg hover:bg-green-800 transition font-bold active:scale-95">
-              <i class="bi bi-cloud-arrow-up"></i> Simpan Performa
+            <button type="submit" id="btnSubmitReach" class="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-bold active:scale-95">
+              <i class="bi bi-send"></i> Simpan Reach
             </button>
           </form>
         </div>
-
         <div class="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-6">
-          <h3 class="text-lg font-bold text-gray-900 mb-6">Riwayat Performa Tersimpan</h3>
-          <div class="space-y-4 max-h-[700px] overflow-y-auto pr-2">
-            <div id="performa-history-container" class="space-y-4 max-h-[700px] overflow-y-auto pr-2">
-              <p class="text-center text-gray-500 py-4 animate-pulse">Memuat data performa...</p>
-          </div>
+          <h3 class="text-lg font-bold text-gray-900 mb-6">Riwayat Jangkauan (Reach)</h3>
+          <div id="reach-history-container" class="space-y-4 max-h-[700px] overflow-y-auto pr-2">
+            <p class="text-center text-gray-500 py-4 animate-pulse">Memuat data...</p>
           </div>
         </div>
       </div>
     </div>
 
-    <div id="pengeluaran-tab" class="tab-content hidden">
+    <div id="leads-tab" class="tab-content hidden">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-1 bg-white rounded-lg border border-gray-200 p-6 h-fit">
-          <h3 class="text-lg font-bold text-gray-900 mb-6">Input Pengeluaran Iklan</h3>
-
-          <form id="pengeluaranForm" class="space-y-6">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Bulan & Tahun (Periode)</label>
-              <input type="month" id="ads_periode" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100" required />
-            </div>
-
+          <h3 class="text-lg font-bold text-gray-900 mb-6">Input Leads & Bukti</h3>
+          <form id="leadsForm" class="space-y-6">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Platform Iklan</label>
-              <select id="ads_platform" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100">
-                {adPlatforms.map((p) => <option value={p.value}>{p.label}</option>)}
+              <select id="leads_platform" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100">
+                {platforms.map((p) => <option value={p.value}>{p.label}</option>)}
               </select>
             </div>
-
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Total Biaya (Rp)</label>
-              <div class="flex gap-2">
-                <span class="flex items-center px-4 py-2 bg-gray-100 rounded-lg text-sm font-bold text-gray-600">Rp</span>
-                <input type="number" id="biayaInput" placeholder="Masukkan nominal" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 font-bold" required />
-              </div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Waktu Tayang</label>
+              <input type="date" id="leads_tanggal" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100" required />
             </div>
-
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div class="flex gap-3">
-                <i class="bi bi-info-circle text-blue-600 flex-shrink-0 mt-0.5"></i>
-                <p class="text-sm text-blue-700">
-                  Data pengeluaran biaya Ads ini akan tersimpan ke dalam database dan dapat diaudit secara berkala.
-                </p>
-              </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"><i class="bi bi-chat-bubble"></i> Jumlah Tanya / Leads</label>
+              <input type="number" id="leads_input_val" placeholder="Masukkan jumlah leads" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-100 font-bold text-green-700" required />
             </div>
-
-            <button type="submit" id="btnSubmitPengeluaran" class="w-full flex items-center justify-center gap-2 px-6 py-3 bg-green-700 text-white rounded-lg hover:bg-green-800 transition font-bold active:scale-95">
-              <i class="bi bi-credit-card"></i> Input Biaya Ads
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Bukti Screenshot</label>
+              <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-green-700 hover:bg-green-50 transition">
+                <i class="bi bi-cloud-upload text-3xl text-gray-400 mb-2"></i>
+                <p class="text-sm text-gray-600 mb-1">Tarik & Lepas Gambar</p>
+                <p class="text-xs text-gray-500">atau klik untuk memilih (JPG, PNG)</p>
+                <input type="file" id="buktiInput" accept="image/jpeg,image/png" class="hidden" required />
+              </div>
+              <p id="fileName" class="text-sm text-gray-600 mt-2"></p>
+            </div>
+            <button type="submit" id="btnSubmitLeads" class="w-full flex items-center justify-center gap-2 px-6 py-3 bg-green-700 text-white rounded-lg hover:bg-green-800 transition font-bold active:scale-95">
+              <i class="bi bi-cloud-arrow-up"></i> Simpan Leads
             </button>
           </form>
         </div>
-
         <div class="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-6">
-          <h3 class="text-lg font-bold text-gray-900 mb-6">Riwayat Pengeluaran Ads</h3>
-
-          <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead>
-                <tr class="bg-gray-50 border-b border-gray-200">
-                  <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Periode</th>
-                  <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Platform</th>
-                  <th class="px-6 py-4 text-left text-sm font-bold text-gray-900 text-right">Total Biaya</th>
-                  <th class="px-6 py-4 text-left text-sm font-bold text-gray-900 text-center">Status</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100">
-                <tbody id="spending-history-container" class="divide-y divide-gray-100">
-                <tr><td colspan="4" class="px-6 py-8 text-center text-gray-500 animate-pulse">Memuat data pengeluaran...</td></tr>
-              </tbody>
-              </tbody>
-            </table>
+          <h3 class="text-lg font-bold text-gray-900 mb-6">Riwayat Input Leads</h3>
+          <div id="leads-history-container" class="space-y-4 max-h-[700px] overflow-y-auto pr-2">
+            <p class="text-center text-gray-500 py-4 animate-pulse">Memuat data...</p>
           </div>
         </div>
       </div>
@@ -198,107 +125,92 @@ const getPlatformIcon = (platform) => {
 </GeneralLayout>
 
 <script>
-    // Import Supabase & Fungsi Upload Gambar lu
     import { supabase } from '../lib/supabase';
-    import { uploadImageToImgbb } from '../lib/imgbb.js'; // Pastikan path ini sesuai letak file lu
-
-    // Format angka ke Rupiah
-    const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+    import { uploadImageToImgbb } from '../lib/imgbb.js';
 
     // ============================================
-    // 1. FUNGSI TARIK DATA (PENGGANTI SSR)
+    // 1. GATEKEEPER & LOAD DATA
+    // ============================================
+    document.addEventListener('DOMContentLoaded', async () => {
+        const allowedRoles = ['owner', 'hrd', 'periklanan'];
+        const client = window.supabase || supabase;
+        
+        const { data: { session } } = await client.auth.getSession();
+        if (!session) return window.location.replace('/');
+        
+        const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+        if (!allowedRoles.includes(prof?.role)) {
+            alert(`Akses Ditolak! Data periklanan terbatas untuk tim terkait.`);
+            return window.location.replace('/');
+        }
+        document.body.style.display = 'block';
+        
+        loadHistory();
+    });
+
+    // ============================================
+    // 2. FUNGSI TARIK DATA (PISAH REACH DAN LEADS)
     // ============================================
     async function loadHistory() {
-        const performaContainer = document.getElementById('performa-history-container');
-        const spendingContainer = document.getElementById('spending-history-container');
+        const reachContainer = document.getElementById('reach-history-container');
+        const leadsContainer = document.getElementById('leads-history-container');
 
-        if (!performaContainer || !spendingContainer) return;
+        if (!reachContainer || !leadsContainer) return;
 
-        // Fetch Performa
         const { data: performaData } = await supabase
             .from('performa_iklan')
             .select('*')
             .order('created_at', { ascending: false });
 
         if (performaData) {
-            if (performaData.length === 0) {
-                performaContainer.innerHTML = '<p class="text-on-surface-variant text-sm">Belum ada data performa.</p>';
+            // History Reach
+            const dataReach = performaData.filter(item => item.reach > 0);
+            if (dataReach.length === 0) {
+                reachContainer.innerHTML = '<p class="text-gray-500 text-sm">Belum ada data jangkauan.</p>';
             } else {
-                performaContainer.innerHTML = performaData.map(item => `
-                    <div class="border-b border-outline-variant pb-3 mb-3 last:border-none flex gap-4 items-start">
-                        ${item.bukti_url ? `<img src="${item.bukti_url}" alt="Bukti" class="w-16 h-16 object-cover rounded-lg border border-outline-variant shrink-0" />` : '<div class="w-16 h-16 bg-surface-variant rounded-lg shrink-0 flex items-center justify-center text-xs text-on-surface-variant">No Img</div>'}
+                reachContainer.innerHTML = dataReach.map(item => `
+                    <div class="border-b border-gray-100 pb-3 mb-3 last:border-none flex justify-between items-center">
+                        <div>
+                            <h4 class="font-bold text-gray-900 text-sm">${item.platform}</h4>
+                            <p class="text-[10px] text-gray-500">${item.waktu_tayang}</p>
+                        </div>
+                        <span class="font-bold text-blue-700 bg-blue-50 px-3 py-1 rounded-lg border border-blue-100"><i class="bi bi-eye"></i> ${item.reach} Views</span>
+                    </div>
+                `).join('');
+            }
+
+            // History Leads
+            const dataLeads = performaData.filter(item => item.leads > 0 || item.bukti_url);
+            if (dataLeads.length === 0) {
+                leadsContainer.innerHTML = '<p class="text-gray-500 text-sm">Belum ada data leads.</p>';
+            } else {
+                leadsContainer.innerHTML = dataLeads.map(item => `
+                    <div class="border-b border-gray-100 pb-3 mb-3 last:border-none flex gap-4 items-start">
+                        ${item.bukti_url ? `<img src="${item.bukti_url}" alt="Bukti" class="w-16 h-16 object-cover rounded-lg border border-gray-200 shrink-0" />` : '<div class="w-16 h-16 bg-gray-100 rounded-lg shrink-0 flex items-center justify-center text-xs text-gray-400">No Img</div>'}
                         <div class="flex-1">
                             <div class="flex justify-between items-center mb-1">
-                                <span class="font-bold text-on-surface text-sm">${item.platform}</span>
-                                <span class="text-[10px] text-on-surface-variant">${item.waktu_tayang}</span>
+                                <span class="font-bold text-gray-900 text-sm">${item.platform}</span>
+                                <span class="text-[10px] text-gray-500">${item.waktu_tayang}</span>
                             </div>
-                            <p class="text-xs text-on-surface-variant flex gap-4">
-                                <span><i class="bi bi-eye"></i> ${item.reach} Views</span>
-                                <span><i class="bi bi-person-lines-fill"></i> ${item.leads} Leads</span>
+                            <p class="text-xs font-bold text-green-700 bg-green-50 w-fit px-2 py-1 rounded border border-green-100 mt-1">
+                                <i class="bi bi-chat-bubble"></i> ${item.leads} Leads
                             </p>
                         </div>
                     </div>
                 `).join('');
             }
         }
-
-        // Fetch Pengeluaran
-        const { data: spendingData } = await supabase
-            .from('pengeluaran_iklan')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (spendingData) {
-            if (spendingData.length === 0) {
-                spendingContainer.innerHTML = '<p class="text-on-surface-variant text-sm">Belum ada data pengeluaran.</p>';
-            } else {
-                spendingContainer.innerHTML = spendingData.map(item => `
-                    <div class="border-b border-outline-variant pb-3 mb-3 last:border-none flex justify-between items-center">
-                        <div>
-                            <h4 class="font-bold text-on-surface text-sm">${item.platform}</h4>
-                            <p class="text-xs text-on-surface-variant">Periode: ${item.periode}</p>
-                        </div>
-                        <span class="font-bold text-error">${formatRp(item.biaya)}</span>
-                    </div>
-                `).join('');
-            }
-        }
     }
 
-    // Jalankan fetch otomatis saat halaman selesai dimuat
-    // === 🛡️ GATEKEEPER KARYAWAN ===
-        document.addEventListener('DOMContentLoaded', async () => {
-            const allowedRoles = ['owner', 'hrd', 'periklanan'];
-            const client = window.supabase || supabase;
-            
-            const { data: { session } } = await client.auth.getSession();
-            if (!session) return window.location.replace('/');
-            
-            const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
-            if (!allowedRoles.includes(prof?.role)) {
-                alert(`Akses Ditolak! Data karyawan terbatas untuk Owner & HRD.`);
-                return window.location.replace('/');
-            }
-            document.body.style.display = 'block';
-            
-            // Lolos Sensor? Baru panggil fetch data karyawannya!
-            loadHistory();
-        });
-        // =================================);
-
     // ============================================
-    // LOGIKA UI (TOMBOL UPLOAD & RUMUS CONVERSION RATE)
+    // 3. LOGIKA UI (UPLOAD GAMBAR & TAB BROWSER)
     // ============================================
     const dropZone = document.getElementById('dropZone');
     const buktiInput = document.getElementById('buktiInput');
     const fileNameDisplay = document.getElementById('fileName');
     
-    // 1. Bikin kotak DropZone bisa diklik buat pilih gambar
-    dropZone?.addEventListener('click', () => {
-        buktiInput.click();
-    });
-
-    // 2. Munculin nama file saat gambar berhasil dipilih
+    dropZone?.addEventListener('click', () => buktiInput.click());
+    
     buktiInput?.addEventListener('change', (e) => {
         if(e.target.files && e.target.files.length > 0) {
             fileNameDisplay.innerText = "Siap diupload: " + e.target.files[0].name;
@@ -311,133 +223,88 @@ const getPlatformIcon = (platform) => {
         }
     });
 
-    // 3. Hitung Conversion Rate otomatis saat ngetik angka
-    const reachInput = document.getElementById('reachInput');
-    const leadsInput = document.getElementById('leadsInput');
-    const conversionRateText = document.getElementById('conversionRate');
-
-    function hitungCR() {
-        const reach = parseFloat(reachInput.value) || 0;
-        const leads = parseFloat(leadsInput.value) || 0;
-        
-        if(reach > 0) {
-            const cr = ((leads / reach) * 100).toFixed(2);
-            conversionRateText.innerText = cr + '%';
-        } else {
-            conversionRateText.innerText = '0%';
-        }
-    }
-    
-    reachInput?.addEventListener('input', hitungCR);
-    leadsInput?.addEventListener('input', hitungCR);
-
-    // ============================================
-    // 2. SUBMIT FORM PERFORMA (DENGAN UPLOAD GAMBAR)
-    // ============================================
-    const performaForm = document.getElementById('performaForm');
-    performaForm?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const btn = document.getElementById('btnSubmitPerforma');
-        // PASTIKAN ID input file gambar lu di HTML adalah id="buktiInput"
-        const fileInput = document.getElementById('buktiInput'); 
-        const file = fileInput?.files[0];
-
-        if (!file) {
-            alert("Harap pilih gambar bukti tayang.");
-            return;
-        }
-
-        btn.innerHTML = "Menyimpan...";
-        btn.disabled = true;
-
-        try {
-            // MENGGUNAKAN FUNGSI DARI file imgbb.js lu
-            btn.innerHTML = "Mengunggah Gambar...";
-            const imageUrl = await uploadImageToImgbb(file);
-
-            btn.innerHTML = "Menyimpan Data...";
-            const { error } = await supabase.from('performa_iklan').insert([{
-                platform: document.getElementById('p_konten').value,
-                waktu_tayang: document.getElementById('p_tanggal').value,
-                reach: parseInt(document.getElementById('reachInput').value),
-                leads: parseInt(document.getElementById('leadsInput').value),
-                bukti_url: imageUrl
-            }]);
-
-            if (error) throw error;
-            
-            alert('Data Performa Iklan & Gambar berhasil disimpan!');
-            performaForm.reset();
-            loadHistory(); // Auto-refresh data tanpa reload page
-
-        } catch (err) {
-            alert('Gagal: ' + err.message);
-        } finally {
-            btn.innerHTML = "Simpan Performa";
-            btn.disabled = false;
-        }
-    });
-
-    // ============================================
-    // 3. SUBMIT FORM PENGELUARAN
-    // ============================================
-    const pengeluaranForm = document.getElementById('pengeluaranForm');
-    pengeluaranForm?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const btn = document.getElementById('btnSubmitPengeluaran');
-        btn.innerHTML = "Menyimpan...";
-        btn.disabled = true;
-
-        try {
-            const { error } = await supabase.from('pengeluaran_iklan').insert([{
-                periode: document.getElementById('ads_periode').value,
-                platform: document.getElementById('ads_platform').value,
-                biaya: parseFloat(document.getElementById('biayaInput').value)
-            }]);
-
-            if (error) throw error;
-
-            alert('Pengeluaran Ads berhasil dicatat!');
-            pengeluaranForm.reset();
-            loadHistory(); // Auto-refresh data tanpa reload page
-            
-        } catch (err) {
-            alert('Gagal: ' + err.message);
-        } finally {
-            btn.innerHTML = "Input Biaya Ads";
-            btn.disabled = false;
-        }
-    });
-    // ============================================
-    // FUNGSI GANTI TAB UI
-    // ============================================
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabContents = document.querySelectorAll('.tab-content');
 
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
-            // Hapus status aktif dari semua tombol
             tabButtons.forEach(btn => {
-                btn.classList.remove('border-green-700', 'text-green-700');
+                btn.classList.remove('border-blue-700', 'text-blue-700', 'border-green-700', 'text-green-700');
                 btn.classList.add('border-transparent', 'text-gray-600');
             });
             
-            // Sembunyikan semua konten tab
             tabContents.forEach(content => {
                 content.classList.remove('block');
                 content.classList.add('hidden');
             });
 
-            // Aktifkan tombol yang diklik
-            button.classList.add('border-green-700', 'text-green-700');
+            const targetId = button.getAttribute('data-tab');
+            if (targetId === 'reach') {
+                button.classList.add('border-blue-700', 'text-blue-700');
+            } else {
+                button.classList.add('border-green-700', 'text-green-700');
+            }
             button.classList.remove('border-transparent', 'text-gray-600');
 
-            // Tampilkan konten tab yang sesuai
-            const targetId = button.getAttribute('data-tab') + '-tab';
-            document.getElementById(targetId).classList.remove('hidden');
-            document.getElementById(targetId).classList.add('block');
+            document.getElementById(targetId + '-tab').classList.remove('hidden');
+            document.getElementById(targetId + '-tab').classList.add('block');
         });
+    });
+
+    // ============================================
+    // 4. SUBMIT FORM REACH & LEADS
+    // ============================================
+    document.getElementById('reachForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnSubmitReach');
+        btn.innerHTML = "Menyimpan..."; btn.disabled = true;
+
+        try {
+            const { error } = await supabase.from('performa_iklan').insert([{
+                platform: document.getElementById('reach_platform').value,
+                waktu_tayang: document.getElementById('reach_tanggal').value,
+                reach: parseInt(document.getElementById('reach_input_val').value),
+                leads: 0,
+                bukti_url: null
+            }]);
+            if (error) throw error;
+            
+            alert('Data Reach berhasil disimpan!');
+            document.getElementById('reachForm').reset();
+            loadHistory();
+        } catch (err) { alert('Gagal: ' + err.message); } 
+        finally { btn.innerHTML = "<i class=\"bi bi-send\"></i> Simpan Reach"; btn.disabled = false; }
+    });
+
+    document.getElementById('leadsForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnSubmitLeads');
+        const fileInput = document.getElementById('buktiInput');
+        const file = fileInput?.files[0];
+
+        if (!file) return alert("Harap pilih gambar bukti tayang.");
+
+        btn.innerHTML = "Mengunggah..."; btn.disabled = true;
+
+        try {
+            const imageUrl = await uploadImageToImgbb(file);
+            btn.innerHTML = "Menyimpan Data...";
+
+            const { error } = await supabase.from('performa_iklan').insert([{
+                platform: document.getElementById('leads_platform').value,
+                waktu_tayang: document.getElementById('leads_tanggal').value,
+                reach: 0,
+                leads: parseInt(document.getElementById('leads_input_val').value),
+                bukti_url: imageUrl
+            }]);
+            if (error) throw error;
+            
+            alert('Data Leads & Bukti berhasil disimpan!');
+            document.getElementById('leadsForm').reset();
+            document.getElementById('fileName').innerText = "";
+            document.getElementById('dropZone').classList.remove('border-green-700', 'bg-green-50');
+            loadHistory();
+        } catch (err) { alert('Gagal: ' + err.message); } 
+        finally { btn.innerHTML = "<i class=\"bi bi-cloud-arrow-up\"></i> Simpan Leads"; btn.disabled = false; }
     });
 </script>

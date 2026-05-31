@@ -316,6 +316,35 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             window.openModal('modal-tambah-penjualan');
         }
 
+        window.hapusPenjualan = async function(idPenjualan, komId, vol) {
+            if(!confirm('Yakin ingin membatalkan transaksi ini?\n\nStok barang akan otomatis dikembalikan ke gudang dan dicatat sebagai Mutasi Masuk.')) return;
+
+            try {
+                // 1. Tarik stok gudang saat ini
+                const { data: g } = await client.from('gudang_komoditas').select('stok').eq('id', komId).single();
+                
+                // 2. Kembalikan / Tambahkan volumenya
+                await client.from('gudang_komoditas').update({ stok: g.stok + vol }).eq('id', komId);
+                
+                // 3. Catat di log mutasi sebagai Batal Jual / Masuk
+                await client.from('gudang_mutasi').insert([{ 
+                    jenis_mutasi: 'Masuk', 
+                    komoditas_id: komId, 
+                    jumlah: vol, 
+                    keterangan: 'Pembatalan Penjualan (Hapus Riwayat)' 
+                }]);
+                
+                // 4. Hapus riwayat penjualannya
+                const { error } = await client.from('penjualan_olahan').delete().eq('id', idPenjualan);
+                if (error) throw error;
+                
+                alert('Transaksi dibatalkan! Stok sudah aman kembali ke gudang.');
+                window.location.reload();
+            } catch(err) {
+                alert("Gagal membatalkan transaksi: " + err.message);
+            }
+        };
+
         window.navigasiStepPj = function(stepNum) {
             const steps = [1, 2]; // Sekarang cuma 2 step
             steps.forEach(num => {

@@ -1,29 +1,38 @@
-// File: public/firebase-messaging-sw.js
-importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js");
-importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js");
+// ==========================================
+// SERVICE WORKER UNTUK NOTIFIKASI BACKGROUND
+// ==========================================
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
-// ⚠️ GANTI DENGAN CONFIG DARI FIREBASE CONSOLE LU ⚠️
-const firebaseConfig = {
+// Config Firebase
+firebase.initializeApp({
   apiKey: "AIzaSyBhSvulo8KRVoe7Fo09dL6t6aqmfSS1yRE",
   authDomain: "project-bang-jelantah.firebaseapp.com",
   projectId: "project-bang-jelantah",
   storageBucket: "project-bang-jelantah.firebasestorage.app",
   messagingSenderId: "422054168481",
-  appId: "1:422054168481:web:9e8159f56b2de70778ade0",
-};
+  appId: "1:422054168481:web:9e8159f56b2de70778ade0"
+});
 
-firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
-// Handler notifikasi saat aplikasi berjalan di background/tertutup
+// Tangkap notif saat BACKGROUND (tab tertutup)
 messaging.onBackgroundMessage((payload) => {
-  console.log("[firebase-messaging-sw.js] Notifikasi background masuk: ", payload);
-
-  const notificationTitle = payload.notification.title;
+  const notificationTitle = payload.notification?.title || 'Pemberitahuan Baru';
   const notificationOptions = {
-    body: payload.notification.body,
-    icon: payload.notification.image || "/5.png", // Ganti icon kalau perlu
+    body: payload.notification?.body || 'Anda memiliki pesan baru',
+    icon: payload.notification?.image || '/icon-192x192.png',
+    badge: '/badge-72x72.png',
+    sound: '/sounds/notification.mp3', // 🔊 SUARA
+    tag: 'notification', // Prevent duplicate
+    requireInteraction: false // User bisa dismiss
   };
 
+  // Mainkan suara + tunjukkan notif
   self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// Handle klik notifikasi
+self.addEventListener('push', (event) => {
+  console.log('📱 Push notification received in background');
 });

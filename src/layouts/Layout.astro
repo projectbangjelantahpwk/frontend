@@ -287,13 +287,6 @@ const { title, requireAuth = true } = Astro.props;
     <script>
         import { supabase } from '../lib/supabase.js';
 
-// 🧹 PENYAPU BERSIH WEBSOCKET (SOLUSI ERROR "CLOSED BEFORE CONNECTION")
-        window.addEventListener('beforeunload', () => {
-            if (window.supabase) {
-                window.supabase.removeAllChannels(); // Tutup koneksi dengan sopan sebelum pindah/reload halaman
-            }
-        });
-
         function runWhenReady(callback) {
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', callback, { once: true });

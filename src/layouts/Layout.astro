@@ -167,10 +167,25 @@ const { title, requireAuth = true } = Astro.props;
             </div>
 
             <div id="auth-logged-in" class="hidden items-center gap-1 md:gap-2">
-                <button id="notif-btn" class="relative w-10 h-10 hidden sm:flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full" type="button" aria-label="Notifikasi">
-                    <span class="material-symbols-outlined">notifications</span>
-                    <span id="notif-badge" class="hidden absolute top-2 right-2.5 w-2.5 h-2.5 bg-error rounded-full outline outline-2 outline-surface-container-lowest"></span>
-                </button>
+                
+                <!-- BUNGKUS LONCENG DENGAN DIV RELATIVE -->
+                <div class="relative">
+                    <button id="notif-btn" class="relative w-10 h-10 hidden sm:flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full" type="button" aria-label="Notifikasi">
+                        <span class="material-symbols-outlined">notifications</span>
+                        <span id="notif-badge" class="hidden absolute top-2 right-2.5 w-2.5 h-2.5 bg-error rounded-full outline outline-2 outline-surface-container-lowest"></span>
+                    </button>
+                    
+                    <!-- KOTAK DROPDOWN NOTIFIKASI -->
+                    <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant overflow-hidden z-50">
+                        <div class="p-3 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+                            <h3 class="font-bold text-sm text-on-surface">Notifikasi Terbaru</h3>
+                            <button id="clear-notif" class="text-xs text-primary hover:underline font-medium">Bersihkan</button>
+                        </div>
+                        <div id="notif-list" class="max-h-80 overflow-y-auto p-2 space-y-1">
+                            <p id="empty-notif" class="text-xs text-on-surface-variant text-center py-4">Belum ada notifikasi baru.</p>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="ml-2 w-9 h-9 rounded-full overflow-hidden border-2 border-primary-container cursor-pointer hover:opacity-90 transition-opacity">
                     <img
@@ -272,6 +287,13 @@ const { title, requireAuth = true } = Astro.props;
     <script>
         import { supabase } from '../lib/supabase.js';
 
+// 🧹 PENYAPU BERSIH WEBSOCKET (SOLUSI ERROR "CLOSED BEFORE CONNECTION")
+        window.addEventListener('beforeunload', () => {
+            if (window.supabase) {
+                window.supabase.removeAllChannels(); // Tutup koneksi dengan sopan sebelum pindah/reload halaman
+            }
+        });
+
         function runWhenReady(callback) {
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', callback, { once: true });
@@ -295,25 +317,57 @@ const { title, requireAuth = true } = Astro.props;
         // FITUR NOTIFIKASI REAL-TIME (DIPERBARUI)
         // ==========================================
         function initRealtimeNotifications() {
-            // Minta Izin Notifikasi Browser saat user pertama kali masuk
             if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
                 Notification.requestPermission();
             }
 
             const notifBadge = document.getElementById('notif-badge');
             const notifBtn = document.getElementById('notif-btn');
+            const notifDropdown = document.getElementById('notif-dropdown');
+            const notifList = document.getElementById('notif-list');
+            const clearNotif = document.getElementById('clear-notif');
 
-            // Hapus merah-merah kalau lonceng diklik
-            notifBtn?.addEventListener('click', () => {
-                notifBadge?.classList.add('hidden');
+            // 1. Toggle Dropdown saat lonceng diklik
+            notifBtn?.addEventListener('click', (e) => {
+                e.stopPropagation(); // Mencegah klik tembus ke luar
+                notifBadge?.classList.add('hidden'); // Hilangkan titik merah
+                notifDropdown?.classList.toggle('hidden'); // Muncul/Sembunyikan kotak dropdown
             });
 
-            // Fungsi Push Notification ke OS / Browser dengan Custom Icon
+            // 2. Tutup dropdown kalau user ngeklik di luar kotak
+            window.addEventListener('click', (e) => {
+                if (!notifBtn?.contains(e.target) && !notifDropdown?.contains(e.target)) {
+                    notifDropdown?.classList.add('hidden');
+                }
+            });
+
+            // 3. Tombol "Bersihkan" Notifikasi
+            clearNotif?.addEventListener('click', () => {
+                if(notifList) {
+                    notifList.innerHTML = '<p id="empty-notif" class="text-xs text-on-surface-variant text-center py-4">Belum ada notifikasi baru.</p>';
+                }
+            });
+
+            // 4. Fungsi Menambah Notifikasi ke UI dan Push Browser
             function sendPush(title, body, iconUrl = 'https://ui-avatars.com/api/?name=Bang+Jelantah&background=2e7d32&color=ffffff') {
-                // Tampilkan titik merah di UI Lonceng
+                // Munculkan titik merah di lonceng
                 notifBadge?.classList.remove('hidden');
 
-                // Kirim notifikasi desktop (Chrome / Firefox / Edge)
+                // Tambahkan elemen baru ke daftar Dropdown
+                const emptyMsg = document.getElementById('empty-notif');
+                if (emptyMsg) emptyMsg.remove(); // Hapus tulisan "Belum ada notifikasi"
+
+                const waktu = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                const notifItem = document.createElement('div');
+                notifItem.className = 'p-3 bg-surface-container-low hover:bg-surface-container rounded-lg cursor-pointer transition-colors border-l-4 border-primary mb-1';
+                notifItem.innerHTML = `
+                    <p class="font-bold text-sm text-on-surface">${title}</p>
+                    <p class="text-xs text-on-surface-variant mt-1">${body}</p>
+                    <p class="text-[10px] text-outline mt-2 text-right">${waktu}</p>
+                `;
+                notifList?.prepend(notifItem); // Prepend = Masukkan paling atas (terbaru)
+
+                // Push ke Desktop/Browser
                 if ("Notification" in window && Notification.permission === "granted") {
                     new Notification(title, { 
                         body: body,
@@ -323,70 +377,105 @@ const { title, requireAuth = true } = Astro.props;
             }
 
             if (window.supabase) {
+                // TAMBAHKAN BARIS INI: Bersihkan koneksi channel lama sebelum bikin baru
+                window.supabase.removeAllChannels();
+
                 window.supabase.channel('dashboard-notifications')
                 
-                // 1. MONITOR TABEL TRANSAKSI (INSERT & UPDATE)
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'transaksi' }, async (payload) => {
-                    // Abaikan kalau datanya dihapus
-                    if (payload.eventType === 'DELETE') return;
+                // 1. MONITOR TRANSAKSI (Hanya Jika Status Berubah Jadi 'Selesai')
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'transaksi' }, async (payload) => {
+                    const newData = payload.new;
+                    const oldData = payload.old || {};
 
-                    // Cek apakah statusnya selesai (asumsi lu pakai kolom status='Selesai' atau is_paid_by_admin=true)
-                    const isSelesai = payload.new.status === 'Selesai' || payload.new.is_paid_by_admin === true;
-                    
-                    // Karena Supabase Realtime gak bawa tabel relasi, kita "tarik kilat" nama mitranya!
-                    const { data: relasi } = await window.supabase
-                        .from('transaksi')
-                        .select('metode_bayar, penjemputan(mitra(nama_mitra))')
-                        .eq('id', payload.new.id)
-                        .single();
+                    if (newData.status === 'Selesai' && oldData.status !== 'Selesai') {
+                        const { data: relasi } = await window.supabase
+                            .from('transaksi')
+                            .select('metode_bayar, penjemputan(mitra(nama_mitra))')
+                            .eq('id', newData.id)
+                            .single();
 
-                    const namaMitra = relasi?.penjemputan?.mitra?.nama_mitra || 'Mitra (Tidak Diketahui)';
-                    const metode = relasi?.metode_bayar || payload.new.metode_bayar || 'Belum diinput';
+                        const namaMitra = relasi?.penjemputan?.mitra?.nama_mitra || 'Mitra';
+                        const metode = relasi?.metode_bayar || newData.metode_bayar || 'Kas/Transfer';
 
-                    // Logika Notifikasi: Jika Selesai vs Jika Baru Masuk (INSERT)
-                    if (isSelesai) {
                         sendPush(
                             '✅ Pembayaran Selesai!', 
-                            `Transaksi dengan ${namaMitra} telah lunas menggunakan metode ${metode}.`,
-                            'https://cdn-icons-png.flaticon.com/512/190/190411.png' // Icon Sukses/Checklist
-                        );
-                    } else if (payload.eventType === 'INSERT') {
-                        sendPush(
-                            '💳 Transaksi Baru Masuk!', 
-                            `Ada setoran lapangan baru dari ${namaMitra} (Metode: ${metode}) menunggu divalidasi.`,
-                            'https://cdn-icons-png.flaticon.com/512/5724/5724036.png' // Icon Dompet/Transaksi
+                            `Setoran dari ${namaMitra} telah divalidasi dan lunas (Metode: ${metode}).`,
+                            'https://cdn-icons-png.flaticon.com/512/190/190411.png'
                         );
                     }
                 })
 
-                // 2. MONITOR PENGELUARAN
+                // 2. MONITOR PRESENSI KARYAWAN
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'presensi' }, async (payload) => {
+                    if (payload.eventType === 'DELETE') return;
+                    
+                    const newData = payload.new;
+                    const oldData = payload.old || {};
+
+                    const isWaktuPulangDiisi = newData.waktu_pulang && !oldData.waktu_pulang;
+                    const statusAlerts = ['Pulang', 'Izin', 'Izin Pulang Cepat', 'Sakit'];
+                    
+                    const isStatusTibaTrigger = statusAlerts.includes(newData.status_tiba) && newData.status_tiba !== oldData.status_tiba;
+                    const isStatusPulangTrigger = statusAlerts.includes(newData.status_pulang) && newData.status_pulang !== oldData.status_pulang;
+
+                    if (isWaktuPulangDiisi || isStatusTibaTrigger || isStatusPulangTrigger) {
+                        const { data: user } = await window.supabase.from('profiles').select('nama').eq('id', newData.user_id).single();
+                        const namaKaryawan = user?.nama || 'Karyawan';
+                        
+                        let pesan = '';
+                        let title = '📋 Update Presensi';
+                        let icon = 'https://cdn-icons-png.flaticon.com/512/3237/3237447.png';
+
+                        if (newData.status_tiba === 'Sakit' || newData.status_tiba === 'Izin') {
+                            title = '⚠️ Info Kehadiran';
+                            pesan = `${namaKaryawan} mengajukan ${newData.status_tiba} hari ini.`;
+                            icon = 'https://cdn-icons-png.flaticon.com/512/4203/4203250.png';
+                        } else if (newData.status_pulang === 'Izin Pulang Cepat') {
+                            title = '🏃 Pulang Lebih Awal';
+                            pesan = `${namaKaryawan} baru saja izin pulang cepat.`;
+                        } else if (isWaktuPulangDiisi || newData.status_pulang === 'Pulang') {
+                            title = '👋 Karyawan Pulang';
+                            pesan = `${namaKaryawan} telah melakukan absen pulang.`;
+                            icon = 'https://cdn-icons-png.flaticon.com/512/6009/6009864.png';
+                        }
+
+                        if(pesan) sendPush(title, pesan, icon);
+                    }
+                })
+
+                // 3. MONITOR PENGELUARAN KARYAWAN (Dari kodingan asli lu)
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pengeluaran' }, payload => {
                     sendPush(
                         '💸 Pengeluaran Karyawan', 
                         `Pengajuan kas jalan baru sebesar Rp ${Number(payload.new.total_harian).toLocaleString('id-ID')} menunggu persetujuan.`,
-                        'https://cdn-icons-png.flaticon.com/512/2489/2489756.png' // Icon Uang Keluar
+                        'https://cdn-icons-png.flaticon.com/512/2489/2489756.png'
                     );
                 })
 
-                // 3. MONITOR PENJUALAN OLAHAN
+                // 4. MONITOR PENJUALAN OLAHAN
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'penjualan_olahan' }, payload => {
+                    // Pakai fallback 'Distributor' seandainya data pembeli kosong
+                    const pembeli = payload.new.pembeli || 'Distributor'; 
                     sendPush(
                         '📦 Penjualan Berhasil!', 
-                        `Terdapat input penjualan olahan baru ke ${payload.new.pembeli}.`,
-                        'https://cdn-icons-png.flaticon.com/512/3144/3144456.png' // Icon Keranjang Belanja
+                        `Terdapat input penjualan olahan baru ke ${pembeli}.`,
+                        'https://cdn-icons-png.flaticon.com/512/3144/3144456.png'
                     );
                 })
 
-                // 4. MONITOR GUDANG MASUK
+                // 5. MONITOR GUDANG MASUK
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'gudang_mutasi' }, payload => {
                     if (payload.new.jenis_mutasi === 'Masuk') {
+                        // Regex /_/g untuk mengubah semua underscore jadi spasi (contoh: minyak_jelantah -> minyak jelantah)
+                        const komoditas = payload.new.komoditas_id ? payload.new.komoditas_id.replace(/_/g, ' ') : 'Barang';
                         sendPush(
                             '🚛 Barang Gudang Masuk', 
-                            `Stok ${payload.new.komoditas_id.replace('_', ' ')} baru saja bertambah sebanyak ${payload.new.jumlah} Kg.`,
-                            'https://cdn-icons-png.flaticon.com/512/679/679821.png' // Icon Gudang/Box
+                            `Stok ${komoditas} baru saja bertambah sebanyak ${payload.new.jumlah} Kg.`,
+                            'https://cdn-icons-png.flaticon.com/512/679/679821.png' 
                         );
                     }
                 })
+                
                 .subscribe();
             }
         }
@@ -535,7 +624,7 @@ const { title, requireAuth = true } = Astro.props;
             // JIKA BELUM LOGIN: Layar tetap 'display: none', langsung tendang!
             if (requireAuth && !session && currentPath !== '/login') {
                 window.location.replace('/login');
-                return;
+                return; // Proses berhenti di sini, jadi WebSocket nggak akan terpicu!
             }
 
             // 🔥 JIKA LOLOS AUTH: Buka gembok layarnya!
@@ -545,9 +634,16 @@ const { title, requireAuth = true } = Astro.props;
 
             renderAuthUI(session);
 
+            // 🔥 JALANKAN WEBSOCKET HANYA JIKA USER SUDAH VALID LOGIN 🔥
+            if (session) {
+                initRealtimeNotifications();
+            }
+
             supabase.auth.onAuthStateChange((_event, session) => {
                 if (requireAuth && !session && window.location.pathname !== '/login') {
-                    document.body.style.display = 'none'; // Tutup layar lagi pas ke-logout otomatis
+                    document.body.style.display = 'none';
+                    // Bersihkan WebSocket sebelum ditendang keluar
+                    if(window.supabase) window.supabase.removeAllChannels(); 
                     window.location.replace('/login');
                     return;
                 }
@@ -576,7 +672,98 @@ const { title, requireAuth = true } = Astro.props;
             initSidebar();
             initAuthCheck();
             initLogout();
-            initRealtimeNotifications(); // Menjalankan Notifikasi Real-Time
+            //initRealtimeNotifications(); // Menjalankan Notifikasi Real-Time
+        });
+    </script>
+    <!-- Script Integrasi FCM -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
+
+        // ⚠️ GANTI DENGAN CONFIG DARI FIREBASE CONSOLE LU ⚠️
+        const firebaseConfig = {
+          apiKey: "AIzaSyBhSvulo8KRVoe7Fo09dL6t6aqmfSS1yRE",
+          authDomain: "project-bang-jelantah.firebaseapp.com",
+          projectId: "project-bang-jelantah",
+          storageBucket: "project-bang-jelantah.firebasestorage.app",
+          messagingSenderId: "422054168481",
+          appId: "1:422054168481:web:9e8159f56b2de70778ade0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const messaging = getMessaging(app);
+
+        // Minta Izin & Dapatkan Token
+        async function requestFCMToken() {
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    // ⚠️ GANTI VAPID KEY DI BAWAH INI ⚠️
+                    const currentToken = await getToken(messaging, { 
+                        vapidKey: 'VAPID_KEY_LU_DARI_FIREBASE_CONSOLE' 
+                    });
+                    
+                    if (currentToken) {
+                        console.log('✅ FCM Token sukses didapatkan:', currentToken);
+                        
+                        /* 
+                         * TODO MASA DEPAN: 
+                         * Lu bisa kirim 'currentToken' ini ke Supabase table 'profiles', 
+                         * biar server backend lu tau harus kirim notif ke token mana 
+                         * saat ada transaksi atau pengajuan baru.
+                         */
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Gagal mendapatkan FCM token:', error);
+            }
+        }
+
+        // Tangkap notifikasi dari Firebase saat user SEDANG ngebuka webnya (Foreground)
+        onMessage(messaging, (payload) => {
+            console.log("Notifikasi Foreground FCM masuk: ", payload);
+            
+            // Nyalakan titik merah di lonceng UI
+            const notifBadge = document.getElementById('notif-badge');
+            if(notifBadge) notifBadge.classList.remove('hidden');
+        });
+
+        // 1. Daftarkan Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/firebase-messaging-sw.js')
+            .then((registration) => console.log('✅ [Sistem] Service Worker terdaftar!'))
+            .catch((err) => console.error('❌ [Sistem] Gagal daftar Service Worker:', err));
+        }
+
+        // 2. Klik lonceng dengan laporan lengkap
+        document.getElementById('notif-btn')?.addEventListener('click', async () => {
+            console.log('🔔 [Sistem] Lonceng diklik! Mengecek status izin saat ini:', Notification.permission);
+            
+            try {
+                // Minta izin ke browser
+                const permission = await Notification.requestPermission();
+                console.log('🔔 [Sistem] Hasil permintaan izin:', permission);
+
+                if (permission === 'granted') {
+                    console.log('⏳ [Sistem] Izin diberikan, sedang menghubungi Firebase untuk ambil Token...');
+                    
+                    // ⚠️ PASTIKAN VAPID KEY LU UDAH BENAR DI SINI ⚠️
+                    const currentToken = await getToken(messaging, { 
+                        vapidKey: 'VAPID_KEY_LU_DARI_FIREBASE_CONSOLE' 
+                    });
+                    
+                    if (currentToken) {
+                        console.log('✅ [SUKSES] FCM Token didapatkan:', currentToken);
+                        alert("Berhasil terhubung ke FCM! Cek console untuk lihat Token.");
+                    } else {
+                        console.log('❌ [GAGAL] Token tidak didapat. Periksa VAPID Key lu.');
+                    }
+                } else {
+                    console.log('❌ [GAGAL] User menolak izin notifikasi.');
+                }
+            } catch (err) {
+                console.error('❌ [ERROR] Terjadi masalah fatal saat request token:', err);
+            }
         });
     </script>
 </body>

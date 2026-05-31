@@ -115,12 +115,36 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         <input type="number" id="setup_lembur_menit" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Uang Kesehatan (Rp)</label>
-                        <input type="number" id="setup_uang_kesehatan" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-xs font-bold text-gray-700">Uang Rapat (Rp)</label>
+                            <div class="flex items-center gap-1">
+                                <input type="checkbox" id="chk_uang_rapat" onchange="window.kalkulasiRealtimeGaji()" class="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer">
+                                <span class="text-[10px] text-gray-500 font-bold">Aktifkan</span>
+                            </div>
+                        </div>
+                        <input type="number" id="setup_uang_rapat" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
                     </div>
+
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Uang Makan (Rp)</label>
-                        <input type="number" id="setup_uang_makan" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-xs font-bold text-gray-700">Uang Nginep (Rp)</label>
+                            <div class="flex items-center gap-1">
+                                <input type="checkbox" id="chk_uang_nginep" onchange="window.kalkulasiRealtimeGaji()" class="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer">
+                                <span class="text-[10px] text-gray-500 font-bold">Aktifkan</span>
+                            </div>
+                        </div>
+                        <input type="number" id="setup_uang_nginep" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-xs font-bold text-gray-700">Uang Kesehatan (Rp)</label>
+                            <div class="flex items-center gap-1">
+                                <input type="checkbox" id="chk_uang_kesehatan" onchange="window.kalkulasiRealtimeGaji()" class="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer">
+                                <span class="text-[10px] text-gray-500 font-bold">Aktifkan</span>
+                            </div>
+                        </div>
+                        <input type="number" id="setup_uang_kesehatan" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-700 mb-1">Bonus Tepat Waktu (Rp)</label>
@@ -138,22 +162,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
             <div>
                 <h4 class="font-bold text-gray-900 mb-3 border-b pb-2"><i class="bi bi-calculator mr-2"></i>Kalkulasi Slip Gaji Bulan Ini</h4>
-                
-                <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 flex flex-wrap gap-4 mb-4">
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" id="chk_uang_kesehatan" onchange="kalkulasiRealtimeGaji()" class="w-4 h-4 text-blue-600 rounded">
-                        <label class="text-xs font-bold text-gray-700">Berikan Uang Kesehatan</label>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" id="chk_bonus_tepat" onchange="kalkulasiRealtimeGaji()" class="w-4 h-4 text-blue-600 rounded">
-                        <label class="text-xs font-bold text-gray-700">Berikan Bonus Tepat Waktu</label>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" id="chk_bonus_mingguan" onchange="kalkulasiRealtimeGaji()" class="w-4 h-4 text-blue-600 rounded">
-                        <label class="text-xs font-bold text-gray-700">Berikan Bonus Mingguan</label>
-                    </div>
-                </div>
-
                 <div class="space-y-2 text-sm bg-white border border-gray-200 p-4 rounded-xl" id="m_rincian_list"></div>
 
                 <div class="bg-green-700 text-white p-4 rounded-xl flex justify-between items-center mt-3 shadow-sm">
@@ -388,14 +396,36 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         document.getElementById('setup_gaji_menit').value = setup.gaji_menit || 0;
         document.getElementById('setup_lembur_menit').value = setup.uang_lembur_menit || 0;
         document.getElementById('setup_uang_kesehatan').value = setup.uang_kesehatan || 0;
-        document.getElementById('setup_uang_makan').value = setup.uang_makan || 0;
+        document.getElementById('setup_uang_rapat').value = setup.uang_rapat || 0;
+        document.getElementById('setup_uang_nginep').value = setup.uang_nginep || 0;
         document.getElementById('setup_bonus_tepat').value = setup.bonus_tepat_waktu || 0;
         document.getElementById('setup_bonus_mingguan').value = setup.bonus_mingguan || 0;
-
+        //checked box
+        document.getElementById('chk_uang_rapat').checked = setup.activate_uang_rapat || false;
+        document.getElementById('chk_uang_nginep').checked = setup.activate_uang_nginep || false;
         document.getElementById('chk_uang_kesehatan').checked = setup.activate_uang_kesehatan || false;
-        document.getElementById('chk_bonus_mingguan').checked = setup.activate_bonus_mingguan || false;
 
-        const tglHariIni = new Date(waktuLokal - offset).toISOString().split('T')[0];
+        const tglLokalObj = new Date(waktuLokal - offset);
+        const tglHariIni = tglLokalObj.toISOString().split('T')[0];
+        const hariDalamMinggu = tglLokalObj.getUTCDay(); // 0 = Minggu, 1 = Senin ... 6 = Sabtu
+        
+        // Cek apakah hari ini Sabtu
+        const isSabtu = hariDalamMinggu === 6;
+        let kehadiranMingguIni = 0;
+
+        // Hitung kehadiran Senin s/d Sabtu MINGGU INI (Pastikan status_tiba ada isinya)
+        if (isSabtu) {
+            const tglSeninObj = new Date(tglLokalObj.getTime() - (5 * 24 * 60 * 60 * 1000));
+            const strSenin = tglSeninObj.toISOString().split('T')[0];
+            
+            const presensiMingguIni = (emp.presensi || []).filter(p => 
+                p.tanggal >= strSenin && 
+                p.tanggal <= tglHariIni && 
+                p.status_tiba // <-- Pastikan dia absen/hadir apapun statusnya
+            );
+            kehadiranMingguIni = presensiMingguIni.length;
+        }
+
         const slip = (emp.slip_gaji || []).find(s => s.periode === tglHariIni && s.status === 'Menunggu');
         document.getElementById('m_slip_id').value = slip ? slip.id : '';
 
@@ -431,12 +461,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             }
         });
 
-        const chkBonusTepat = document.getElementById('chk_bonus_tepat');
-        chkBonusTepat.checked = tepatWaktuCount > 0;
-        chkBonusTepat.disabled = true;
-
         window.currentSalaryData = {
-            empId: emp.id, totalNormalMenit, totalLemburMenit, tepatWaktuCount, hariMasuk, tglHariIni, jamTibaStr, jamPulangStr
+            empId: emp.id, totalNormalMenit, totalLemburMenit, tepatWaktuCount, hariMasuk, tglHariIni, jamTibaStr, jamPulangStr,
+            isSabtu, kehadiranMingguIni // <--- TAMBAHKAN INI
         };
         window.kalkulasiRealtimeGaji();
         window.openModal('modal-detail-gaji');
@@ -449,18 +476,40 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
         const tarifMenit = parseFloat(document.getElementById('setup_gaji_menit').value) || 0;
         const tarifLemburMenit = parseFloat(document.getElementById('setup_lembur_menit').value) || 0;
-        const valUangMakan = parseFloat(document.getElementById('setup_uang_makan').value) || 0;
+        const paramBonusMingguan = parseFloat(document.getElementById('setup_bonus_mingguan').value) || 0;
         const isKesehatan = document.getElementById('chk_uang_kesehatan').checked;
-        const isBonusMingguan = document.getElementById('chk_bonus_mingguan').checked;
+        const isRapat = document.getElementById('chk_uang_rapat').checked;
+        const isNginep = document.getElementById('chk_uang_nginep').checked;
+        
+        let valBonusMingguan = 0;
+        let labelBonusMingguan = '';
+
+        // LOGIKA BONUS HANYA KELUAR DI HARI SABTU
+        if (d.isSabtu) {
+            if (d.kehadiranMingguIni >= 6) {
+                valBonusMingguan = paramBonusMingguan;
+                labelBonusMingguan = 'Full 6 Hari (5/5)';
+            } else if (d.kehadiranMingguIni >= 2) {
+                // Prorata x/5 (Misal masuk 3x -> fraction = 2 -> 2/5 dari bonus full)
+                const fraction = d.kehadiranMingguIni - 1;
+                valBonusMingguan = Math.round((fraction / 5) * paramBonusMingguan);
+                labelBonusMingguan = `Prorata ${fraction}/5 (${d.kehadiranMingguIni}x Hadir)`;
+            } else {
+                // Jika cuma masuk 1x atau tidak masuk sama sekali
+                valBonusMingguan = 0; 
+                labelBonusMingguan = `Hadir ${d.kehadiranMingguIni}x (Tidak Dapat)`;
+            }
+        }
 
         const valGaji = d.totalNormalMenit * tarifMenit;
         const valLembur = d.totalLemburMenit * tarifLemburMenit;
-        
         const valKesehatan = isKesehatan ? (parseFloat(document.getElementById('setup_uang_kesehatan').value) || 0) : 0;
-        const valBonusMingguan = isBonusMingguan ? (parseFloat(document.getElementById('setup_bonus_mingguan').value) || 0) : 0;
         const valBonusTepat = d.tepatWaktuCount * (parseFloat(document.getElementById('setup_bonus_tepat').value) || 0);
-        const grandTotal = valGaji + valLembur + valUangMakan + valKesehatan + valBonusTepat + valBonusMingguan;
-        d.finalState = { valGaji, valLembur, valUangMakan, valKesehatan, valBonusTepat, valBonusMingguan, grandTotal };
+        const valRapat = isRapat ? (parseFloat(document.getElementById('setup_uang_rapat').value) || 0) : 0;
+        const valNginep = isNginep ? (parseFloat(document.getElementById('setup_uang_nginep').value) || 0) : 0;
+
+        const grandTotal = valGaji + valLembur + valKesehatan + valBonusTepat + valBonusMingguan + valRapat + valNginep;
+        d.finalState = { valGaji, valLembur, valKesehatan, valBonusTepat, valBonusMingguan, valRapat, valNginep, grandTotal };
 
         document.getElementById('m_rincian_list').innerHTML = `
             <div class="bg-gray-50 p-2.5 rounded mb-3 border border-gray-200">
@@ -478,10 +527,11 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             </div>
             <div class="flex justify-between"><span>Gaji Karyawan (${d.totalNormalMenit} mnt)</span> <span class="font-medium text-gray-900">Rp ${valGaji.toLocaleString('id-ID')}</span></div>
             <div class="flex justify-between"><span>Uang Lembur (${d.totalLemburMenit} mnt)</span> <span class="font-medium text-gray-900">Rp ${valLembur.toLocaleString('id-ID')}</span></div>
-            <div class="flex justify-between"><span>Uang Makan</span> <span class="font-medium text-gray-900">Rp ${valUangMakan.toLocaleString('id-ID')}</span></div>
-            ${isKesehatan ? `<div class="flex justify-between text-green-700"><span>Uang Kesehatan</span> <span>+ Rp ${valKesehatan.toLocaleString('id-ID')}</span></div>` : ''}
             ${d.tepatWaktuCount > 0 ? `<div class="flex justify-between text-green-700"><span>Bonus Tepat Waktu (${d.tepatWaktuCount}x)</span> <span>+ Rp ${valBonusTepat.toLocaleString('id-ID')}</span></div>` : ''}
-            ${isBonusMingguan ? `<div class="flex justify-between text-green-700"><span>Bonus Mingguan</span> <span>+ Rp ${valBonusMingguan.toLocaleString('id-ID')}</span></div>` : ''}
+            ${isKesehatan ? `<div class="flex justify-between text-green-700"><span>Uang Kesehatan</span> <span>+ Rp ${valKesehatan.toLocaleString('id-ID')}</span></div>` : ''}
+            ${d.isSabtu ? `<div class="flex justify-between text-green-700"><span>Bonus Mingguan (${labelBonusMingguan})</span> <span>+ Rp ${valBonusMingguan.toLocaleString('id-ID')}</span></div>` : ''}
+            ${isRapat ? `<div class="flex justify-between text-green-700"><span>Uang Rapat</span> <span>+ Rp ${valRapat.toLocaleString('id-ID')}</span></div>` : ''}
+            ${isNginep ? `<div class="flex justify-between text-green-700"><span>Uang Nginep</span> <span>+ Rp ${valNginep.toLocaleString('id-ID')}</span></div>` : ''}
         `;
         document.getElementById('m_total_gaji').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
     };
@@ -521,12 +571,15 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             user_id: empId,
             gaji_menit: parseFloat(document.getElementById('setup_gaji_menit').value) || 0,
             uang_lembur_menit: parseFloat(document.getElementById('setup_lembur_menit').value) || 0,
-            uang_kesehatan: parseFloat(document.getElementById('setup_uang_kesehatan').value) || 0,
-            uang_makan: parseFloat(document.getElementById('setup_uang_makan').value) || 0,
             bonus_tepat_waktu: parseFloat(document.getElementById('setup_bonus_tepat').value) || 0,
             bonus_mingguan: parseFloat(document.getElementById('setup_bonus_mingguan').value) || 0,
+            uang_kesehatan: parseFloat(document.getElementById('setup_uang_kesehatan').value) || 0,
+            uang_rapat: parseFloat(document.getElementById('setup_uang_rapat').value) || 0,
+            uang_nginep: parseFloat(document.getElementById('setup_uang_nginep').value) || 0,
+            //checkedbox
+            activate_uang_rapat: document.getElementById('chk_uang_rapat').checked,
+            activate_uang_nginep: document.getElementById('chk_uang_nginep').checked,
             activate_uang_kesehatan: document.getElementById('chk_uang_kesehatan').checked,
-            activate_bonus_mingguan: document.getElementById('chk_bonus_mingguan').checked
         };
         try {
             if(setupId) {
@@ -564,10 +617,11 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 periode: d.tglHariIni, 
                 gaji_karyawan: fs.valGaji,
                 uang_lembur: fs.valLembur,
-                uang_makan: fs.valUangMakan,
                 bonus_tepat_waktu: fs.valBonusTepat,
                 bonus_mingguan: fs.valBonusMingguan,
                 uang_kesehatan: fs.valKesehatan,
+                uang_rapat: fs.valRapat,
+                uang_nginep: fs.valNginep,
                 total_diterima: fs.grandTotal,
                 status: statusTarget,
                 is_paid_by_admin: statusTarget === 'ACC'
@@ -596,8 +650,11 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                 `-------------------------------------------------\n` +
                                 `Gaji Karyawan  : Rp ${fs.valGaji.toLocaleString('id-ID')}\n` +
                                 `Uang Lembur    : Rp ${fs.valLembur.toLocaleString('id-ID')}\n` +
-                                `Uang Makan     : Rp ${fs.valUangMakan.toLocaleString('id-ID')}\n` +
-                                `Total Bonus    : Rp ${totalBonus.toLocaleString('id-ID')}\n` +
+                                `Uang Kesehatan : Rp ${fs.valKesehatan.toLocaleString('id-ID')}\n` +
+                                `Bonus Mingguan : Rp ${fs.valBonusMingguan.toLocaleString('id-ID')}\n` +
+                                `Bonus Tepat Wkt: Rp ${fs.valBonusTepat.toLocaleString('id-ID')}\n` +
+                                `Uang Rapat     : Rp ${fs.valRapat.toLocaleString('id-ID')}\n` +
+                                `Uang Nginep    : Rp ${fs.valNginep.toLocaleString('id-ID')}\n` +
                                 `-------------------------------------------------\n` +
                                 `TOTAL DITERIMA : Rp ${fs.grandTotal.toLocaleString('id-ID')}\n\n` +
                                 `Parameter hitungan juga sudah tersimpan aman sebagai riwayat.`;
@@ -607,82 +664,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         } catch(err) {
             alert('Waduh gagal simpan slip: ' + err.message);
             btnDraf.disabled = false; btnAcc.disabled = false;
-        }
-    };
-
-    // UPDATE TARIF GAJI PER JAM PERSONAL
-    window.updateTarifJam = async function() {
-        if(!window.supabase) return;
-        const empId = document.getElementById('m_karyawan_id').value;
-        const newTarif = document.getElementById('m_tarif_jam').value;
-        try {
-            await window.supabase.from('profiles').update({ tarif_gaji_perjam: newTarif }).eq('id', empId);
-            alert('Tarif per jam berhasil diupdate! Silakan tutup modal dan klik ulang Hitung Rincian.');
-        } catch (err) { alert(err.message); }
-    };
-
-    // SIMPAN UANG JALAN
-    window.updateUangJalan = async function() {
-        if(!window.supabase) return;
-        const empId = document.getElementById('m_karyawan_id').value;
-        const uangJalan = document.getElementById('m_input_uang_jalan').value;
-        const periodeSekarang = new Date(waktuLokal - offset).toISOString().split('T')[0];
-        
-        try {
-            const { data: draft, error: errCek } = await window.supabase.from('slip_gaji')
-                .select('id').eq('user_id', empId).eq('periode', periodeSekarang).eq('status', 'Menunggu').maybeSingle();
-            if (errCek) throw errCek;
-
-            if (draft) {
-                const { error: errUpd } = await window.supabase.from('slip_gaji').update({ uang_jalan: uangJalan }).eq('id', draft.id);
-                if (errUpd) throw errUpd;
-            } else {
-                const { error: errIns } = await window.supabase.from('slip_gaji').insert([{
-                    user_id: empId, periode: periodeSekarang, uang_jalan: uangJalan, status: 'Menunggu', gaji_karyawan: 0, tunjangan: 0, total_diterima: 0 
-                }]);
-                if (errIns) throw errIns;
-            }
-            alert('Uang jalan berhasil disimpan ke Draf Slip Gaji!');
-            window.location.reload(); 
-        } catch (err) { alert('Gagal menyimpan uang jalan: ' + err.message); }
-    };
-
-    // EKSEKUSI PEMBAYARAN GAJI
-    window.prosesBayarGaji = async function() {
-        if(!confirm('Anda yakin ingin menyetujui dan merekap gaji ini ke database?')) return;
-        const d = window.currentSalaryData;
-        const btn = document.getElementById('btn-bayar-gaji');
-        btn.innerHTML = "Memproses..."; btn.disabled = true;
-        const periodeSekarang = new Date(waktuLokal - offset).toISOString().split('T')[0];
-
-        try {
-            const slipDataFinal = {
-                user_id: d.empId,
-                periode: periodeSekarang,
-                gaji_karyawan: (d.totalNormalJam * d.tarifNormal),
-                tunjangan: d.totalPengeluaranKar + (d.tepatWaktuCount * d.bonusTepatWaktu) + (d.totalLemburJam * d.tarifLembur) + (document.getElementById('m_check_bonus_mingguan').checked ? d.bonusMingguanVal : 0) + d.uangKesehatan,
-                uang_jalan: d.potonganJalan, 
-                total_diterima: d.grandTotal,
-                status: 'ACC' 
-            };
-            const { data: draft, error: errDraft } = await window.supabase.from('slip_gaji')
-                .select('id').eq('user_id', d.empId).eq('periode', periodeSekarang).eq('status', 'Menunggu').maybeSingle();
-            if (errDraft) throw errDraft;
-
-            if (draft) {
-                const { error: errFinalUpd } = await window.supabase.from('slip_gaji').update(slipDataFinal).eq('id', draft.id);
-                if (errFinalUpd) throw errFinalUpd;
-            } else {
-                const { error: errFinalIns } = await window.supabase.from('slip_gaji').insert([slipDataFinal]);
-                if (errFinalIns) throw errFinalIns;
-            }
-
-            alert('Gaji berhasil dibayar dan direkap ke Riwayat!');
-            window.location.reload();
-        } catch (err) {
-            alert('Gagal merekap gaji: ' + err.message);
-            btn.innerHTML = `<i class="bi bi-check2-circle mr-2"></i> Setujui & Bayar Gaji`;
-            btn.disabled = false;
         }
     };
 
@@ -726,7 +707,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                 <div class="mt-2 text-xs space-y-1 border-t pt-2 border-dashed border-gray-300">
                                     <div class="flex justify-between"><span>Gaji Pokok:</span> <span>Rp ${Number(slip.gaji_karyawan || 0).toLocaleString('id-ID')}</span></div>
                                     <div class="flex justify-between text-gray-500"><span>Uang Lembur:</span> <span>Rp ${Number(slip.uang_lembur || 0).toLocaleString('id-ID')}</span></div>
-                                    <div class="flex justify-between text-gray-500"><span>Uang Makan:</span> <span>Rp ${Number(slip.uang_makan || 0).toLocaleString('id-ID')}</span></div>
                                     <div class="flex justify-between text-green-700"><span>Total Bonus (Tepat Waktu, Mingguan, Sehat):</span> <span>+Rp ${Number((slip.bonus_tepat_waktu || 0) + (slip.bonus_mingguan || 0) + (slip.uang_kesehatan || 0)).toLocaleString('id-ID')}</span></div>
                                     <div class="flex justify-between font-bold text-green-700 mt-1 pt-1 border-t">
                                         <span>Total Diterima (ACC):</span> 

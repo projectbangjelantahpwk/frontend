@@ -28,7 +28,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
       <button onclick="filterTabelPengeluaran()" class="bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-800">Filter Data Pengeluaran</button>
       <div class="flex justify-end w-full mb-4">
           <button onclick="window.bukaModalTambahPengeluaran()" class="bg-green-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-green-800 transition shadow-sm flex items-center gap-2">
-              <i class="bi bi-plus-circle-fill"></i> Input Pengeluaran Ops
+              <i class="bi bi-plus-circle-fill"></i> Input Pengeluaran
           </button>
       </div>
   </div>
@@ -128,7 +128,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 </div>
 
 <script is:inline>
-  const masterKategoriOps = ['Bensin', 'Parkir', 'Uang Makan', 'E-Toll', 'Admin', 'Bongkar', 'Satpam', 'Service', 'Listrik', 'Karung', 'Plastik', 'Jasa Spinner', 'Lain-lain'];
+  const masterKategoriOps = ['Bensin', 'Parkir', 'Uang Makan', 'Uang Jalan', 'E-Toll', 'Admin', 'Bongkar', 'Satpam', 'Service', 'Listrik', 'Karung', 'Plastik', 'Jasa Spinner', 'Lain-lain'];
 
   document.addEventListener('DOMContentLoaded', async () => {
       // === 🛡️ GATEKEEPER KEUANGAN ===
@@ -166,11 +166,16 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         ? `<button onclick="window.hapusItemPengeluaran('${r.id}', '${p.id}', ${r.nominal}, ${p.total_harian})" class="text-red-500 hover:text-red-700 ml-2" title="Hapus Item ini"><i class="bi bi-trash"></i></button>` 
                         : '';
 
+                    const ketHtml = r.keterangan ? `<span class="text-[10px] text-gray-500 italic ml-2 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">${r.keterangan}</span>` : '';
+                    
                     rincianHtml += `
                     <div class="flex justify-between items-center text-gray-600 mb-1 border-b border-dashed border-gray-100 pb-1">
-                        <span>- ${r.nama_item}</span>
-                        <div class="flex items-center">
-                            <span class="font-medium">Rp ${Number(r.nominal).toLocaleString('id-ID')}</span>
+                        <div class="flex items-center flex-1">
+                            <span class="font-medium whitespace-nowrap">- ${r.nama_item}</span>
+                            ${ketHtml}
+                        </div>
+                        <div class="flex items-center shrink-0">
+                            <span class="font-bold">Rp ${Number(r.nominal).toLocaleString('id-ID')}</span>
                             ${btnHapus}
                         </div>
                     </div>`;
@@ -313,6 +318,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     <label class="text-[10px] font-bold text-blue-700 uppercase">Keterangan Spesifik / Custom</label>
                     <input type="text" class="peng_item_custom w-full border border-blue-200 bg-blue-50/50 rounded-lg p-2 text-xs outline-none font-medium focus:border-blue-500" value="${customValue}" placeholder="Cth: Pertalite 5 Liter atau Nama Barang...">
                 </div>
+                <div class="mt-1">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">Catatan / Detail (Opsional)</label>
+                    <input type="text" class="edit_item_keterangan w-full border border-gray-300 rounded-lg p-2 text-xs outline-none font-medium" value="${item.keterangan || ''}" placeholder="Cth: Pembelian karung 50 pcs...">
+                </div>
             </div>`;
         });
 
@@ -363,10 +372,14 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
                 let finalNamaItem = kategoriTerpilih === 'Lain-lain' ? (teksCustom || 'Lain-lain') : kategoriTerpilih;
                 kalkulasiTotalHarian += nominalBaru;
+                
+                // 🌟 TAMBAHAN: TANGKAP VALUE KETERANGAN 🌟
+                const keteranganBaru = row.querySelector('.edit_item_keterangan').value.trim();
 
                 const task = window.supabase.from('rincian_pengeluaran').update({
                     nama_item: finalNamaItem,
-                    nominal: nominalBaru
+                    nominal: nominalBaru,
+                    keterangan: keteranganBaru || null // MASUKKAN KE UPDATE SUPABASE
                 }).eq('id', rincianId);
                 
                 batchPromises.push(task);
@@ -526,7 +539,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 if(errUpdate) throw errUpdate;
             } else {
                 const { data: inserted, error: errInsert } = await window.supabase.from('pengeluaran')
-                    .insert({ user_id: userId, tanggal: tanggalStr, total_harian: totalBaruHarian, status_approval: 'Disetujui' }) 
+                    .insert({ user_id: userId, tanggal: tanggalStr, total_harian: totalBaruHarian, status_approval: 'Menunggu' }) 
                     .select('id').single();
                 if(errInsert) throw errInsert;
                 pengeluaranId = inserted.id;

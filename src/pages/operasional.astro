@@ -184,7 +184,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
                             <div id="detail_mitra_box" class="hidden mt-2 p-3 bg-surface-container-low border border-outline-variant rounded-md">
                                  <p id="detail_alamat_mitra" class="text-xs text-on-surface-variant mb-2 leading-relaxed"></p>
-                                 <a id="detail_gmaps_mitra" href="#" target="_blank" class="text-primary hover:underline flex items-center font-bold text-xs w-fit bg-primary-container px-2 py-1 rounded">
+                                 <a id="detail_gmaps_mitra" href="#" target="_blank" class="text-white hover:underline flex items-center font-bold text-xs w-fit bg-primary-container px-2 py-1 rounded">
                                      <span class="material-symbols-outlined text-[16px] mr-1">location_on</span> Buka di Google Maps
                                  </a>
                             </div>
@@ -194,8 +194,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             <label class="block font-label-sm text-on-surface-variant mb-xs">Jenis Armada</label>
                             <input type="hidden" id="tipe_kendaraan_input" value="motor">
                             <div class="flex bg-surface-container-low rounded-lg p-1 gap-1">
-                                <button type="button" class="flex-1 py-2 rounded-md font-label-sm bg-surface shadow text-primary font-bold transition-all" id="btn-motor" onclick="setVehicle('motor')">Motor Lapangan</button>
-                                <button type="button" class="flex-1 py-2 rounded-md font-label-sm text-on-surface-variant hover:bg-surface-variant transition-all" id="btn-mobil" onclick="setVehicle('mobil')">Mobil Box</button>
+                                <button type="button" class="flex-1 py-2 rounded-md font-label-sm bg-surface shadow text-primary font-bold transition-all" id="btn-motor" onclick="setVehicle('motor')">Motor</button>
+                                <button type="button" class="flex-1 py-2 rounded-md font-label-sm text-on-surface-variant hover:bg-surface-variant transition-all" id="btn-mobil" onclick="setVehicle('mobil')">Mobil</button>
                             </div>
                         </div>
                     
@@ -783,8 +783,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             }
         };
 
-        // SUBMIT TUGAS BARU
+        // ==========================================
         // SUBMIT TUGAS BARU ATAU UPDATE
+        // ==========================================
         document.getElementById('formPenjemputan')?.addEventListener('submit', async function(e) {
             e.preventDefault();
                 
@@ -812,77 +813,102 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
                 if (!window.supabase) throw new Error("Supabase Client tidak ditemukan!");
 
-                // Tarik Rincian Komoditas dari Input HTML
-                const inputEstimasi = [
-                    { id: 'est-minyak', komoditas: 'Minyak Jelantah Kotor' },
-                    { id: 'est-tepung', komoditas: 'Tepung' },
-                    { id: 'est-kriuk', komoditas: 'Kriuk' },
-                    { id: 'est-spinner', komoditas: 'Spinner' },
-                    { id: 'est-ampas', komoditas: 'Ampas' }
-                ];
-                const itemsToInsertRaw = [];
-                inputEstimasi.forEach(item => {
-                    const parsedVol = parseFloat(document.getElementById(item.id).value) || 0;
-                    if (parsedVol > 0) itemsToInsertRaw.push({ komoditas: item.komoditas, volume: parsedVol });
-                });
+                // 🔥 AMBIL DATA ESTIMASI DARI FORM 🔥
+                const estMinyak = parseFloat(document.getElementById('est-minyak').value) || 0;
+                const estTepung = parseFloat(document.getElementById('est-tepung').value) || 0;
+                const estKriuk = parseFloat(document.getElementById('est-kriuk').value) || 0;
+                const estSpinner = parseFloat(document.getElementById('est-spinner').value) || 0;
+                const estAmpas = parseFloat(document.getElementById('est-ampas').value) || 0;
+                
+                // Kalkulasi Total Estimasi (Penjumlahan KG)
+                const totalEstimasi = estMinyak + estTepung + estKriuk + estSpinner + estAmpas;
+                
+                // Estimasi Transaksi (Diisi 0 sementara karena belum ada form estimasi harga)
+                const estimasiTransaksi = 0; 
+
+                // 🔥 BUNGKUS PAYLOAD UNTUK TABEL PENJEMPUTAN 🔥
+                const payloadPenjemputan = {
+                    mitra_id: parseInt(mitra_id), 
+                    driver_id: driver_id, 
+                    helper_id: helper_id || null,
+                    tanggal: tanggal, 
+                    kendaraan: tipeKendaraan, 
+                    rute_penjemputan: wilayah,
+                    estimasi_minyak: estMinyak,
+                    estimasi_tepung: estTepung,
+                    estimasi_kriuk: estKriuk,
+                    estimasi_spinner: estSpinner,
+                    estimasi_ampas: estAmpas,
+                    total_estimasi: totalEstimasi,
+                    estimasi_transaksi: estimasiTransaksi
+                };
 
                 // ==========================
                 // JALUR A: UPDATE JADWAL (EDIT)
                 // ==========================
                 if (editId) {
-                    // Update Penjemputan
-                    const { error: errUpdate } = await window.supabase.from('penjemputan').update({
-                        mitra_id: parseInt(mitra_id), driver_id: driver_id, helper_id: helper_id || null,
-                        tanggal: tanggal, kendaraan: tipeKendaraan, rute_penjemputan: wilayah
-                    }).eq('id', editId);
+                    // Update Penjemputan dengan data estimasi
+                    const { error: errUpdate } = await window.supabase
+                        .from('penjemputan')
+                        .update(payloadPenjemputan)
+                        .eq('id', editId);
+                    
                     if (errUpdate) throw errUpdate;
 
                     const p = window.allJadwalPending.find(x => x.id == editId);
                     let txId = p?.transaksi?.[0]?.id;
-
+                    
                     if (txId) {
-                        // Update Transaksi Induk & Bersihkan Item Lama
-                        await window.supabase.from('transaksi').update({ kalkulator_user_id: driver_id, potongan_dp: dpValue ? parseFloat(dpValue) : 0 }).eq('id', txId);
-                        await window.supabase.from('transaksi_item').delete().eq('transaksi_id', txId);
+                        // Update Transaksi Induk
+                        await window.supabase.from('transaksi').update({ 
+                            kalkulator_user_id: driver_id, 
+                            potongan_dp: dpValue ? parseFloat(dpValue) : 0 
+                        }).eq('id', txId);
                     } else {
-                        // Buat Transaksi Baru Kalau Entah Kenapa Datanya Bolong
+                        // Buat Transaksi Baru Kalau Datanya Bolong
                         const {data: newTx} = await window.supabase.from('transaksi').insert([{
-                            penjemputan_id: editId, kalkulator_user_id: driver_id, potongan_dp: dpValue ? parseFloat(dpValue) : 0, subtotal: 0, grand_total: 0
+                            penjemputan_id: editId, 
+                            kalkulator_user_id: driver_id, 
+                            potongan_dp: dpValue ? parseFloat(dpValue) : 0, 
+                            subtotal: 0, 
+                            grand_total: 0
                         }]).select().single();
                         txId = newTx.id;
                     }
-
-                    // Suntik Item Baru
-                    if(itemsToInsertRaw.length > 0) {
-                        const items = itemsToInsertRaw.map(i => ({ transaksi_id: txId, komoditas: i.komoditas, volume: i.volume }));
-                        await window.supabase.from('transaksi_item').insert(items);
-                    }
                     
-                    alert('Jadwal berhasil diperbarui!');
+                    alert('Jadwal dan estimasi berhasil diperbarui!');
 
                 // ==========================
                 // JALUR B: INSERT JADWAL BARU
                 // ==========================
                 } else {
-                    const { data: pickupData, error: errPickup } = await window.supabase.from('penjemputan').insert([{
-                        mitra_id: parseInt(mitra_id), driver_id: driver_id, helper_id: helper_id || null,
-                        tanggal: tanggal, kendaraan: tipeKendaraan, rute_penjemputan: wilayah, status: 'Belum'
-                    }]).select().single();
+                    // Masukkan status 'Belum' ke dalam payload untuk insert baru
+                    payloadPenjemputan.status = 'Belum';
+
+                    const { data: pickupData, error: errPickup } = await window.supabase
+                        .from('penjemputan')
+                        .insert([payloadPenjemputan])
+                        .select()
+                        .single();
+                        
                     if (errPickup) throw errPickup;
 
+                    // Buat Data Transaksi Awal Kosong
                     const { data: txData, error: errTx } = await window.supabase.from('transaksi').insert([{
-                        penjemputan_id: pickupData.id, kalkulator_user_id: driver_id, potongan_dp: dpValue ? parseFloat(dpValue) : 0, subtotal: 0, grand_total: 0
+                        penjemputan_id: pickupData.id, 
+                        kalkulator_user_id: driver_id, 
+                        potongan_dp: dpValue ? parseFloat(dpValue) : 0, 
+                        subtotal: 0, 
+                        grand_total: 0
                     }]).select().single();
+                    
                     if (errTx) throw errTx;
 
-                    if(itemsToInsertRaw.length > 0) {
-                        const items = itemsToInsertRaw.map(i => ({ transaksi_id: txData.id, komoditas: i.komoditas, volume: i.volume }));
-                        await window.supabase.from('transaksi_item').insert(items);
-                    }
-                    alert('Tugas penjemputan baru berhasil diterbitkan!');
+                    alert('Tugas penjemputan baru beserta estimasi berhasil diterbitkan!');
                 }
 
                 window.location.reload();
+
             } catch (error) {
                 alert('Gagal memproses penugasan: ' + error.message);
                 btn.innerHTML = 'Kirim Perintah Jalan'; btn.disabled = false;

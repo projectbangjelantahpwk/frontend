@@ -52,7 +52,9 @@ import Layout from '../layouts/Layout.astro';
         import { supabase } from '../lib/supabase';
 
         const container = document.getElementById('karyawan-container');
-        const today = new Date().toISOString().split('T')[0];
+        const waktuLokal = new Date();
+        const offset = waktuLokal.getTimezoneOffset() * 60000;
+        const today = new Date(waktuLokal - offset).toISOString().split('T')[0];
 
         // Menyimpan data secara global di browser agar bisa diakses saat diklik
         window.daftarKaryawan = [];
@@ -191,7 +193,7 @@ import Layout from '../layouts/Layout.astro';
         // Jalankan fetch saat dokumen siap
         // === 🛡️ GATEKEEPER KARYAWAN ===
         document.addEventListener('DOMContentLoaded', async () => {
-            const allowedRoles = ['owner', 'hrd'];
+            const allowedRoles = ['owner', 'hrd', 'keuangan'];
             const client = window.supabase || supabase;
             
             const { data: { session } } = await client.auth.getSession();

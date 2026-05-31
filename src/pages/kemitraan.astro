@@ -643,9 +643,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     });
 
                     window.leaderboardCache["Juara Umum"] = Object.values(totalUmumMap);
-                    
-                    // 3. 🔥 SINKRONISASI KE DATABASE: Kirim ke tabel top_leaderboard secara background 🔥
-                    window.syncLeaderboardToDB(periode);
 
                     // 4. Tampilkan data default (Sesuai filter dropdown yang lagi aktif)
                     window.renderLeaderboardSesuaiFilter();

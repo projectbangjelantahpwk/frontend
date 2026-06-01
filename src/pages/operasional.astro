@@ -15,7 +15,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         .modal.active { display: flex; }
         
         /* Mobile Table Cards Style */
-        /* Mobile Table Cards Style (DIPERBAIKI) */
         @media (max-width: 768px) {
             .mobile-table-card thead { display: none; }
             .mobile-table-card tbody tr {
@@ -93,6 +92,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             <button class="px-md py-sm font-label-lg text-primary border-b-2 border-primary whitespace-nowrap" id="tab-pending" onclick="switchTab('pending')">Belum Diproses (<span id="count-pending">0</span>)</button>
             <button class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap" id="tab-progress" onclick="switchTab('progress')">Sedang Diproses (<span id="count-progress">0</span>)</button>
             <button class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap" id="tab-history" onclick="switchTab('history')">Riwayat Selesai</button>
+            <button class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap" id="tab-rute" onclick="switchTab('rute')">Kelola Rute</button>
         </div>
 
         <div class="tab-content active" id="content-pending">
@@ -161,7 +161,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             </div>
         </div>
     </div>
-
     <div class="modal fixed inset-0 z-[100] bg-on-background/50 items-center justify-center p-md transition-opacity" id="new-pickup-modal">
         <div class="bg-surface rounded-xl shadow-lg w-full max-w-md flex flex-col max-h-[90vh]">
             <div class="p-md border-b border-outline-variant flex justify-between items-center bg-surface-container-low rounded-t-xl">
@@ -225,16 +224,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             <label class="block font-label-sm text-on-surface-variant mb-xs">Tanggal Eksekusi</label>
                             <input id="input_tanggal" type="date" class="w-full px-sm py-sm border border-outline-variant rounded-md bg-surface-container focus:border-primary focus:ring-1 focus:ring-primary font-body-md outline-none" required>
                         </div>
-                    
-                        <div>
-                            <label class="block font-label-sm text-on-surface-variant mb-xs">Wilayah / Kota Tujuan</label>
-                            <select id="input-wilayah" class="w-full px-sm py-sm border border-outline-variant rounded-md bg-surface-container focus:border-primary focus:ring-1 focus:ring-primary font-body-md outline-none" required>
-                                <option value="">-- Pilih Wilayah --</option>
-                                <option value="Purwakarta">Purwakarta</option>
-                                <option value="Subang">Subang</option>
-                                <option value="Karawang">Karawang</option>
-                            </select>
-                        </div>
                     </div>
                     <div id="form-step-2" class="hidden flex-col gap-md">
 
@@ -293,7 +282,35 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             </form>
         </div>
     </div>
+    <div class="tab-content" id="content-rute">
+  <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
+    <div class="flex justify-between items-center p-md border-b border-outline-variant bg-surface-container-lowest">
+      <h3 class="font-bold text-on-surface text-sm md:text-base">Daftar Rute Penjemputan</h3>
+      <button
+        class="bg-secondary-container text-on-secondary-container px-4 py-2 rounded-full text-sm font-bold flex items-center gap-1 hover:opacity-90 transition-all shadow-sm"
+        onclick="window.tambahBarisRute()">
+        <span class="material-symbols-outlined text-[18px]">add</span> Tambah Wilayah
+      </button>
+    </div>
 
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse mobile-table-card md:min-w-[800px]">
+        <thead>
+          <tr class="bg-surface-container-low border-b border-outline-variant">
+            <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase text-center w-16">No</th>
+            <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Nama Wilayah / Kota</th>
+            <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase text-center hidden md:table-cell">Status</th>
+            <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase text-right w-32">Aksi</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-outline-variant font-body-md text-body-md text-on-surface bg-surface-container-lowest" id="tbody-rute">
+          <tr><td colspan="4" class="p-4 text-center text-on-surface-variant">Memuat data rute...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
     <script is:inline>
         // Cek Role Keamanan
         let currentUserRole = 'lapangan';
@@ -326,6 +343,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     .from('penjemputan')
                     .select(`
                         id, status, tanggal, rute_penjemputan, kendaraan,
+                        estimasi_minyak, estimasi_tepung, estimasi_kriuk, estimasi_spinner, estimasi_ampas, total_estimasi,
                         mitra ( id, nama_mitra, alamat, link_gmaps ),
                         driver:driver_id ( id, nama ),
                         helper:helper_id ( id, nama ),
@@ -441,7 +459,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 document.getElementById('tbody-history').innerHTML = htmlHistory;
 
                 // 3. Fetch Dropdown Mitra & Tampilkan Detail Gmaps
-                const { data: daftarMitra } = await window.supabase.from('mitra').select('id, nama_mitra, alamat, link_gmaps').order('nama_mitra', { ascending: true });
+                const { data: daftarMitra } = await window.supabase.from('mitra').select('id, nama_mitra, alamat, link_gmaps, rute_jemput(nama_rute)').order('nama_mitra', { ascending: true });
                 window.allMitra = daftarMitra || []; // Simpan global
                 
                 let optMitra = '<option value="">-- Pilih Mitra Pengumpul --</option>';
@@ -458,7 +476,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     
                     if(selectedMitra && (selectedMitra.alamat || selectedMitra.link_gmaps)) {
                         box.classList.remove('hidden');
-                        alamatTxt.innerText = selectedMitra.alamat || 'Alamat tidak tersedia di sistem';
+                        const namaRute = selectedMitra.rute_jemput?.nama_rute || 'Belum Diatur';
+                        alamatTxt.innerHTML = `<span class="inline-block mb-1 px-2 py-0.5 bg-primary/10 text-primary font-bold text-[10px] rounded uppercase">RUTE: ${namaRute}</span><br/>${selectedMitra.alamat || 'Alamat tidak tersedia di sistem'}`;
                         if(selectedMitra.link_gmaps) {
                             gmapsBtn.href = selectedMitra.link_gmaps;
                             gmapsBtn.style.display = 'flex';
@@ -562,7 +581,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         // FUNGSI GANTI TAB SAKTI (UI + LOGIKA TANGGAL)
         // =======================================================
         window.switchTab = function(tabId) {
-            const tabs = ['pending', 'progress', 'history'];
+            const tabs = ['pending', 'progress', 'history', 'rute'];
             
             // 1. Reset semua tab menjadi tidak aktif (Sembunyikan)
             tabs.forEach(id => {
@@ -609,15 +628,22 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         // ==========================================
         window.tambahPenjemputan = function() {
             if(!isAllowed()) return alert('Akses Ditolak: Hanya Admin, HRD, dan Owner yang diizinkan menerbitkan penugasan!');
-            
             document.getElementById('edit_penjemputan_id').value = '';
             document.getElementById('modal-title-pickup').innerText = "Tugaskan Jadwal Baru";
             
             // Reset isian HTML manual
             document.getElementById('input_mitra').value = '';
             document.getElementById('detail_mitra_box').classList.add('hidden');
-            document.getElementById('input_tanggal').valueAsDate = new Date();
-            document.getElementById('input-wilayah').value = '';
+            // Ambil waktu spesifik zona WIB (Asia/Jakarta)
+            const formatterWIB = new Intl.DateTimeFormat('id-ID', {
+                timeZone: 'Asia/Jakarta',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+            // Hasilnya format DD/MM/YYYY, kita harus pecah dan balik jadi YYYY-MM-DD
+            const [hari, bulan, tahun] = formatterWIB.format(new Date()).split('/');
+            document.getElementById('input_tanggal').value = `${tahun}-${bulan}-${hari}`;
             document.getElementById('input_dp').value = '';
             
             const estimasiIds = ['est-minyak', 'est-tepung', 'est-kriuk', 'est-spinner', 'est-ampas'];
@@ -632,10 +658,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         // ==========================================
         window.editPenjemputan = function(id) {
             if(!isAllowed()) return alert('Akses Ditolak!');
-            
             const p = window.allJadwalPending.find(x => x.id == id);
             if(!p) return alert("Data tidak ditemukan di sesi ini, silakan refresh halaman.");
-
+            
             document.getElementById('edit_penjemputan_id').value = id;
             document.getElementById('modal-title-pickup').innerText = "Edit Jadwal Penugasan";
 
@@ -643,7 +668,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             document.getElementById('input_mitra').value = p.mitra?.id || '';
             document.getElementById('input_mitra').dispatchEvent(new Event('change')); // Trigger Gmaps box
             document.getElementById('input_tanggal').value = p.tanggal;
-            document.getElementById('input-wilayah').value = p.rute_penjemputan || '';
 
             // Tempel Kendaraan & Kurir
             window.setVehicle(p.kendaraan === 'mobil' ? 'mobil' : 'motor');
@@ -659,19 +683,12 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             const tx = p.transaksi?.[0];
             document.getElementById('input_dp').value = tx?.potongan_dp || '';
             
-            const estimasiIds = ['est-minyak', 'est-tepung', 'est-kriuk', 'est-spinner', 'est-ampas'];
-            estimasiIds.forEach(eid => document.getElementById(eid).value = '0');
-
-            if(tx && tx.transaksi_item) {
-                tx.transaksi_item.forEach(item => {
-                    const k = item.komoditas.toLowerCase();
-                    if(k.includes('minyak')) document.getElementById('est-minyak').value = item.volume;
-                    else if(k.includes('tepung')) document.getElementById('est-tepung').value = item.volume;
-                    else if(k.includes('kriuk')) document.getElementById('est-kriuk').value = item.volume;
-                    else if(k.includes('spinner')) document.getElementById('est-spinner').value = item.volume;
-                    else if(k.includes('ampas')) document.getElementById('est-ampas').value = item.volume;
-                });
-            }
+            // Baca data langsung dari database penjemputan
+            document.getElementById('est-minyak').value = p.estimasi_minyak || '0';
+            document.getElementById('est-tepung').value = p.estimasi_tepung || '0';
+            document.getElementById('est-kriuk').value = p.estimasi_kriuk || '0';
+            document.getElementById('est-spinner').value = p.estimasi_spinner || '0';
+            document.getElementById('est-ampas').value = p.estimasi_ampas || '0';
 
             document.getElementById('new-pickup-modal').classList.add('active');
         };
@@ -800,7 +817,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 const mitra_id = document.getElementById('input_mitra').value;
                 const tanggal = document.getElementById('input_tanggal').value;
                 const dpValue = document.getElementById('input_dp').value;
-                const wilayah = document.getElementById('input-wilayah').value;
+                const selectedMitraObj = window.allMitra.find(m => String(m.id) === String(mitra_id));
+                const wilayah = selectedMitraObj?.rute_jemput?.nama_rute || 'Belum Diatur';
                 
                 let driver_id = null; let helper_id = null;
                 if (tipeKendaraan === 'motor') {
@@ -919,10 +937,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
     // Validasi singkat sebelum ke step 2 (opsional, biar rapi)
     const mitra = document.getElementById('input_mitra').value;
     const tanggal = document.getElementById('input_tanggal').value;
-    const wilayah = document.getElementById('input-wilayah').value;
-
-    if(!mitra || !tanggal || !wilayah) {
-        alert("Harap lengkapi Lokasi Mitra, Tanggal, dan Wilayah terlebih dahulu!");
+    
+    if(!mitra || !tanggal) {
+        alert("Harap lengkapi Lokasi Mitra dan Tanggal terlebih dahulu!");
         return;
     }
 
@@ -944,5 +961,134 @@ function prevStep() {
     document.getElementById('form-step-1').classList.replace('hidden', 'flex');
     document.getElementById('footer-step-1').classList.replace('hidden', 'flex');
 }
+    // ==========================================
+        // FITUR MANAJEMEN RUTE INLINE (TAB)
+        // ==========================================
+        async function loadTabelRute() {
+            if(!window.supabase) return;
+            const { data: daftarRute } = await window.supabase.from('rute_jemput').select('*').order('id', { ascending: true });
+            
+            let html = '';
+            let optRute = '<option value="">-- Pilih Wilayah --</option>'; // Sekalian buat form penjemputan
+            
+            if(daftarRute && daftarRute.length > 0) {
+                daftarRute.forEach((r, idx) => {
+                    html += `
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="px-md py-md text-center font-semibold" data-label="No">${idx + 1}</td>
+                        <td class="px-md py-md font-semibold" data-label="Wilayah">${r.nama_rute}</td>
+                        <td class="px-md py-md text-center" data-label="Status">
+                            <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 font-label-sm text-[11px]">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${r.status}
+                            </span>
+                        </td>
+                        <td class="px-md py-md text-right" data-label="Aksi">
+                            <div class="flex gap-2 justify-end">
+                                <button onclick="window.hapusRute(${r.id}, '${r.nama_rute}')" class="bg-red-50 text-red-600 border border-red-200 px-2 py-1 rounded text-[11px] font-bold hover:bg-red-100 transition shadow-sm" title="Hapus">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+                    
+                    if(r.status === 'Aktif') {
+                        optRute += `<option value="${r.nama_rute}">${r.nama_rute}</option>`;
+                    }
+                });
+            } else {
+                html = '<tr><td colspan="4" class="p-4 text-center text-on-surface-variant">Belum ada rute terdaftar.</td></tr>';
+            }
+            
+            document.getElementById('tbody-rute').innerHTML = html;
+            
+            // Update dropdown di Form Penjemputan sekalian
+            const elWilayah = document.getElementById('input-wilayah');
+            if(elWilayah) elWilayah.innerHTML = optRute;
+        }
+
+        window.tambahBarisRute = function() {
+            // Jangan izinkan nambah kalau belum save baris sebelumnya
+            if(document.getElementById('input-rute-baru')) return document.getElementById('input-rute-baru').focus();
+            
+            const tbody = document.getElementById('tbody-rute');
+            
+            // Hapus pesan kosong kalau ada
+            if(tbody.innerHTML.includes('Belum ada rute')) tbody.innerHTML = '';
+            
+            const barisBaru = `
+            <tr class="bg-surface-container-low animate-in fade-in zoom-in duration-300">
+                <td class="px-md py-md text-center font-bold text-primary">*</td>
+                <td class="px-md py-md">
+                    <input type="text" id="input-rute-baru" class="w-full px-3 py-1.5 border border-primary rounded text-sm outline-none focus:ring-2 focus:ring-primary/50" placeholder="Ketik nama rute..." autofocus required>
+                </td>
+                <td class="px-md py-md text-center">
+                    <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-surface-variant text-on-surface-variant font-label-sm text-[11px]">Draft</span>
+                </td>
+                <td class="px-md py-md text-right">
+                    <div class="flex gap-2 justify-end">
+                        <button class="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-1 rounded text-[11px] font-bold hover:bg-blue-100 transition shadow-sm" onclick="window.simpanRuteBaru()" title="Simpan">
+                            <i class="bi bi-check-lg"></i>
+                        </button>
+                        <button class="bg-red-50 text-red-600 border border-red-200 px-2 py-1 rounded text-[11px] font-bold hover:bg-red-100 transition shadow-sm" onclick="loadTabelRute()" title="Batal">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+            
+            // Sisipkan baris di urutan paling atas
+            tbody.insertAdjacentHTML('afterbegin', barisBaru);
+        };
+
+        window.simpanRuteBaru = async function() {
+            if(!['owner', 'hrd', 'admin'].includes(currentUserRole)) return alert('Akses Ditolak!');
+            
+            const input = document.getElementById('input-rute-baru');
+            if(!input || input.value.trim() === '') return alert('Nama rute tidak boleh kosong!');
+            
+            try {
+                input.disabled = true;
+                const { error } = await window.supabase
+                    .from('rute_jemput')
+                    .insert([{ nama_rute: input.value.trim(), status: 'Aktif' }]);
+                
+                if (error) throw error;
+                
+                // Tarik ulang data supaya rapi
+                await loadTabelRute();
+            } catch (error) {
+                alert('Gagal menambah rute: ' + error.message);
+                input.disabled = false;
+            }
+        };
+        window.hapusRute = async function(id, namaRute) {
+            // Proteksi keamanan ganda
+            if(!['owner', 'hrd', 'admin'].includes(currentUserRole)) {
+                return alert('Akses Ditolak: Hanya Admin, HRD, dan Owner yang diizinkan!');
+            }
+            
+            // Konfirmasi sebelum menghapus
+            if(!confirm(`Yakin ingin menghapus rute "${namaRute}"?\n\nPastikan rute ini sudah tidak dipakai di jadwal penjemputan manapun ya!`)) return;
+
+            try {
+                // Eksekusi hapus di Supabase
+                const { error } = await window.supabase
+                    .from('rute_jemput')
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                // Refresh tabel dan dropdown form seketika
+                await loadTabelRute();
+                
+            } catch (error) {
+                alert('Gagal menghapus rute: ' + error.message);
+            }
+        };
+        // Eksekusi penarikan data rute saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(loadTabelRute, 800); // Panggil fungsi yang benar
+        });
     </script>
 </Layout>

@@ -11,10 +11,16 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
     <div class="max-w-7xl mx-auto flex flex-col h-full gap-lg">
         
         <div class="content-view flex flex-col gap-lg" id="view-kemitraan">
-            <header class="">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-md mb-2">
+                <header>
                     <h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary">Kemitraan</h2>
                     <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Manajemen relasi dan pendaftaran mitra pengumpul.</p>
-            </header>
+                </header>
+                <div class="w-full md:w-72 relative shrink-0">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+                    <input type="text" id="input-search-mitra" oninput="window.applySearchMitra()" class="w-full h-11 pl-10 pr-4 rounded-full border border-outline-variant bg-surface-container-lowest text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm" placeholder="Cari nama, rute, no hp...">
+                </div>
+            </div>
 
             <div class="flex flex-col flex-1 gap-md">
                 <div class="flex overflow-x-auto border-b border-outline-variant scrollbar-hide">
@@ -175,6 +181,12 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     <input id="konversi_nama" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="Masukkan nama mitra" type="text" required>
                 </div>
                 <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Rute Penjemputan</label>
+                    <select id="konversi_rute" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                        <option value="">-- Memuat Rute... --</option>
+                    </select>
+                </div>
+                <div>
                     <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Alamat Lengkap Domisili</label>
                     <textarea id="konversi_alamat" class="w-full p-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none" placeholder="Contoh: Jl. Raya Purwakarta No. 123, Mulyamekar" rows="2" required></textarea>
                 </div>
@@ -209,13 +221,19 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     <input id="tambah_langganan_nama" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="Masukkan nama mitra" type="text" required>
                 </div>
                 <div>
-                <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Alamat Lengkap Domisili</label>
-                <textarea id="tambah_langganan_alamat" class="w-full p-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none" placeholder="Contoh: Jl. Raya Purwakarta No. 123, Mulyamekar" rows="2" required></textarea>
-            </div>
-            <div>
-                <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Link Google Maps (G-Maps)</label>
-                <input id="tambah_langganan_gmaps" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="https://maps.google.com/..." type="url" required>
-            </div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Alamat Lengkap Domisili</label>
+                    <textarea id="tambah_langganan_alamat" class="w-full p-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none" placeholder="Contoh: Jl. Raya Purwakarta No. 123, Mulyamekar" rows="2" required></textarea>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Rute Penjemputan</label>
+                    <select id="tambah_langganan_rute" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                        <option value="">-- Memuat Rute... --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Link Google Maps (G-Maps)</label>
+                    <input id="tambah_langganan_gmaps" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="https://maps.google.com/..." type="url" required>
+                </div>
                 <div class="mt-sm flex justify-end gap-sm">
                     <button class="px-md h-touch-target rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="closeModal('modal-tambah-langganan')" type="button">Batal</button>
                     <button class="px-md h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors" type="submit" id="btn-submit-tambah-langganan">Simpan & Konversi</button>
@@ -223,8 +241,78 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             </form>
         </div>
     </div>
-
+    <div class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-container-margin opacity-0 transition-opacity duration-300" id="modal-edit-mitra">
+        <div class="bg-surface-container-lowest rounded-xl shadow-lg w-full max-w-md p-lg transform scale-95 transition-transform duration-300 relative">
+            <button class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors" onclick="closeModal('modal-edit-mitra')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Edit Mitra Langganan</h3>
+            <form class="flex flex-col gap-md" id="form-edit-mitra">
+                <input type="hidden" id="edit_mitra_id">
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Nama Lengkap Toko/Mitra</label>
+                    <input id="edit_mitra_nama" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">No HP</label>
+                    <input id="edit_mitra_hp" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container text-on-surface outline-none font-bold" readonly>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Rute Penjemputan</label>
+                    <select id="edit_mitra_rute" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                        <option value="">-- Memuat Rute... --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Alamat Lengkap</label>
+                    <textarea id="edit_mitra_alamat" class="w-full p-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none" rows="2" required></textarea>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Link Google Maps</label>
+                    <input id="edit_mitra_gmaps" type="url" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                </div>
+                <div class="mt-sm flex justify-end gap-sm">
+                    <button class="px-md h-touch-target rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="closeModal('modal-edit-mitra')" type="button">Batal</button>
+                    <button class="px-md h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors" type="submit" id="btn-submit-edit-mitra">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <script is:inline>
+        // ==========================================
+            // FITUR PENCARIAN GLOBAL SAKTI (BULLETPROOF)
+            // ==========================================
+            window.applySearchMitra = function() {
+                const searchInput = document.getElementById('input-search-mitra');
+                if(!searchInput) return;
+                
+                // Hapus spasi berlebih di awal/akhir kata
+                const keyword = searchInput.value.toLowerCase().trim();
+                
+                // Sapu bersih semua baris dan kartu di SEMUA TAB
+                const items = document.querySelectorAll(`
+                    #mitra-baru-tbody tr, #mitra-baru-mobile > div,
+                    #mitra-langganan-tbody tr, #mitra-langganan-mobile > div,
+                    #mitra-tidak-aktif-tbody tr, #mitra-tidak-aktif-mobile > div,
+                    #leaderboard-live-list > div
+                `);
+
+                items.forEach(item => {
+                    // Abaikan baris "Memuat data..." biar sistem nggak error
+                    if (item.querySelector('td[colspan]')) return;
+                    if (item.classList.contains('col-span-full')) return; 
+
+                    const text = item.textContent.toLowerCase();
+                    
+                    // Kalau kotak pencarian kosong, kembalikan semua data
+                    if (keyword === '') {
+                        item.style.display = ''; 
+                    } else {
+                        // Sembunyikan yang tidak cocok, munculkan yang cocok
+                        item.style.display = text.includes(keyword) ? '' : 'none';
+                    }
+                });
+            };
         document.addEventListener('DOMContentLoaded', async () => {
             if(!window.supabase) return console.error('Supabase tidak terhubung!');
 
@@ -276,10 +364,13 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     }
 
                     // 🌟 KHUSUS LEADERBOARD: Render ulang data live setiap tabnya dibuka 🌟
-                    if (targetId === 'top_leaderboard') {
-                        if(typeof window.generateLeaderboard === 'function') {
-                            window.generateLeaderboard();
-                        }
+                    if (targetId === 'top_leaderboard' && typeof window.generateLeaderboard === 'function') {
+                        window.generateLeaderboard();
+                    }
+
+                    // Terapkan ulang filter pencarian secara otomatis saat pindah tab
+                    if (typeof window.applySearchMitra === 'function') {
+                        setTimeout(window.applySearchMitra, 50);
                     }
                 });
             });
@@ -288,6 +379,16 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             // 2. FETCH DATA & RENDER CSR
             // ==========================================
             async function loadDataKemitraan() {
+                // 0. Ambil Data Rute Sekali di Awal
+                const { data: ruteData } = await window.supabase.from('rute_jemput').select('id, nama_rute').eq('status', 'Aktif').order('nama_rute', { ascending: true });
+                let optRute = '<option value="">-- Pilih Rute / Wilayah --</option>';
+                if (ruteData) ruteData.forEach(r => optRute += `<option value="${r.id}">${r.nama_rute}</option>`);
+                
+                // Tempelkan ke semua dropdown form
+                document.getElementById('konversi_rute').innerHTML = optRute;
+                document.getElementById('tambah_langganan_rute').innerHTML = optRute;
+                document.getElementById('edit_mitra_rute').innerHTML = optRute;
+
                 // A. Mitra Baru (Prospek)
                 const { data: prospek } = await window.supabase.from('mitra_baru').select('*').order('created_at', { ascending: false });
                 
@@ -359,10 +460,11 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
                 // B. Mitra Langganan
                 const { data: langganan } = await window.supabase.from('mitra')
-                    .select('*')
+                    .select('*, rute_jemput(nama_rute)')
                     .eq('activated', true)
                     .order('created_at', { ascending: false });
                 
+                window.allMitraLangganan = langganan || [];
                 let htmlLangMobile = '';
                 let htmlLangTable = '';
                 let chartDataByMonth = { 'Jan':0, 'Feb':0, 'Mar':0, 'Apr':0, 'May':0, 'Jun':0, 'Jul':0, 'Aug':0, 'Sep':0, 'Oct':0, 'Nov':0, 'Dec':0 };
@@ -393,11 +495,17 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         
                         htmlLangTable += `
                         <tr class="hover:bg-surface-container-low transition-colors group">
-                            <td class="p-md font-body-md text-on-surface font-semibold">${l.nama_mitra}</td>
+                            <td class="p-md font-body-md text-on-surface font-semibold">
+                                ${l.nama_mitra}
+                                <br><span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded uppercase mt-1 inline-block">${l.rute_jemput?.nama_rute || 'Tanpa Rute'}</span>
+                            </td>
                             <td class="p-md font-body-md text-on-surface">${l.nomor_hp || '-'}</td>
                             <td class="p-md text-center"><a class="text-primary inline-block p-1 rounded-full hover:bg-primary-container" href="${l.link_gmaps || '#'}" target="_blank"><span class="material-symbols-outlined text-[20px]">location_on</span></a></td>
                             <td class="p-md text-center font-body-md">${l.total_order || 0}x</td>
                             <td class="p-md text-right flex justify-end gap-2 items-center">
+                                <button onclick="window.bukaEditMitra('${l.id}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-primary rounded-full hover:bg-primary-container opacity-0 group-hover:opacity-100 transition-opacity" title="Edit Mitra">
+                                    <span class="material-symbols-outlined text-[18px]">edit</span>
+                                </button>
                                 <button onclick="window.nonaktifkanMitra('${l.id}', '${l.nama_mitra}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-error rounded-full hover:bg-error-container opacity-0 group-hover:opacity-100 transition-opacity" title="Pindah ke Tidak Aktif">
                                     <span class="material-symbols-outlined text-[18px]">person_off</span>
                                 </button>
@@ -410,7 +518,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 }
                 document.getElementById('mitra-langganan-mobile').innerHTML = htmlLangMobile;
                 document.getElementById('mitra-langganan-tbody').innerHTML = htmlLangTable;
-                renderChart(chartDataByMonth); // Update Chart realtime!
+                if (typeof renderChart === 'function') {
+                    renderChart(chartDataByMonth); 
+                } // Update Chart realtime!
 
                 // C. Mitra Tidak Aktif
                 const { data: nonaktif } = await window.supabase.from('mitra')
@@ -459,50 +569,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             // Jalankan Render CSR
             await loadDataKemitraan();
 
-
-            // ==========================================
-            // 3. GRAFIK (CHART.JS)
-            // ==========================================
-            let chartInstance = null;
-            function renderChart(dataBulan) {
-                const canvas = document.getElementById('growthChart');
-                if (!canvas || typeof Chart === 'undefined') return;
-                
-                const ctx = canvas.getContext('2d');
-                if(chartInstance) chartInstance.destroy(); // Hapus yang lama kalau di-refresh
-
-                // Hitung akumulasi (Bulan Feb = Jan+Feb, dsb) biar grafiknya naik
-                let dataAkumulasi = [];
-                let total = 0;
-                Object.values(dataBulan).forEach(val => {
-                    total += val;
-                    dataAkumulasi.push(total);
-                });
-
-                chartInstance = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: Object.keys(dataBulan),
-                        datasets: [{
-                            label: 'Total Mitra Langganan',
-                            data: dataAkumulasi,
-                            borderColor: '#2e7d32',
-                            backgroundColor: 'rgba(46, 125, 50, 0.1)',
-                            borderWidth: 2, fill: true, tension: 0.4,
-                            pointBackgroundColor: '#2e7d32', pointBorderColor: '#fff',
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            y: { beginAtZero: true, grid: { drawBorder: false }, ticks: { stepSize: 1 } },
-                            x: { grid: { display: false, drawBorder: false } }
-                        }
-                    }
-                });
-            }
-
             // ==========================================
             // 4. LOGIKA MODAL & AKSI DATABASE
             // ==========================================
@@ -531,6 +597,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     // 1. Simpan ke tabel Mitra (Langganan)
                     await window.supabase.from('mitra').insert([{
                         nama_mitra: document.getElementById('tambah_langganan_nama').value,
+                        id_rutejemput: document.getElementById('tambah_langganan_rute').value,
                         nomor_hp: hp,
                         link_gmaps: document.getElementById('tambah_langganan_alamat').value,
                         total_order: 0,
@@ -604,6 +671,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         nama_mitra: document.getElementById('konversi_nama').value,
                         nomor_hp: hp,
                         alamat: document.getElementById('konversi_alamat').value,
+                        id_rutejemput: document.getElementById('konversi_rute').value,
                         link_gmaps: document.getElementById('konversi_gmaps').value,
                         total_order: 0,
                         total_transaksi: 0
@@ -656,7 +724,74 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 } catch(err) { alert(err.message); }
             };
         });
+
         // ==========================================
+            // FITUR PINDAH STATUS MITRA (AKTIF <-> NONAKTIF)
+            // ==========================================
+            window.nonaktifkanMitra = async function(id, nama) {
+                if(!confirm(`Yakin ingin menonaktifkan ${nama}? Data akan dipindah ke tab Tidak Aktif.`)) return;
+                try {
+                    const { error } = await window.supabase.from('mitra')
+                        .update({ activated: false })
+                        .eq('id', id);
+                    if(error) throw error;
+                    alert(`${nama} berhasil dinonaktifkan.`);
+                    window.location.reload();
+                } catch(err) { 
+                    alert('Gagal memproses: ' + err.message); 
+                }
+            };
+
+            window.aktifkanMitra = async function(id, nama) {
+                if(!confirm(`Aktifkan kembali ${nama} menjadi Langganan?`)) return;
+                try {
+                    const { error } = await window.supabase.from('mitra')
+                        .update({ activated: true })
+                        .eq('id', id);
+                    if(error) throw error;
+                    alert(`${nama} kembali menjadi Mitra Langganan.`);
+                    window.location.reload();
+                } catch(err) { 
+                    alert('Gagal memproses: ' + err.message); 
+                }
+            };
+
+        // FUNGSI BUKA MODAL EDIT MITRA & SIMPAN EDIT
+            window.bukaEditMitra = function(id) {
+                const mitra = window.allMitraLangganan.find(m => m.id == id);
+                if(!mitra) return;
+                document.getElementById('edit_mitra_id').value = mitra.id;
+                document.getElementById('edit_mitra_nama').value = mitra.nama_mitra;
+                document.getElementById('edit_mitra_hp').value = mitra.nomor_hp || '';
+                document.getElementById('edit_mitra_rute').value = mitra.id_rutejemput || '';
+                document.getElementById('edit_mitra_alamat').value = mitra.alamat || '';
+                document.getElementById('edit_mitra_gmaps').value = mitra.link_gmaps || '';
+                window.openModal('modal-edit-mitra');
+            };
+
+            document.getElementById('form-edit-mitra')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btn-submit-edit-mitra');
+                btn.innerText = 'Menyimpan...'; btn.disabled = true;
+                try {
+                    const id = document.getElementById('edit_mitra_id').value;
+                    const payload = {
+                        nama_mitra: document.getElementById('edit_mitra_nama').value,
+                        id_rutejemput: document.getElementById('edit_mitra_rute').value,
+                        alamat: document.getElementById('edit_mitra_alamat').value,
+                        link_gmaps: document.getElementById('edit_mitra_gmaps').value,
+                    };
+                    const { error } = await window.supabase.from('mitra').update(payload).eq('id', id);
+                    if(error) throw error;
+                    
+                    alert('Data Mitra berhasil diupdate!');
+                    window.location.reload();
+                } catch(err) {
+                    alert('Gagal update: ' + err.message);
+                    btn.innerText = 'Simpan Perubahan'; btn.disabled = false;
+                }
+            });
+            // ==========================================
             // LOGIKA LIVE TOP 5 LEADERBOARD (KOTAK UTAMA)
             // ==========================================
             const tglSkrg = new Date();
@@ -766,6 +901,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         </div>
                     </div>`;
                 }).join('');
+                // Filter ulang kartu-kartu juara jika kotak pencarian sedang terisi
+                if (typeof window.applySearchMitra === 'function') {
+                    setTimeout(window.applySearchMitra, 50);
+                }
             };
 
             // Fungsi Kurir: Menghapus data ranking lama di bulan itu, lalu menyuntikkan ranking Top 5 yang baru

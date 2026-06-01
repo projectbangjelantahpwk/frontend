@@ -159,10 +159,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             <label class="text-xs font-bold text-gray-700">Tadarus Al-Quran</label>
                         </div>
                         <div class="flex items-center gap-1">
-                            <input type="checkbox" id="chk_uang_kesehatan" onchange="window.kalkulasiRealtimeGaji()" class="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer">
+                            <input type="checkbox" id="chk_tadarus_quran" onchange="window.kalkulasiRealtimeGaji()" class="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer">
                             <span class="text-[10px] text-gray-500 font-bold">Sudah</span>
                         </div>
-
                     </div>
                 </div>
                 <button onclick="simpanSetupGaji()" class="w-full bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-sm hover:bg-black transition">
@@ -414,6 +413,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         document.getElementById('chk_uang_rapat').checked = setup.activate_uang_rapat || false;
         document.getElementById('chk_uang_nginep').checked = setup.activate_uang_nginep || false;
         document.getElementById('chk_uang_kesehatan').checked = setup.activate_uang_kesehatan || false;
+        document.getElementById('chk_tadarus_quran').checked = setup.tadarus_quran || false;
 
         const tglLokalObj = new Date(waktuLokal - offset);
         const tglHariIni = tglLokalObj.toISOString().split('T')[0];
@@ -590,6 +590,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             activate_uang_rapat: document.getElementById('chk_uang_rapat').checked,
             activate_uang_nginep: document.getElementById('chk_uang_nginep').checked,
             activate_uang_kesehatan: document.getElementById('chk_uang_kesehatan').checked,
+            tadarus_quran: document.getElementById('chk_tadarus_quran').checked
         };
         try {
             if(setupId) {

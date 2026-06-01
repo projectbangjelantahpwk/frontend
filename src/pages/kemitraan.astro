@@ -380,9 +380,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             // ==========================================
             async function loadDataKemitraan() {
                 // 0. Ambil Data Rute Sekali di Awal
-                const { data: ruteData } = await window.supabase.from('rute_jemput').select('id, nama_rute').eq('status', 'Aktif').order('nama_rute', { ascending: true });
+                const { data: ruteData } = await window.supabase.from('rute_jemput').select('id, nama_rute').eq('status', 'Aktif');
                 let optRute = '<option value="">-- Pilih Rute / Wilayah --</option>';
-                if (ruteData) ruteData.forEach(r => optRute += `<option value="${r.id}">${r.nama_rute}</option>`);
+                if (ruteData) ruteData.forEach(r => optRute += `<option value="${r.nama_rute}">${r.nama_rute}</option>`);
                 
                 // Tempelkan ke semua dropdown form
                 document.getElementById('konversi_rute').innerHTML = optRute;
@@ -459,10 +459,15 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 }
 
                 // B. Mitra Langganan
-                const { data: langganan } = await window.supabase.from('mitra')
-                    .select('*, rute_jemput(nama_rute)')
+                const { data: langganan, error: errLang } = await window.supabase.from('mitra')
+                    .select('*')
                     .eq('activated', true)
                     .order('created_at', { ascending: false });
+
+                if (errLang) {
+                    alert("Gagal ambil data Langganan: " + errLang.message);
+                    console.error("Detail Error Langganan:", errLang);
+                }
                 
                 window.allMitraLangganan = langganan || [];
                 let htmlLangMobile = '';
@@ -486,6 +491,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             </button>
                             <div class="border-b border-outline-variant pb-sm">
                                 <p class="font-headline-md text-on-surface font-semibold pr-8">${l.nama_mitra}</p>
+                                <span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded uppercase mt-1 inline-block">${l.rute_jemput || 'Tanpa Rute'}</span>
                             </div>
                             <div class="grid grid-cols-2 gap-sm pt-xs">
                                 <div><p class="font-label-sm text-on-surface-variant">No HP</p><p class="font-body-md text-on-surface">${l.nomor_hp || '-'}</p></div>
@@ -497,7 +503,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         <tr class="hover:bg-surface-container-low transition-colors group">
                             <td class="p-md font-body-md text-on-surface font-semibold">
                                 ${l.nama_mitra}
-                                <br><span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded uppercase mt-1 inline-block">${l.rute_jemput?.nama_rute || 'Tanpa Rute'}</span>
+                                <br><span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded uppercase mt-1 inline-block">${l.rute_jemput || 'Tanpa Rute'}</span>
                             </td>
                             <td class="p-md font-body-md text-on-surface">${l.nomor_hp || '-'}</td>
                             <td class="p-md text-center"><a class="text-primary inline-block p-1 rounded-full hover:bg-primary-container" href="${l.link_gmaps || '#'}" target="_blank"><span class="material-symbols-outlined text-[20px]">location_on</span></a></td>
@@ -597,11 +603,13 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     // 1. Simpan ke tabel Mitra (Langganan)
                     await window.supabase.from('mitra').insert([{
                         nama_mitra: document.getElementById('tambah_langganan_nama').value,
-                        id_rutejemput: document.getElementById('tambah_langganan_rute').value,
+                        rute_jemput: document.getElementById('tambah_langganan_rute').value,
                         nomor_hp: hp,
-                        link_gmaps: document.getElementById('tambah_langganan_alamat').value,
+                        alamat: document.getElementById('tambah_langganan_alamat').value,
+                        link_gmaps: document.getElementById('tambah_langganan_gmaps').value, // <--- UBAH JADI GMAPS
                         total_order: 0,
-                        total_transaksi: 0
+                        total_transaksi: 0,
+                        activated: true
                     }]);
                     
                     // 2. HAPUS otomatis dari prospek (mitra_baru) biar nyambung alurnya!
@@ -669,12 +677,13 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     // 1. Simpan ke tabel mitra (TANGKAP ERROR-NYA!)
                     const { error: insertError } = await window.supabase.from('mitra').insert([{
                         nama_mitra: document.getElementById('konversi_nama').value,
+                        rute_jemput: document.getElementById('konversi_rute').value,
                         nomor_hp: hp,
                         alamat: document.getElementById('konversi_alamat').value,
-                        id_rutejemput: document.getElementById('konversi_rute').value,
                         link_gmaps: document.getElementById('konversi_gmaps').value,
                         total_order: 0,
-                        total_transaksi: 0
+                        total_transaksi: 0,
+                        activated: true
                     }]);
                     
                     // JIKA INSERT GAGAL, LEMPAR ERROR DAN BERHENTI DI SINI! (Data Prospek Aman)
@@ -763,7 +772,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 document.getElementById('edit_mitra_id').value = mitra.id;
                 document.getElementById('edit_mitra_nama').value = mitra.nama_mitra;
                 document.getElementById('edit_mitra_hp').value = mitra.nomor_hp || '';
-                document.getElementById('edit_mitra_rute').value = mitra.id_rutejemput || '';
+                // Ubah dari mitra.id_rutejemput menjadi mitra.rute_jemput
+                document.getElementById('edit_mitra_rute').value = mitra.rute_jemput || '';
                 document.getElementById('edit_mitra_alamat').value = mitra.alamat || '';
                 document.getElementById('edit_mitra_gmaps').value = mitra.link_gmaps || '';
                 window.openModal('modal-edit-mitra');
@@ -777,7 +787,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     const id = document.getElementById('edit_mitra_id').value;
                     const payload = {
                         nama_mitra: document.getElementById('edit_mitra_nama').value,
-                        id_rutejemput: document.getElementById('edit_mitra_rute').value,
+                        rute_jemput: document.getElementById('edit_mitra_rute').value, // <-- Pake rute_jemput
                         alamat: document.getElementById('edit_mitra_alamat').value,
                         link_gmaps: document.getElementById('edit_mitra_gmaps').value,
                     };

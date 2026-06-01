@@ -459,7 +459,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 document.getElementById('tbody-history').innerHTML = htmlHistory;
 
                 // 3. Fetch Dropdown Mitra & Tampilkan Detail Gmaps
-                const { data: daftarMitra } = await window.supabase.from('mitra').select('id, nama_mitra, alamat, link_gmaps, rute_jemput(nama_rute)').order('nama_mitra', { ascending: true });
+                const { data: daftarMitra } = await window.supabase.from('mitra').select('id, nama_mitra, alamat, link_gmaps, rute_jemput').order('nama_mitra', { ascending: true });
                 window.allMitra = daftarMitra || []; // Simpan global
                 
                 let optMitra = '<option value="">-- Pilih Mitra Pengumpul --</option>';
@@ -476,7 +476,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     
                     if(selectedMitra && (selectedMitra.alamat || selectedMitra.link_gmaps)) {
                         box.classList.remove('hidden');
-                        const namaRute = selectedMitra.rute_jemput?.nama_rute || 'Belum Diatur';
+                        const namaRute = selectedMitra.rute_jemput || 'Belum Diatur';
                         alamatTxt.innerHTML = `<span class="inline-block mb-1 px-2 py-0.5 bg-primary/10 text-primary font-bold text-[10px] rounded uppercase">RUTE: ${namaRute}</span><br/>${selectedMitra.alamat || 'Alamat tidak tersedia di sistem'}`;
                         if(selectedMitra.link_gmaps) {
                             gmapsBtn.href = selectedMitra.link_gmaps;
@@ -818,7 +818,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 const tanggal = document.getElementById('input_tanggal').value;
                 const dpValue = document.getElementById('input_dp').value;
                 const selectedMitraObj = window.allMitra.find(m => String(m.id) === String(mitra_id));
-                const wilayah = selectedMitraObj?.rute_jemput?.nama_rute || 'Belum Diatur';
+                const wilayah = selectedMitraObj?.rute_jemput || 'Belum Diatur';
                 
                 let driver_id = null; let helper_id = null;
                 if (tipeKendaraan === 'motor') {

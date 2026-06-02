@@ -839,7 +839,7 @@ function initRealtimeNotifications() {
     function playNotificationSound() {
         try {
             // Coba pakai audio file dulu
-            const audio = new Audio('/sounds/notification.mp3');
+            const audio = new Audio('/sound/notification.mp3');
             audio.volume = 1.0;
             audio.play().catch(() => {
                 // Fallback ke Web Audio jika file tidak ada

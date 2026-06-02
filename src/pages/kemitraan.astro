@@ -280,6 +280,38 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             </form>
         </div>
     </div>
+    <div id="overlay-aside" class="fixed inset-0 z-[65] bg-on-background/50 hidden opacity-0 transition-opacity duration-300" onclick="window.tutupDetailProspek()"></div>
+    <div id="aside-prospek" class="fixed inset-y-0 right-0 z-[70] w-full max-w-sm bg-surface-container-lowest shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="p-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+            <h3 class="font-headline-sm font-bold text-on-surface">Detail Follow Up</h3>
+            <button onclick="window.tutupDetailProspek()" class="text-on-surface-variant hover:text-error transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        
+        <div class="p-md flex-1 overflow-y-auto">
+            <p class="font-label-sm text-on-surface-variant mb-1">No WhatsApp Prospek</p>
+            <p id="aside-hp-text" class="text-xl font-bold text-on-surface mb-6">-</p>
+
+            <a id="btn-wa-prospek" href="#" target="_blank" class="w-full flex items-center justify-center gap-2 bg-[#25D366] text-white py-3 rounded-xl font-bold mb-4 shadow-sm hover:bg-[#1ebd5a] transition">
+                <i class="bi bi-whatsapp text-lg"></i> Chat & Follow Up
+            </a>
+
+            <!-- TAMBAHAN: INPUT KETERANGAN -->
+            <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">Catatan / Keterangan</label>
+            <textarea id="input-keterangan-followup" class="w-full p-3 mb-3 rounded-xl border border-outline-variant bg-surface-container-lowest text-sm text-on-surface focus:ring-1 focus:ring-primary outline-none resize-none shadow-sm" rows="2" placeholder="Contoh: Belum direspon / Masih mikir-mikir..."></textarea>
+
+            <!-- TOMBOL TAMBAH HITUNGAN -->
+            <button id="btn-tambah-followup-aside" class="w-full flex items-center justify-center gap-2 bg-secondary-container text-on-secondary-container py-3 rounded-xl font-bold mb-6 hover:bg-secondary hover:text-white transition shadow-sm">
+                <span class="material-symbols-outlined text-[20px]">add_call</span> Simpan Follow Up (+1)
+            </button>
+
+            <p class="font-bold text-on-surface mb-3 border-b border-outline-variant pb-2 text-sm">Riwayat Tanggal Follow Up</p>
+            <div id="list-riwayat-followup" class="flex flex-col gap-3">
+                <p class="text-sm text-on-surface-variant italic">Memuat riwayat...</p>
+            </div>
+        </div>
+    </div>
     <script is:inline>
         // ==========================================
             // FITUR PENCARIAN GLOBAL SAKTI (BULLETPROOF)
@@ -425,9 +457,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                 <span class="px-xs py-xs bg-primary-container text-on-primary-container rounded font-label-sm text-xs">${sumber}</span>
                             </div>
                             <div class="grid grid-cols-2 gap-2 mt-xs">
-                                <button class="group h-touch-target bg-secondary-container text-on-secondary-container rounded-full font-label-lg hover:bg-secondary hover:text-white transition-colors flex items-center justify-center gap-xs" onclick="window.tambahFollowUp('${p.nomor_hp}', ${currentFollowUp})">
-                                    <span class="material-symbols-outlined text-[18px] transition-colors group-hover:text-white">add_call</span> +1
+                                <button class="group h-touch-target bg-secondary-container text-on-secondary-container rounded-full font-label-lg hover:bg-secondary hover:text-white transition-colors flex items-center justify-center gap-xs" onclick="window.bukaDetailProspek('${p.nomor_hp}')">
+                                    <span class="material-symbols-outlined text-[18px] transition-colors group-hover:text-white">history</span> Detail
                                 </button>
+
                                 <button class="h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint transition-colors flex items-center justify-center gap-xs" onclick="window.openModalKonversi('${p.nomor_hp}')">
                                     <span class="material-symbols-outlined text-[18px]">person_add</span> Langganan
                                 </button>
@@ -445,9 +478,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             <td class="p-md text-center"><span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-secondary text-on-secondary font-label-sm text-xs font-bold">${currentFollowUp}</span></td>
                             <td class="p-md text-right">
                                 <div class="flex justify-end gap-2 items-center">
-                                    <button class="group px-3 py-1.5 bg-secondary-container text-on-secondary-container rounded-full font-label-sm hover:bg-secondary hover:text-white transition-colors inline-flex items-center gap-1 h-10 shadow-sm" onclick="window.tambahFollowUp('${p.nomor_hp}', ${currentFollowUp})" title="Tambah Hitungan Follow Up">
-                                        <span class="material-symbols-outlined text-[18px] transition-colors group-hover:text-white">add_call</span> +1
+                                    <button class="group px-3 py-1.5 bg-secondary-container text-on-secondary-container rounded-full font-label-sm hover:bg-secondary hover:text-white transition-colors inline-flex items-center gap-1 h-10 shadow-sm" onclick="window.bukaDetailProspek('${p.nomor_hp}')" title="Lihat Riwayat & WA">
+                                        <span class="material-symbols-outlined text-[18px] transition-colors group-hover:text-white">history</span> Detail
                                     </button>
+                                    
                                     <button class="px-md py-sm bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint transition-colors inline-flex items-center gap-xs h-10 shadow-sm" onclick="window.openModalKonversi('${p.nomor_hp}')">
                                         <span class="material-symbols-outlined text-[18px]">person_add</span> Langganan
                                     </button>
@@ -650,15 +684,42 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 const btn = document.getElementById('btn-submit-prospek');
                 btn.innerText = "Menyimpan..."; btn.disabled = true;
 
+                const hp = document.getElementById('input_hp_baru').value;
+                const sumber = document.getElementById('input_sumber_baru').value;
+
                 try {
-                    await window.supabase.from('mitra_baru').insert([{
-                        nomor_hp: document.getElementById('input_hp_baru').value,
-                        sumber_customer: document.getElementById('input_sumber_baru').value,
-                        follow_up_ke: 1
-                    }]);
-                    alert('Prospek baru berhasil disimpan!');
+                    // 1️⃣ INSERT ke mitra_baru
+                    const { data: newProspek, error: prospekError } = await window.supabase
+                        .from('mitra_baru')
+                        .insert([{
+                            nomor_hp: hp,
+                            sumber_customer: sumber,
+                            follow_up_ke: 1
+                        }])
+                        .select('id'); // PENTING: ambil ID yang baru dibuat
+                    
+                    if (prospekError) throw prospekError;
+                    const prospekId = newProspek[0].id;
+                    
+                    // 2️⃣ INSERT ke riwayat_follow_up OTOMATIS dengan keterangan awal
+                    const { error: riwayatError } = await window.supabase
+                        .from('riwayat_follow_up')
+                        .insert([{
+                            id_nomor_hp: prospekId,           // ← FK ke mitra_baru
+                            follow_up_ke: 1,                  // Follow-up pertama
+                            keterangan: `Minat dari ${sumber}`, // ← Isi otomatis keterangan awal
+                            created_at: new Date().toISOString()
+                        }]);
+                    
+                    if (riwayatError) throw riwayatError;
+                    
+                    alert('✅ Prospek baru berhasil disimpan!\nRiwayat follow-up pertama sudah tercatat.');
                     window.location.reload();
-                } catch(err) { alert(err.message); btn.innerText = "Simpan Prospek"; btn.disabled = false; }
+                } catch(err) { 
+                    alert('❌ Gagal: ' + err.message); 
+                    btn.innerText = "Simpan Prospek"; 
+                    btn.disabled = false; 
+                }
             });
 
             // B. KONVERSI (PROSPEK -> LANGGANAN)
@@ -668,21 +729,158 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             };
 
             // FUNGSI TAMBAH FOLLOW UP PROSPEK
-            window.tambahFollowUp = async function(hp, currentCount) {
-                // Konfirmasi singkat biar gak salah pencet
-                if(!confirm(`Catat riwayat telah mem-follow up kontak ${hp} ini?`)) return;
+            // FUNGSI BUKA / TUTUP ASIDE DETAIL PROSPEK
+            window.tutupDetailProspek = function() {
+                const aside = document.getElementById('aside-prospek');
+                const overlay = document.getElementById('overlay-aside');
+                aside.classList.add('translate-x-full');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            };
 
+            window.bukaDetailProspek = async function(hp) {
+                // 1. Tampilkan Aside
+                const aside = document.getElementById('aside-prospek');
+                const overlay = document.getElementById('overlay-aside');
+                document.getElementById('aside-hp-text').innerText = hp;
+                
+                overlay.classList.remove('hidden');
+                void overlay.offsetWidth; 
+                overlay.classList.remove('opacity-0');
+                aside.classList.remove('translate-x-full');
+
+                // 2. Format Link WhatsApp
+                let waNumber = hp.replace(/\D/g, ''); 
+                if (waNumber.startsWith('0')) waNumber = '62' + waNumber.substring(1);
+                
+                const textPesan = `Halo Kak, semoga harinya menyenangkan.\nKami dari BANG JELANTAH PURWAKARTA ingin melakukan follow up terkait penjualan minyak jelantah. Apakah Kakak masih berminat?\nKami tunggu informasinya, terima kasih. 😊🙏\n\n*Bang Jelantah Purwakarta*\nwww.bangjelantahpurwakarta.com`;
+                const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(textPesan)}`;
+                document.getElementById('btn-wa-prospek').href = waLink;
+
+                // 3. Fetch Riwayat Tanggal & Follow Up Ke-
+                const listContainer = document.getElementById('list-riwayat-followup');
+                listContainer.innerHTML = '<p class="text-sm text-on-surface-variant italic">Memuat riwayat...</p>';
+                
+                // ✅ BARU - Cari pake ID dulu
+                const { data: prospekCari } = await window.supabase
+                    .from('mitra_baru')
+                    .select('id')
+                    .eq('nomor_hp', hp)
+                    .single();
+
+                if (!prospekCari) {
+                    listContainer.innerHTML = '<p class="text-sm text-error">Prospek tidak ditemukan!</p>';
+                    return;
+                }
+
+                const idProspek = prospekCari.id;
+
+                const { data: riwayat } = await window.supabase
+                    .from('riwayat_follow_up')
+                    .select('created_at, follow_up_ke, keterangan')
+                    .eq('id_nomor_hp', idProspek)  // ✅ Query pake ID
+                    .order('created_at', { ascending: false });
+
+                // KALKULASI OTOMATIS: 
+                // Cari angka follow up tertinggi di riwayat, kalau kosong berarti akan jadi follow up ke-2
+                let nextFollowUpKe = 2;
+                if (riwayat && riwayat.length > 0) {
+                    let htmlList = '';
+                    riwayat.forEach((r) => {
+                        const tgl = new Date(r.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+                        const urutanKe = r.follow_up_ke || '-'; 
+                        
+                        htmlList += `
+                        <div class="flex items-start gap-3 p-3 bg-surface-container-lowest border border-outline-variant rounded-lg">
+                            <span class="w-8 h-8 flex items-center justify-center rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold shrink-0">#${urutanKe}</span>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold text-on-surface mb-0.5">Follow Up Ke-${urutanKe}</p>
+                                <p class="text-[11px] font-medium text-on-surface-variant mb-1">${tgl}</p>
+                                <p class="text-xs text-on-surface bg-surface-container rounded px-2 py-1">${r.keterangan || '(tidak ada catatan)'}</p>
+                            </div>
+                        </div>`;
+                    });
+                    listContainer.innerHTML = htmlList;
+                }
+
+                // 4. Atur event listener tombol "+1" menggunakan hasil kalkulasi terbaru
+                const btnTambah = document.getElementById('btn-tambah-followup-aside');
+                btnTambah.onclick = () => window.prosesTambahFollowUp(hp, nextFollowUpKe);
+
+                // 5. Tampilkan Riwayat dengan Detail
+                if (riwayat && riwayat.length > 0) {
+                    let htmlList = '';
+                    riwayat.forEach((r) => {
+                        const tgl = new Date(r.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+                        const urutanKe = r.follow_up_ke || '-'; 
+                        
+                        htmlList += `
+                        <div class="flex items-center gap-3 p-3 bg-surface-container-lowest border border-outline-variant rounded-lg">
+                            <span class="w-8 h-8 flex items-center justify-center rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold shrink-0">#${urutanKe}</span>
+                            <div>
+                                <p class="text-sm font-bold text-on-surface mb-0.5">Follow Up Ke-${urutanKe}</p>
+                                <p class="text-[11px] font-medium text-on-surface-variant">${tgl} WIB</p>
+                            </div>
+                        </div>`;
+                    });
+                    listContainer.innerHTML = htmlList;
+                } else {
+                    listContainer.innerHTML = '<p class="text-sm text-on-surface-variant italic p-3 bg-surface-container rounded-lg border border-dashed border-outline-variant">Belum ada riwayat tercatat. Input prospek awal dihitung sebagai Follow Up Ke-1.</p>';
+                }
+            };
+
+            // LOGIKA INSERT FOLLOW UP BARU (BESERTA URUTAN KE BERAPA)
+            window.prosesTambahFollowUp = async function(hp, targetFollowUpKe) {
+                const keterangan = document.getElementById('input-keterangan-followup').value.trim();
+
+                if (!keterangan) {
+                    alert('⚠️ Silakan isi keterangan follow-up terlebih dahulu!');
+                    return;
+                }
+            
+                if(!confirm(`Catat riwayat telah mem-follow up kontak ${hp} hari ini? (Catatan sebagai Follow Up ke-${targetFollowUpKe})`)) return;
+
+                const btnTambah = document.getElementById('btn-tambah-followup-aside');
+                btnTambah.innerText = "Menyimpan..."; 
+                btnTambah.disabled = true;
+            
                 try {
-                    const nextCount = currentCount + 1;
-                    const { error } = await window.supabase.from('mitra_baru')
-                        .update({ follow_up_ke: nextCount })
-                        .eq('nomor_hp', hp);
+                    // 1️⃣ CARI DULU ID PROSPEK BERDASARKAN NOMOR HP
+                    const { data: prospekData, error: findError } = await window.supabase
+                        .from('mitra_baru')
+                        .select('id')
+                        .eq('nomor_hp', hp)
+                        .single(); // Ambil 1 record saja
+
+                    if (findError) throw new Error('Prospek tidak ditemukan: ' + findError.message);
+                    const idProspek = prospekData.id; // ✅ DAPET ID INTEGER
+
+                    // 2️⃣ INSERT RIWAYAT DENGAN ID INTEGER (BUKAN STRING HP)
+                    const { error: insertError } = await window.supabase
+                        .from('riwayat_follow_up')
+                        .insert([{ 
+                            id_nomor_hp: idProspek,        // ✅ ID INTEGER
+                            follow_up_ke: targetFollowUpKe,
+                            keterangan: keterangan,         // ✅ KETERANGAN DARI TEXTAREA
+                            created_at: new Date().toISOString()
+                        }]);
                     
-                    if(error) throw error;
+                    if (insertError) throw insertError;
                     
-                    window.location.reload(); // Refresh halaman biar angkanya nambah
+                    // 3️⃣ UPDATE COUNTER FOLLOW UP DI MITRA_BARU
+                    const { error: updateError } = await window.supabase
+                        .from('mitra_baru')
+                        .update({ follow_up_ke: targetFollowUpKe })
+                        .eq('id', idProspek);
+                    
+                    if (updateError) throw updateError;
+                    
+                    alert('✅ Follow-up ke-' + targetFollowUpKe + ' berhasil disimpan!');
+                    window.location.reload(); 
                 } catch(err) {
-                    alert("Gagal menambah jumlah follow up: " + err.message);
+                    alert("❌ Gagal menambah riwayat: " + err.message);
+                    btnTambah.innerHTML = `<span class="material-symbols-outlined text-[20px]">add_call</span> Simpan Follow Up (+1)`; 
+                    btnTambah.disabled = false;
                 }
             };
 

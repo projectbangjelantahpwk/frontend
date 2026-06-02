@@ -1,6 +1,5 @@
 ---
 import GeneralLayout from '../layouts/Layout.astro';
-///import { supabase } from '../lib/supabase';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 // Ambil data Profiles dari Supabase
@@ -133,7 +132,10 @@ const getRoleColor = (role) => {
   </div>
 </div>
 
-<script is:inline>
+<script>
+  import { supabase } from '../lib/supabase.js';
+  import { createClient } from '@supabase/supabase-js';
+
   document.addEventListener('DOMContentLoaded', async function() {
     // === 🛡️ GATEKEEPER KEUANGAN ===
   const allowedRoles = ['owner', 'hrd', 'keuangan'];
@@ -414,26 +416,20 @@ const getRoleColor = (role) => {
       try {
         let finalAvatarUrl = null;
 
-        // JIKA ADA FILE FOTO YANG DIUPLOAD
         if (file) {
-            // 1. Kompres gambar dulu sebelum dikirim
             const compressedFile = await compressImage(file);
-            
-            // 2. Buat nama file STATIS agar SALING TIMPA (Contoh: CMS-001.webp)
             const fileName = `${username}.webp`;
-
-            // 3. Upload dengan Upsert dan Cache Control
-            const { error: uploadErr } = await window.supabase.storage.from('avatars').upload(fileName, compressedFile, {
-                upsert: true, // INI YANG BIKIN SALING TIMPA (Overwrite)
-                cacheControl: '31536000', // Cache di browser pengunjung selama 1 Tahun (Website jadi ngebut)
+            
+            // Pake supabase dari import aja biar bersih
+            const { error: uploadErr } = await supabase.storage.from('avatars').upload(fileName, compressedFile, {
+                upsert: true,
+                cacheControl: '31536000',
                 contentType: 'image/webp'
             });
             
             if(uploadErr) throw uploadErr;
-
-            // 4. Ambil URL dan tambahkan Cache Buster (?t=...) 
-            // Biar walau di-cache 1 tahun, kalau upload baru, fotonya tetep refresh!
-            const { data: publicUrlData } = window.supabase.storage.from('avatars').getPublicUrl(fileName);
+            
+            const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(fileName);
             finalAvatarUrl = `${publicUrlData.publicUrl}?t=${Date.now()}`;
         }
 
@@ -441,18 +437,37 @@ const getRoleColor = (role) => {
             const updateData = { nama, nomor_hp: telepon, alamat, role };
             if(finalAvatarUrl) updateData.foto_profil = finalAvatarUrl;
 
-            const { error } = await window.supabase.from('profiles').update(updateData).eq('id', editId);
+            const { error } = await supabase.from('profiles').update(updateData).eq('id', editId);
             if(error) throw error;
             alert('Profil Karyawan berhasil diperbarui!');
         } else {
             const dummyEmail = `${username}@bangjelantah.local`.toLowerCase();
-            const { data: authData, error: authError } = await window.supabase.auth.signUp({
-                email: dummyEmail, password: password, options: { data: { nama: nama, role: role, telepon: telepon, alamat: alamat } }
+
+            // 2. BIKIN CLIENT SEMENTARA LANGSUNG DARI ENV
+            // Lu bisa panggil import.meta.env langsung di sini karena script ini udah di-bundle Astro
+            const tempClient = createClient(
+                import.meta.env.PUBLIC_SUPABASE_URL, 
+                import.meta.env.PUBLIC_SUPABASE_ANON_KEY, 
+                {
+                    auth: { 
+                        persistSession: false, // Aman dari auto-logout!
+                        autoRefreshToken: false
+                    }
+                }
+            );
+
+            // 3. Daftar pakai tempClient
+            const { data: authData, error: authError } = await tempClient.auth.signUp({
+                email: dummyEmail, 
+                password: password, 
+                options: { data: { nama: nama, role: role, telepon: telepon, alamat: alamat } }
             });
+
             if(authError) throw authError;
 
+            // 4. Update profil pakai client utama
             if(finalAvatarUrl) {
-                await window.supabase.from('profiles').update({ foto_profil: finalAvatarUrl }).eq('id', authData.user.id);
+                await supabase.from('profiles').update({ foto_profil: finalAvatarUrl }).eq('id', authData.user.id);
             }
             alert(`Karyawan berhasil didaftarkan!\n\nUsername Login: ${username}\nPassword: ${password}`);
         }

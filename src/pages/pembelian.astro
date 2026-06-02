@@ -22,38 +22,51 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         <i class="bi bi-shield-check mr-2"></i> Validasi Bayar
         <span id="badge-validasi" class="hidden ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-red-700 text-xs font-bold">0</span>
       </button>
+
+      <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="riwayat">
+        <i class="bi bi-clock-history mr-2"></i> Riwayat Lunas
+      </button>
+
       <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="pembelian">
         <i class="bi bi-cart-check mr-2"></i> Pembelian Komoditas
       </button>
     </div>
   </div>
 
-  <div id="validasi" class="tab-content block"> <div class="mb-8">
+  <div id="validasi" class="tab-content block"> 
+    <div class="mb-8">
       <div class="flex items-center gap-2 mb-6">
         <i class="bi bi-exclamation-triangle text-red-600 text-xl"></i>
-        <h2 class="text-xl font-bold text-gray-900">Menunggu Validasi (<span id="title-validasi-count">0</span>)</h2> </div>
-
-      <div id="validasi-container" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-         <p class="text-gray-500">Memuat data validasi...</p> </div>
-    </div>
-
-    <div class="mt-12 border-t border-gray-200 pt-8">
-      <div class="flex items-center gap-2 mb-6"> <i class="bi bi-clock-history text-blue-600 text-xl"></i>
-        <h2 class="text-xl font-bold text-gray-900">Riwayat Pembayaran Selesai</h2>
+        <h2 class="text-xl font-bold text-gray-900">Menunggu Validasi (<span id="title-validasi-count">0</span>)</h2> 
       </div>
 
-      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-          <table class="w-full text-left">
-              <thead class="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                      <th class="px-6 py-4 text-sm font-bold text-gray-900">Mitra</th> <th class="px-6 py-4 text-sm font-bold text-gray-900">Tanggal</th>
-                      <th class="px-6 py-4 text-sm font-bold text-gray-900">Metode Bayar</th>
-                      <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right">Nominal</th> </tr>
-              </thead>
-              <tbody id="riwayat-lunas-tbody" class="divide-y divide-gray-100">
-                  <tr><td colspan="4" class="text-center py-4">Memuat...</td></tr> </tbody>
-          </table>
-      </div> </div>
+      <div id="validasi-container" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+         <p class="text-gray-500">Memuat data validasi...</p> 
+      </div>
+    </div>
+  </div>
+
+  <div id="riwayat" class="tab-content hidden">
+    <div class="flex items-center gap-2 mb-6"> 
+        <i class="bi bi-clock-history text-blue-600 text-xl"></i>
+        <h2 class="text-xl font-bold text-gray-900">Riwayat Pembayaran Selesai</h2>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+        <table class="w-full text-left">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-6 py-4 text-sm font-bold text-gray-900">Mitra</th> 
+                    <th class="px-6 py-4 text-sm font-bold text-gray-900">Tanggal</th>
+                    <th class="px-6 py-4 text-sm font-bold text-gray-900">Metode Bayar</th>
+                    <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right">Nominal</th> 
+                </tr>
+            </thead>
+            <tbody id="riwayat-lunas-tbody" class="divide-y divide-gray-100">
+                <tr><td colspan="4" class="text-center py-4">Memuat...</td></tr> 
+            </tbody>
+        </table>
+    </div> 
   </div>
 
   <div id="pembelian" class="tab-content hidden"> <div class="flex justify-between items-center mb-4">
@@ -100,9 +113,16 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Tanggal Transaksi</label> <input type="date" id="edit_trx_tgl" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 font-medium" required>
                 </div>
                 
-                <div class="w-full"> <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Nama Mitra Pengumpul</label>
-                    <select id="edit_trx_mitra_select" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 font-medium bg-white" required>
-                    </select> </div>
+                <div class="w-full"> 
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Nama Mitra Pengumpul</label>
+                    <select id="edit_trx_mitra_select" onchange="window.toggleMitraManual()" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 font-medium bg-white" required>
+                    </select> 
+                </div>
+
+                <div id="container_mitra_manual" class="w-full hidden">
+                    <label class="block text-xs font-bold text-amber-700 uppercase tracking-wider mb-1 mt-2">Nama Mitra Manual / Tidak Terdaftar</label>
+                    <input type="text" id="edit_nama_mitra_manual" class="w-full border border-amber-300 bg-amber-50 rounded-xl p-3 text-sm outline-none focus:border-amber-600 font-bold text-amber-900" placeholder="Ketik nama mitra kustom...">
+                </div>
                 
                 <div class="w-full"> <label class="block text-xs font-bold text-red-600 uppercase tracking-wider mb-1">Potongan DP / Kasbon (Rp)</label>
                     <input type="number" id="edit_trx_dp" class="w-full border border-red-300 bg-red-50 rounded-xl p-3 outline-none focus:border-red-600 text-red-900 font-bold font-mono" placeholder="0"> </div>
@@ -214,8 +234,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             const tbodyPembelian = document.getElementById('pembelian-tbody');
             let htmlPembelian = ''; 
             transaksi?.forEach(t => {
-                const tanggal = t.penjemputan?.tanggal || '-';
-                const namaMitra = t.penjemputan?.mitra?.nama_mitra || 'Tanpa Nama Mitra'; 
+                const tanggal = t.penjemputan?.tanggal || t.tanggal_transaksi || '-';
+                const namaMitra = t.penjemputan?.mitra?.nama_mitra || t.nama_mitra_tidak_terdaftar || 'Tanpa Nama Mitra'; 
                 if (t.transaksi_item && t.transaksi_item.length > 0) {
                     t.transaksi_item.forEach(item => { 
                         const hargaSatuan = item.harga_unit || 0;
@@ -301,8 +321,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 <div class="bg-white rounded-xl border border-red-200 p-6 shadow-sm"> 
                     <div class="flex items-start justify-between mb-4 border-b border-gray-100 pb-4">
                         <div> 
-                            <h3 class="font-bold text-gray-900 text-lg">${trx.penjemputan?.mitra?.nama_mitra || 'Tanpa Nama Mitra'}</h3> 
-                            <p class="text-sm text-gray-500">Tgl Angkut: ${trx.penjemputan?.tanggal || '-'}</p> 
+                            <h3 class="font-bold text-gray-900 text-lg">${trx.penjemputan?.mitra?.nama_mitra || trx.nama_mitra_tidak_terdaftar || 'Tanpa Nama Mitra'}</h3> 
+                            <p class="text-sm text-gray-500">Tgl Transaksi: ${trx.penjemputan?.tanggal || trx.tanggal_transaksi || '-'}</p>
                         </div>
                         <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Belum Lunas</span> 
                     </div>
@@ -337,8 +357,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             trxSelesai.forEach(t => {
                 htmlLunas += `
                 <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 text-sm font-bold text-gray-900">${t.penjemputan?.mitra?.nama_mitra || 'Tanpa Nama Mitra'}</td>
-                    <td class="px-6 py-4 text-sm text-gray-600">${t.penjemputan?.tanggal || '-'}</td> 
+                    <td class="px-6 py-4 text-sm font-bold text-gray-900">${t.penjemputan?.mitra?.nama_mitra || t.nama_mitra_tidak_terdaftar || 'Tanpa Nama Mitra'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">${t.penjemputan?.tanggal || t.tanggal_transaksi || '-'}</td>
                     <td class="px-6 py-4 text-sm text-gray-600">${t.metode_bayar || '-'} ${t.metode_bayar_2 ? ' + '+t.metode_bayar_2 : ''}</td> 
                     <td class="px-6 py-4 text-sm font-bold text-green-700 text-right">Rp ${Number(t.grand_total || 0).toLocaleString('id-ID')}</td>
                 </tr>`;
@@ -440,6 +460,23 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
     const inputDp = document.getElementById('edit_trx_dp');
     if(inputDp) inputDp.addEventListener('input', window.hitungTotalEdit);
+
+    window.toggleMitraManual = function() {
+    const valMitra = document.getElementById('edit_trx_mitra_select').value;
+    const container = document.getElementById('container_mitra_manual');
+    const inputManual = document.getElementById('edit_nama_mitra_manual');
+
+    if (valMitra === "0") {
+        container.classList.remove('hidden');
+        container.classList.add('block');
+        inputManual.required = true;
+    } else {
+        container.classList.remove('block');
+        container.classList.add('hidden');
+        inputManual.required = false;
+        inputManual.value = ''; // Reset isi jika pilih mitra terdaftar
+    }
+};
 
     window.toggleMetode2 = function() {
         const isChecked = document.getElementById('cb_split_payment').checked;
@@ -543,12 +580,13 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         
         document.getElementById('edit_trx_id').value = trx.id; 
         document.getElementById('edit_penjemputan_id').value = trx.penjemputan_id || ''; 
-        document.getElementById('edit_trx_tgl').value = trx.penjemputan?.tanggal || '';
+        document.getElementById('edit_trx_tgl').value = trx.penjemputan?.tanggal || trx.tanggal_transaksi || '';
         document.getElementById('edit_trx_dp').value = trx.potongan_dp || 0;
 
         let optMitra = ''; 
-        const currentMitraId = trx.penjemputan?.mitra?.id || null; 
-        optMitra += `<option value="0" ${currentMitraId === null ? 'selected' : ''}>Timbang Mandiri</option>`;
+        const currentMitraId = trx.penjemputan?.mitra?.id || trx.mitra_id || null;
+        const fallbackName = trx.nama_mitra_tidak_terdaftar || 'Timbang Mandiri / Tidak Terdaftar';
+        optMitra += `<option value="0" ${currentMitraId === null ? 'selected' : ''}>${currentMitraId === null ? fallbackName : 'Timbang Mandiri / Tidak Terdaftar'}</option>`;
         if(window.allMitraGlobal) {
             window.allMitraGlobal.forEach(m => {
                 const selected = currentMitraId && String(m.id) === String(currentMitraId) ? 'selected' : '';
@@ -556,6 +594,15 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             });
         } 
         document.getElementById('edit_trx_mitra_select').innerHTML = optMitra;
+        
+        // Tambahkan 6 baris ini untuk mendeteksi data awal mitra tidak terdaftar
+        const inputManual = document.getElementById('edit_nama_mitra_manual');
+        if (currentMitraId === null) {
+            inputManual.value = trx.nama_mitra_tidak_terdaftar || '';
+        } else {
+            inputManual.value = '';
+        }
+        window.toggleMitraManual();
         
         let itemsHtml = '';
         if (trx.transaksi_item && trx.transaksi_item.length > 0) { 
@@ -655,6 +702,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         const tglBaru = document.getElementById('edit_trx_tgl').value;
         const dpBaru = parseFloat(document.getElementById('edit_trx_dp').value) || 0; 
         const totalManual = parseFloat(document.getElementById('edit_trx_grand_total').value) || 0; 
+        const namaMitraManualText = document.getElementById('edit_nama_mitra_manual').value || null;
         
         // Cek Logika Metode & Auto-Wipe
         const m1 = document.getElementById('edit_metode_bayar').value;
@@ -684,12 +732,12 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 p_trx_id: trxId,
                 p_penjemputan_id: penjemputanId || null,
                 p_mitra_id: mitraIdTerpilih,
+                p_nama_mitra_tidak_terdaftar: namaMitraManualText,
                 p_tanggal: tglBaru,
                 p_potongan_dp: dpBaru,
                 p_grand_total: totalManual,
                 p_metode_bayar: m1, 
                 p_metode_bayar_2: m2,
-                p_metode_bayar_3: m3, 
                 p_nama_bank: namaBank,
                 p_no_rek: noRek,
                 p_atas_nama: atasNama,

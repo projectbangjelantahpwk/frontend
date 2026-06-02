@@ -71,7 +71,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 <label class="block text-xs font-bold text-gray-600 mb-1">Sampai Tanggal</label>
                 <input type="date" id="filter-end-jual" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600">
             </div>
-            <button onclick="window.filterTabelPenjualan()" class="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-900">Hitung Total</button>
+            <button onclick="window.filterTabelPenjualan()" class="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-900">Set Tanggal</button>
         </div>
 
         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
@@ -220,6 +220,43 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             </form>
         </div>
     </div>
+    <div id="modal-edit-penjualan" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[60] p-4 transition-opacity opacity-0">
+        <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-yellow-50">
+                <h3 class="font-bold text-lg text-gray-900">Edit Riwayat Transaksi</h3>
+                <button onclick="window.closeModal('modal-edit-penjualan')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <form id="form-edit-penjualan" class="p-6 space-y-4">
+                <input type="hidden" id="edit_pj_id">
+                <input type="hidden" id="edit_pj_komoditas_id">
+                <input type="hidden" id="edit_pj_old_vol">
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Tanggal Transaksi</label>
+                    <input type="date" id="edit_pj_tgl" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-yellow-600" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Distributor / Pembeli</label>
+                    <select id="edit_pj_distributor" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-yellow-600 bg-white" required></select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Volume (Kg)</label>
+                        <input type="number" step="0.1" id="edit_pj_vol" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-yellow-600 font-bold" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Harga (Rp)</label>
+                        <input type="number" id="edit_pj_hrg" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-yellow-600 font-bold" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Keterangan Tambahan</label>
+                    <textarea id="edit_pj_keterangan" rows="2" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-yellow-600"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-yellow-600 text-white font-bold py-3 rounded-xl hover:bg-yellow-700 transition mt-2 shadow-sm">Simpan Perubahan</button>
+            </form>
+        </div>
+    </div>
 </GeneralLayout>
 
 <script>
@@ -315,6 +352,77 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             window.navigasiStepPj(1);
             window.openModal('modal-tambah-penjualan');
         }
+
+        // Fungsi untuk membuka modal Edit Penjualan
+        window.bukaModalEditPenjualan = function(id, tgl, distId, komId, vol, hrg, ket) {
+            document.getElementById('edit_pj_id').value = id;
+            document.getElementById('edit_pj_tgl').value = tgl;
+            document.getElementById('edit_pj_komoditas_id').value = komId;
+            document.getElementById('edit_pj_old_vol').value = vol; // Simpan volume lama untuk kalkulasi selisih
+            document.getElementById('edit_pj_vol').value = vol;
+            document.getElementById('edit_pj_hrg').value = hrg;
+            document.getElementById('edit_pj_keterangan').value = ket === 'null' ? '' : ket;
+            
+            // Salin daftar distributor dari dropdown yang sudah diload
+            document.getElementById('edit_pj_distributor').innerHTML = document.getElementById('pj_distributor').innerHTML;
+            document.getElementById('edit_pj_distributor').value = distId;
+
+            window.openModal('modal-edit-penjualan');
+        };
+
+        // Eksekusi Submit Perubahan Penjualan
+        document.getElementById('form-edit-penjualan')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerText = "Menyimpan..."; btn.disabled = true;
+
+            const id = document.getElementById('edit_pj_id').value;
+            const komId = document.getElementById('edit_pj_komoditas_id').value;
+            const oldVol = parseFloat(document.getElementById('edit_pj_old_vol').value) || 0;
+            const newVol = parseFloat(document.getElementById('edit_pj_vol').value) || 0;
+            const tgl = document.getElementById('edit_pj_tgl').value;
+            const distId = document.getElementById('edit_pj_distributor').value;
+            const hrg = parseFloat(document.getElementById('edit_pj_hrg').value) || 0;
+            const ket = document.getElementById('edit_pj_keterangan').value || null;
+
+            try {
+                // 1. Update data pokok transaksi
+                const { error: errPj } = await client.from('penjualan_olahan').update({
+                    tanggal: tgl,
+                    distributor_id: distId,
+                    volume: newVol,
+                    harga_satuan: hrg,
+                    total_harga: (newVol * hrg),
+                    keterangan: ket
+                }).eq('id', id);
+
+                if (errPj) throw errPj;
+
+                // 2. Kalkulasi cerdas untuk selisih gudang
+                const selisihVol = newVol - oldVol; 
+                // Jika positif -> Penjualan bertambah, stok di gudang harus DITURUNKAN lagi.
+                // Jika negatif -> Penjualan berkurang, sisa barang harus DIKEMBALIKAN ke gudang.
+                
+                if (selisihVol !== 0) {
+                    const { data: g } = await client.from('gudang_komoditas').select('stok').eq('id', komId).single();
+                    await client.from('gudang_komoditas').update({ stok: g.stok - selisihVol }).eq('id', komId);
+                    
+                    const jenisMutasi = selisihVol > 0 ? 'Keluar' : 'Masuk';
+                    await client.from('gudang_mutasi').insert([{
+                        jenis_mutasi: jenisMutasi,
+                        komoditas_id: komId,
+                        jumlah: -selisihVol, // Minus jika keluar, Positif jika masuk
+                        keterangan: 'Revisi Transaksi Penjualan'
+                    }]);
+                }
+
+                alert('Transaksi berhasil diubah & stok gudang disesuaikan!');
+                window.location.reload();
+            } catch (err) {
+                alert("Gagal menyimpan perubahan: " + err.message);
+                btn.innerText = "Simpan Perubahan"; btn.disabled = false;
+            }
+        });
 
         window.hapusPenjualan = async function(idPenjualan, komId, vol) {
             if(!confirm('Yakin ingin membatalkan transaksi ini?\n\nStok barang akan otomatis dikembalikan ke gudang dan dicatat sebagai Mutasi Masuk.')) return;
@@ -579,7 +687,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         <td class="px-4 py-3 align-top text-right text-sm text-gray-600">Rp ${Number(p.harga_satuan).toLocaleString('id-ID')}</td>
                         <td class="px-4 py-3 align-top">${ketHtml}</td>
                         <td class="px-4 py-3 align-top text-sm font-bold text-green-700 text-right whitespace-nowrap">Rp ${Number(p.total_harga).toLocaleString('id-ID')}</td>
-                        <td class="px-4 py-3 align-top text-center">
+                        <td class="px-4 py-3 align-top text-center space-x-1 whitespace-nowrap">
+                            <button onclick="window.bukaModalEditPenjualan('${p.id}', '${p.tanggal}', '${p.distributor_id}', '${p.komoditas_id}', ${p.volume}, ${p.harga_satuan}, '${(p.keterangan || '').replace(/'/g, "\\'")}')" class="text-yellow-600 hover:text-yellow-800 bg-yellow-50 px-2 py-1 rounded border border-yellow-200 text-xs font-bold shadow-sm active:scale-95" title="Edit Transaksi">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </button>
                             <button onclick="window.hapusPenjualan('${p.id}', '${p.komoditas_id}', ${p.volume})" class="text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded border border-red-100 text-xs font-bold shadow-sm active:scale-95" title="Batalkan Transaksi">
                                 <i class="bi bi-trash"></i> Batal
                             </button>

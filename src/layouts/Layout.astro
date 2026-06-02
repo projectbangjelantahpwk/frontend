@@ -251,7 +251,7 @@ const { title, requireAuth = true } = Astro.props;
                 </a>
                 <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/pembelian" data-nav>
                     <span class="material-symbols-outlined text-[22px]">shopping_cart_checkout</span>
-                    <span class="font-medium text-sm">Pembelian</span>
+                    <span class="font-medium text-sm">Pembelian Barang</span>
                 </a>
                 <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/pengeluaran" data-nav>
                    <span class="material-symbols-outlined text-[22px]">account_balance_wallet</span>
@@ -259,7 +259,7 @@ const { title, requireAuth = true } = Astro.props;
                 </a>
                 <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/penjualan" data-nav>
                     <span class="material-symbols-outlined text-[22px]">trending_up</span>
-                    <span class="font-medium text-sm">Penjualan</span>
+                    <span class="font-medium text-sm">Penjualan Barang</span>
                 </a>
                 <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/periklanan" data-nav>
                     <span class="material-symbols-outlined text-[22px]">campaign</span>
@@ -608,31 +608,36 @@ function initRealtimeNotifications() {
                 // LOGIKA CACHE HEMAT API (HANYA FETCH JIKA BELUM ADA)
                 if (avatarImg) {
                     const cacheKey = `profile_${session.user.id}`;
-                    const cachedData = localStorage.getItem(cacheKey);
+                    const cachedString = localStorage.getItem(cacheKey);
 
-                    // 1. Kalo data login user ini SAMA dan SUDAH ADA di cache, langsung pakai! 
-                    // Gak bakal fetch ke Supabase lagi walaupun di-refresh berkali-kali.
-                    if (cachedData) {
-                        const profile = JSON.parse(cachedData);
+                    // 1. TAMPILKAN CACHE DULU: Render instan tanpa nunggu loading database
+                    if (cachedString) {
+                        const profile = JSON.parse(cachedString);
                         updateAvatarElement(avatarImg, profile.nama, profile.foto_profil);
-                    } else {
-                        // 2. Kalo BEDA user / belum ada cache-nya, baru fetch sekali ke Supabase
-                        try {
-                            const { data: profileData, error } = await supabase
-                                .from('profiles')
-                                .select('nama, foto_profil')
-                                .eq('id', session.user.id)
-                                .single();
+                    }
 
-                            if (!error && profileData) {
-                                // Simpan ke penyimpanan lokal browser permanent
+                    // 2. CEK UPDATE DIAM-DIAM: Tarik data terbaru dari Supabase di *background*
+                    try {
+                        const { data: profileData, error } = await supabase
+                            .from('profiles')
+                            .select('nama, foto_profil')
+                            .eq('id', session.user.id)
+                            .single();
+                            
+                        if (!error && profileData) {
+                            // Cek apakah data dari database BERBEDA dengan memori lokal
+                            const isDataChanged = !cachedString || 
+                                JSON.parse(cachedString).foto_profil !== profileData.foto_profil ||
+                                JSON.parse(cachedString).nama !== profileData.nama;
+
+                            // 3. JIKA ADA FOTO/NAMA BARU: Timpa cache lama & ubah gambar di layar!
+                            if (isDataChanged) {
                                 localStorage.setItem(cacheKey, JSON.stringify(profileData));
-                                
                                 updateAvatarElement(avatarImg, profileData.nama, profileData.foto_profil);
                             }
-                        } catch (err) {
-                            console.error("Gagal memuat foto profil dari database:", err);
                         }
+                    } catch (err) {
+                        console.error("Gagal mengecek update profil:", err);
                     }
                 }
                 return;

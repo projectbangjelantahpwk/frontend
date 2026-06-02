@@ -33,9 +33,45 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 <div class="tab-content block" id="tab-mitra-baru">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-headline-md text-on-surface">Daftar Prospek</h3>
-                        <button onclick="window.openModal('modal-tambah-prospek')" class="bg-primary text-on-primary px-4 py-2 rounded-full font-label-lg flex items-center gap-2 shadow-sm hover:bg-surface-tint transition-colors">
-                            <span class="material-symbols-outlined text-[20px]">add</span> Prospek Baru
-                        </button>
+                        <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="relative inline-block text-left z-20">
+                                <button onclick="window.toggleDropdownFilter()" class="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest border border-outline-variant text-on-surface-variant rounded-full font-label-sm font-bold hover:bg-surface-container transition-colors shadow-sm">
+                                    <i class="bi bi-funnel-fill"></i> Filter Prospek
+                                </button>
+
+                                <div id="dropdown-filter-prospek" class="hidden absolute right-0 mt-2 w-64 origin-top-right rounded-xl bg-surface-container-lowest border border-outline-variant shadow-lg p-4 flex flex-col gap-3 transition-all">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Pilih Tanggal</label>
+                                        <input type="date" id="filter-tgl-prospek" class="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container text-sm outline-none focus:border-primary">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Follow Up Ke-</label>
+                                        <select id="filter-fu-prospek" class="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container text-sm outline-none focus:border-primary">
+                                            <option value="">-- Semua --</option>
+                                            <option value="1">Follow Up Ke- 1</option>
+                                            <option value="2">Follow Up Ke- 2</option>
+                                            <option value="3">Follow Up Ke- 3</option>
+                                            <option value="4">Follow Up Ke- 4</option>
+                                            <option value="5">Follow Up Ke- 5+</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex justify-between gap-2 mt-1">
+                                        <button onclick="window.resetFilterProspek(event)" class="flex-1 h-9 border border-outline-variant text-on-surface-variant font-bold text-xs rounded-lg hover:bg-surface-container-low transition-colors">
+                                            Reset
+                                        </button>
+                                        <button onclick="window.applyFilterProspek(event)" class="flex-1 h-9 bg-primary text-on-primary font-bold text-xs rounded-lg hover:bg-surface-tint transition-colors shadow-sm">
+                                            Terapkan
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="window.openModal('modal-tambah-prospek')" class="bg-primary text-on-primary px-4 py-2 rounded-full font-label-lg flex items-center gap-2 shadow-sm hover:bg-surface-tint transition-colors shrink-0">
+                                <span class="material-symbols-outlined text-[20px]">add</span> Prospek Baru
+                            </button>
+                            
+                        </div>
+                    </div>
                     </div>
                     <div class="md:hidden flex flex-col gap-md" id="mitra-baru-mobile">
                         <p class="text-on-surface-variant text-center py-4">Memuat data...</p>
@@ -424,7 +460,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 document.getElementById('edit_mitra_rute').innerHTML = optRute;
 
                 // A. Mitra Baru (Prospek)
-                const { data: prospek } = await window.supabase.from('mitra_baru').select('*').order('created_at', { ascending: false });
+                const { data: prospek } = await window.supabase
+                    .from('mitra_baru')
+                    .select('*, riwayat_follow_up(created_at)') // 🔥 SUNTIKKAN JOIN TABEL RIWAYAT
+                    .order('created_at', { ascending: false });
                             
                 let htmlProspekMobile = '';
                 let htmlProspekTable = '';
@@ -432,24 +471,42 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 if(prospek && prospek.length > 0) {
                     prospek.forEach(p => {
                         const sumber = p.sumber_customer || 'Lainnya';
-                        const currentFollowUp = p.follow_up_ke || 1; // Ambil nilai saat ini
-                    
-                        // 👇 1. FORMAT TANGGAL DD-MM-YYYY 👇
+                        const currentFollowUp = p.follow_up_ke || 1; 
+                        
                         let tanggalInput = '-';
-                        if (p.created_at) {
+                        let rawDate = ''; 
+
+                        // 🔥 AMBIL TANGGAL DARI RIWAYAT FOLLOW UP TERAKHIR 🔥
+                        if (p.riwayat_follow_up && p.riwayat_follow_up.length > 0) {
+                            // Sortir dari yang paling baru (descending) lalu ambil urutan ke-[0]
+                            const sortedRiwayat = p.riwayat_follow_up.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                            const lastRiwayat = sortedRiwayat[0];
+                            
+                            const dateObj = new Date(lastRiwayat.created_at);
+                            const day = String(dateObj.getDate()).padStart(2, '0');
+                            const month = String(dateObj.getMonth() + 1).padStart(2, '0'); 
+                            const year = dateObj.getFullYear();
+                            
+                            tanggalInput = `${day}-${month}-${year}`; // Format DD-MM-YYYY (Untuk Tampilan)
+                            rawDate = `${year}-${month}-${day}`;      // Format YYYY-MM-DD (Untuk Mesin Filter)
+                        } 
+                        // Fallback jika belum punya riwayat (ambil dari tanggal prospek dibuat)
+                        else if (p.created_at) {
                             const dateObj = new Date(p.created_at);
                             const day = String(dateObj.getDate()).padStart(2, '0');
-                            const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // Bulan JS mulai dari 0
+                            const month = String(dateObj.getMonth() + 1).padStart(2, '0'); 
                             const year = dateObj.getFullYear();
+                            
                             tanggalInput = `${day}-${month}-${year}`;
+                            rawDate = `${year}-${month}-${day}`;
                         }
-                    
+                        
                         // Tampilan Card untuk Mobile
                         htmlProspekMobile += `
-                        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm">
+                        <div class="prospek-item bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm" data-tgl="${rawDate}" data-fu="${currentFollowUp}">
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <p class="text-xs text-on-surface-variant mt-1 font-medium">Tgl Input: <span class="font-bold text-primary">${tanggalInput}</span></p>
+                                    <p class="text-xs text-on-surface-variant mt-1 font-medium">Tgl Follow Up: <span class="font-bold text-primary">${tanggalInput}</span></p>
                                     <p class="font-label-sm text-label-sm text-on-surface-variant">No HP</p>
                                     <p class="font-body-md text-on-surface font-semibold">${p.nomor_hp}</p>
                                     <p class="text-xs text-on-surface-variant mt-1 font-medium">Follow up ke: <span class="font-bold text-secondary">${currentFollowUp}</span></p>
@@ -460,16 +517,15 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                 <button class="group h-touch-target bg-secondary-container text-on-secondary-container rounded-full font-label-lg hover:bg-secondary hover:text-white transition-colors flex items-center justify-center gap-xs" onclick="window.bukaDetailProspek('${p.nomor_hp}')">
                                     <span class="material-symbols-outlined text-[18px] transition-colors group-hover:text-white">history</span> Detail
                                 </button>
-
                                 <button class="h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint transition-colors flex items-center justify-center gap-xs" onclick="window.openModalKonversi('${p.nomor_hp}')">
                                     <span class="material-symbols-outlined text-[18px]">person_add</span> Langganan
                                 </button>
                             </div>
                         </div>`;
-                    
+
                         // Tampilan Baris untuk Tabel Desktop
                         htmlProspekTable += `
-                        <tr class="hover:bg-surface-container-low transition-colors">
+                        <tr class="prospek-item hover:bg-surface-container-low transition-colors" data-tgl="${rawDate}" data-fu="${currentFollowUp}">
                             <td class="p-md text-sm font-medium text-on-surface-variant whitespace-nowrap">
                                 <span class="material-symbols-outlined text-[14px] align-middle mr-1">calendar_today</span>${tanggalInput}
                             </td>
@@ -481,7 +537,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                     <button class="group px-3 py-1.5 bg-secondary-container text-on-secondary-container rounded-full font-label-sm hover:bg-secondary hover:text-white transition-colors inline-flex items-center gap-1 h-10 shadow-sm" onclick="window.bukaDetailProspek('${p.nomor_hp}')" title="Lihat Riwayat & WA">
                                         <span class="material-symbols-outlined text-[18px] transition-colors group-hover:text-white">history</span> Detail
                                     </button>
-                                    
                                     <button class="px-md py-sm bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint transition-colors inline-flex items-center gap-xs h-10 shadow-sm" onclick="window.openModalKonversi('${p.nomor_hp}')">
                                         <span class="material-symbols-outlined text-[18px]">person_add</span> Langganan
                                     </button>
@@ -1154,5 +1209,153 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
             // Pemicu Render Otomatis Saat Pertama Kali Halaman Terbuka
             if(inputPeriode) window.generateLeaderboard();
+            // ==========================================
+            // FITUR FILTER PROSPEK (TANGGAL & FOLLOW UP)
+            // ==========================================
+            // Logika Buka/Tutup Dropdown
+            window.toggleDropdownFilter = function() {
+                const dropdown = document.getElementById('dropdown-filter-prospek');
+                dropdown.classList.toggle('hidden');
+            };
+
+            // Menutup dropdown jika user klik area kosong di luar kotak
+            document.addEventListener('click', function(event) {
+                const dropdown = document.getElementById('dropdown-filter-prospek');
+                const button = event.target.closest('button[onclick="window.toggleDropdownFilter()"]');
+                if (!button && dropdown && !dropdown.contains(event.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+
+            window.applyFilterProspek = function() {
+                const filterTgl = document.getElementById('filter-tgl-prospek').value;
+                const filterFu = document.getElementById('filter-fu-prospek').value;
+                const items = document.querySelectorAll('.prospek-item');
+
+                items.forEach(item => {
+                    const itemTgl = item.getAttribute('data-tgl');
+                    const itemFu = parseInt(item.getAttribute('data-fu')) || 1;
+
+                    let matchTgl = true;
+                    let matchFu = true;
+
+                    if (filterTgl && itemTgl !== filterTgl) matchTgl = false;
+                    
+                    if (filterFu) {
+                        if (filterFu === '5') {
+                            if (itemFu < 5) matchFu = false;
+                        } else {
+                            if (itemFu !== parseInt(filterFu)) matchFu = false;
+                        }
+                    }
+
+                    if (matchTgl && matchFu) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+
+                // Otomatis tutup dropdown setelah filter diterapkan
+                document.getElementById('dropdown-filter-prospek').classList.add('hidden');
+            };
+
+            window.resetFilterProspek = function() {
+                document.getElementById('filter-tgl-prospek').value = '';
+                document.getElementById('filter-fu-prospek').value = '';
+                window.applyFilterProspek(); 
+                
+                // Otomatis tutup dropdown setelah direset
+                document.getElementById('dropdown-filter-prospek').classList.add('hidden');
+            };
+            // =========================================================
+            // FITUR PENCARIAN & FILTER PROSPEK SINKRON (ANTI-BENTROK)
+            // =========================================================
+            
+            // 1. Logika Buka/Tutup Dropdown
+            window.toggleDropdownFilter = function(e) {
+                if(e) e.preventDefault();
+                document.getElementById('dropdown-filter-prospek')?.classList.toggle('hidden');
+            };
+
+            // Menutup dropdown otomatis jika user klik area kosong di luar kotak
+            document.addEventListener('click', function(event) {
+                const dropdown = document.getElementById('dropdown-filter-prospek');
+                // Cek apakah yang diklik BUKAN tombol filter dan BUKAN isi dalam dropdown
+                const isClickInsideBtn = event.target.closest('button[onclick*="toggleDropdownFilter"]');
+                if (!isClickInsideBtn && dropdown && !dropdown.contains(event.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+
+            // 2. Mesin Utama: Menyatukan Filter Dropdown + Kolom Search Teks
+            window.applyFilterProspek = function(e) {
+                if(e) e.preventDefault();
+                
+                const filterTgl = document.getElementById('filter-tgl-prospek')?.value || '';
+                const filterFu = document.getElementById('filter-fu-prospek')?.value || '';
+                const keyword = (document.getElementById('input-search-mitra')?.value || '').toLowerCase().trim();
+                
+                const items = document.querySelectorAll('.prospek-item');
+
+                items.forEach(item => {
+                    const itemTgl = item.getAttribute('data-tgl') || '';
+                    const itemFu = parseInt(item.getAttribute('data-fu')) || 1;
+                    const text = item.textContent.toLowerCase();
+
+                    let match = true;
+
+                    // Syarat A: Kecocokan Tanggal
+                    if (filterTgl && itemTgl !== filterTgl) match = false;
+                    
+                    // Syarat B: Kecocokan Angka Follow Up
+                    if (filterFu) {
+                        if (filterFu === '5' && itemFu < 5) match = false;
+                        else if (filterFu !== '5' && itemFu !== parseInt(filterFu)) match = false;
+                    }
+
+                    // Syarat C: Kecocokan Kata Kunci di Kolom Search
+                    if (keyword && !text.includes(keyword)) match = false;
+
+                    // Eksekusi: Tampilkan jika lulus semua syarat!
+                    item.style.display = match ? '' : 'none';
+                });
+
+                // Tutup kotak dropdown setelah sukses filter
+                document.getElementById('dropdown-filter-prospek')?.classList.add('hidden');
+            };
+
+            // 3. Tombol Reset Filter Dropdown
+            window.resetFilterProspek = function(e) {
+                if(e) e.preventDefault();
+                if(document.getElementById('filter-tgl-prospek')) document.getElementById('filter-tgl-prospek').value = '';
+                if(document.getElementById('filter-fu-prospek')) document.getElementById('filter-fu-prospek').value = '';
+                
+                // Panggil ulang mesin utama
+                window.applyFilterProspek(); 
+            };
+
+            // 4. Overwrite Search Global Bawaan (Agar sinkron dengan tab lain)
+            window.applySearchMitra = function() {
+                // Jika sedang buka Tab Mitra Baru, serahkan tugas ke mesin gabungan!
+                const isTabProspekAktif = document.getElementById('tab-mitra-baru')?.classList.contains('block');
+                
+                if (isTabProspekAktif) {
+                    window.applyFilterProspek();
+                } else {
+                    // Jika di Tab lain, jalankan pencarian teks normal
+                    const keyword = (document.getElementById('input-search-mitra')?.value || '').toLowerCase().trim();
+                    const items = document.querySelectorAll(`
+                        #mitra-langganan-tbody tr, #mitra-langganan-mobile > div,
+                        #mitra-tidak-aktif-tbody tr, #mitra-tidak-aktif-mobile > div,
+                        #leaderboard-live-list > div
+                    `);
+                    
+                    items.forEach(item => {
+                        if (item.querySelector('td[colspan]') || item.classList.contains('col-span-full')) return; 
+                        item.style.display = keyword === '' || item.textContent.toLowerCase().includes(keyword) ? '' : 'none';
+                    });
+                }
+            };
     </script>
 </Layout>

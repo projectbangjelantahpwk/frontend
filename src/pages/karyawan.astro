@@ -76,7 +76,9 @@ import Layout from '../layouts/Layout.astro';
                         waktu_tiba,
                         waktu_pulang,
                         status_tiba,
-                        status_pulang
+                        status_pulang,
+                        foto_tiba,
+                        foto_pulang
                     ),
                     izin_karyawan (
                         id,
@@ -113,82 +115,183 @@ import Layout from '../layouts/Layout.astro';
         // 2. Tampilkan daftar kartu karyawan di halaman utama
         // 2. Tampilkan daftar kartu karyawan di halaman utama
         function renderKaryawan(dataKaryawan) {
-            if (dataKaryawan.length === 0) {
-                container.innerHTML = '<p class="text-on-surface-variant p-md">Belum ada data karyawan.</p>';
-                return;
+    if (dataKaryawan.length === 0) {
+        container.innerHTML = '<p class="text-on-surface-variant p-md">Belum ada data karyawan.</p>';
+        return;
+    }
+
+    const html = dataKaryawan.map((karyawan) => {
+        const absenHariIni = karyawan.presensi?.find(p => p.tanggal === today);
+        const izinHariIni = karyawan.izin_karyawan?.find(i => i.tanggal === today);
+        
+        let statusBadgeBg = 'bg-surface-variant text-on-surface-variant';
+        let statusBadgeText = 'Belum Absen';
+
+        // 🔥 AMBIL JAM TIBA & PULANG
+        const jamTiba = absenHariIni?.waktu_tiba ? absenHariIni.waktu_tiba.substring(0,5) : '-';
+        const jamPulang = absenHariIni?.waktu_pulang ? absenHariIni.waktu_pulang.substring(0,5) : '-';
+
+        // 🔥 1. CEK DULU: Apakah ada form izin/sakit resmi di tabel izin_karyawan? 🔥
+        if (izinHariIni) {
+            const statusApp = izinHariIni.status_pengajuan || 'Menunggu';
+            const tipe = String(izinHariIni.tipe_izin || '').toLowerCase().trim();
+            
+            let teksTipe = 'Izin';
+            if (tipe === 'izin pulang cepat') teksTipe = 'Izin Pulang Cepat';
+            if (tipe === 'sakit') teksTipe = 'Sakit';
+
+            statusBadgeText = `${teksTipe} (${statusApp})`;
+            
+            if (statusApp === 'Disetujui') statusBadgeBg = 'bg-green-100 text-green-700 border border-green-200';
+            else if (statusApp === 'Ditolak') statusBadgeBg = 'bg-red-100 text-red-700 border border-red-200';
+            else statusBadgeBg = 'bg-amber-100 text-amber-700 border border-amber-200';
+            
+        } 
+        // 🔥 2. KALAU GAK ADA FORM: Cek data absen mentahnya! 🔥
+        else if (absenHariIni) {
+            const statusTiba = absenHariIni.status_tiba || '';
+            const statusPulang = absenHariIni.status_pulang || '';
+            
+            // Cek apakah di absennya dia milih Izin/Sakit/Pulang Cepat tapi belum ada formnya
+            if (statusTiba === 'Izin' || statusTiba === 'Sakit' || statusPulang === 'Izin Pulang Cepat') {
+                const labelIzin = statusPulang === 'Izin Pulang Cepat' ? 'Izin P. Cepat' : statusTiba;
+                statusBadgeText = `${labelIzin} (Berkas Belum Ada)`;
+                statusBadgeBg = 'bg-amber-100 text-amber-700 border border-amber-200';
+            } 
+            // Cek kalau dia Telat
+            else if (statusTiba === 'Telat') {
+                statusBadgeText = 'Telat';
+                statusBadgeBg = 'bg-red-100 text-red-700 border border-red-200';
+            } 
+            // Nah, kalau TIDAK ADA tipe izin sama sekali dan tidak telat, baru sah dianggap HADIR!
+            else {
+                statusBadgeText = 'Hadir';
+                statusBadgeBg = 'bg-primary-container text-on-primary-container';
             }
+        }
 
-            const html = dataKaryawan.map((karyawan) => {
-                const absenHariIni = karyawan.presensi?.find(p => p.tanggal === today);
-                const izinHariIni = karyawan.izin_karyawan?.find(i => i.tanggal === today);
+        const inisial = karyawan.nama ? karyawan.nama.substring(0, 2).toUpperCase() : 'KY';
+        const jabatan = karyawan.tipe_kendaraan ? karyawan.tipe_kendaraan.replace('_', ' ') : karyawan.role;
+
+        return `
+            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col hover:shadow-md transition-shadow relative">
+                ${absenHariIni || izinHariIni ? '<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>' : ''}
                 
-                let statusBadgeBg = 'bg-surface-variant text-on-surface-variant';
-                let statusBadgeText = 'Belum Absen';
-
-                // 🔥 1. CEK DULU: Apakah ada form izin/sakit resmi di tabel izin_karyawan? 🔥
-                if (izinHariIni) {
-                    const statusApp = izinHariIni.status_pengajuan || 'Menunggu';
-                    const tipe = String(izinHariIni.tipe_izin || '').toLowerCase().trim();
-                    
-                    let teksTipe = 'Izin';
-                    if (tipe === 'izin pulang cepat') teksTipe = 'Izin Pulang Cepat';
-                    if (tipe === 'sakit') teksTipe = 'Sakit';
-
-                    statusBadgeText = `${teksTipe} (${statusApp})`;
-                    
-                    if (statusApp === 'Disetujui') statusBadgeBg = 'bg-green-100 text-green-700 border border-green-200';
-                    else if (statusApp === 'Ditolak') statusBadgeBg = 'bg-red-100 text-red-700 border border-red-200';
-                    else statusBadgeBg = 'bg-amber-100 text-amber-700 border border-amber-200';
-                    
-                } 
-                // 🔥 2. KALAU GAK ADA FORM: Cek data absen mentahnya! 🔥
-                else if (absenHariIni) {
-                    const statusTiba = absenHariIni.status_tiba || '';
-                    const statusPulang = absenHariIni.status_pulang || '';
-                    
-                    // Cek apakah di absennya dia milih Izin/Sakit/Pulang Cepat tapi belum ada formnya
-                    if (statusTiba === 'Izin' || statusTiba === 'Sakit' || statusPulang === 'Izin Pulang Cepat') {
-                        const labelIzin = statusPulang === 'Izin Pulang Cepat' ? 'Izin P. Cepat' : statusTiba;
-                        statusBadgeText = `${labelIzin} (Berkas Belum Ada)`;
-                        statusBadgeBg = 'bg-amber-100 text-amber-700 border border-amber-200';
-                    } 
-                    // Cek kalau dia Telat
-                    else if (statusTiba === 'Telat') {
-                        statusBadgeText = 'Telat';
-                        statusBadgeBg = 'bg-red-100 text-red-700 border border-red-200';
-                    } 
-                    // Nah, kalau TIDAK ADA tipe izin sama sekali dan tidak telat, baru sah dianggap HADIR!
-                    else {
-                        statusBadgeText = 'Hadir';
-                        statusBadgeBg = 'bg-primary-container text-on-primary-container';
+                <!-- BAGIAN ATAS: CARD INFO -->
+                <div class="p-md flex items-center gap-md cursor-pointer hover:bg-surface-container transition" onclick="openEmployeeDetail('${karyawan.id}')">
+                    ${karyawan.foto_profil 
+                        ? `<img src="${karyawan.foto_profil}" class="w-12 h-12 rounded-full object-cover border border-outline-variant shrink-0" />`
+                        : `<div class="w-12 h-12 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-md shrink-0">${inisial}</div>`
                     }
-                }
+                    
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-label-lg text-label-lg text-on-surface truncate font-bold">${karyawan.nama}</h3>
+                        <p class="font-body-md text-body-md text-on-surface-variant truncate capitalize text-xs mt-0.5">${jabatan}</p>
+                    </div>
+                    <div class="${statusBadgeBg} font-label-sm text-label-sm px-2.5 py-1 rounded-full shrink-0 font-bold text-xs">
+                        ${statusBadgeText}
+                    </div>
+                </div>
 
-                const inisial = karyawan.nama ? karyawan.nama.substring(0, 2).toUpperCase() : 'KY';
-                const jabatan = karyawan.tipe_kendaraan ? karyawan.tipe_kendaraan.replace('_', ' ') : karyawan.role;
-
-                return `
-                    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex items-center gap-md hover:shadow-md cursor-pointer transition-shadow relative overflow-hidden" onclick="openEmployeeDetail('${karyawan.id}')">
-                        ${absenHariIni || izinHariIni ? '<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>' : ''}
-                        
-                        ${karyawan.foto_profil 
-                            ? `<img src="${karyawan.foto_profil}" class="w-12 h-12 rounded-full object-cover border border-outline-variant shrink-0" />`
-                            : `<div class="w-12 h-12 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-md shrink-0">${inisial}</div>`
-                        }
-                        
-                        <div class="flex-1 min-w-0">
-                            <h3 class="font-label-lg text-label-lg text-on-surface truncate font-bold">${karyawan.nama}</h3>
-                            <p class="font-body-md text-body-md text-on-surface-variant truncate capitalize text-xs mt-0.5">${jabatan}</p>
+                <!-- 🔥 BAGIAN BARU: JAM TIBA & PULANG + TOMBOL FOTO 🔥 -->
+                <div class="px-md pb-md border-t border-outline-variant">
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <div class="bg-surface-container rounded-lg p-2.5 text-center">
+                            <p class="text-[10px] text-on-surface-variant font-bold mb-1 uppercase tracking-wide">🕐 Tiba</p>
+                            <p class="text-sm font-bold text-on-surface">${jamTiba}</p>
                         </div>
-                        <div class="${statusBadgeBg} font-label-sm text-label-sm px-2.5 py-1 rounded-full shrink-0 font-bold text-xs">
-                            ${statusBadgeText}
+                        <div class="bg-surface-container rounded-lg p-2.5 text-center">
+                            <p class="text-[10px] text-on-surface-variant font-bold mb-1 uppercase tracking-wide">🕐 Pulang</p>
+                            <p class="text-sm font-bold text-on-surface">${jamPulang}</p>
                         </div>
                     </div>
-                `;
-            }).join('');
+                    
+                    <!-- Tombol Lihat Foto Tiba & Pulang -->
+                    ${absenHariIni ? `
+                        <div class="flex gap-2">
+                            ${absenHariIni.foto_tiba 
+                                ? `<button onclick="window.lihatFotoAbsen('${absenHariIni.id}', 'tiba')" class="flex-1 bg-blue-50 text-blue-700 text-xs font-bold py-2 rounded-lg hover:bg-blue-100 transition border border-blue-200 active:scale-95">
+                                    📸 Foto Tiba
+                                </button>`
+                                : `<button class="flex-1 bg-gray-50 text-gray-400 text-xs font-bold py-2 rounded-lg border border-gray-200 cursor-not-allowed">
+                                    📸 Foto Tiba
+                                </button>`
+                            }
+                            ${absenHariIni.foto_pulang 
+                                ? `<button onclick="window.lihatFotoAbsen('${absenHariIni.id}', 'pulang')" class="flex-1 bg-green-50 text-green-700 text-xs font-bold py-2 rounded-lg hover:bg-green-100 transition border border-green-200 active:scale-95">
+                                    📸 Foto Pulang
+                                </button>`
+                                : `<button class="flex-1 bg-gray-50 text-gray-400 text-xs font-bold py-2 rounded-lg border border-gray-200 cursor-not-allowed">
+                                    📸 Foto Pulang
+                                </button>`
+                            }
+                        </div>
+                    ` : '<p class="text-xs text-on-surface-variant text-center italic">Belum ada absensi hari ini</p>'}
+                </div>
+            </div>
+        `;
+    }).join('');
 
-            container.innerHTML = html;
-        }
+    container.innerHTML = html;
+}
+
+        // 🔥 FUNGSI BARU: Lihat Foto Absen (Tiba/Pulang)
+// 🔥 FUNGSI LIHAT FOTO ABSEN (TIBA/PULANG) 🔥
+window.lihatFotoAbsen = function(absenId, tipe) {
+    // Cari data absen berdasarkan ID
+    const p = window.daftarKaryawan
+        .flatMap(k => k.presensi || [])
+        .find(x => String(x.id) === String(absenId));
+    
+    if(!p) {
+        alert("Data absensi tidak ditemukan!");
+        return;
+    }
+    
+    // Ambil URL foto sesuai tipe (tiba atau pulang)
+    const fotoUrl = tipe === 'tiba' ? p.foto_tiba : p.foto_pulang;
+    
+    if(!fotoUrl) {
+        alert(`Foto ${tipe === 'tiba' ? 'Tiba' : 'Pulang'} belum tersedia`);
+        return;
+    }
+    
+    // BUAT MODAL FOTO
+    const modalId = `modal-foto-${tipe}-${absenId}`;
+    const namaFoto = tipe === 'tiba' ? 'Foto Tiba' : 'Foto Pulang';
+    
+    const modalHTML = `
+        <div id="${modalId}" class="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4 transition-opacity opacity-0">
+            <div class="bg-white rounded-2xl overflow-hidden shadow-2xl max-w-lg w-full transform scale-95 transition-transform">
+                <div class="flex justify-between items-center p-5 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100">
+                    <h3 class="font-bold text-lg text-gray-900">${namaFoto}</h3>
+                    <button onclick="document.getElementById('${modalId}').remove()" class="text-gray-500 hover:text-gray-900 text-2xl font-bold leading-none">✕</button>
+                </div>
+                <div class="p-6">
+                    <img src="${fotoUrl}" alt="${namaFoto}" class="w-full h-auto rounded-xl shadow-md object-contain max-h-[500px]" />
+                </div>
+                <div class="p-5 border-t border-gray-200 flex gap-3 bg-gray-50">
+                    <a href="${fotoUrl}" target="_blank" download class="flex-1 bg-blue-600 text-white font-bold py-3 rounded-lg text-center hover:bg-blue-700 transition active:scale-95 text-sm">
+                        ⬇️ Download
+                    </a>
+                    <button onclick="document.getElementById('${modalId}').remove()" class="flex-1 bg-gray-300 text-gray-900 font-bold py-3 rounded-lg hover:bg-gray-400 transition active:scale-95 text-sm">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Insert modal ke DOM
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Trigger animasi
+    const modal = document.getElementById(modalId);
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        modal.querySelector('div').classList.remove('scale-95');
+    }, 10);
+};
 
         // Jalankan fetch saat dokumen siap
         // === 🛡️ GATEKEEPER KARYAWAN ===
@@ -321,33 +424,67 @@ import Layout from '../layouts/Layout.astro';
                 const p = presensi.find(x => x.tanggal === tgl);
                 const iz = izinList.find(x => x.tanggal === tgl);
 
-                let statusText = p ? p.status_tiba : (iz ? 'Izin/Sakit' : '-');
+                let statusText = '-';
                 let statusColor = 'bg-primary-container text-on-primary-container';
                 
-                if (p?.status_tiba === 'Telat') statusColor = 'bg-error-container text-on-error-container';
-
+                let infoHtml = '';
+                let photoHtml = '';
                 let btnDetailHtml = '';
                 
-                // Jika terdeteksi ada record di tabel izin_karyawan
+                // 1. JIKA ADA RECORD IZIN / SAKIT / PULANG CEPAT
                 if (iz) {
                     const appStatus = iz.status_pengajuan || 'Menunggu Verifikasi';
-                    statusText = iz.jam_rencana_keluar ? 'Pulang Cepat' : statusText;
+                    const tipe = String(iz.tipe_izin || '').toLowerCase().trim();
 
+                    // Penentuan Warna Badge
                     if (appStatus === 'Disetujui') statusColor = 'bg-green-100 text-green-700';
                     else if (appStatus === 'Ditolak') statusColor = 'bg-red-100 text-red-700';
                     else statusColor = 'bg-amber-100 text-amber-700';
 
+                    // Logika Tampilan Teks Sesuai Tipe Izin
+                    if (tipe === 'sakit' || tipe === 'izin') {
+                        statusText = tipe === 'sakit' ? 'Sakit' : 'Izin';
+                        // Sembunyikan jam, cukup tampilkan alasan
+                        infoHtml = `<p class="font-body-md text-xs text-on-surface-variant mt-1"><b>Keterangan:</b> ${iz.alasan || 'Tidak ada keterangan'}</p>`;
+                    } else if (tipe === 'izin pulang cepat' || iz.jam_rencana_keluar) {
+                        statusText = 'Izin Pulang Cepat';
+                        // Tampilkan jam masuk (jika ada) dan alasan pulang cepat
+                        const jamTiba = p?.waktu_tiba ? p.waktu_tiba.substring(0,5) : '-';
+                        infoHtml = `<p class="font-body-md text-xs text-on-surface-variant mt-1">Tiba: ${jamTiba} | <b>Alasan:</b> ${iz.alasan || '-'}</p>`;
+                        
+                        // Tetap tampilkan foto Tiba untuk yang pulang cepat (jika sudah absen datang)
+                        if (p && p.foto_tiba) {
+                             photoHtml = `
+                                <div class="flex gap-2 mt-2">
+                                    <button onclick="window.lihatFotoAbsen('${p.id}', 'tiba')" class="flex-1 bg-blue-50 text-blue-700 text-[10px] font-bold py-1.5 rounded-lg hover:bg-blue-100 transition border border-blue-200">📸 Foto Tiba</button>
+                                </div>
+                             `;
+                        }
+                    }
+
+                    // Tombol untuk membuka Pop-Up (Foto SKD / Bukti sudah otomatis muncul di pop-up ini)
                     btnDetailHtml = `
                         <div class="mt-3 pt-2 border-t border-gray-100 flex justify-between items-center">
                             <span class="text-[11px] text-gray-500 font-medium">Validasi: <b class="capitalize">${appStatus}</b></span>
                             <button onclick="window.bukaModalDetailIzin('${iz.id}')" class="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-lg text-xs font-bold hover:bg-blue-100 transition shadow-sm">
-                                <i class="bi bi-file-earmark-text mr-1"></i> Periksa Bukti
+                                <i class="bi bi-file-earmark-text mr-1"></i> Lihat Keterangan/SKD
                             </button>
                         </div>
                     `;
                 } 
-                // Jika BUKAN Izin (Artinya Hadir / Telat murni), TAMPILKAN TOMBOL PERIKSA DETAIL SAJA
+                // 2. JIKA HANYA ABSEN NORMAL (HADIR / TELAT)
                 else if (p) {
+                    statusText = p.status_tiba || 'Hadir';
+                    if (p.status_tiba === 'Telat') statusColor = 'bg-error-container text-on-error-container';
+
+                    // Tampilkan Jam Masuk & Pulang
+                    infoHtml = `
+                        <p class="font-body-md text-xs text-on-surface-variant mt-1">
+                            Tiba: ${p.waktu_tiba ? p.waktu_tiba.substring(0,5) : '-'} | 
+                            Pulang: ${p.waktu_pulang ? p.waktu_pulang.substring(0,5) : '-'} ${p.status_pulang ? `(${p.status_pulang})` : ''}
+                        </p>
+                    `;
+
                     btnDetailHtml = `
                         <div class="mt-3 pt-2 border-t border-gray-100 flex justify-end items-center">
                             <button onclick="window.bukaModalDetailAbsen('${p.id}')" class="bg-gray-50 text-gray-700 border border-gray-200 px-3 py-1 rounded-lg text-xs font-bold hover:bg-gray-200 transition shadow-sm">
@@ -363,10 +500,8 @@ import Layout from '../layouts/Layout.astro';
                             <span class="font-label-md text-on-surface font-semibold text-sm">${tgl}</span>
                             <span class="${statusColor} text-[10px] px-2 py-0.5 rounded-full font-bold tracking-wider uppercase">${statusText}</span>
                         </div>
-                        <p class="font-body-md text-body-md text-on-surface-variant text-xs">
-                            Tiba: ${p?.waktu_tiba ? p.waktu_tiba.substring(0,5) : '-'} | 
-                            Pulang: ${p?.waktu_pulang ? p.waktu_pulang.substring(0,5) : '-'} ${p?.status_pulang ? `(${p.status_pulang})` : ''}
-                        </p>
+                        ${infoHtml}
+                        ${photoHtml}
                         ${btnDetailHtml}
                     </div>
                 `;
@@ -405,7 +540,7 @@ import Layout from '../layouts/Layout.astro';
                 const currentEmpId = window.currentEmployee.id;
                 const { data: freshData } = await supabase
                     .from('profiles')
-                    .select('id, id_lapangan, nama, nomor_hp, foto_profil, role, tipe_kendaraan, presensi(id, tanggal, waktu_tiba, waktu_pulang, status_tiba, status_pulang), izin_karyawan(id, tanggal, tipe_izin, status_pengajuan, alasan, foto_bukti, jam_rencana_keluar)')
+                    .select('id, id_lapangan, nama, nomor_hp, foto_profil, role, tipe_kendaraan, presensi(id, tanggal, waktu_tiba, waktu_pulang, status_tiba, status_pulang, foto_tiba, foto_pulang), izin_karyawan(id, tanggal, tipe_izin, status_pengajuan, alasan, foto_bukti, jam_rencana_keluar)')
                     .order('nama', { ascending: true });
                 
                 if(freshData) {
@@ -489,6 +624,23 @@ import Layout from '../layouts/Layout.astro';
 
             setBadge('det_abs_status_masuk', p.status_tiba);
             setBadge('det_abs_status_pulang', p.status_pulang);
+
+            // 🔥 SUNTIKKAN TOMBOL FOTO KE DALAM MODAL 🔥
+            const containerFoto = document.getElementById('det_abs_foto_container');
+            if (containerFoto) {
+                containerFoto.innerHTML = `
+                    <div class="flex gap-2">
+                        ${p.foto_tiba 
+                            ? `<button onclick="window.lihatFotoAbsen('${p.id}', 'tiba')" class="flex-1 bg-blue-50 text-blue-700 text-xs font-bold py-2.5 rounded-lg hover:bg-blue-100 transition border border-blue-200 shadow-sm active:scale-95">📸 Lihat Foto Tiba</button>`
+                            : `<button class="flex-1 bg-gray-50 text-gray-400 text-xs font-bold py-2.5 rounded-lg border border-gray-200 cursor-not-allowed">📸 Foto Tiba Kosong</button>`
+                        }
+                        ${p.foto_pulang 
+                            ? `<button onclick="window.lihatFotoAbsen('${p.id}', 'pulang')" class="flex-1 bg-green-50 text-green-700 text-xs font-bold py-2.5 rounded-lg hover:bg-green-100 transition border border-green-200 shadow-sm active:scale-95">📸 Lihat Foto Pulang</button>`
+                            : `<button class="flex-1 bg-gray-50 text-gray-400 text-xs font-bold py-2.5 rounded-lg border border-gray-200 cursor-not-allowed">📸 Foto Pulang Kosong</button>`
+                        }
+                    </div>
+                `;
+            }
 
             window.openModal('modal-detail-absen');
         };
@@ -637,6 +789,9 @@ import Layout from '../layouts/Layout.astro';
                     <span id="det_abs_status_pulang" class="inline-block mt-2 text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold uppercase tracking-wider">-</span>
                 </div>
             </div>
+            
+            <div id="det_abs_foto_container" class="mt-4"></div>
+
             <button onclick="closeModal('modal-detail-absen')" class="w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-200 transition text-sm border border-gray-200 mt-2">
                 Kembali / Tutup
             </button>

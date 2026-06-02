@@ -39,59 +39,49 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         <input type="date" id="tgl_proses" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-orange-500 font-medium" required>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Pihak / Vendor Eksternal</label>
-                        <input type="text" id="nama_vendor" placeholder="Nama orang / bengkel..." class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-orange-500 font-medium" required>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Vendor Eksternal</label>
+                        <input type="text" id="nama_vendor" placeholder="Nama Vendor..." class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-orange-500 font-medium" required>
                     </div>
                 </div>
 
                 <hr class="border-dashed">
 
                 <div>
-                    <h4 class="text-sm font-bold text-red-600 mb-3"><i class="bi bi-box-arrow-up-right"></i> Bahan Mentah Keluar</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-red-50/30 p-4 rounded-xl border border-red-100">
-                        <div>
-                            <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Pilih Komoditas Asal (Ampas/Kriuk)</label>
-                            <select id="komoditas_asal" class="opsi-komoditas w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none bg-white font-medium" required></select>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Volume Diproses (Kg)</label>
-                            <input type="number" step="0.1" id="vol_asal" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none font-bold text-red-700" placeholder="0" oninput="hitungTotalBiaya()" required>
-                        </div>
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="text-sm font-bold text-red-600"><i class="bi bi-box-arrow-up-right"></i> Bahan Mentah Keluar</h4>
+                        <button type="button" onclick="window.tambahBarisBahan()" class="text-xs bg-red-100 text-red-700 px-3 py-1.5 rounded-lg font-bold hover:bg-red-200 transition shadow-sm">+ Tambah Bahan</button>
                     </div>
+                    <div id="container-bahan-mentah" class="space-y-3 bg-red-50/30 p-4 rounded-xl border border-red-100">
+                        </div>
                 </div>
 
                 <div>
                     <h4 class="text-sm font-bold text-green-600 mb-3"><i class="bi bi-box-arrow-in-down-left"></i> Barang Jadi (Hasil)</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-green-50/30 p-4 rounded-xl border border-green-100">
-                        <div class="space-y-3">
-                            <div>
-                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Minyak Jelantah</label>
-                                <select id="komoditas_minyak" class="opsi-komoditas w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-medium" required></select>
-                            </div>
-                            <div>
-                                <input type="number" step="0.1" id="vol_minyak" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none font-bold text-green-700" placeholder="Hasil Minyak (Kg)" required>
-                            </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Minyak Jelantah</label>
+                            <input type="hidden" id="komoditas_minyak" value="minyak_jelantah">
+                            <input type="number" step="0.1" id="vol_minyak" class="w-full border border-green-300 rounded-lg p-2.5 text-sm outline-none font-bold text-green-700 bg-white" placeholder="Hasil Minyak (Kg)" oninput="window.hitungTotalBiaya()" required>
                         </div>
-                        <div class="space-y-3">
-                            <div>
-                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Ampas Kering / Spinner</label>
-                                <select id="komoditas_spinner" class="opsi-komoditas w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-medium" required></select>
-                            </div>
-                            <div>
-                                <input type="number" step="0.1" id="vol_spinner" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none font-bold text-green-700" placeholder="Hasil Spinner (Kg)" required>
-                            </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Ampas Kering / Spinner</label>
+                            <input type="hidden" id="komoditas_spinner" value="spinner">
+                            <input type="number" step="0.1" id="vol_spinner" class="w-full border border-green-300 rounded-lg p-2.5 text-sm outline-none font-bold text-green-700 bg-white" placeholder="Hasil Spinner (Kg)" required>
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-gray-900 p-5 rounded-xl shadow-inner text-white grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                     <div>
-                        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Harga Jasa Per Kg (Rp)</label>
-                        <input type="number" id="harga_jasa" class="w-full border-none bg-gray-800 rounded-lg p-3 text-sm outline-none font-bold text-white focus:ring-2 focus:ring-orange-500" placeholder="Cth: 500" oninput="hitungTotalBiaya()" required>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Harga Jasa Per Kg (Dari Hasil Minyak)</label>
+                        <input type="number" id="harga_jasa" class="w-full border-none bg-gray-800 rounded-lg p-3 text-sm outline-none font-bold text-white focus:ring-2 focus:ring-orange-500" placeholder="Cth: 500" oninput="window.hitungTotalBiaya()" required>
                     </div>
                     <div class="text-right">
-                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Total Biaya Masuk Pengeluaran</span>
-                        <span class="font-bold text-2xl text-orange-400 font-mono" id="display_total_biaya">Rp 0</span>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total Biaya Masuk Pengeluaran</label>
+                        <div class="flex items-center justify-end gap-2">
+                            <span class="text-orange-400 font-bold text-xl">Rp</span>
+                            <input type="number" id="input_total_biaya" class="bg-gray-800 border-b border-gray-600 text-orange-400 font-mono text-2xl font-bold w-40 text-right outline-none focus:border-orange-500 py-1" value="0" required>
+                        </div>
                     </div>
                 </div>
 
@@ -110,14 +100,16 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 <table class="w-full text-left">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-4 py-3 text-sm font-bold text-gray-900">Tgl & Vendor</th>
+                            <th class="px-4 py-3 text-sm font-bold text-gray-900">Tanggal</th>
+                            <th class="px-4 py-3 text-sm font-bold text-gray-900">Vendor</th>
                             <th class="px-4 py-3 text-sm font-bold text-gray-900">Diproses</th>
                             <th class="px-4 py-3 text-sm font-bold text-gray-900">Hasil Jadi</th>
                             <th class="px-4 py-3 text-sm font-bold text-gray-900 text-right">Biaya Jasa</th>
+                            <th class="px-4 py-3 text-sm font-bold text-gray-900 text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="riwayat-tbody" class="divide-y divide-gray-100">
-                        <tr><td colspan="4" class="text-center py-4 text-gray-500">Memuat riwayat...</td></tr>
+                        <tr><td colspan="6" class="text-center py-4 text-gray-500">Memuat riwayat...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -165,143 +157,248 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         });
 
         // ===================================
-        // 1. KALKULASI & LOAD DATA
+        // 1. MESIN DINAMIS BAHAN MENTAH
+        // ===================================
+        window.opsiBahanMentah = [
+            { id: 'minyak_jelantah', nama: 'Minyak Jelantah' },
+            { id: 'kriuk', nama: 'Kriuk' },
+            { id: 'ampas', nama: 'Ampas / Sludge' }
+        ];
+
+        window.tambahBarisBahan = function() {
+            const container = document.getElementById('container-bahan-mentah');
+            const rowId = 'bahan_' + Date.now();
+            
+            const rowHTML = `
+                <div id="${rowId}" class="baris-bahan flex flex-col md:flex-row items-end gap-3 bg-white p-3 rounded-xl border border-red-200 shadow-sm animate-in fade-in zoom-in-95 duration-200">
+                    <div class="flex-1 w-full">
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Komoditas</label>
+                        <select class="input-komoditas-asal w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 font-medium" onchange="window.updateOpsiBahan()" required>
+                            <option value="">-- Pilih Bahan --</option>
+                            ${window.opsiBahanMentah.map(k => `<option value="${k.id}">${k.nama}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="w-full md:w-32 shrink-0">
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Vol (Kg)</label>
+                        <input type="number" step="0.1" class="input-vol-asal w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 font-bold text-red-700" placeholder="0" required>
+                    </div>
+                    <button type="button" onclick="document.getElementById('${rowId}').remove(); window.updateOpsiBahan();" class="w-full md:w-auto h-[42px] px-4 bg-red-100 text-red-600 font-bold rounded-lg hover:bg-red-200 transition">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', rowHTML);
+            window.updateOpsiBahan();
+        };
+
+        // Filter opsi agar tidak bisa milih komoditas yang sama 2x
+        window.updateOpsiBahan = function() {
+            const selects = Array.from(document.querySelectorAll('.input-komoditas-asal'));
+            const selectedValues = selects.map(s => s.value).filter(v => v !== '');
+            
+            selects.forEach(select => {
+                const currentValue = select.value;
+                Array.from(select.options).forEach(opt => {
+                    if(opt.value === '') return;
+                    opt.disabled = selectedValues.includes(opt.value) && opt.value !== currentValue;
+                });
+            });
+        };
+
+        // ===================================
+        // 2. KALKULASI & LOAD DATA
         // ===================================
         window.hitungTotalBiaya = function() {
-            const vol = parseFloat(document.getElementById('vol_asal').value) || 0;
+            const volMinyak = parseFloat(document.getElementById('vol_minyak').value) || 0;
             const harga = parseFloat(document.getElementById('harga_jasa').value) || 0;
-            const total = vol * harga;
-            document.getElementById('display_total_biaya').innerText = 'Rp ' + total.toLocaleString('id-ID');
+            
+            // Rumus baru: Berdasarkan kg minyak yang dihasilkan
+            const total = volMinyak * harga;
+            document.getElementById('input_total_biaya').value = total;
         };
 
         async function loadDataHalaman() {
-            // Load Komoditas ke Dropdowns
-            const { data: kom } = await client.from('gudang_komoditas').select('id, nama_komoditas');
-            let opsiHtml = '<option value="">-- Pilih Komoditas --</option>';
-            kom?.forEach(k => opsiHtml += `<option value="${k.id}">${k.nama_komoditas}</option>`);
-            document.querySelectorAll('.opsi-komoditas').forEach(el => el.innerHTML = opsiHtml);
-
-            // Set Tanggal Hari Ini
+            // Set Tanggal Hari Ini & Suntik Baris Pertama
             document.getElementById('tgl_proses').value = new Date().toISOString().split('T')[0];
+            window.tambahBarisBahan(); 
 
             // Load Riwayat
             const { data: riwayat } = await client.from('pengolahan_eksternal')
-                .select(`*, asal:komoditas_asal_id(nama_komoditas), min:komoditas_minyak_id(nama_komoditas), spin:komoditas_spinner_id(nama_komoditas)`)
+                .select('*, asal:komoditas_asal_id(nama_komoditas), min:komoditas_minyak_id(nama_komoditas), spin:komoditas_spinner_id(nama_komoditas)')
                 .order('tanggal', { ascending: false });
-            
+
             let htmlRow = '';
             riwayat?.forEach(r => {
+                // Tampilan khusus jika baris ini adalah baris "tambahan bahan" (Biaya dan hasil 0)
+                const isSecondaryRow = (r.vol_minyak === 0 && r.vol_spinner === 0 && r.total_biaya === 0);
+                
+                const hasilHtml = isSecondaryRow ? '<span class="text-xs text-gray-400 italic">Tergabung di atas</span>' : `
+                    <div class="flex flex-col gap-1.5">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded text-[10px] font-bold w-16 text-center">Minyak</span>
+                            <span class="text-sm font-bold text-gray-700">${r.vol_minyak} Kg</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="bg-green-50 text-green-700 px-2 py-0.5 rounded text-[10px] font-bold w-16 text-center">Spinner</span>
+                            <span class="text-sm font-bold text-gray-700">${r.vol_spinner} Kg</span>
+                        </div>
+                    </div>`;
+                    
+                const biayaHtml = isSecondaryRow ? '-' : `
+                    <div class="text-sm font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded inline-block whitespace-nowrap">Rp ${Number(r.total_biaya).toLocaleString('id-ID')}</div>
+                    <div class="text-[10px] text-gray-500 mt-1">@Rp${r.harga_jasa_per_kg}/Kg</div>`;
+
                 htmlRow += `
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3 align-top">
-                        <div class="font-bold text-gray-900 text-sm">${r.tanggal}</div>
-                        <div class="text-xs text-gray-500 mt-1"><i class="bi bi-person mr-1"></i> ${r.nama_vendor}</div>
-                    </td>
-                    <td class="px-4 py-3 align-top">
+                <tr class="hover:bg-gray-50 border-b border-gray-100">
+                    <td class="px-4 py-3 align-top whitespace-nowrap font-bold text-gray-900 text-sm">${r.tanggal}</td>
+                    <td class="px-4 py-3 align-top text-sm font-bold text-gray-700"><i class="bi bi-person mr-1 text-gray-400"></i> ${r.nama_vendor}</td>
+                    <td class="px-4 py-3 align-top whitespace-nowrap">
                         <span class="bg-red-50 text-red-700 px-2 py-1 rounded text-[10px] font-bold block w-fit mb-1">${r.asal?.nama_komoditas}</span>
                         <div class="text-sm font-bold text-gray-700">${r.vol_asal} Kg</div>
                     </td>
-                    <td class="px-4 py-3 align-top">
-                        <div class="flex flex-col gap-1.5">
-                            <div class="flex items-center gap-2">
-                                <span class="bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded text-[10px] font-bold w-16 text-center">Minyak</span>
-                                <span class="text-sm font-bold text-gray-700">${r.vol_minyak} Kg</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="bg-green-50 text-green-700 px-2 py-0.5 rounded text-[10px] font-bold w-16 text-center">Spinner</span>
-                                <span class="text-sm font-bold text-gray-700">${r.vol_spinner} Kg</span>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-4 py-3 align-top text-right">
-                        <div class="text-sm font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded inline-block">Rp ${Number(r.total_biaya).toLocaleString('id-ID')}</div>
-                        <div class="text-[10px] text-gray-500 mt-1">@Rp${r.harga_jasa_per_kg}/Kg</div>
+                    <td class="px-4 py-3 align-top">${hasilHtml}</td>
+                    <td class="px-4 py-3 align-top text-right">${biayaHtml}</td>
+                    <td class="px-4 py-3 align-top text-center">
+                        <button class="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-lg text-xs font-bold hover:bg-blue-100 shadow-sm active:scale-95 transition">
+                            <i class="bi bi-pencil-square mr-1"></i> Edit
+                        </button>
                     </td>
                 </tr>`;
             });
-            document.getElementById('riwayat-tbody').innerHTML = htmlRow || '<tr><td colspan="4" class="text-center py-4 text-gray-500">Belum ada riwayat.</td></tr>';
+            document.getElementById('riwayat-tbody').innerHTML = htmlRow || '<tr><td colspan="6" class="text-center py-4 text-gray-500">Belum ada riwayat.</td></tr>';
         }
 
         await loadDataHalaman();
 
         // ===================================
-        // 2. SUBMIT EKSEKUSI PENGOLAHAN
+        // 3. SUBMIT EKSEKUSI PENGOLAHAN MASSAL
         // ===================================
         document.getElementById('form-pengolahan')?.addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            const barisBahan = document.querySelectorAll('.baris-bahan');
+            if(barisBahan.length === 0) return alert('Tambahkan minimal 1 bahan mentah yang akan diproses!');
+
             const btn = document.getElementById('btn-save-pengolahan');
             btn.innerHTML = `<i class="bi bi-hourglass-split"></i> Memproses...`; btn.disabled = true;
 
             try {
-                // Ambil Nilai Form
+                // Ambil Nilai Form Utama
                 const tgl = document.getElementById('tgl_proses').value;
                 const vendor = document.getElementById('nama_vendor').value;
-                const komAsal = document.getElementById('komoditas_asal').value;
-                const volAsal = parseFloat(document.getElementById('vol_asal').value);
                 const komMinyak = document.getElementById('komoditas_minyak').value;
-                const volMinyak = parseFloat(document.getElementById('vol_minyak').value);
+                const volMinyak = parseFloat(document.getElementById('vol_minyak').value) || 0;
                 const komSpinner = document.getElementById('komoditas_spinner').value;
-                const volSpinner = parseFloat(document.getElementById('vol_spinner').value);
-                const harga = parseFloat(document.getElementById('harga_jasa').value);
-                const totalBiaya = volAsal * harga;
-
-                if(komAsal === komMinyak || komAsal === komSpinner) throw new Error("Komoditas hasil tidak boleh sama dengan komoditas asal!");
-
-                // 1. Simpan Riwayat Utama
-                await client.from('pengolahan_eksternal').insert([{
-                    tanggal: tgl, nama_vendor: vendor, 
-                    komoditas_asal_id: komAsal, vol_asal: volAsal,
-                    komoditas_minyak_id: komMinyak, vol_minyak: volMinyak,
-                    komoditas_spinner_id: komSpinner, vol_spinner: volSpinner,
-                    harga_jasa_per_kg: harga, total_biaya: totalBiaya
-                }]);
-
-                // 2. Potong & Tambah Stok Gudang + Mutasi
-                // Keluar: Bahan Asal
-                const { data: gA } = await client.from('gudang_komoditas').select('stok').eq('id', komAsal).single();
-                await client.from('gudang_komoditas').update({ stok: gA.stok - volAsal }).eq('id', komAsal);
-                await client.from('gudang_mutasi').insert([{ jenis_mutasi: 'Keluar', komoditas_id: komAsal, jumlah: -volAsal, keterangan: `Diproses oleh ${vendor} (Pengolahan)` }]);
-
-                // Masuk: Minyak
-                const { data: gM } = await client.from('gudang_komoditas').select('stok').eq('id', komMinyak).single();
-                await client.from('gudang_komoditas').update({ stok: gM.stok + volMinyak }).eq('id', komMinyak);
-                await client.from('gudang_mutasi').insert([{ jenis_mutasi: 'Masuk', komoditas_id: komMinyak, jumlah: volMinyak, keterangan: `Hasil proses ${vendor} (Pengolahan)` }]);
-
-                // Masuk: Spinner
-                const { data: gS } = await client.from('gudang_komoditas').select('stok').eq('id', komSpinner).single();
-                await client.from('gudang_komoditas').update({ stok: gS.stok + volSpinner }).eq('id', komSpinner);
-                await client.from('gudang_mutasi').insert([{ jenis_mutasi: 'Masuk', komoditas_id: komSpinner, jumlah: volSpinner, keterangan: `Hasil proses ${vendor} (Pengolahan)` }]);
-
-                // 3. Masukkan ke Tagihan Pengeluaran Keuangan
-                // Cek ketersediaan induk data harian
-                const { data: existPeng } = await client.from('pengeluaran')
-                    .select('id, total_harian').eq('user_id', currentUserId).eq('tanggal', tgl).maybeSingle();
+                const volSpinner = parseFloat(document.getElementById('vol_spinner').value) || 0;
+                const harga = parseFloat(document.getElementById('harga_jasa').value) || 0;
                 
-                let pengeluaranId;
-                if (existPeng) {
-                    pengeluaranId = existPeng.id;
-                    await client.from('pengeluaran').update({ total_harian: (existPeng.total_harian || 0) + totalBiaya }).eq('id', pengeluaranId);
-                } else {
-                    const { data: newPeng } = await client.from('pengeluaran')
-                        .insert({ user_id: currentUserId, tanggal: tgl, total_harian: totalBiaya, status_approval: 'Menunggu' }) 
-                        .select('id').single();
-                    pengeluaranId = newPeng.id;
+                // Ambil Total Biaya Final (Bisa hasil editan manual pengguna)
+                const totalBiayaFinal = parseFloat(document.getElementById('input_total_biaya').value) || 0; 
+
+                const itemsToInsert = [];
+                const mutasiKeluar = [];
+                let isFirstRow = true;
+                let namaItemRincian = [];
+
+                // 1. Kumpulkan Data Bahan Mentah (Looping setiap baris)
+                barisBahan.forEach(row => {
+                    const komAsal = row.querySelector('.input-komoditas-asal').value;
+                    const volAsal = parseFloat(row.querySelector('.input-vol-asal').value) || 0;
+                    const namaAsal = row.querySelector('.input-komoditas-asal').options[row.querySelector('.input-komoditas-asal').selectedIndex].text;
+                    
+                    if (komAsal && volAsal > 0) {
+                        itemsToInsert.push({
+                            tanggal: tgl,
+                            nama_vendor: vendor, // <-- Pastikan kolom ini sudah ada di tabel Supabase jika uncommented!
+                            komoditas_asal_id: komAsal,
+                            vol_asal: volAsal,
+                            komoditas_minyak_id: komMinyak,
+                            vol_minyak: isFirstRow ? volMinyak : 0,
+                            komoditas_spinner_id: komSpinner,
+                            vol_spinner: isFirstRow ? volSpinner : 0,
+                            harga_jasa_per_kg: isFirstRow ? harga : 0,
+                            total_biaya: isFirstRow ? totalBiayaFinal : 0
+                        });
+                        mutasiKeluar.push({ komAsal, volAsal });
+                        namaItemRincian.push(`${namaAsal} (${volAsal}Kg)`);
+                        isFirstRow = false;
+                    }
+                });
+
+                if(itemsToInsert.length === 0) throw new Error("Isi komoditas bahan mentah beserta volumenya dengan benar!");
+
+                // 2. Simpan Riwayat Utama 
+                // 🔥 Cek Error Detail di sini 🔥
+                const { error: errInsert } = await client.from('pengolahan_eksternal').insert(itemsToInsert);
+                if (errInsert) throw errInsert;
+
+                // 3. Mutasi Keluar (Potong Stok Bahan Mentah)
+                for (let m of mutasiKeluar) {
+                    const { data: gA, error: errStokAsal } = await client.from('gudang_komoditas').select('stok').eq('id', m.komAsal).single();
+                    if (errStokAsal) throw errStokAsal;
+                    
+                    const { error: errUpdAsal } = await client.from('gudang_komoditas').update({ stok: gA.stok - m.volAsal }).eq('id', m.komAsal);
+                    if (errUpdAsal) throw errUpdAsal;
+                    
+                    const { error: errMutAsal } = await client.from('gudang_mutasi').insert([{ jenis_mutasi: 'Keluar', komoditas_id: m.komAsal, jumlah: -m.volAsal, keterangan: `Diproses oleh ${vendor} (Pengolahan)` }]);
+                    if (errMutAsal) throw errMutAsal;
                 }
 
-                // Insert Rincian Jasa
-                await client.from('rincian_pengeluaran').insert([{
-                    pengeluaran_id: pengeluaranId,
-                    nama_item: 'Jasa Pengolahan',
-                    nominal: totalBiaya,
-                    keterangan: `Pengolahan ${volAsal}Kg via Vendor: ${vendor}`
-                }]);
+                // 4. Mutasi Masuk (Tambah Stok Minyak & Spinner)
+                if (volMinyak > 0) {
+                    const { data: gM } = await client.from('gudang_komoditas').select('stok').eq('id', komMinyak).single();
+                    await client.from('gudang_komoditas').update({ stok: gM.stok + volMinyak }).eq('id', komMinyak);
+                    await client.from('gudang_mutasi').insert([{ jenis_mutasi: 'Masuk', komoditas_id: komMinyak, jumlah: volMinyak, keterangan: `Hasil proses ${vendor} (Pengolahan)` }]);
+                }
 
-                alert('SUKSES! Stok telah diupdate, mutasi dicatat, dan tagihan pengeluaran dibuat (Menunggu Persetujuan).');
+                if (volSpinner > 0) {
+                    const { data: gS } = await client.from('gudang_komoditas').select('stok').eq('id', komSpinner).single();
+                    await client.from('gudang_komoditas').update({ stok: gS.stok + volSpinner }).eq('id', komSpinner);
+                    await client.from('gudang_mutasi').insert([{ jenis_mutasi: 'Masuk', komoditas_id: komSpinner, jumlah: volSpinner, keterangan: `Hasil proses ${vendor} (Pengolahan)` }]);
+                }
+                
+                // 5. Masukkan Tagihan Jasa ke Tabel Pengeluaran
+                if (totalBiayaFinal > 0) {
+                    const { data: existPeng, error: errCekPeng } = await client.from('pengeluaran')
+                        .select('id, total_harian').eq('user_id', currentUserId).eq('tanggal', tgl).maybeSingle();
+                    if (errCekPeng) throw errCekPeng;
+                    
+                    let pengeluaranId;
+                    if (existPeng) {
+                        pengeluaranId = existPeng.id;
+                        const { error: errUpdPeng } = await client.from('pengeluaran').update({ total_harian: (existPeng.total_harian || 0) + totalBiayaFinal }).eq('id', pengeluaranId);
+                        if (errUpdPeng) throw errUpdPeng;
+                    } else {
+                        const { data: newPeng, error: errNewPeng } = await client.from('pengeluaran')
+                            .insert({ user_id: currentUserId, tanggal: tgl, total_harian: totalBiayaFinal, status_approval: 'Menunggu' }) 
+                            .select('id').single();
+                        if (errNewPeng) throw errNewPeng;
+                        pengeluaranId = newPeng.id;
+                    }
+
+                    const { error: errRincian } = await client.from('rincian_pengeluaran').insert([{
+                        pengeluaran_id: pengeluaranId,
+                        nama_item: 'Jasa Pengolahan Spinner',
+                        nominal: totalBiayaFinal,
+                        keterangan: `Pengolahan Bahan [${namaItemRincian.join(' + ')}] via Vendor: ${vendor}`
+                    }]);
+                    if (errRincian) throw errRincian;
+                }
+
+                alert('SUKSES! Transaksi komplit, stok telah diupdate, dan biaya jasa dicatat.');
                 window.location.reload();
 
             } catch (err) {
-                alert('Gagal: ' + err.message);
-                btn.innerHTML = `<i class="bi bi-gear-fill"></i> Eksekusi & Catat ke Sistem`; btn.disabled = false;
+                // 🔥 RADAR ERROR SUPABASE LENGKAP 🔥
+                console.error("Full Error Database:", err);
+                const pesanUtama = err.message || JSON.stringify(err);
+                const petunjuk = err.hint ? `\n\n📌 Petunjuk: ${err.hint}` : '';
+                const rincian = err.details ? `\n🔍 Detail: ${err.details}` : '';
+                
+                alert(`🚨 GAGAL MENYIMPAN!\n\nAlasan: ${pesanUtama}${petunjuk}${rincian}\n\n(Silakan cek console F12 untuk info lebih lanjut)`);
+                
+                btn.innerHTML = `<i class="bi bi-gear-fill"></i> Eksekusi & Catat ke Sistem`; 
+                btn.disabled = false;
             }
         });
     });

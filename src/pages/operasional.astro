@@ -260,19 +260,75 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                 </div>
                             </div>
                         </div>
-                    
                     </div>
+                    <div id="form-step-3" class="hidden flex-col gap-md">
+                        <div class="p-4 bg-surface-container-low border border-outline-variant rounded-md">
+                            <label class="flex items-center text-primary font-bold text-sm mb-4">
+                                <span class="material-symbols-outlined text-[18px] mr-1">payments</span> Harga Satuan Komoditas (Rp / KG)
+                            </label>
+
+                            <div class="flex flex-col gap-4">
+                                <div>
+                                    <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Harga Satuan Minyak</label>
+                                    <input type="number" id="satuan-minyak" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm" value="0" min="0">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Harga Satuan Tepung</label>
+                                    <input type="number" id="satuan-tepung" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm" value="0" min="0">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Harga Satuan Kriuk</label>
+                                    <input type="number" id="satuan-kriuk" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm" value="0" min="0">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Harga Satuan Spinner</label>
+                                    <input type="number" id="satuan-spinner" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm" value="0" min="0">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Harga Satuan Ampas</label>
+                                    <input type="number" id="satuan-ampas" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm" value="0" min="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 p-4 bg-primary/10 border border-primary/20 rounded-xl flex flex-col gap-2 shadow-sm">
+                            
+                            <div id="row-display-dp" class="hidden justify-between items-center border-b border-primary/20 pb-2 mb-1 animate-in fade-in duration-200">
+                                <span class="text-xs font-semibold text-primary/80 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[16px]">money_off</span> Potongan DP:
+                                </span>
+                                <span id="display-dp-value" class="text-sm font-bold text-red-600">-Rp 0</span>
+                            </div>
+
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-bold text-primary flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[18px]">calculate</span> Total Estimasi Transaksi:
+                                </span>
+                                <span id="display-estimasi-transaksi" class="text-base font-black text-primary">Rp 0</span>
+                            </div>
+                        </div>
                     </div>
+              
+                </div>
                 
                 <div id="footer-step-1" class="p-md border-t border-outline-variant bg-surface-container-lowest rounded-b-xl flex gap-sm shrink-0">
                     <button type="button" class="flex-1 bg-surface-container-low text-on-surface-variant font-label-lg rounded-full py-md hover:bg-surface-variant transition-all" onclick="closeModal()">Batal</button>
-                    <button type="button" onclick="nextStep()" class="flex-1 flex justify-center items-center bg-primary text-on-primary font-label-lg rounded-full py-md hover:opacity-90 transition-all shadow-sm active:scale-95">
+                    <button type="button" onclick="nextStep(2)" class="flex-1 flex justify-center items-center bg-primary text-on-primary font-label-lg rounded-full py-md hover:opacity-90 transition-all shadow-sm active:scale-95">
                         Selanjutnya <span class="material-symbols-outlined ml-2 text-[18px]">arrow_forward</span>
                     </button>
                 </div>
             
                 <div id="footer-step-2" class="hidden p-md border-t border-outline-variant bg-surface-container-lowest rounded-b-xl gap-sm shrink-0">
-                    <button type="button" onclick="prevStep()" class="flex-1 flex justify-center items-center bg-surface-container-low text-on-surface-variant font-label-lg rounded-full py-md hover:bg-surface-variant transition-all border border-outline-variant">
+                    <button type="button" onclick="prevStep(1)" class="flex-1 flex justify-center items-center bg-surface-container-low text-on-surface-variant font-label-lg rounded-full py-md hover:bg-surface-variant transition-all border border-outline-variant">
+                        <span class="material-symbols-outlined mr-2 text-[18px]">arrow_back</span> Kembali
+                    </button>
+                    <button type="button" onclick="nextStep(3)" class="flex-1 flex justify-center items-center bg-primary text-on-primary font-label-lg rounded-full py-md hover:opacity-90 transition-all shadow-sm active:scale-95">
+                        Selanjutnya <span class="material-symbols-outlined ml-2 text-[18px]">arrow_forward</span>
+                    </button>
+                </div>
+
+                <div id="footer-step-3" class="hidden p-md border-t border-outline-variant bg-surface-container-lowest rounded-b-xl gap-sm shrink-0">
+                    <button type="button" onclick="prevStep(2)" class="flex-1 flex justify-center items-center bg-surface-container-low text-on-surface-variant font-label-lg rounded-full py-md hover:bg-surface-variant transition-all border border-outline-variant">
                         <span class="material-symbols-outlined mr-2 text-[18px]">arrow_back</span> Kembali
                     </button>
                     <button type="submit" id="btnSubmitPenjemputan" class="flex-1 bg-primary text-on-primary font-label-lg rounded-full py-md hover:opacity-90 transition-all shadow-sm active:scale-95">
@@ -311,9 +367,14 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
     </div>
   </div>
 </div>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.default.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
     <script is:inline>
         // Cek Role Keamanan
         let currentUserRole = 'lapangan';
+        // Penampung instance Tom Select
+        let tomMitra, tomMotor, tomMobil, tomHelper;
 
         document.addEventListener('DOMContentLoaded', async () => {
 
@@ -344,6 +405,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     .select(`
                         id, status, tanggal, rute_penjemputan, kendaraan,
                         estimasi_minyak, estimasi_tepung, estimasi_kriuk, estimasi_spinner, estimasi_ampas, total_estimasi,
+                        satuan_minyak, satuan_tepung, satuan_kriuk, satuan_spinner, satuan_ampas,
                         mitra ( id, nama_mitra, alamat, link_gmaps ),
                         driver:driver_id ( id, nama ),
                         helper:helper_id ( id, nama ),
@@ -464,7 +526,13 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 
                 let optMitra = '<option value="">-- Pilih Mitra Pengumpul --</option>';
                 window.allMitra.forEach(m => optMitra += `<option value="${m.id}">${m.nama_mitra} - ${(m.alamat || '').substring(0,30)}...</option>`);
-                document.getElementById('input_mitra').innerHTML = optMitra;
+                
+                // Set innerHTML lalu inisialisasi Tom Select
+                const elMitra = document.getElementById('input_mitra');
+                elMitra.innerHTML = optMitra;
+                
+                if(tomMitra) tomMitra.destroy();
+                tomMitra = new TomSelect(elMitra, { create: false, maxOptions: null });
 
                 // Event Listener biar alamat & Gmaps muncul saat dipilih
                 document.getElementById('input_mitra').addEventListener('change', function() {
@@ -500,9 +568,19 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     optKenek += `<option value="${k.id}">${namaLengkap}</option>`;
                 });
                 
-                document.getElementById('input_driver_motor').innerHTML = optMotor;
+               document.getElementById('input_driver_motor').innerHTML = optMotor;
                 document.getElementById('input_driver_mobil').innerHTML = optSupir;
                 document.getElementById('input_helper_mobil').innerHTML = optKenek;
+                
+                // Inisialisasi Searchable Kurir & Helper
+                if(tomMotor) tomMotor.destroy();
+                tomMotor = new TomSelect('#input_driver_motor', { create: false, maxOptions: null });
+                
+                if(tomMobil) tomMobil.destroy();
+                tomMobil = new TomSelect('#input_driver_mobil', { create: false, maxOptions: null });
+                
+                if(tomHelper) tomHelper.destroy();
+                tomHelper = new TomSelect('#input_helper_mobil', { create: false, maxOptions: null });
 
                 // 🔥 LOGIKA MENCEGAH SUPIR DIPILIH LAGI JADI KENEK 🔥
                 document.getElementById('input_driver_mobil').addEventListener('change', function() {
@@ -517,8 +595,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         }
                     });
                     
+                    if(tomHelper) tomHelper.destroy();
                     kenekSelect.innerHTML = newOptKenek;
                     if(prevKenekId !== selectedSupirId) kenekSelect.value = prevKenekId;
+                    tomHelper = new TomSelect('#input_helper_mobil', { create: false, maxOptions: null });
                 });
             }
 
@@ -631,24 +711,29 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             document.getElementById('edit_penjemputan_id').value = '';
             document.getElementById('modal-title-pickup').innerText = "Tugaskan Jadwal Baru";
             
-            // Reset isian HTML manual
-            document.getElementById('input_mitra').value = '';
-            document.getElementById('detail_mitra_box').classList.add('hidden');
-            // Ambil waktu spesifik zona WIB (Asia/Jakarta)
-            const formatterWIB = new Intl.DateTimeFormat('id-ID', {
-                timeZone: 'Asia/Jakarta',
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit'
-            });
-            // Hasilnya format DD/MM/YYYY, kita harus pecah dan balik jadi YYYY-MM-DD
+            // Kembalikan ke tampilan step 1 jika sebelumnya modal ditutup di step lain
+            document.getElementById('form-step-1').classList.replace('hidden', 'flex');
+            document.getElementById('footer-step-1').classList.replace('hidden', 'flex');
+            document.getElementById('form-step-2').classList.replace('flex', 'hidden');
+            document.getElementById('footer-step-2').classList.replace('flex', 'hidden');
+            document.getElementById('form-step-3').classList.replace('flex', 'hidden');
+            document.getElementById('footer-step-3').classList.replace('flex', 'hidden');
+
+            if(tomMitra) tomMitra.clear(); else document.getElementById('input_mitra').value = '';
+            if(tomMotor) tomMotor.clear();
+            if(tomMobil) tomMobil.clear();
+            if(tomHelper) tomHelper.clear();
+
+            const formatterWIB = new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' });
             const [hari, bulan, tahun] = formatterWIB.format(new Date()).split('/');
             document.getElementById('input_tanggal').value = `${tahun}-${bulan}-${hari}`;
             document.getElementById('input_dp').value = '';
             
-            const estimasiIds = ['est-minyak', 'est-tepung', 'est-kriuk', 'est-spinner', 'est-ampas'];
-            estimasiIds.forEach(id => { const el = document.getElementById(id); if(el) el.value = '0'; });
-
+            // Reset volume dan harga satuan
+            const allInputIds = ['est-minyak', 'est-tepung', 'est-kriuk', 'est-spinner', 'est-ampas', 'satuan-minyak', 'satuan-tepung', 'satuan-kriuk', 'satuan-spinner', 'satuan-ampas'];
+            allInputIds.forEach(id => { const el = document.getElementById(id); if(el) el.value = '0'; });
+            // Panggil kalkulator reset
+            hitungEstimasiTransaksi();
             window.setVehicle('motor');
             document.getElementById('new-pickup-modal').classList.add('active');
         };
@@ -665,18 +750,29 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             document.getElementById('modal-title-pickup').innerText = "Edit Jadwal Penugasan";
 
             // Tempel data Utama
-            document.getElementById('input_mitra').value = p.mitra?.id || '';
+            // Tempel data Utama ke dalam Searchable Select
+            if(tomMitra) tomMitra.setValue(p.mitra?.id || ''); 
+            else document.getElementById('input_mitra').value = p.mitra?.id || '';
+            
             document.getElementById('input_mitra').dispatchEvent(new Event('change')); // Trigger Gmaps box
             document.getElementById('input_tanggal').value = p.tanggal;
 
             // Tempel Kendaraan & Kurir
             window.setVehicle(p.kendaraan === 'mobil' ? 'mobil' : 'motor');
+
             if(p.kendaraan === 'mobil') {
-                document.getElementById('input_driver_mobil').value = p.driver?.id || '';
+                if(tomMobil) tomMobil.setValue(p.driver?.id || '');
+                else document.getElementById('input_driver_mobil').value = p.driver?.id || '';
+                
                 document.getElementById('input_driver_mobil').dispatchEvent(new Event('change')); // Trigger helper options
-                setTimeout(() => { document.getElementById('input_helper_mobil').value = p.helper?.id || ''; }, 100);
+                
+                setTimeout(() => { 
+                    if(tomHelper) tomHelper.setValue(p.helper?.id || '');
+                    else document.getElementById('input_helper_mobil').value = p.helper?.id || ''; 
+                }, 100);
             } else {
-                document.getElementById('input_driver_motor').value = p.driver?.id || '';
+                if(tomMotor) tomMotor.setValue(p.driver?.id || '');
+                else document.getElementById('input_driver_motor').value = p.driver?.id || '';
             }
 
             // Tempel Rincian & DP
@@ -690,6 +786,14 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             document.getElementById('est-spinner').value = p.estimasi_spinner || '0';
             document.getElementById('est-ampas').value = p.estimasi_ampas || '0';
 
+            // 🔥 TEMPEL DATA HARGA SATUAN BARU 🔥
+            document.getElementById('satuan-minyak').value = p.satuan_minyak || '0';
+            document.getElementById('satuan-tepung').value = p.satuan_tepung || '0';
+            document.getElementById('satuan-kriuk').value = p.satuan_kriuk || '0';
+            document.getElementById('satuan-spinner').value = p.satuan_spinner || '0';
+            document.getElementById('satuan-ampas').value = p.satuan_ampas || '0';
+            // Panggil kalkulator reset
+            hitungEstimasiTransaksi();
             document.getElementById('new-pickup-modal').classList.add('active');
         };
 
@@ -833,14 +937,19 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 const estKriuk = parseFloat(document.getElementById('est-kriuk').value) || 0;
                 const estSpinner = parseFloat(document.getElementById('est-spinner').value) || 0;
                 const estAmpas = parseFloat(document.getElementById('est-ampas').value) || 0;
-                
-                // Kalkulasi Total Estimasi (Penjumlahan KG)
-                const totalEstimasi = estMinyak + estTepung + estKriuk + estSpinner + estAmpas;
-                
-                // Estimasi Transaksi (Diisi 0 sementara karena belum ada form estimasi harga)
-                const estimasiTransaksi = 0; 
 
-                // 🔥 BUNGKUS PAYLOAD UNTUK TABEL PENJEMPUTAN 🔥
+                // 🔥 AMBIL DATA HARGA SATUAN BARU 🔥
+                const satMinyak = parseFloat(document.getElementById('satuan-minyak').value) || 0;
+                const satTepung = parseFloat(document.getElementById('satuan-tepung').value) || 0;
+                const satKriuk = parseFloat(document.getElementById('satuan-kriuk').value) || 0;
+                const satSpinner = parseFloat(document.getElementById('satuan-spinner').value) || 0;
+                const satAmpas = parseFloat(document.getElementById('satuan-ampas').value) || 0;
+                
+                const totalEstimasi = estMinyak + estTepung + estKriuk + estSpinner + estAmpas;
+                // 🔥 Ambil nilai nominal DP dari form
+                const dpFormValue = parseFloat(document.getElementById('input_dp').value) || 0;
+                const estimasiTransaksi = ((estMinyak * satMinyak) + (estTepung * satTepung) + (estKriuk * satKriuk) + (estSpinner * satSpinner) + (estAmpas * satAmpas)) - dpFormValue;
+
                 const payloadPenjemputan = {
                     mitra_id: parseInt(mitra_id), 
                     driver_id: driver_id, 
@@ -854,7 +963,12 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     estimasi_spinner: estSpinner,
                     estimasi_ampas: estAmpas,
                     total_estimasi: totalEstimasi,
-                    estimasi_transaksi: estimasiTransaksi
+                    estimasi_transaksi: estimasiTransaksi,
+                    satuan_minyak: satMinyak,
+                    satuan_tepung: satTepung,
+                    satuan_kriuk: satKriuk,
+                    satuan_spinner: satSpinner,
+                    satuan_ampas: satAmpas
                 };
 
                 // ==========================
@@ -929,34 +1043,89 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             }
         });
     });
-    function nextStep() {
-    // Validasi singkat sebelum ke step 2 (opsional, biar rapi)
-    const mitra = document.getElementById('input_mitra').value;
-    const tanggal = document.getElementById('input_tanggal').value;
-    
-    if(!mitra || !tanggal) {
-        alert("Harap lengkapi Lokasi Mitra dan Tanggal terlebih dahulu!");
-        return;
+    function nextStep(targetStep) {
+        if (targetStep === 2) {
+            const mitra = document.getElementById('input_mitra').value;
+            const tanggal = document.getElementById('input_tanggal').value;
+            if(!mitra || !tanggal) {
+                alert("Harap lengkapi Lokasi Mitra dan Tanggal terlebih dahulu!");
+                return;
+            }
+            document.getElementById('form-step-1').classList.replace('flex', 'hidden');
+            document.getElementById('footer-step-1').classList.replace('flex', 'hidden');
+            document.getElementById('form-step-2').classList.replace('hidden', 'flex');
+            document.getElementById('footer-step-2').classList.replace('hidden', 'flex');
+        } else if (targetStep === 3) {
+            document.getElementById('form-step-2').classList.replace('flex', 'hidden');
+            document.getElementById('footer-step-2').classList.replace('flex', 'hidden');
+            document.getElementById('form-step-3').classList.replace('hidden', 'flex');
+            document.getElementById('footer-step-3').classList.replace('hidden', 'flex');
+        }
     }
 
-    // Sembunyikan Step 1 & Footernya
-    document.getElementById('form-step-1').classList.replace('flex', 'hidden');
-    document.getElementById('footer-step-1').classList.replace('flex', 'hidden');
-    
-    // Munculkan Step 2 & Footernya
-    document.getElementById('form-step-2').classList.replace('hidden', 'flex');
-    document.getElementById('footer-step-2').classList.replace('hidden', 'flex');
-}
+    // 🔥 FUNGSI HITUNG OTOMATIS ESTIMASI TRANSAKSI 🔥
+        function hitungEstimasiTransaksi() {
+            const estMinyak = parseFloat(document.getElementById('est-minyak')?.value) || 0;
+            const estTepung = parseFloat(document.getElementById('est-tepung')?.value) || 0;
+            const estKriuk = parseFloat(document.getElementById('est-kriuk')?.value) || 0;
+            const estSpinner = parseFloat(document.getElementById('est-spinner')?.value) || 0;
+            const estAmpas = parseFloat(document.getElementById('est-ampas')?.value) || 0;
 
-function prevStep() {
-    // Sembunyikan Step 2 & Footernya
-    document.getElementById('form-step-2').classList.replace('flex', 'hidden');
-    document.getElementById('footer-step-2').classList.replace('flex', 'hidden');
-    
-    // Munculkan Step 1 & Footernya
-    document.getElementById('form-step-1').classList.replace('hidden', 'flex');
-    document.getElementById('footer-step-1').classList.replace('hidden', 'flex');
-}
+            const satMinyak = parseFloat(document.getElementById('satuan-minyak')?.value) || 0;
+            const satTepung = parseFloat(document.getElementById('satuan-tepung')?.value) || 0;
+            const satKriuk = parseFloat(document.getElementById('satuan-kriuk')?.value) || 0;
+            const satSpinner = parseFloat(document.getElementById('satuan-spinner')?.value) || 0;
+            const satAmpas = parseFloat(document.getElementById('satuan-ampas')?.value) || 0;
+
+            const dp = parseFloat(document.getElementById('input_dp')?.value) || 0;
+
+            // Kalkulasi nominal
+            const totalKotor = (estMinyak * satMinyak) + (estTepung * satTepung) + (estKriuk * satKriuk) + (estSpinner * satSpinner) + (estAmpas * satAmpas);
+            const estimasiTransaksi = totalKotor - dp;
+            
+            // 🔥 LOGIKA SHOW / HIDE BARIS POTONGAN DP 🔥
+            const rowDp = document.getElementById('row-display-dp');
+            const valDp = document.getElementById('display-dp-value');
+            
+            if (rowDp && valDp) {
+                if (dp > 0) {
+                    valDp.innerText = '-Rp ' + dp.toLocaleString('id-ID');
+                    rowDp.classList.remove('hidden');
+                    rowDp.classList.add('flex');
+                } else {
+                    rowDp.classList.remove('flex');
+                    rowDp.classList.add('hidden');
+                }
+            }
+
+            // Tampilkan hasil total akhir bersih
+            const displayEl = document.getElementById('display-estimasi-transaksi');
+            if (displayEl) {
+                displayEl.innerText = 'Rp ' + estimasiTransaksi.toLocaleString('id-ID');
+            }
+        }
+
+        // Daftarkan trigger ke semua input volume dan harga satuan
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputIds = ['est-minyak', 'est-tepung', 'est-kriuk', 'est-spinner', 'est-ampas', 'satuan-minyak', 'satuan-tepung', 'satuan-kriuk', 'satuan-spinner', 'satuan-ampas', 'input_dp'];
+            inputIds.forEach(id => {
+                document.getElementById(id)?.addEventListener('input', hitungEstimasiTransaksi);
+            });
+        });
+
+    function prevStep(targetStep) {
+        if (targetStep === 1) {
+            document.getElementById('form-step-2').classList.replace('flex', 'hidden');
+            document.getElementById('footer-step-2').classList.replace('flex', 'hidden');
+            document.getElementById('form-step-1').classList.replace('hidden', 'flex');
+            document.getElementById('footer-step-1').classList.replace('hidden', 'flex');
+        } else if (targetStep === 2) {
+            document.getElementById('form-step-3').classList.replace('flex', 'hidden');
+            document.getElementById('footer-step-3').classList.replace('flex', 'hidden');
+            document.getElementById('form-step-2').classList.replace('hidden', 'flex');
+            document.getElementById('footer-step-2').classList.replace('hidden', 'flex');
+        }
+    }
     // ==========================================
         // FITUR MANAJEMEN RUTE INLINE (TAB)
         // ==========================================

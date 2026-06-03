@@ -287,6 +287,145 @@ const { title, requireAuth = true } = Astro.props;
     <script>
         import { supabase } from '../lib/supabase.js';
 
+        // ==========================================
+// 🔥 LOGIKA REALTIME NOTIFICATIONS (BARU)
+// ==========================================
+function initRealtimeNotifications() {
+    if (!window.supabase) {
+        console.error('❌ window.supabase tidak tersedia');
+        return;
+    }
+
+    console.log('🚀 Initializing Realtime Notifications...');
+
+    let retryCount = 0;
+    const MAX_RETRIES = 3;
+    let channel = null;
+
+    function setupChannel() {
+        try {
+            if (channel) {
+                channel.unsubscribe();
+            }
+            
+            console.log('🔌 Setting up WebSocket channel...');
+            channel = window.supabase.channel('dashboard-notifications', {
+                config: {
+                    broadcast: { self: true },
+                    presence: { key: 'notifications' }
+                }
+            });
+        
+            // 1️⃣ TRANSAKSI
+            channel.on('postgres_changes', 
+                { event: 'UPDATE', schema: 'public', table: 'transaksi' }, 
+                async (payload) => {
+                    try {
+                        console.log('📡 [TRANSAKSI] Update:', payload);
+                        const newData = payload.new;
+                        const oldData = payload.old || {};
+                        
+                        if (newData.status === 'Selesai' && oldData.status !== 'Selesai') {
+                            const { data: relasi } = await window.supabase
+                                .from('transaksi')
+                                .select('metode_bayar, penjemputan(mitra(nama_mitra))')
+                                .eq('id', newData.id)
+                                .single();
+                            
+                            const namaMitra = relasi?.penjemputan?.mitra?.nama_mitra || 'Mitra';
+                            const metode = relasi?.metode_bayar || 'Kas/Transfer';
+                            
+                            window.addNotifToList('✅ Pembayaran Selesai!', `Setoran dari ${namaMitra} - ${metode}`);
+                        }
+                    } catch (error) {
+                        console.error('❌ Error EVENT 1:', error);
+                    }
+                }
+            );
+            
+            // 2️⃣ PRESENSI
+            channel.on('postgres_changes', 
+                { event: 'UPDATE', schema: 'public', table: 'presensi' }, 
+                async (payload) => {
+                    try {
+                        const newData = payload.new;
+                        const oldData = payload.old || {};
+                        
+                        const isWaktuPulangDiisi = newData.waktu_pulang && !oldData.waktu_pulang;
+                        const statusAlerts = ['Pulang', 'Izin', 'Izin Pulang Cepat', 'Sakit'];
+                        const isStatusTibaTrigger = statusAlerts.includes(newData.status_tiba) && newData.status_tiba !== oldData.status_tiba;
+                        const isStatusPulangTrigger = statusAlerts.includes(newData.status_pulang) && newData.status_pulang !== oldData.status_pulang;
+                    
+                        if (isWaktuPulangDiisi || isStatusTibaTrigger || isStatusPulangTrigger) {
+                            const { data: user } = await window.supabase.from('profiles').select('nama').eq('id', newData.user_id).single();
+                            const namaKaryawan = user?.nama || 'Karyawan';
+                            let title = '', pesan = '';
+                        
+                            if (newData.status_tiba === 'Sakit') {
+                                title = '⚠️ Sakit'; pesan = `${namaKaryawan} sakit`;
+                            } else if (newData.status_pulang === 'Pulang') {
+                                title = '👋 Pulang'; pesan = `${namaKaryawan} pulang`;
+                            }
+                        
+                            if(pesan) window.addNotifToList(title, pesan);
+                        }
+                    } catch (error) {
+                        console.error('❌ Error EVENT 2:', error);
+                    }
+                }
+            );
+            
+            // 3️⃣ PENGELUARAN
+            channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pengeluaran' }, (payload) => {
+                window.addNotifToList('💸 Pengeluaran', `Rp ${Number(payload.new.total_harian).toLocaleString('id-ID')}`);
+            });
+            
+            // 4️⃣ PENJUALAN OLAHAN
+            channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'penjualan_olahan' }, (payload) => {
+                const pembeli = payload.new.pembeli || 'Distributor';
+                window.addNotifToList('📦 Penjualan', `Ke ${pembeli}`);
+            });
+            
+            // 5️⃣ GUDANG MASUK
+            channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'gudang_mutasi' }, (payload) => {
+                if (payload.new.jenis_mutasi === 'Masuk') {
+                    const komoditas = payload.new.komoditas_id?.replace(/_/g, ' ') || 'Barang';
+                    window.addNotifToList('🚛 Gudang Masuk', `${komoditas} +${payload.new.jumlah}kg`);
+                }
+            });
+            
+            // SUBSCRIBE
+            channel.subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    console.log('✅ WebSocket Connected!');
+                    retryCount = 0;
+                } else if (status === 'CHANNEL_ERROR') {
+                    console.warn(`⚠️ Error, retry ${retryCount}/${MAX_RETRIES}`);
+                    if (retryCount < MAX_RETRIES) {
+                        retryCount++;
+                        setTimeout(() => setupChannel(), 5000);
+                    }
+                }
+            });
+        
+        } catch (error) {
+            console.error('❌ Fatal error:', error);
+            if (retryCount < MAX_RETRIES) {
+                retryCount++;
+                setTimeout(() => setupChannel(), 5000);
+            }
+        }
+    }
+
+    // Setup saat session ready
+    window.supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+            console.log('✅ Session ready, starting WebSocket');
+            setTimeout(() => setupChannel(), 1000);
+        }
+    });
+}
+
         function runWhenReady(callback) {
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', callback, { once: true });
@@ -541,7 +680,8 @@ window.addNotifToList = function(title, body) {
             initSidebar();
             initAuthCheck();
             initLogout();
-            //initRealtimeNotifications(); // Menjalankan Notifikasi Real-Time
+            initNotifUI();
+            initRealtimeNotifications(); // Menjalankan Notifikasi Real-Time
         });
     </script>
     <!-- Script Integrasi FCM -->
@@ -622,10 +762,10 @@ window.addNotifToList = function(title, body) {
         const title = payload.notification?.title || 'Pemberitahuan';
         const body = payload.notification?.body || 'Anda memiliki pesan baru';
         const icon = payload.notification?.image || 'https://ui-avatars.com/api/?name=Bang+Jelantah&background=2e7d32&color=ffffff';
-        
+
         // 🔊 MAINKAN SUARA
         playNotificationSound();
-        
+
         // 👉 TAMBAHKAN BARIS INI: Masukkan ke kotak dropdown UI
         if(window.addNotifToList) window.addNotifToList(title, body);
 

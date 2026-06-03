@@ -104,6 +104,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">Nama</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">Rute</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">No HP</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Sumber Customer</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold text-center">Alamat</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold text-center">Jml Transaksi</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold text-right">Aksi</th>
@@ -486,7 +487,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
             // === TAMBAHAN: CEK ROLE USER YANG LOGIN ===
             // === 🛡️ GATEKEEPER KEUANGAN ===
-            const allowedRoles = ['owner', 'hrd', 'admin','periklanan'];
+            const allowedRoles = ['owner', 'hrd', 'admin','keuangan'];
             const client = window.supabase || supabase;
 
             const { data: { session } } = await client.auth.getSession();
@@ -667,7 +668,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
                 // B. Mitra Langganan
                 const { data: langganan, error: errLang } = await window.supabase.from('mitra')
-                    .select('*')
+                    .select('id, nama_mitra, rute_jemput, nomor_hp, alamat, link_gmaps, total_order, total_transaksi, activated, sumber_mitra, created_at')
                     .eq('activated', true)
                     .order('created_at', { ascending: false });
 
@@ -702,6 +703,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             <td><span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded uppercase mt-1 inline-block">${l.rute_jemput || 'Tanpa Rute'}</span></td>
                             <div class="grid grid-cols-2 gap-sm pt-xs">
                                 <div><p class="font-label-sm text-on-surface-variant">No HP</p><p class="font-body-md text-on-surface">${l.nomor_hp || '-'}</p></div>
+                                <div><p class="font-label-sm text-on-surface-variant">Sumber</p><p class="font-body-md text-on-surface font-semibold">${l.sumber_mitra || 'Lainnya'}</p></div>
                                 <div><p class="font-label-sm text-on-surface-variant">Transaksi</p><p class="font-body-md text-on-surface">${l.total_order || 0}x</p></div>
                             </div>
                         </div>`;
@@ -714,6 +716,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             </td>
                             <td><span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded uppercase mt-1 inline-block">${l.rute_jemput || 'Tanpa Rute'}</span></td>
                             <td class="p-md font-body-md text-on-surface">${l.nomor_hp || '-'}</td>
+                            <td class="p-md"><span class="text-[10px] bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded uppercase inline-block font-medium">${l.sumber_mitra || 'Lainnya'}</span></td>
                             <td class="p-md text-center"><a class="text-primary inline-block p-1 rounded-full hover:bg-primary-container" href="${l.link_gmaps || '#'}" target="_blank"><span class="material-symbols-outlined text-[20px]">location_on</span></a></td>
                             <td class="p-md text-center font-body-md">${l.total_order || 0}x</td>
                             <td class="p-md text-right flex justify-end gap-2 items-center">
@@ -1038,40 +1041,47 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             };
 
             // CARI DAN PASTIKAN BAGIAN INI DI SCRIPT LU SUDAH SEPERTI INI:
-            // TIMPA LISTENER SUBMIT FORM KONVERSI PROSPEK
             document.getElementById('formKonversiLangganan').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const btn = document.getElementById('btn-submit-konversi');
                 btn.innerText = "Memproses..."; btn.disabled = true;
                 const hp = document.getElementById('konversi_hp').value;
-
+            
                 try {
-                    // 1. Simpan ke tabel mitra (TANGKAP ERROR-NYA!)
+                    // 0️⃣ AMBIL DATA SUMBER_CUSTOMER DARI MITRA_BARU DULU
+                    const { data: prospekData, error: findError } = await window.supabase
+                        .from('mitra_baru')
+                        .select('sumber_customer')
+                        .eq('nomor_hp', hp)
+                        .single();
+
+                    if (findError) throw new Error('Prospek tidak ditemukan: ' + findError.message);
+                    const sumberCustomer = prospekData?.sumber_customer || 'Lainnya'; // Default ke 'Lainnya' jika kosong
+                
+                    // 1️⃣ SIMPAN KE TABEL MITRA (DENGAN SUMBER_MITRA DARI SUMBER_CUSTOMER)
                     const { error: insertError } = await window.supabase.from('mitra').insert([{
                         nama_mitra: document.getElementById('konversi_nama').value,
                         rute_jemput: document.getElementById('konversi_rute').value,
                         nomor_hp: hp,
                         alamat: document.getElementById('konversi_alamat').value,
                         link_gmaps: document.getElementById('konversi_gmaps').value,
+                        sumber_mitra: sumberCustomer,  // ✅ TAMBAH INI (PINDAHKAN DARI SUMBER_CUSTOMER)
                         total_order: 0,
                         total_transaksi: 0,
                         activated: true
                     }]);
-                    
-                    // JIKA INSERT GAGAL, LEMPAR ERROR DAN BERHENTI DI SINI! (Data Prospek Aman)
-                    if (insertError) throw insertError;
 
-                    // 2. Jika insert lolos, baru Hapus dari prospek
+                    if (insertError) throw insertError;
+                
+                    // 2️⃣ HAPUS DARI PROSPEK (SETELAH INSERT BERHASIL)
                     const { error: deleteError } = await window.supabase.from('mitra_baru').delete().eq('nomor_hp', hp);
-                    
-                    // JIKA DELETE GAGAL, KASIH TAU
+
                     if (deleteError) throw deleteError;
-                    
-                    alert('Berhasil! Prospek dikonversi menjadi Mitra Langganan.');
+
+                    alert('✅ Berhasil! Prospek dikonversi menjadi Mitra Langganan.\n(Sumber Customer: ' + sumberCustomer + ')');
                     window.location.reload();
                 } catch(err) { 
-                    // Nanti bakal ketahuan aslinya error Supabase lu apa dari sini
-                    alert('Gagal Konversi: ' + err.message); 
+                    alert('❌ Gagal Konversi: ' + err.message); 
                     btn.innerText = "Simpan & Pindahkan"; 
                     btn.disabled = false; 
                 }
@@ -1619,14 +1629,37 @@ document.getElementById('form-tambah-rekening')?.addEventListener('submit', asyn
             no_rek: document.getElementById('input_norek_rekening').value,
             atas_nama: document.getElementById('input_an_rekening').value
         };
-        const { error } = await window.supabase.from('rek_mitra').insert([payload]);
-        if (error) throw error;
         
+        console.log("🔍 [DETEKTIF] Payload yang mau dikirim:", payload);
+
+        // Tambahkan .select() di akhir agar Supabase WAJIB mengembalikan respon
+        const { data, error } = await window.supabase
+            .from('rek_mitra')
+            .insert([payload])
+            .select();
+
+        // 1. Tangkap error bawaan Supabase
+        if (error) {
+            console.error("🚨 [DETEKTIF] Error dari Supabase:", error);
+            throw error;
+        }
+
+        // 2. Tangkap silent fail (Biasanya karena RLS memblokir insert)
+        if (!data || data.length === 0) {
+            console.error("🚨 [DETEKTIF] Data ditolak secara diam-diam oleh RLS!");
+            throw new Error("Data ditolak oleh database (Silent Fail). Cek kebijakan RLS (Row Level Security) di tabel rek_mitra!");
+        }
+
+        console.log("✅ [DETEKTIF] Sukses! Data berhasil masuk:", data);
         alert('Rekening berhasil ditambah!');
         window.location.reload();
     } catch (err) {
-        alert('Gagal: ' + err.message);
-        btn.innerText = "Simpan"; btn.disabled = false;
+        console.error("🛑 [DETEKTIF] ERROR TERTANGKAP:", err);
+        // Tampilkan pesan error sejelas-jelasnya di popup
+        alert('Gagal: ' + (err.message || JSON.stringify(err)));
+        
+        btn.innerText = "Simpan";
+        btn.disabled = false;
     }
 });
 

@@ -133,7 +133,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
   document.addEventListener('DOMContentLoaded', async () => {
       // === 🛡️ GATEKEEPER KEUANGAN ===
-      const allowedRoles = ['owner', 'hrd', 'keuangan'];
+      const allowedRoles = ['owner', 'hrd', 'keuangan', 'admin'];
       const client = window.supabase || supabase;
       
       const { data: { session } } = await client.auth.getSession();

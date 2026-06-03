@@ -292,7 +292,8 @@ const { title, requireAuth = true } = Astro.props;
 // ==========================================
 function initRealtimeNotifications() {
     if (!window.supabase) {
-        console.error('❌ window.supabase tidak tersedia');
+        console.warn('⏳ Waiting for Supabase...');
+        setTimeout(() => initRealtimeNotifications(), 500);
         return;
     }
 
@@ -316,6 +317,8 @@ function initRealtimeNotifications() {
                 }
             });
         
+            // ✅ TAMBAH SEMUA LISTENERS DULU (SEBELUM SUBSCRIBE!)
+            
             // 1️⃣ TRANSAKSI
             channel.on('postgres_changes', 
                 { event: 'UPDATE', schema: 'public', table: 'transaksi' }, 
@@ -394,7 +397,7 @@ function initRealtimeNotifications() {
                 }
             });
             
-            // SUBSCRIBE
+            // ✅ BARU SUBSCRIBE SETELAH SEMUA LISTENER DITAMBAH!
             channel.subscribe((status) => {
                 if (status === 'SUBSCRIBED') {
                     console.log('✅ WebSocket Connected!');
@@ -655,7 +658,12 @@ window.addNotifToList = function(title, body) {
 
             // 🔥 JALANKAN WEBSOCKET HANYA JIKA USER SUDAH VALID LOGIN 🔥
             if (session) {
-                
+                console.log('🔌 Session valid, starting realtime...');
+                setTimeout(() => {
+                    if (window.supabase) {
+                        initRealtimeNotifications();
+                    }
+                }, 1000);
             }
         }
 

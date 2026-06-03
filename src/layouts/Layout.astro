@@ -306,9 +306,11 @@ function initRealtimeNotifications() {
     function setupChannel() {
         try {
             if (channel) {
+                console.log('🧹 Cleaning old channel...');
                 channel.unsubscribe();
+                channel = null;
             }
-            
+
             console.log('🔌 Setting up WebSocket channel...');
             channel = window.supabase.channel('dashboard-notifications', {
                 config: {
@@ -318,7 +320,7 @@ function initRealtimeNotifications() {
             });
         
             // ✅ TAMBAH SEMUA LISTENERS DULU (SEBELUM SUBSCRIBE!)
-            
+
             // 1️⃣ TRANSAKSI
             channel.on('postgres_changes', 
                 { event: 'UPDATE', schema: 'public', table: 'transaksi' }, 
@@ -327,17 +329,17 @@ function initRealtimeNotifications() {
                         console.log('📡 [TRANSAKSI] Update:', payload);
                         const newData = payload.new;
                         const oldData = payload.old || {};
-                        
+
                         if (newData.status === 'Selesai' && oldData.status !== 'Selesai') {
                             const { data: relasi } = await window.supabase
                                 .from('transaksi')
                                 .select('metode_bayar, penjemputan(mitra(nama_mitra))')
                                 .eq('id', newData.id)
                                 .single();
-                            
+
                             const namaMitra = relasi?.penjemputan?.mitra?.nama_mitra || 'Mitra';
                             const metode = relasi?.metode_bayar || 'Kas/Transfer';
-                            
+
                             window.addNotifToList('✅ Pembayaran Selesai!', `Setoran dari ${namaMitra} - ${metode}`);
                         }
                     } catch (error) {
@@ -353,7 +355,7 @@ function initRealtimeNotifications() {
                     try {
                         const newData = payload.new;
                         const oldData = payload.old || {};
-                        
+
                         const isWaktuPulangDiisi = newData.waktu_pulang && !oldData.waktu_pulang;
                         const statusAlerts = ['Pulang', 'Izin', 'Izin Pulang Cepat', 'Sakit'];
                         const isStatusTibaTrigger = statusAlerts.includes(newData.status_tiba) && newData.status_tiba !== oldData.status_tiba;
@@ -382,13 +384,13 @@ function initRealtimeNotifications() {
             channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pengeluaran' }, (payload) => {
                 window.addNotifToList('💸 Pengeluaran', `Rp ${Number(payload.new.total_harian).toLocaleString('id-ID')}`);
             });
-            
+
             // 4️⃣ PENJUALAN OLAHAN
             channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'penjualan_olahan' }, (payload) => {
                 const pembeli = payload.new.pembeli || 'Distributor';
                 window.addNotifToList('📦 Penjualan', `Ke ${pembeli}`);
             });
-            
+
             // 5️⃣ GUDANG MASUK
             channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'gudang_mutasi' }, (payload) => {
                 if (payload.new.jenis_mutasi === 'Masuk') {
@@ -396,7 +398,7 @@ function initRealtimeNotifications() {
                     window.addNotifToList('🚛 Gudang Masuk', `${komoditas} +${payload.new.jumlah}kg`);
                 }
             });
-            
+
             // ✅ BARU SUBSCRIBE SETELAH SEMUA LISTENER DITAMBAH!
             channel.subscribe((status) => {
                 if (status === 'SUBSCRIBED') {
@@ -689,7 +691,7 @@ window.addNotifToList = function(title, body) {
             initAuthCheck();
             initLogout();
             initNotifUI();
-            initRealtimeNotifications(); // Menjalankan Notifikasi Real-Time
+            //initRealtimeNotifications(); // Menjalankan Notifikasi Real-Time
         });
     </script>
     <!-- Script Integrasi FCM -->

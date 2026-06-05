@@ -45,8 +45,8 @@
             <button data-komoditas="Ampas" class="komoditas-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
                 Ampas
             </button>
-            <button data-komoditas="Keriuk" class="komoditas-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
-                Keriuk
+            <button data-komoditas="Kriuk" class="komoditas-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
+                Kriuk
             </button>
             <button data-komoditas="Tepung" class="komoditas-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
                 Tepung
@@ -105,14 +105,12 @@
         let dataHarian = [];
         let dataMingguan = [];
         
-        // State Management
         let currentMode = 'harian';
-        let currentCommodity = 'Minyak Jelantah'; // Default
+        let currentCommodity = 'Minyak Jelantah'; 
 
         const ctx = document.getElementById('chartStok').getContext('2d');
         stockChart = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [] }, options: chartOptions });
 
-        // Elemen HTML
         const btnHarian = document.getElementById('btn-harian-chartStok');
         const btnMingguan = document.getElementById('btn-mingguan-chartStok');
         const filterHarianContainer = document.getElementById('filter-harian-stok');
@@ -122,13 +120,19 @@
         const monthInput = document.getElementById('month-stok');
         const komoditasBtns = document.querySelectorAll('.komoditas-btn');
 
-        // ==== LOGIKA FETCH DATA ====
-        // Catatan: Pastikan nama kolom 'jenis_komoditas' sesuai dengan database Anda
-        
+        // MAPPING KOLOM (PASTIKAN NAMA INI SAMA PERSIS DENGAN DI DATABASE)
+        const kolomDatabase = {
+            'Minyak Jelantah': 'minyak_jelantah', 
+            'Ampas': 'ampas',
+            'Kriuk': 'kriuk', // <-- CEK: Apakah di DB namanya 'keriuk' atau 'kriuk'?
+            'Tepung': 'tepung',
+            'Spinner': 'spinner'
+        };
+
         async function fetchHarian() {
+            const kolomAktif = kolomDatabase[currentCommodity];
             let query = supabase.from('stock_gudang_harian')
-                .select('tanggal, total_kg')
-                .eq('jenis_komoditas', currentCommodity) // Filter by Komoditas
+                .select(`tanggal, ${kolomAktif}`)
                 .order('tanggal', { ascending: true });
             
             if (startDateInput.value) query = query.gte('tanggal', startDateInput.value);
@@ -136,63 +140,86 @@
             if (!startDateInput.value && !endDateInput.value) query = query.limit(7); 
 
             const { data, error } = await query;
-            if (!error && data) {
+            if (error) {
+                console.error("ERROR HARIAN:", error);
+                alert("Gagal Fetch Harian: " + error.message);
+            } else if (data) {
                 dataHarian = data;
                 renderChart();
             }
         }
 
         async function fetchMingguan() {
-            let query = supabase.from('stock_gudang_mingguan')
-                .select('minggu_ke, periode, total_kg')
-                .eq('jenis_komoditas', currentCommodity) // Filter by Komoditas
-                .order('periode', { ascending: true })
-                .order('minggu_ke', { ascending: true });
-            
-            if (monthInput.value) {
-                query = query.ilike('periode', `%${monthInput.value}%`);
-            } else {
-                query = query.limit(8);
-            }
-            
-            const { data, error } = await query;
-            if (!error && data) {
-                dataMingguan = data;
-                renderChart();
+            try {
+                const kolomAktif = kolomDatabase[currentCommodity];
+                let query = supabase.from('stock_gudang_mingguan')
+                    .select(`minggu_ke, periode, ${kolomAktif}`)
+                    .order('periode', { ascending: true })
+                    .order('minggu_ke', { ascending: true });
+
+                if (monthInput && monthInput.value) {
+                    const tahun = monthInput.value.substring(0, 4); 
+                    const bulan = monthInput.value.substring(5, 7); 
+                    const formatDatabase = `${bulan}-${tahun}`; 
+                    query = query.eq('periode', formatDatabase);
+                } else {
+                    query = query.limit(8);
+                }
+                
+                const { data, error } = await query;
+                
+                // RADAR ERROR NYALA: Pop-up muncul jika kolom salah atau Supabase menolak
+                if (error) {
+                    console.error("SUPABASE ERROR MINGGUAN:", error);
+                    alert("⚠️ ERROR MINGGUAN:\n" + error.message);
+                    return;
+                }
+
+                // RADAR KOSONG: Pop-up muncul jika ternyata isi tabel kosong melompong
+                if (data && data.length === 0) {
+                    console.log("Data Mingguan Kosong!");
+                    alert("ℹ️ Data kosong! Tabel mingguan tidak memiliki record untuk komoditas/periode ini.");
+                }
+
+                if (data) {
+                    console.log("Berhasil dapat data mingguan:", data);
+                    dataMingguan = data;
+                    renderChart();
+                }
+
+            } catch (err) {
+                console.error("JS ERROR:", err);
+                alert("JS ERROR: " + err.message);
             }
         }
 
-        // ==== LOGIKA RENDER GRAFIK ====
         function renderChart() {
             const gradient = ctx.createLinearGradient(0, 0, 0, 300);
             let labels, values, color, hoverColor;
+            const kolomAktif = kolomDatabase[currentCommodity];
 
-            // Variasi Warna berdasarkan Komoditas (Opsi Kosmetik)
-            if (currentCommodity === 'Minyak Jelantah') { color = '#F59E0B'; hoverColor = 'rgba(245, 158, 11, 0.3)'; } // Kuning/Orange
-            else if (currentCommodity === 'Ampas') { color = '#6B7280'; hoverColor = 'rgba(107, 114, 128, 0.3)'; } // Abu
-            else if (currentCommodity === 'Keriuk') { color = '#D97706'; hoverColor = 'rgba(217, 119, 6, 0.3)'; } // Coklat/Orange tua
-            else if (currentCommodity === 'Tepung') { color = '#10B981'; hoverColor = 'rgba(16, 185, 129, 0.3)'; } // Hijau
-            else { color = '#6366F1'; hoverColor = 'rgba(99, 102, 241, 0.3)'; } // Spinner (Indigo)
+            if (currentCommodity === 'Minyak Jelantah') { color = '#F59E0B'; hoverColor = 'rgba(245, 158, 11, 0.3)'; }
+            else if (currentCommodity === 'Ampas') { color = '#6B7280'; hoverColor = 'rgba(107, 114, 128, 0.3)'; }
+            else if (currentCommodity === 'Kriuk') { color = '#D97706'; hoverColor = 'rgba(217, 119, 6, 0.3)'; }
+            else if (currentCommodity === 'Tepung') { color = '#10B981'; hoverColor = 'rgba(16, 185, 129, 0.3)'; }
+            else { color = '#6366F1'; hoverColor = 'rgba(99, 102, 241, 0.3)'; }
 
             if (currentMode === 'harian') {
                 labels = dataHarian.map(d => d.tanggal);
-                values = dataHarian.map(d => d.total_kg);
+                values = dataHarian.map(d => d[kolomAktif] || 0); 
                 gradient.addColorStop(0, hoverColor); 
                 gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
                 
-                // HARIAN AKTIF (Warna Blok Solid & Menonjol)
                 btnHarian.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
-                // MINGGUAN INAKTIF (Transparan & Redup)
                 btnMingguan.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
             } else {
-                labels = dataMingguan.map(d => `W${d.minggu_ke} ${d.periode}`);
-                values = dataMingguan.map(d => d.total_kg);
+                labels = dataMingguan.map(d => `${d.minggu_ke || ''} ${d.periode || ''}`);
+                values = dataMingguan.map(d => d[kolomAktif] ? Number(d[kolomAktif]) : 0);
+                
                 gradient.addColorStop(0, hoverColor); 
                 gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
                 
-                // MINGGUAN AKTIF (Warna Blok Solid & Menonjol)
                 btnMingguan.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
-                // HARIAN INAKTIF (Transparan & Redup)
                 btnHarian.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
             }
 
@@ -203,7 +230,7 @@
                     borderColor: color, 
                     backgroundColor: gradient, 
                     fill: true, 
-                    tension: 0.4, // Kurva lebih mulus
+                    tension: 0.4,
                     pointBackgroundColor: '#fff',
                     pointBorderColor: color,
                     pointBorderWidth: 2,
@@ -213,9 +240,6 @@
             stockChart.update();
         }
 
-        // ==== LOGIKA EVENT LISTENER ====
-        
-        // 1. Switch Mode Harian/Mingguan
         function switchMode(mode) {
             currentMode = mode;
             if (mode === 'harian') {
@@ -236,32 +260,25 @@
         btnHarian.addEventListener('click', () => switchMode('harian'));
         btnMingguan.addEventListener('click', () => switchMode('mingguan'));
 
-        // 2. Filter Tanggal/Bulan
         startDateInput.addEventListener('change', () => currentMode === 'harian' && fetchHarian());
         endDateInput.addEventListener('change', () => currentMode === 'harian' && fetchHarian());
         monthInput.addEventListener('change', () => currentMode === 'mingguan' && fetchMingguan());
 
-        // 3. Filter Komoditas
         komoditasBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
-                // Update State
                 currentCommodity = e.target.getAttribute('data-komoditas');
                 
-                // Update UI Buttons
                 komoditasBtns.forEach(b => {
                     b.className = "komoditas-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface";
                 });
                 
-                // Aktifkan tombol yang diklik
                 e.target.className = "komoditas-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-primary text-white shadow-sm ring-2 ring-primary/20 scale-105";
 
-                // Refetch Data
                 if (currentMode === 'harian') fetchHarian();
                 else fetchMingguan();
             });
         });
 
-        // Initialize First Load
         switchMode('harian');
     }
 

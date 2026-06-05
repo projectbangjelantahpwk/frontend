@@ -2,8 +2,9 @@
 // pages/index.astro
 import Layout from '../layouts/Layout.astro';
 import KPICard from '../components/dashboard/KPICard.astro';
-import AreaChart from '../components/dashboard/AreaChart.astro';
 import StokKomoditasChart from '../components/dashboard/StokKomoditasChart.astro';
+import TransaksiKomoditasChart from '../components/dashboard/TransaksiKomoditasChart.astro';
+import SumberTransaksiChart from '../components/dashboard/SumberTransaksiChart.astro';
 import LeaderboardMitra from '../components/dashboard/LeaderboardMitra.astro';
 import BestEmployees from '../components/dashboard/BestEmployees.astro';
 import MetricWithProgress from '../components/dashboard/MetricWithProgress.astro';
@@ -99,21 +100,9 @@ const profitWeekly = [
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-lg">
                 <StokKomoditasChart />
 
-                <AreaChart
-                    title="Transaksi Komoditas"
-                    subtitle="Nilai Transaksi (Rp)"
-                    canvasId="chartTransaksi"
-                    totalLabel="Total Transaksi"
-                    totalValue="Rp 0"
-                />
+                <TransaksiKomoditasChart/>
 
-                <AreaChart
-                    title="Transaksi per Sumber"
-                    subtitle="Per Platform Sosial Media"
-                    canvasId="chartSumber"
-                    totalLabel="Multi-source"
-                    totalValue="Rp 0"
-                />
+                <SumberTransaksiChart/>
             </div>
 
             <!-- SECTION 4: LEADERBOARD & TOP PERFORMERS -->

@@ -1,0 +1,47 @@
+---
+// components/dashboard/LeaderboardMitra.astro
+interface Mitra {
+  rank: number;
+  name: string;
+  total: number;
+  revenue: string;
+  rating: number;
+  bgColor: string;
+  rankColor: string;
+}
+
+interface Props {
+  mitras: Mitra[];
+}
+
+const { mitras } = Astro.props;
+---
+<div class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow">
+    <div class="mb-lg">
+        <h3 class="font-headline-md text-on-surface mb-md">🏆 Top 5 Mitra Terbaik</h3>
+        <div class="flex gap-sm flex-wrap">
+            <button class="px-md py-sm rounded-full bg-primary text-on-primary font-label-sm">Semua</button>
+            {['Minyak', 'Ampas', 'Kriuk', 'Spinner', 'Tepung'].map(item => (
+                <button class="px-md py-sm rounded-full border border-outline text-on-surface font-label-sm hover:bg-surface-container">{item}</button>
+            ))}
+        </div>
+    </div>
+    
+    <div class="space-y-sm">
+        {mitras.map(mitra => (
+            <div class={`flex items-center gap-md p-md bg-gradient-to-r ${mitra.bgColor} rounded-xl border hover:border-opacity-40 transition-colors`}>
+                <div class={`flex items-center justify-center w-10 h-10 rounded-full ${mitra.rankColor} text-white font-bold text-lg flex-shrink-0`}>
+                    {mitra.rank}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-on-surface truncate">{mitra.name}</p>
+                    <p class="text-label-sm text-on-surface-variant">Total: {mitra.total} KG</p>
+                </div>
+                <div class="text-right flex-shrink-0">
+                    <p class="font-bold text-primary">{mitra.revenue}</p>
+                    <p class="text-label-xs text-on-surface-variant">⭐ {mitra.rating}</p>
+                </div>
+            </div>
+        ))}
+    </div>
+</div>

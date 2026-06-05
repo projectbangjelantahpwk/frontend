@@ -1,0 +1,122 @@
+---
+// components/dashboard/KPICard.astro
+
+// 1. Data Konfigurasi Card ditaruh di sini
+const kpiCards = [
+    {
+        id: 'minyak_jelantah',
+        title: 'Minyak Jelantah',
+        icon: 'oil_barrel',
+        gradient: 'from-primary-container to-primary-container/70',
+        border: 'border-primary/20',
+        text: 'text-on-primary-container'
+    },
+    {
+        id: 'ampas',
+        title: 'Ampas',
+        icon: 'compost',
+        gradient: 'from-secondary-container to-secondary-container/70',
+        border: 'border-secondary/20',
+        text: 'text-on-secondary-container'
+    },
+    {
+        id: 'kriuk',
+        title: 'Kriuk',
+        icon: 'grain',
+        gradient: 'from-tertiary-container to-tertiary-container/70',
+        border: 'border-tertiary/20',
+        text: 'text-on-tertiary-container'
+    },
+    {
+        id: 'spinner',
+        title: 'Spinner',
+        icon: 'settings',
+        gradient: 'from-error-container to-error-container/70',
+        border: 'border-error/20',
+        text: 'text-on-error-container'
+    },
+    {
+        id: 'tepung',
+        title: 'Tepung',
+        icon: 'bakery_dining',
+        gradient: 'from-success-container to-success-container/70',
+        border: 'border-success/20',
+        text: 'text-on-success-container'
+    }
+];
+---
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-md">
+    {kpiCards.map((card) => (
+        <div class={`bg-gradient-to-br ${card.gradient} rounded-2xl p-lg border ${card.border} shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group`}>
+            <div class="absolute -right-6 -top-6 w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:scale-110 transition-transform"></div>
+            <div class="relative z-10">
+                <div class="flex items-center justify-between mb-md">
+                    <span class={`font-label-lg ${card.text} opacity-90`}>{card.title}</span>
+                    <div class="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                        <span class={`material-symbols-outlined text-2xl ${card.text}`}>{card.icon}</span>
+                    </div>
+                </div>
+                
+                <p class={`font-display-data text-display-data ${card.text}`}>
+                    <span id={`stok-${card.id}`}>...</span> <span class="text-headline-sm font-medium opacity-80">KG</span>
+                </p>
+                
+                <p class={`text-label-sm ${card.text}/70 mt-sm`} id={`mutasi-${card.id}`}>
+                    Loading mutasi...
+                </p>
+            </div>
+        </div>
+    ))}
+</div>
+
+<script>
+    import { supabase } from '../../lib/supabase'; // Pastikan path ke supabase udah bener
+
+    const komoditasIds = ['minyak_jelantah', 'ampas', 'kriuk', 'spinner', 'tepung'];
+
+    async function fetchRealtimeDashboard() {
+        try {
+            // Ambil stok semua komoditas
+            const { data: komoditasData, error: errStok } = await supabase
+                .from('gudang_komoditas')
+                .select('id, stok');
+
+            if (!errStok && komoditasData) {
+                komoditasData.forEach(item => {
+                    const el = document.getElementById(`stok-${item.id}`);
+                    if (el) el.textContent = item.stok.toLocaleString('id-ID');
+                });
+            }
+
+            // Fungsi tarik mutasi tunggal
+            const fetchMutasi = async (id) => {
+                const { data, error } = await supabase
+                    .from('gudang_mutasi')
+                    .select('volume, jenis_mutasi')
+                    .eq('komoditas_id', id)
+                    .order('id', { ascending: false })
+                    .limit(1)
+                    .single();
+
+                const el = document.getElementById(`mutasi-${id}`);
+                if (el) {
+                    if (!error && data) {
+                        el.textContent = `Mutasi: ${data.volume} KG (${data.jenis_mutasi})`;
+                    } else {
+                        el.textContent = 'Belum ada mutasi';
+                    }
+                }
+            };
+
+            // Jalankan fetching mutasi paralel
+            await Promise.all(komoditasIds.map(id => fetchMutasi(id)));
+
+        } catch (error) {
+            console.error('Error fetching dashboard data:', error);
+        }
+    }
+
+    // Trigger script saat halaman dimuat
+    document.addEventListener('DOMContentLoaded', fetchRealtimeDashboard);
+</script>

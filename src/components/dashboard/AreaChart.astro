@@ -1,0 +1,58 @@
+---
+// components/dashboard/AreaChart.astro
+interface Props {
+  title: string;
+  subtitle: string;
+  canvasId: string; // ID unik biar Canvas gak bentrok
+  showToggle?: boolean; // True kalau mau pake tombol Harian/Mingguan
+  buttonLabel?: string;
+  totalLabel?: string;
+  totalValue?: string;
+}
+
+const { 
+  title, 
+  subtitle, 
+  canvasId, 
+  showToggle = false, 
+  buttonLabel = "Hari Ini", 
+  totalLabel, 
+  totalValue 
+} = Astro.props;
+---
+
+<div class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow">
+    <div class="flex justify-between items-center mb-lg">
+        <div>
+            <h3 class="font-headline-md text-on-surface">{title}</h3>
+            <p class="text-label-sm text-on-surface-variant mt-1">{subtitle}</p>
+        </div>
+        
+        {showToggle ? (
+            <div class="flex bg-surface-variant/30 rounded-lg p-1">
+                <button id={`btn-harian-${canvasId}`} class="px-md py-xs rounded-md text-label-md font-medium bg-white shadow-sm text-on-surface transition-all duration-300">
+                    Harian
+                </button>
+                <button id={`btn-mingguan-${canvasId}`} class="px-md py-xs rounded-md text-label-md font-medium text-on-surface-variant hover:text-on-surface transition-all duration-300">
+                    Mingguan
+                </button>
+            </div>
+        ) : (
+            <button class="flex items-center gap-xs text-primary font-label-md hover:bg-primary/10 px-sm py-xs rounded-lg transition-colors">
+                <span>{buttonLabel}</span>
+                <span class="material-symbols-outlined text-lg">expand_more</span>
+            </button>
+        )}
+    </div>
+    
+    <div class="w-full h-80 relative">
+        <canvas id={canvasId}></canvas>
+    </div>
+    
+    {totalLabel && (
+        <div class="mt-lg pt-md border-t border-outline-variant flex justify-between items-center">
+            <span class="text-label-md text-on-surface-variant font-medium">{totalLabel}</span>
+            <span id={`total-${canvasId}`} class="text-headline-sm text-on-surface font-bold">{totalValue}</span>
+        </div>
+    )}
+</div>

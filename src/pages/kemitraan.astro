@@ -178,7 +178,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             <select id="filter-bank" onchange="window.applySearchMitra()" class="h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-sm outline-none focus:border-primary">
                 <option value="">Semua Bank</option>
             </select>
-            <button onclick="window.openModal('modal-tambah-rekening')" class="bg-primary text-on-primary px-4 py-2 rounded-full font-label-lg flex items-center gap-2 shadow-sm hover:bg-surface-tint transition-colors">
+            <!-- Sebelumnya: onclick="window.openModal('modal-tambah-rekening')" -->
+            <button onclick="window.bukaModalTambahRekening()" class="bg-primary text-on-primary px-4 py-2 rounded-full font-label-lg flex items-center gap-2 shadow-sm hover:bg-surface-tint hover:shadow-md hover:-translate-y-0.5 transition-all active:translate-y-0">
                 <span class="material-symbols-outlined text-[20px]">add</span> Tambah
             </button>
         </div>
@@ -1474,9 +1475,12 @@ window.allRekening = [];
 async function loadDataRekening() {
     const { data: rekData, error } = await window.supabase
         .from('rek_mitra')
-        .select(`id, mitra_id, atas_nama, nama_bank, no_rek, mitra(id, nama_mitra)`);
+        .select(`id, mitra_id, atas_nama, nama_bank, no_rek, mitra!mitra_id(id, nama_mitra)`);
     
-    if (error) return console.error("Gagal load rekening:", error);
+    if (error) {
+        alert("Error Supabase: " + error.message);
+        return console.error("Detail Error:", error.message, error.hint, error.details);
+    }
     window.allRekening = rekData || [];
 
     let htmlMob = '', htmlTab = '';
@@ -1487,7 +1491,7 @@ async function loadDataRekening() {
             
             // Render Mobile
             htmlMob += `
-            <div class="rekening-item bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm" data-bank="${r.nama_bank.toLowerCase()}">
+            <div class="rekening-item bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm" data-bank="${(r.nama_bank || '').toLowerCase()}">
                 <div class="border-b border-outline-variant pb-sm flex justify-between">
                     <p class="font-headline-md text-on-surface font-semibold">${namaMitra}</p>
                     <span class="px-2 py-1 bg-primary-container text-on-primary-container rounded text-xs font-bold">${r.nama_bank}</span>
@@ -1556,7 +1560,7 @@ window.renderDropdownMitra = function(keyword = '') {
     if (!dropdownMitra || !window.allMitraLangganan) return;
     
     const filtered = window.allMitraLangganan.filter(m => 
-        m.nama_mitra.toLowerCase().includes(keyword.toLowerCase())
+        (m.nama_mitra || '').toLowerCase().includes(keyword.toLowerCase())
     );
     
     if (filtered.length === 0) {
@@ -1600,14 +1604,17 @@ document.addEventListener('click', (e) => {
 });
 
 // Update reset form di fungsi openModal lama lu biar input pencarian ikut bersih
-const originalOpenModalRekening = window.openModal;
-window.openModal = function(id) {
-    originalOpenModalRekening(id);
-    if(id === 'modal-tambah-rekening') {
-        document.getElementById('form-tambah-rekening').reset();
-        if(inputMitraId) inputMitraId.value = '';
-        if(dropdownMitra) dropdownMitra.classList.add('hidden');
-    }
+window.bukaModalTambahRekening = function() {
+    // 1. Reset Form & State
+    document.getElementById('form-tambah-rekening').reset();
+    const inputMitraId = document.getElementById('input_mitra_id_rekening');
+    const dropdownMitra = document.getElementById('dropdown_mitra_rekening');
+    
+    if (inputMitraId) inputMitraId.value = '';
+    if (dropdownMitra) dropdownMitra.classList.add('hidden');
+    
+    // 2. Panggil fungsi modal bawaan
+    window.openModal('modal-tambah-rekening');
 };
 
 // ==========================================

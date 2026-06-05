@@ -1,0 +1,45 @@
+---
+// components/dashboard/BestEmployees.astro
+interface Employee {
+  category: string;
+  icon: string;
+  iconBgColor: string;
+  iconColor: string;
+  name: string;
+  description: string;
+  percentage: string;
+  percentageColor: string;
+  borderColor: string;
+}
+
+interface Props {
+  employees: Employee[];
+}
+
+const { employees } = Astro.props;
+---
+<div class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow">
+    <h3 class="font-headline-md text-on-surface mb-lg">⭐ Karyawan Terbaik</h3>
+    
+    <div class="space-y-lg">
+        {employees.map(emp => (
+            <div class="space-y-md">
+                <div class="flex items-center gap-sm">
+                    <div class={`w-8 h-8 rounded-full ${emp.iconBgColor} flex items-center justify-center`}>
+                        <span class={`material-symbols-outlined text-${emp.iconColor} text-lg`}>{emp.icon}</span>
+                    </div>
+                    <h4 class="font-semibold text-on-surface">{emp.category}</h4>
+                </div>
+                <div class="ml-10">
+                    <div class={`flex items-center justify-between p-md bg-${emp.percentageColor}/5 rounded-lg border border-${emp.borderColor}`}>
+                        <div>
+                            <p class="font-semibold text-on-surface">{emp.name}</p>
+                            <p class="text-label-sm text-on-surface-variant">{emp.description}</p>
+                        </div>
+                        <p class={`text-headline-sm font-bold text-${emp.percentageColor}`}>{emp.percentage}</p>
+                    </div>
+                </div>
+            </div>
+        ))}
+    </div>
+</div>

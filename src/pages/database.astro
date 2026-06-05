@@ -6,6 +6,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 const menuTabs = [
   { id: 'mitra', label: 'Mitra', icon: 'bi-person-lines-fill' },
   { id: 'gudang', label: 'Gudang Komoditas', icon: 'bi-box-seam' },
+  { id: 'stock_harian', label: 'Stok Gudang Harian', icon: 'bi-clipboard-data' },
   { id: 'pembelian', label: 'Pembelian Barang', icon: 'bi-cart-plus' },
   { id: 'penjualan', label: 'Penjualan Barang', icon: 'bi-bag-check' },
   { id: 'pengeluaran', label: 'Pengeluaran Harian', icon: 'bi-wallet2' }
@@ -121,7 +122,33 @@ const statusBadgeColors = {
       </div>
     </div>
   </div>
-
+  <!-- ========================================
+       TABEL Stock GUdang Harian
+       ======================================== -->
+<div id="stock_harian-tab" class="tab-content hidden">
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-200">
+              <th class="px-4 py-3 text-left font-bold text-gray-900">Tanggal</th>
+              <th class="px-4 py-3 text-left font-bold text-gray-900">Sumber</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Minyak (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Ampas (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Kriuk (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Spinner (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Tepung (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Total (kg)</th>
+              <th class="px-4 py-3 text-left font-bold text-gray-900">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tabelStockHarian">
+            <tr><td colspan="9" class="text-center py-4 text-gray-500">Memuat data stok harian...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
   <!-- ========================================
        TABEL PEMBELIAN BARANG
        ======================================== -->
@@ -222,6 +249,7 @@ const statusBadgeColors = {
         <select id="importTableSelect" class="w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-blue-700">
           <option value="">-- Pilih Tabel --</option>
           <option value="mitra">Mitra</option>
+          <option value="stock_gudang_harian">Stok Gudang Harian</option>
           <option value="pembelian_barang_harian">Pembelian Barang</option>
           <option value="penjualan_barang_harian">Penjualan Barang</option>
           <option value="pengeluaran_harian">Pengeluaran Harian</option>
@@ -320,6 +348,7 @@ const statusBadgeColors = {
         // Load data untuk tab yang dipilih
         if(tabId === 'mitra') loadMitra();
         else if(tabId === 'gudang') loadGudang();
+        else if(tabId === 'stock_harian') loadStockHarian();
         else if(tabId === 'pembelian') loadPembelian();
         else if(tabId === 'penjualan') loadPenjualan();
         else if(tabId === 'pengeluaran') loadPengeluaran();
@@ -417,6 +446,104 @@ const statusBadgeColors = {
           editGudang(id);
         });
       });
+    }
+    // ===== LOAD DATA STOCK GUDANG HARIAN =====
+    // ===== LOAD DATA STOK HARIAN =====
+    async function loadStockHarian() {
+      const { data, error } = await supabase.from('stock_gudang_harian').select('*').order('tanggal', { ascending: false });
+      if(error) {
+        document.getElementById('tabelStockHarian').innerHTML = '<tr><td colspan="9" class="text-center py-4 text-red-500 font-bold">Gagal memuat data!</td></tr>';
+        return;
+      }
+      let html = '';
+      data.forEach(item => {
+        html += `
+          <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+            <td class="px-4 py-3 font-medium text-gray-900">${item.tanggal}</td>
+            <td class="px-4 py-3 text-gray-700">${item.sumber || '-'}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.minyak_jelantah || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.ampas || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.kriuk || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.spinner || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.tepung || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-bold text-blue-600">${parseFloat(item.total_kg || 0).toFixed(2)}</td>
+            <td class="px-4 py-3">
+              <div class="flex gap-2">
+                <button class="edit-stock-btn px-3 py-1 text-blue-600 hover:bg-blue-50 border border-blue-200 rounded text-sm font-medium" data-id="${item.id}">
+                  <i class="bi bi-pencil mr-1"></i>Edit
+                </button>
+                <button onclick="window.hapusData('stock_gudang_harian', ${item.id}, '${item.tanggal}')" class="px-3 py-1 text-red-600 hover:bg-red-50 border border-red-200 rounded text-sm font-medium">
+                  <i class="bi bi-trash mr-1"></i>Hapus
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      document.getElementById('tabelStockHarian').innerHTML = html || '<tr><td colspan="9" class="text-center py-4 text-gray-500">Tidak ada data stok harian</td></tr>';
+      document.querySelectorAll('.edit-stock-btn').forEach(btn => {
+        btn.addEventListener('click', function() { editStockHarian(this.getAttribute('data-id')); });
+      });
+    }
+
+    // ===== EDIT STOK HARIAN =====
+    async function editStockHarian(id) {
+      const { data, error } = await supabase.from('stock_gudang_harian').select('*').eq('id', id).single();
+      if(error) return alert('Gagal memuat data');
+      document.getElementById('currentTab').value = 'stock_harian';
+      document.getElementById('editId').value = id;
+      document.getElementById('modalTitle').textContent = 'Edit Stok Gudang Harian';
+      renderStockHarianForm(data);
+      openModal();
+    }
+
+    // ===== RENDER FORM STOK HARIAN =====
+    function renderStockHarianForm(data = null) {
+      const container = document.getElementById('formFieldsContainer');
+      container.innerHTML = `
+        <div class="space-y-4">
+          <h3 class="text-sm font-bold text-gray-900 border-b pb-2">Data Stok Gudang Harian</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Tanggal</label>
+              <input type="date" name="tanggal" value="${data?.tanggal || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700" required />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Sumber</label>
+              <input type="text" name="sumber" value="${data?.sumber || ''}" placeholder="Asal/sumber stok" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700" required />
+            </div>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h4 class="text-sm font-bold text-gray-900 mb-3">Kuantitas (kg)</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Minyak Jelantah</label>
+                <input type="number" step="0.01" name="minyak_jelantah" value="${data?.minyak_jelantah || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Ampas</label>
+                <input type="number" step="0.01" name="ampas" value="${data?.ampas || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Kriuk</label>
+                <input type="number" step="0.01" name="kriuk" value="${data?.kriuk || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Spinner</label>
+                <input type="number" step="0.01" name="spinner" value="${data?.spinner || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Tepung</label>
+                <input type="number" step="0.01" name="tepung" value="${data?.tepung || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1 text-blue-700">Total Keseluruhan Kg</label>
+                <input type="number" step="0.01" name="total_kg" value="${data?.total_kg || 0}" class="w-full px-4 py-2 border border-blue-300 bg-blue-50 rounded-lg outline-none focus:border-blue-700 font-bold text-blue-700" />
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
     }
 
     // ===== LOAD DATA PEMBELIAN =====
@@ -938,6 +1065,9 @@ const statusBadgeColors = {
       } else if(tabName === 'gudang') {
         document.getElementById('modalTitle').textContent = 'Saya tidak bisa menambah gudang (data fixed)';
         return alert('Gudang Komoditas sudah di-set otomatis. Hanya bisa mengedit stok!');
+      } else if(tabName === 'stock_harian') {
+        document.getElementById('modalTitle').textContent = 'Tambah Stok Gudang Harian';
+        renderStockHarianForm();
       } else if(tabName === 'pembelian') {
         document.getElementById('modalTitle').textContent = 'Tambah Pembelian Barang';
         renderPembelianForm();
@@ -981,11 +1111,18 @@ const statusBadgeColors = {
           data.activated = document.querySelector('input[name="activated"]')?.checked || false;
         }
 
+        let targetTable = currentTab === 'mitra' ? 'mitra' :
+                          currentTab === 'gudang' ? 'gudang_komoditas' :
+                          currentTab === 'stock_harian' ? 'stock_gudang_harian' :
+                          currentTab === 'pembelian' ? 'pembelian_barang_harian' :
+                          currentTab === 'penjualan' ? 'penjualan_barang_harian' :
+                          currentTab === 'pengeluaran' ? 'pengeluaran_harian' :'';
+
         let result;
         if(editId) {
-          result = await supabase.from(currentTab === 'pembelian' ? 'pembelian_barang_harian' : currentTab === 'penjualan' ? 'penjualan_barang_harian' : currentTab === 'pengeluaran' ? 'pengeluaran_harian' : currentTab === 'gudang' ? 'gudang_komoditas' : 'mitra').update(data).eq('id', editId);
+          result = await supabase.from(targetTable).update(data).eq('id', editId);
         } else {
-          result = await supabase.from(currentTab === 'pembelian' ? 'pembelian_barang_harian' : currentTab === 'penjualan' ? 'penjualan_barang_harian' : currentTab === 'pengeluaran' ? 'pengeluaran_harian' : 'mitra').insert([data]);
+          result = await supabase.from(targetTable).insert([data]);
         }
 
         if(result.error) throw result.error;
@@ -995,6 +1132,7 @@ const statusBadgeColors = {
         
         if(currentTab === 'mitra') loadMitra();
         else if(currentTab === 'gudang') loadGudang();
+        else if(currentTab === 'stock_harian') loadStockHarian();
         else if(currentTab === 'pembelian') loadPembelian();
         else if(currentTab === 'penjualan') loadPenjualan();
         else if(currentTab === 'pengeluaran') loadPengeluaran();
@@ -1018,6 +1156,7 @@ const statusBadgeColors = {
         alert('Data berhasil dihapus!');
         
         if(table === 'mitra') loadMitra();
+        else if(table === 'stock_gudang_harian') loadStockHarian();
         else if(table === 'pembelian_barang_harian') loadPembelian();
         else if(table === 'penjualan_barang_harian') loadPenjualan();
         else if(table === 'pengeluaran_harian') loadPengeluaran();
@@ -1161,6 +1300,17 @@ const statusBadgeColors = {
               total_transaksi: row['Total Transaksi'] || 0,
               activated: true
             };
+          } else if (tableName === 'stock_gudang_harian') {
+             mappedRow = {
+              tanggal: row['Tanggal'] || new Date().toISOString().split('T')[0],
+              sumber: row['Sumber'] || '-',
+              minyak_jelantah: parseFloat(row['Minyak Jelantah']) || 0,
+              ampas: parseFloat(row['Ampas']) || 0,
+              kriuk: parseFloat(row['Kriuk']) || 0,
+              spinner: parseFloat(row['Spinner']) || 0,
+              tepung: parseFloat(row['Tepung']) || 0,
+              total_kg: parseFloat(row['Total Kg']) || 0
+            };
           } else if (tableName === 'pembelian_barang_harian') {
              mappedRow = {
               tanggal: row['Tanggal'] || new Date().toISOString().split('T')[0],
@@ -1269,6 +1419,13 @@ const statusBadgeColors = {
             window.XLSX.utils.book_append_sheet(workbook, mitraSheet, 'Mitra');
             fileName = `Template_Mitra_${new Date().toISOString().split('T')[0]}.xlsx`;
         } 
+        else if (currentTab === 'stock_harian') {
+            const stockTemplate = [{ 'Tanggal': '2026-01-01', 'Sumber': '', 'Minyak Jelantah': 0, 'Ampas': 0, 'Kriuk': 0, 'Spinner': 0, 'Tepung': 0, 'Total Kg': 0 }];
+            const stockSheet = window.XLSX.utils.json_to_sheet(stockTemplate);
+            stockSheet['!cols'] = [{ wch: 12 }, { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
+            window.XLSX.utils.book_append_sheet(workbook, stockSheet, 'Stok_Harian');
+            fileName = `Template_Stok_Harian_${new Date().toISOString().split('T')[0]}.xlsx`;
+        }
         else if (currentTab === 'pembelian') {
             const pembelianTemplate = [{ 'Tanggal': '2026-01-01', 'Sumber': '', 'Minyak Jelantah': 0, 'Ampas': 0, 'Kriuk': 0, 'Spinner': 0, 'Tepung': 0, 'Total Harian': 0 }];
             const pembelianSheet = window.XLSX.utils.json_to_sheet(pembelianTemplate);
@@ -1307,10 +1464,8 @@ const statusBadgeColors = {
       }
     });
 
-    
-
     // Load initial data
     loadMitra();
-
+    
   });
 </script>

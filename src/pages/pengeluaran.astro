@@ -130,7 +130,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
 <script is:inline>
   const masterKategoriOps = ['Bensin', 'Parkir', 'Uang Makan', 'Uang Jalan', 'E-Toll', 'Admin', 'Bongkar', 'Satpam', 'Service', 'Listrik', 'Karung', 'Plastik', 'Jasa Spinner', 'Lain-lain'];
-
+  
   document.addEventListener('DOMContentLoaded', async () => {
       // === 🛡️ GATEKEEPER KEUANGAN ===
       const allowedRoles = ['owner', 'hrd', 'keuangan', 'admin'];
@@ -156,27 +156,61 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             const { data: pengeluaran } = await window.supabase.from('pengeluaran')
                 .select('*, profiles(nama), rincian_pengeluaran(*)')
                 .order('tanggal', { ascending: false });
-
+                
             const tbodyPengeluaran = document.getElementById('pengeluaran-tbody');
             let htmlPeng = '';
             
             pengeluaran?.forEach(p => {
                 let rincianHtml = '';
+                let totalNombokHarian = 0; // 🔥 VARIABEL BARU: Khusus nampung angka nombok
+
                 p.rincian_pengeluaran?.forEach(r => {
                     const btnHapus = p.status_approval === 'Menunggu' 
-                        ? `<button onclick="window.hapusItemPengeluaran('${r.id}', '${p.id}', ${r.nominal}, ${p.total_harian})" class="text-red-500 hover:text-red-700 ml-2" title="Hapus Item ini"><i class="bi bi-trash"></i></button>` 
+                        ? `<button onclick="window.hapusItemPengeluaran('${r.id}')" class="text-red-500 hover:text-red-700 ml-2" title="Hapus Item ini"><i class="bi bi-trash"></i></button>` 
                         : '';
 
                     const ketHtml = r.keterangan ? `<span class="text-[10px] text-gray-500 italic ml-2 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">${r.keterangan}</span>` : '';
                     
+                    // --- 🎨 LOGIKA WARNA UI ---
+                    let textColor = 'text-gray-600';
+                    let nominalColor = 'text-gray-800';
+                    let badgeStatus = '';
+
+                    if (r.nama_item === 'Uang Jalan') {
+                        // 1. Khusus Uang Jalan: Selalu Hitam
+                        textColor = 'text-black font-black';
+                        nominalColor = 'text-black font-black';
+                    } else if (r.nama_item.startsWith('Kekurangan-') && r.keterangan_bayar === false) {
+                        // 2. Baris Pecahan (Utang) yang MASIH FALSE / Belum dibayar (Merah)
+                        textColor = 'text-red-600 font-bold';
+                        nominalColor = 'text-red-700 font-bold';
+                        badgeStatus = `<span class="text-[9px] font-bold text-red-700 bg-red-50 px-1.5 py-0.5 rounded border border-red-200 ml-2"><i class="bi bi-exclamation-circle"></i> SISA NOMBOK</span>`;
+                    } else if (r.keterangan_bayar === false) {
+                        // 3. Item Biasa yang MASIH FALSE / Belum dibayar (Biru)
+                        textColor = 'text-blue-600 font-bold';
+                        nominalColor = 'text-blue-700 font-bold';
+                        badgeStatus = `<span class="text-[9px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 ml-2">NOMBOK</span>`;
+                    } else {
+                        // 4. SUDAH TERCOVER (TRUE) -> Berlaku buat item biasa & Kekurangan yang udah lunas (Hijau)
+                        textColor = 'text-gray-500';
+                        nominalColor = 'text-green-700 font-bold';
+                        badgeStatus = `<span class="text-[9px] font-bold text-green-700 bg-green-50 px-1.5 py-0.5 rounded border border-green-200 ml-2">TERCOVER</span>`;
+                    }
+
+                    // 🔥 NGITUNG TOTAL NOMBOK DI FRONTEND (Cuma yang false)
+                    if (r.keterangan_bayar === false) {
+                        totalNombokHarian += Number(r.nominal);
+                    }
+                    
                     rincianHtml += `
-                    <div class="flex justify-between items-center text-gray-600 mb-1 border-b border-dashed border-gray-100 pb-1">
+                    <div class="flex justify-between items-center ${textColor} mb-1 border-b border-dashed border-gray-100 pb-1">
                         <div class="flex items-center flex-1">
-                            <span class="font-medium whitespace-nowrap">- ${r.nama_item}</span>
+                            <span class="whitespace-nowrap">- ${r.nama_item}</span>
                             ${ketHtml}
+                            ${badgeStatus}
                         </div>
                         <div class="flex items-center shrink-0">
-                            <span class="font-bold">Rp ${Number(r.nominal).toLocaleString('id-ID')}</span>
+                            <span class="${nominalColor}">Rp ${Number(r.nominal).toLocaleString('id-ID')}</span>
                             ${btnHapus}
                         </div>
                     </div>`;
@@ -205,15 +239,20 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     </td>
                     <td class="px-6 py-4 text-sm align-top">
                         <div class="space-y-1 mb-2">${rincianHtml}</div>
-                        <div class="border-t border-gray-200 pt-2 font-bold text-gray-900 flex justify-between bg-gray-50 px-3 py-2 rounded-lg border">
-                            <span>Total Keseluruhan:</span> <span class="text-green-700">Rp ${Number(p.total_harian).toLocaleString('id-ID')}</span>
+                        
+                        <div class="flex flex-col gap-1 border-t border-gray-200 pt-2">
+                            <div class="flex justify-between bg-gray-50 px-3 py-1.5 rounded-lg border font-medium text-xs text-gray-700">
+                                <span>Total Nilai Nota:</span> <span>Rp ${Number(p.total_harian).toLocaleString('id-ID')}</span>
+                            </div>
+                            <div class="flex justify-between bg-red-50 px-3 py-2 rounded-lg border border-red-200 font-bold text-sm text-gray-900">
+                                <span>Tagihan Harus Diganti:</span> <span class="text-red-600">Rp ${totalNombokHarian.toLocaleString('id-ID')}</span>
+                            </div>
                         </div>
                     </td>
                     <td class="px-6 py-4 text-sm text-center align-top w-32">${statusBtn}</td>
                 </tr>`;
             });
             
-            // Jangan lupa ubah colspan di pesan kosong ini jadi 4
             tbodyPengeluaran.innerHTML = htmlPeng || '<tr><td colspan="4" class="text-center py-4 text-gray-500 italic">Data pengeluaran kosong</td></tr>';
         } catch (error) {
             console.error("Gagal load data pengeluaran:", error);
@@ -223,7 +262,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
     await loadDataPengeluaran();
 
     // ==========================================
-    // MODAL UTILS
+    // MODAL UTILS & FILTER
     // ==========================================
     window.openModal = function(id) {
         const m = document.getElementById(id);
@@ -237,14 +276,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
     }
 
-    // ==========================================
-    // FILTER TANGGAL
-    // ==========================================
     window.filterTabelPengeluaran = function() {
         const start = document.getElementById('filter-start-pengeluaran').value;
         const end = document.getElementById('filter-end-pengeluaran').value;
         if(!start || !end) return alert("Pilih tanggal awal dan akhir!");
-        
         document.querySelectorAll('#tabel-pengeluaran tbody tr').forEach(tr => {
             const date = tr.getAttribute('data-date');
             if(date) tr.style.display = (date >= start && date <= end) ? '' : 'none';
@@ -252,7 +287,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
     };
 
     // ==========================================
-    // APPROVAL & HAPUS
+    // APPROVAL & HAPUS (Refactored)
     // ==========================================
     window.approvePengeluaran = async function(id, statusText) {
         if(!confirm(`Yakin ingin mengubah status menjadi ${statusText}?`)) return;
@@ -263,34 +298,27 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         } catch (err) { alert(err.message); }
     };
 
-    window.hapusItemPengeluaran = async function(rincianId, pengeluaranId, nominalItem, totalSekarang) {
-        if(!confirm('Hapus rincian ini?\n\nTotal pengeluaran harian akan otomatis dikurangi oleh sistem.')) return;
+    // Cukup tembak id rincian, sisanya Trigger DB yang hitung dan hapus induknya!
+    window.hapusItemPengeluaran = async function(rincianId) {
+        if(!confirm('Hapus rincian ini?\n\nSistem akan menghitung ulang saldo dan tagihan otomatis.')) return;
         if(!window.supabase) return;
         try {
             const { error: errHapus } = await window.supabase.from('rincian_pengeluaran').delete().eq('id', rincianId);
             if(errHapus) throw errHapus;
-
-            const totalBaru = totalSekarang - nominalItem;
-            if (totalBaru <= 0) {
-                await window.supabase.from('pengeluaran').delete().eq('id', pengeluaranId);
-                alert('Item terakhir dihapus! Data pengeluaran otomatis dibatalkan.');
-            } else {
-                const { error: errUpdate } = await window.supabase.from('pengeluaran').update({ total_harian: totalBaru }).eq('id', pengeluaranId);
-                if(errUpdate) throw errUpdate;
-                alert('Mantap! Item dihapus & Total pengeluaran otomatis disesuaikan.');
-            }
+            
+            alert('Mantap! Item dihapus & sistem berhasil menghitung ulang.');
             window.location.reload();
         } catch(err) { alert('Gagal menghapus item: ' + err.message); }
     };
 
     // ==========================================
-    // EDIT PENGELUARAN
+    // EDIT PENGELUARAN (Refactored)
     // ==========================================
     window.bukaModalEditPengeluaran = async function(id) {
         if(!window.supabase) return;
         const { data: p, error } = await window.supabase.from('pengeluaran').select('*, rincian_pengeluaran(*)').eq('id', id).single();
         if(error || !p) return alert("Waduh, data pengeluaran gagal diambil!");
-
+        
         document.getElementById('edit_peng_id').value = p.id;
         document.getElementById('edit_peng_tgl').value = p.tanggal;
 
@@ -346,6 +374,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         }
     };
 
+    // Ini cuma buat visual UI doang biar user liat angkanya (tidak dikirim ke DB)
     window.hitungTotalEditPeng = function() {
         let grandTotal = 0;
         document.querySelectorAll('.peng_item_nominal').forEach(input => {
@@ -362,10 +391,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         const tanggalBaru = document.getElementById('edit_peng_tgl').value;
         const btnSave = document.getElementById('btn-save-peng');
 
-        btnSave.innerText = "Menyimpan Data..."; btnSave.disabled = true;
+        btnSave.innerText = "Menyimpan Data...";
+        btnSave.disabled = true;
 
         try {
-            let kalkulasiTotalHarian = 0;
             const itemRows = document.querySelectorAll('.peng-item-row');
             const batchPromises = [];
 
@@ -374,24 +403,22 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 const kategoriTerpilih = row.querySelector('.peng_item_select').value;
                 const nominalBaru = parseFloat(row.querySelector('.peng_item_nominal').value) || 0;
                 const teksCustom = row.querySelector('.peng_item_custom').value.trim();
-
-                let finalNamaItem = kategoriTerpilih === 'Lain-lain' ? (teksCustom || 'Lain-lain') : kategoriTerpilih;
-                kalkulasiTotalHarian += nominalBaru;
-                
-                // 🌟 TAMBAHAN: TANGKAP VALUE KETERANGAN 🌟
                 const keteranganBaru = row.querySelector('.edit_item_keterangan').value.trim();
 
+                let finalNamaItem = kategoriTerpilih === 'Lain-lain' ? (teksCustom || 'Lain-lain') : kategoriTerpilih;
+                
+                // Update rinciannya saja, sisanya Trigger DB yang atur totalnya
                 const task = window.supabase.from('rincian_pengeluaran').update({
                     nama_item: finalNamaItem,
                     nominal: nominalBaru,
-                    keterangan: keteranganBaru || null // MASUKKAN KE UPDATE SUPABASE
+                    keterangan: keteranganBaru || null
                 }).eq('id', rincianId);
-                
                 batchPromises.push(task);
             });
 
+            // Hanya update tanggal di tabel induk
             const { error: errInduk } = await window.supabase.from('pengeluaran').update({
-                tanggal: tanggalBaru, total_harian: kalkulasiTotalHarian
+                tanggal: tanggalBaru
             }).eq('id', idInduk);
             
             if(errInduk) throw errInduk;
@@ -400,9 +427,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 await Promise.all(batchPromises);
             }
 
-            alert("Mantap! Seluruh data transaksi operasional berhasil dikoreksi.");
+            alert("Mantap! Data rincian dikoreksi dan total disesuaikan server.");
             window.location.reload();
-
         } catch(err) {
             console.error(err);
             alert("Gagal memperbarui pengeluaran: " + err.message);
@@ -411,7 +437,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
     };
 
     // ==========================================
-    // TAMBAH PENGELUARAN
+    // TAMBAH PENGELUARAN (Refactored)
     // ==========================================
     window.bukaModalTambahPengeluaran = async function() {
         if(!window.supabase) return;
@@ -429,7 +455,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 .select('id, nama')
                 .or(`role.eq.lapangan,role.eq.Lapangan,id.eq.${currentUserId}`)
                 .order('nama');
-
+                
             if(error) throw error;
 
             let optHtml = '<option value="">-- Pilih Akun Karyawan --</option>';
@@ -450,7 +476,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         const rowHtml = document.createElement('div');
         rowHtml.className = "add-item-row p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2 relative";
         rowHtml.innerHTML = `
-            <button type="button" onclick="this.closest('.add-item-row').remove(); window.hitungTotalTambahPeng();" class="absolute top-1 right-2 text-gray-400 hover:text-red-600 text-sm"><i class="bi bi-trash"></i></button>
+            <button type="button" onclick="this.closest('.add-item-row').remove(); window.hitungTotalTambahPeng();"
+            class="absolute top-1 right-2 text-gray-400 hover:text-red-600 text-sm"><i class="bi bi-trash"></i></button>
             <div class="grid grid-cols-2 gap-2 pr-4">
                 <div>
                     <label class="text-[10px] font-bold text-gray-500 uppercase">Kategori</label>
@@ -490,6 +517,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         }
     };
 
+    // Tetap ada untuk UI aja (user lihat total sebelum submit)
     window.hitungTotalTambahPeng = function() {
         let total = 0;
         document.querySelectorAll('.add_item_nominal').forEach(input => {
@@ -510,10 +538,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         if(!userId) return alert('Pilih nama karyawannya dulu!');
         if(itemRows.length === 0) return alert('Tambahkan rincian item-nya minimal satu baris!');
         
-        btnSubmit.innerText = "Memproses Pengeluaran..."; btnSubmit.disabled = true;
+        btnSubmit.innerText = "Memproses Pengeluaran...";
+        btnSubmit.disabled = true;
 
         try {
-            let totalBaruHarian = 0;
             const rincianItems = [];
 
             itemRows.forEach(row => {
@@ -521,14 +549,15 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 const nominal = parseFloat(row.querySelector('.add_item_nominal').value) || 0;
                 const keterangan = row.querySelector('.add_item_keterangan').value.trim();
 
-                totalBaruHarian += nominal;
-                rincianItems.push({ nama_item: kategori, nominal: nominal, keterangan: keterangan || null });
+                rincianItems.push({ 
+                    nama_item: kategori, nominal: nominal, keterangan: keterangan || null 
+                });
             });
 
             // LANGKAH A: Cek ketersediaan induk data harian
             const { data: existing, error: errCheck } = await window.supabase
                 .from('pengeluaran')
-                .select('id, total_harian')
+                .select('id')
                 .eq('user_id', userId)
                 .eq('tanggal', tanggalStr)
                 .maybeSingle();
@@ -537,20 +566,19 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
             let pengeluaranId;
             if (existing) {
+                // Kalau ada, ID nya langsung diambil
                 pengeluaranId = existing.id;
-                const { error: errUpdate } = await window.supabase.from('pengeluaran')
-                    .update({ total_harian: (existing.total_harian || 0) + totalBaruHarian })
-                    .eq('id', pengeluaranId);
-                if(errUpdate) throw errUpdate;
             } else {
+                // Kalau belum ada, bikin baru dengan total_harian default 0
+                // (Otomatis akan naik angkanya setelah array rincian diinsert)
                 const { data: inserted, error: errInsert } = await window.supabase.from('pengeluaran')
-                    .insert({ user_id: userId, tanggal: tanggalStr, total_harian: totalBaruHarian, status_approval: 'Menunggu' }) 
+                    .insert({ user_id: userId, tanggal: tanggalStr, total_harian: 0, status_approval: 'Menunggu' }) 
                     .select('id').single();
                 if(errInsert) throw errInsert;
                 pengeluaranId = inserted.id;
             }
 
-            // LANGKAH B: Masukkan semua array pecahan rincian
+            // LANGKAH B: Masukkan semua array pecahan rincian ke DB
             const rincianFinalToInsert = rincianItems.map(item => ({
                 pengeluaran_id: pengeluaranId,
                 nama_item: item.nama_item,
@@ -561,7 +589,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             const { error: errRincian } = await window.supabase.from('rincian_pengeluaran').insert(rincianFinalToInsert);
             if(errRincian) throw errRincian;
             
-            alert("Mantap! Seluruh data rincian pengeluaran sukses dicatat ke sistem.");
+            alert("Mantap! Seluruh data sukses dicatat dan kalkulasi diselesaikan server.");
             window.location.reload();
         } catch (err) {
             console.error(err);

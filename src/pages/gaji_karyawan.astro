@@ -154,6 +154,14 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         <label class="block text-xs font-bold text-gray-700 mb-1">Bonus Mingguan (Rp)</label>
                         <input type="number" id="setup_bonus_mingguan" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
                     </div>
+                    
+                    <!-- INPUT KASBON BARU DITAMBAHKAN -->
+                    <div>
+                        <label class="block text-xs font-bold text-red-700 mb-1">Potongan Kasbon (Rp)</label>
+                        <input type="number" id="setup_kasbon" oninput="window.kalkulasiRealtimeGaji()" class="w-full border border-red-300 bg-red-50 text-red-900 rounded p-2 text-sm outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600" placeholder="0">
+                    </div>
+                    <!-- --------------------------- -->
+
                     <div>
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-xs font-bold text-gray-700">Tadarus Al-Quran</label>
@@ -215,8 +223,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
       const tahunAktif = new Date().getFullYear();
       const awalTahun = `${tahunAktif}-01-01`; 
       const waktuLokal = new Date();
-    const offset = waktuLokal.getTimezoneOffset() * 60000;
-    const hariIni = new Date(waktuLokal - offset).toISOString().split('T')[0];
+      const offset = waktuLokal.getTimezoneOffset() * 60000;
+      const hariIni = new Date(waktuLokal - offset).toISOString().split('T')[0];
 
       const inputStart = document.getElementById('filter-gaji-start');
       const inputEnd = document.getElementById('filter-gaji-end');
@@ -236,7 +244,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
     async function loadKeuanganData() {
         if(!window.supabase) return;
         try {
-            // A. Fetch Pengaturan Gaji
             const { data: listMitra } = await window.supabase.from('mitra').select('id, nama_mitra').order('nama_mitra', { ascending: true });
             window.allMitraGlobal = listMitra || [];
             const { data: globalGaji } = await window.supabase.from('pengaturan_gaji_global').select('*').single();
@@ -248,7 +255,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 document.getElementById('g_lembur').value = globalGaji.tarif_lembur_perjam || 0;
             }
 
-            // B. Fetch Karyawan + Setup Gaji
             const { data: karyawan, error: errKaryawan } = await window.supabase
                 .from('profiles')
                 .select('id, nama, role, foto_profil, setup_gaji(*), presensi(tanggal, status_tiba, waktu_tiba, waktu_pulang), slip_gaji(*)')
@@ -409,6 +415,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         document.getElementById('setup_uang_nginep').value = setup.uang_nginep || 0;
         document.getElementById('setup_bonus_tepat').value = setup.bonus_tepat_waktu || 0;
         document.getElementById('setup_bonus_mingguan').value = setup.bonus_mingguan || 0;
+        document.getElementById('setup_kasbon').value = setup.kasbon || 0; // KASBON DITAMBAHKAN
+        
         //checked box
         document.getElementById('chk_uang_rapat').checked = setup.activate_uang_rapat || false;
         document.getElementById('chk_uang_nginep').checked = setup.activate_uang_nginep || false;
@@ -417,13 +425,11 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
         const tglLokalObj = new Date(waktuLokal - offset);
         const tglHariIni = tglLokalObj.toISOString().split('T')[0];
-        const hariDalamMinggu = tglLokalObj.getUTCDay(); // 0 = Minggu, 1 = Senin ... 6 = Sabtu
+        const hariDalamMinggu = tglLokalObj.getUTCDay(); 
         
-        // Cek apakah hari ini Sabtu
         const isSabtu = hariDalamMinggu === 6;
         let kehadiranMingguIni = 0;
 
-        // Hitung kehadiran Senin s/d Sabtu MINGGU INI (Pastikan status_tiba ada isinya)
         if (isSabtu) {
             const tglSeninObj = new Date(tglLokalObj.getTime() - (5 * 24 * 60 * 60 * 1000));
             const strSenin = tglSeninObj.toISOString().split('T')[0];
@@ -431,7 +437,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             const presensiMingguIni = (emp.presensi || []).filter(p => 
                 p.tanggal >= strSenin && 
                 p.tanggal <= tglHariIni && 
-                p.status_tiba // <-- Pastikan dia absen/hadir apapun statusnya
+                p.status_tiba
             );
             kehadiranMingguIni = presensiMingguIni.length;
         }
@@ -473,13 +479,12 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
         window.currentSalaryData = {
             empId: emp.id, totalNormalMenit, totalLemburMenit, tepatWaktuCount, hariMasuk, tglHariIni, jamTibaStr, jamPulangStr,
-            isSabtu, kehadiranMingguIni // <--- TAMBAHKAN INI
+            isSabtu, kehadiranMingguIni
         };
         window.kalkulasiRealtimeGaji();
         window.openModal('modal-detail-gaji');
     };
 
-    // FUNGSI KALKULASI REAL-TIME
     // FUNGSI KALKULASI REAL-TIME
     window.kalkulasiRealtimeGaji = function() {
         const d = window.currentSalaryData;
@@ -491,23 +496,20 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         const isKesehatan = document.getElementById('chk_uang_kesehatan').checked;
         const isRapat = document.getElementById('chk_uang_rapat').checked;
         const isNginep = document.getElementById('chk_uang_nginep').checked;
-        // 👇 Tarik nilai checkbox Tadarus
         const isTadarus = document.getElementById('chk_tadarus_alquran').checked; 
+        const valKasbon = parseFloat(document.getElementById('setup_kasbon').value) || 0; // KASBON DIBACA
         
         let valBonusMingguan = 0;
         let labelBonusMingguan = '';
-        // LOGIKA BONUS HANYA KELUAR DI HARI SABTU
         if (d.isSabtu) {
             if (d.kehadiranMingguIni >= 6) {
                 valBonusMingguan = paramBonusMingguan;
                 labelBonusMingguan = 'Full 6 Hari (5/5)';
             } else if (d.kehadiranMingguIni >= 2) {
-                // Prorata x/5 (Misal masuk 3x -> fraction = 2 -> 2/5 dari bonus full)
                 const fraction = d.kehadiranMingguIni - 1;
                 valBonusMingguan = Math.round((fraction / 5) * paramBonusMingguan);
                 labelBonusMingguan = `Prorata ${fraction}/5 (${d.kehadiranMingguIni}x Hadir)`;
             } else {
-                // Jika cuma masuk 1x atau tidak masuk sama sekali
                 valBonusMingguan = 0;
                 labelBonusMingguan = `Hadir ${d.kehadiranMingguIni}x (Tidak Dapat)`;
             }
@@ -520,10 +522,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         const valRapat = isRapat ? (parseFloat(document.getElementById('setup_uang_rapat').value) || 0) : 0;
         const valNginep = isNginep ? (parseFloat(document.getElementById('setup_uang_nginep').value) || 0) : 0;
         
-        const grandTotal = valGaji + valLembur + valKesehatan + valBonusTepat + valBonusMingguan + valRapat + valNginep;
+        // PENGURANGAN KASBON PADA TOTAL GAJI
+        const grandTotal = valGaji + valLembur + valKesehatan + valBonusTepat + valBonusMingguan + valRapat + valNginep - valKasbon;
         
-        // 👇 Simpan isTadarus ke finalState biar bisa dibaca pas save slip
-        d.finalState = { valGaji, valLembur, valKesehatan, valBonusTepat, valBonusMingguan, valRapat, valNginep, grandTotal, isTadarus };
+        d.finalState = { valGaji, valLembur, valKesehatan, valBonusTepat, valBonusMingguan, valRapat, valNginep, valKasbon, grandTotal, isTadarus };
         
         document.getElementById('m_rincian_list').innerHTML = `
             <div class="bg-gray-50 p-2.5 rounded mb-3 border border-gray-200">
@@ -547,6 +549,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             ${isRapat ? `<div class="flex justify-between text-green-700"><span>Uang Rapat</span> <span>+ Rp ${valRapat.toLocaleString('id-ID')}</span></div>` : ''}
             ${isNginep ? `<div class="flex justify-between text-green-700"><span>Uang Nginep</span> <span>+ Rp ${valNginep.toLocaleString('id-ID')}</span></div>` : ''}
             ${isTadarus ? `<div class="flex justify-between text-green-700"><span>Tadarus Al-Quran</span> <span>✅ Sudah</span></div>` : ''}
+            ${valKasbon > 0 ? `<div class="flex justify-between text-red-600 font-bold border-t mt-1 pt-1"><span>Potongan Kasbon</span> <span>- Rp ${valKasbon.toLocaleString('id-ID')}</span></div>` : ''}
         `;
         document.getElementById('m_total_gaji').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
     };
@@ -591,7 +594,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             uang_kesehatan: parseFloat(document.getElementById('setup_uang_kesehatan').value) || 0,
             uang_rapat: parseFloat(document.getElementById('setup_uang_rapat').value) || 0,
             uang_nginep: parseFloat(document.getElementById('setup_uang_nginep').value) || 0,
-            //checkedbox
+            kasbon: parseFloat(document.getElementById('setup_kasbon').value) || 0, // INSERT KASBON
             activate_uang_rapat: document.getElementById('chk_uang_rapat').checked,
             activate_uang_nginep: document.getElementById('chk_uang_nginep').checked,
             activate_uang_kesehatan: document.getElementById('chk_uang_kesehatan').checked,
@@ -606,7 +609,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 if (error) throw error;
                 if(data) document.getElementById('m_setup_id').value = data.id;
             }
-            alert('Mantap! Parameter Setup Gaji Berhasil Disimpan ke Database!');
+            alert('Mantap! Parameter Setup Gaji & Kasbon Berhasil Disimpan ke Database!');
             kalkulasiRealtimeGaji(); 
         } catch(err) { 
             console.error("Error Detail Supabase:", err);
@@ -639,6 +642,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 uang_kesehatan: fs.valKesehatan,
                 uang_rapat: fs.valRapat,
                 uang_nginep: fs.valNginep,
+                kasbon: fs.valKasbon, // INSERT KASBON KE SLIP
                 total_diterima: fs.grandTotal,
                 status: statusTarget,
                 is_paid_by_admin: statusTarget === 'ACC'
@@ -661,7 +665,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     .eq('tanggal', d.tglHariIni);
             }
 
-            // 👇 LOGIKA ALERT DINAMIS (Cuma nampilin yang ada isinya) 👇
             let rincianAlert = `Gaji Karyawan  : Rp ${fs.valGaji.toLocaleString('id-ID')}\n`;
             if (fs.valLembur > 0) rincianAlert += `Uang Lembur    : Rp ${fs.valLembur.toLocaleString('id-ID')}\n`;
             if (fs.valKesehatan > 0) rincianAlert += `Uang Kesehatan : Rp ${fs.valKesehatan.toLocaleString('id-ID')}\n`;
@@ -670,6 +673,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             if (fs.valRapat > 0) rincianAlert += `Uang Rapat     : Rp ${fs.valRapat.toLocaleString('id-ID')}\n`;
             if (fs.valNginep > 0) rincianAlert += `Uang Nginep    : Rp ${fs.valNginep.toLocaleString('id-ID')}\n`;
             if (fs.isTadarus) rincianAlert += `Tadarus Quran  : ✅ Sudah\n`;
+            if (fs.valKasbon > 0) rincianAlert += `Potongan Kasbon: -Rp ${fs.valKasbon.toLocaleString('id-ID')}\n`; // TAMPIL DI ALERT
 
             const pesanSukses = `✅ SUKSES! Data Berhasil Direkam.\n\n` +
                                 `Status Slip    : ${statusTarget === 'ACC' ? 'LUNAS (ACC)' : 'MENUNGGU (Draf)'}\n` +
@@ -730,6 +734,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                     <div class="flex justify-between"><span>Gaji Pokok:</span> <span>Rp ${Number(slip.gaji_karyawan || 0).toLocaleString('id-ID')}</span></div>
                                     <div class="flex justify-between text-gray-500"><span>Uang Lembur:</span> <span>Rp ${Number(slip.uang_lembur || 0).toLocaleString('id-ID')}</span></div>
                                     <div class="flex justify-between text-green-700"><span>Total Bonus (Tepat Waktu, Mingguan, Sehat):</span> <span>+Rp ${Number((slip.bonus_tepat_waktu || 0) + (slip.bonus_mingguan || 0) + (slip.uang_kesehatan || 0)).toLocaleString('id-ID')}</span></div>
+                                    ${Number(slip.kasbon || 0) > 0 ? `<div class="flex justify-between text-red-600 font-bold"><span>Potongan Kasbon:</span> <span>-Rp ${Number(slip.kasbon).toLocaleString('id-ID')}</span></div>` : ''}
                                     <div class="flex justify-between font-bold text-green-700 mt-1 pt-1 border-t">
                                         <span>Total Diterima (ACC):</span> 
                                         <span>Rp ${Number(slip.total_diterima || 0).toLocaleString('id-ID')}</span>

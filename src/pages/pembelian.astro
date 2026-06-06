@@ -136,48 +136,51 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             </div>
 
             <div id="edit-step-3" class="hidden flex-col gap-4"> 
-    <div class="w-full bg-blue-50 p-3 rounded-xl border border-blue-200 shadow-sm">
-        <label class="block text-xs font-bold text-blue-800 uppercase tracking-wider mb-1">Metode Pembayaran 1</label>
-        <select id="edit_metode_bayar" onchange="window.renderMetodeDetails()" class="w-full border border-blue-300 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-blue-600 font-bold mb-3">
-            <option value="Cash (UMKM)">Cash (Dana UMKM)</option>
-            <option value="Cash (Karyawan)">Cash (Talangan Karyawan)</option>
-            <option value="Bank">Transfer Bank</option>
-            <option value="QRIS">QRIS</option>
-        </select>
-
-        <label class="flex items-center gap-2 cursor-pointer mb-2">
-            <input type="checkbox" id="cb_split_payment" onchange="window.toggleMetode2()" class="w-4 h-4 text-blue-600 rounded">
-            <span class="text-xs font-bold text-blue-900">Ada kekurangan? (Tambah metode ke-2)</span>
-        </label>
-
-        <div id="container_metode_2" style="display: none; margin-bottom: 12px;">
-            <select id="edit_metode_bayar_2" onchange="window.renderMetodeDetails()" class="w-full border border-blue-300 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-blue-600 font-bold">
-                <option value="Cash (UMKM)">Cash (Dana UMKM)</option>
-                <option value="Cash (Karyawan)">Cash (Talangan Karyawan)</option>
-                <option value="Bank">Transfer Bank</option>
-                <option value="QRIS">QRIS</option>
-            </select>
-        </div>
-
-        <div id="container_toggle_3" style="display: none;">
-            <label class="flex items-center gap-2 cursor-pointer mb-2">
-                <input type="checkbox" id="cb_split_payment_3" onchange="window.toggleMetode3()" class="w-4 h-4 text-blue-600 rounded">
-                <span class="text-xs font-bold text-blue-900">Masih kurang? (Tambah metode ke-3)</span>
-            </label>
-        </div>
-
-        <div id="container_metode_3" style="display: none;">
-            <select id="edit_metode_bayar_3" onchange="window.renderMetodeDetails()" class="w-full border border-blue-300 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-blue-600 font-bold">
-                <option value="Cash (UMKM)">Cash (Dana UMKM)</option>
-                <option value="Cash (Karyawan)">Cash (Talangan Karyawan)</option>
-                <option value="Bank">Transfer Bank</option>
-                <option value="QRIS">QRIS</option>
-            </select>
-        </div>
-    </div>
+            <div class="w-full bg-blue-50 p-3 rounded-xl border border-blue-200 shadow-sm">
+                <label class="block text-xs font-bold text-blue-800 uppercase tracking-wider mb-1">Metode Pembayaran 1</label>
+                <select id="edit_metode_bayar" onchange="window.renderMetodeDetails()" class="w-full border border-blue-300 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-blue-600 font-bold mb-3">
+                    <option value="Cash (Dana UMKM)">Cash (Dana UMKM)</option>
+                    <option value="Cash (Talangan Karyawan)">Cash (Talangan Karyawan)</option>
+                    <option value="Transfer">Transfer Bank/E-Wallet</option>
+                    <option value="QRIS">QRIS</option>
+                    <option value="Full Deposit">Full Deposit (Potong Saldo)</option>
+                </select>
+            
+                <label class="flex items-center gap-2 cursor-pointer mb-2">
+                    <input type="checkbox" id="cb_split_payment" onchange="window.toggleMetode2()" class="w-4 h-4 text-blue-600 rounded">
+                    <span class="text-xs font-bold text-blue-900">Ada kekurangan? (Tambah metode ke-2)</span>
+                </label>
+            
+                <div id="container_metode_2" style="display: none; margin-bottom: 12px;">
+                    <select id="edit_metode_bayar_2" onchange="window.renderMetodeDetails()" class="w-full border border-blue-300 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-blue-600 font-bold">
+                        <option value="Cash (Dana UMKM)">Cash (Dana UMKM)</option>
+                        <option value="Cash (Talangan Karyawan)">Cash (Talangan Karyawan)</option>
+                        <option value="Transfer">Transfer Bank/E-Wallet</option>
+                        <option value="QRIS">QRIS</option>
+                        <option value="Full Deposit">Full Deposit (Potong Saldo)</option>
+                    </select>
+                </div>
+            
+                <div id="container_toggle_3" style="display: none;">
+                    <label class="flex items-center gap-2 cursor-pointer mb-2">
+                        <input type="checkbox" id="cb_split_payment_3" onchange="window.toggleMetode3()" class="w-4 h-4 text-blue-600 rounded">
+                        <span class="text-xs font-bold text-blue-900">Masih kurang? (Tambah metode ke-3)</span>
+                    </label>
+                </div>
+            
+                <div id="container_metode_3" style="display: none;">
+                    <select id="edit_metode_bayar_3" onchange="window.renderMetodeDetails()" class="w-full border border-blue-300 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-blue-600 font-bold">
+                        <option value="Cash (Dana UMKM)">Cash (Dana UMKM)</option>
+                        <option value="Cash (Talangan Karyawan)">Cash (Talangan Karyawan)</option>
+                        <option value="Transfer">Transfer Bank/E-Wallet</option>
+                        <option value="QRIS">QRIS</option>
+                        <option value="Full Deposit">Full Deposit (Potong Saldo)</option>
+                    </select>
+                </div>
+            </div>
     
-    <div id="edit_payment_details_container" class="w-full transition-all duration-300 space-y-3"></div> 
-</div>
+        <div id="edit_payment_details_container" class="w-full transition-all duration-300 space-y-3"></div> 
+    </div>
 
             <div id="footer-edit-1" class="mt-8 flex justify-end shrink-0">
                 <button type="button" onclick="window.goToEditStep(2)" class="w-12 h-12 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition text-xl flex items-center justify-center shadow-sm active:scale-95" title="Selanjutnya"> <i class="bi bi-arrow-right"></i> </button>
@@ -193,7 +196,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 </button> <button type="submit" id="btn-save-trx" class="w-12 h-12 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition text-xl flex items-center justify-center shadow-sm active:scale-95" title="Simpan Perubahan">
                     <i class="bi bi-floppy-fill"></i> </button>
             </div>
-        </form> </div>
+        </form> 
+    </div>
 </div>
 
 <script is:inline>
@@ -285,14 +289,14 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 const m2 = trx.metode_bayar_2;
                 const textMetode = m2 ? `${m1} + ${m2}` : m1;
 
-                if (m1 === 'Bank' || m2 === 'Bank') { 
+                if (m1 === 'Transfer' || m2 === 'Transfer') { 
                     infoBayarHtml = `
                         <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 mb-4 mt-3">
-                            <p class="text-xs font-bold text-blue-800 mb-2"><i class="bi bi-bank2 mr-1"></i> Informasi Transfer Bank (${textMetode})</p> 
+                            <p class="text-xs font-bold text-blue-800 mb-2"><i class="bi bi-bank2 mr-1"></i> Informasi Transfer Bank/E-wallet (${textMetode})</p> 
                             <div class="grid grid-cols-3 gap-y-2 text-sm bg-white p-3 rounded-lg border border-blue-100 shadow-sm">
-                                <div class="text-gray-500">Bank</div><div class="col-span-2 font-bold text-gray-900">: ${trx.nama_bank || '-'}</div> 
-                                <div class="text-gray-500">No. Rek</div><div class="col-span-2 font-bold text-gray-900">: ${trx.no_rek || '-'}</div> 
                                 <div class="text-gray-500">Atas Nama</div><div class="col-span-2 font-bold text-gray-900">: ${trx.atas_nama || '-'}</div> 
+                                <div class="text-gray-500">Nama Bank/E-Wallet</div><div class="col-span-2 font-bold text-gray-900">: ${trx.nama_bank || '-'}</div> 
+                                <div class="text-gray-500">No. Rek/No. Hp</div><div class="col-span-2 font-bold text-gray-900">: ${trx.no_rek || '-'}</div> 
                             </div>
                         </div>`;
                 } else if (m1 === 'QRIS' || m2 === 'QRIS') { 
@@ -485,7 +489,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         
         // Kalau metode 2 dimatikan, otomatis reset dan matikan juga metode 3
         if (!isChecked) {
-            document.getElementById('edit_metode_bayar_2').value = 'Cash (UMKM)';
+            document.getElementById('edit_metode_bayar_2').value = 'Cash (Dana UMKM)';
             document.getElementById('cb_split_payment_3').checked = false;
             window.toggleMetode3();
         }
@@ -495,7 +499,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
     window.toggleMetode3 = function() {
         const isChecked = document.getElementById('cb_split_payment_3').checked;
         document.getElementById('container_metode_3').style.display = isChecked ? 'block' : 'none';
-        if (!isChecked) document.getElementById('edit_metode_bayar_3').value = 'Cash (UMKM)';
+        if (!isChecked) document.getElementById('edit_metode_bayar_3').value = 'Cash (Dana UMKM)';
         window.renderMetodeDetails(); 
     };
 
@@ -507,8 +511,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         const m2 = isSplit2 ? document.getElementById('edit_metode_bayar_2').value : '';
         const m3 = isSplit3 ? document.getElementById('edit_metode_bayar_3').value : '';
 
-        const hasBank = (m1 === 'Bank' || m2 === 'Bank' || m3 === 'Bank');
+        const hasBank = (m1 === 'Transfer' || m2 === 'Transfer' || m3 === 'Transfer');
         const hasQris = (m1 === 'QRIS' || m2 === 'QRIS' || m3 === 'QRIS');
+        const hasDeposit = (m1 === 'Full Deposit' || m2 === 'Full Deposit' || m3 === 'Full Deposit');
 
         const payContainer = document.getElementById('edit_payment_details_container');
         let html = '';
@@ -516,10 +521,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         if (hasBank) {
             html += `
                 <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-3 shadow-sm">
-                    <p class="text-xs font-bold text-gray-700 uppercase"><i class="bi bi-bank2"></i> Detail Transfer Bank</p>
-                    <input type="text" id="edit_bank_nama" placeholder="Nama Bank" value="${trxData?.nama_bank || ''}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
-                    <input type="text" id="edit_bank_rek" placeholder="No Rekening" value="${trxData?.no_rek || ''}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
+                    <p class="text-xs font-bold text-gray-700 uppercase"><i class="bi bi-bank2"></i> Detail Transfer Bank/E-Wallet</p>
                     <input type="text" id="edit_bank_an" placeholder="Atas Nama" value="${trxData?.atas_nama || ''}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
+                    <input type="text" id="edit_bank_nama" placeholder="Nama Bank" value="${trxData?.nama_bank || ''}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
+                    <input type="text" id="edit_bank_rek" placeholder="No Rek" value="${trxData?.no_rek || ''}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
                 </div>`;
         }
         if (hasQris) {
@@ -529,11 +534,24 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     <textarea id="edit_qris_url" rows="2" placeholder="Link gambar QRIS" class="w-full border border-gray-300 p-2.5 rounded-lg text-xs outline-none">${trxData?.photo_qris || ''}</textarea> 
                 </div>`;
         }
+
+        if (hasDeposit) {
+            html += `
+                <div class="p-4 bg-teal-50 border border-teal-200 rounded-xl flex items-start gap-3 shadow-sm mb-3">
+                    <div class="bg-teal-200 p-1.5 rounded-full text-teal-700 shrink-0"><i class="bi bi-wallet2"></i></div>
+                    <div>
+                        <p class="text-xs font-bold text-teal-900">Pembayaran via Deposit</p>
+                        <p class="text-[10px] text-teal-800 mt-1 leading-relaxed">
+                            Pembayaran transaksi ini akan memotong / dialihkan ke Saldo Deposit Mitra terkait.
+                        </p>
+                    </div>
+                </div>`;
+        }
         
         if (m1.includes('Cash') || m2.includes('Cash') || m3.includes('Cash')) {
             let sumber = [];
-            if (m1 === 'Cash (UMKM)' || m2 === 'Cash (UMKM)' || m3 === 'Cash (UMKM)') sumber.push('Dana UMKM');
-            if (m1 === 'Cash (Karyawan)' || m2 === 'Cash (Karyawan)' || m3 === 'Cash (Karyawan)') sumber.push('Talangan Karyawan');
+            if (m1 === 'Cash (Dana UMKM)' || m2 === 'Cash (Dana UMKM)' || m3 === 'Cash (Dana UMKM)') sumber.push('Dana UMKM');
+            if (m1 === 'Cash (Talangan Karyawan)' || m2 === 'Cash (Talangan Karyawan)' || m3 === 'Cash (Talangan Karyawan)') sumber.push('Talangan Karyawan');
             
             let pesanTambahan = sumber.includes('Dana UMKM') 
                 ? '<span class="text-green-700">Dana UMKM aman, tidak perlu update rincian pengeluaran lagi.</span>' 
@@ -646,14 +664,15 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         const mappingMetode = (val) => {
             if (!val) return null;
             val = val.toLowerCase();
-            if (val.includes('talangan') || val.includes('karyawan')) return 'Cash (Karyawan)';
-            if (val.includes('transfer') || val.includes('bank')) return 'Bank';
+            if (val.includes('talangan') || val.includes('karyawan')) return 'Cash (Talangan Karyawan)';
+            if (val.includes('transfer') || val.includes('bank')) return 'Transfer';
             if (val.includes('qris')) return 'QRIS';
-            if (val.includes('cash') || val.includes('tunai') || val.includes('umkm')) return 'Cash (UMKM)';
-            return 'Cash (UMKM)'; 
+            if (val.includes('deposit')) return 'Full Deposit';
+            if (val.includes('cash') || val.includes('tunai') || val.includes('umkm')) return 'Cash (Dana UMKM)';
+            return 'Cash (Dana UMKM)'; 
         };
 
-        const finalM1 = mappingMetode(rawM1) || 'Cash (UMKM)';
+        const finalM1 = mappingMetode(rawM1) || 'Cash (Dana UMKM)';
         const finalM2 = mappingMetode(rawM2);
         const finalM3 = mappingMetode(rawM3);
 
@@ -668,7 +687,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         } else {
             document.getElementById('cb_split_payment').checked = false;
             document.getElementById('container_metode_2').style.display = 'none';
-            document.getElementById('edit_metode_bayar_2').value = 'Cash (UMKM)';
+            document.getElementById('edit_metode_bayar_2').value = 'Cash (Dana UMKM)';
             document.getElementById('container_toggle_3').style.display = 'none';
         }
 
@@ -680,7 +699,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         } else {
             document.getElementById('cb_split_payment_3').checked = false;
             document.getElementById('container_metode_3').style.display = 'none';
-            document.getElementById('edit_metode_bayar_3').value = 'Cash (UMKM)';
+            document.getElementById('edit_metode_bayar_3').value = 'Cash (Dana UMKM)';
         }
 
         window.renderMetodeDetails(trx);
@@ -709,7 +728,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         const isSplit = document.getElementById('cb_split_payment').checked;
         const m2 = isSplit ? document.getElementById('edit_metode_bayar_2').value : null;
 
-        const hasBank = (m1 === 'Bank' || m2 === 'Bank');
+        const hasBank = (m1 === 'Transfer' || m2 === 'Transfer');
         const hasQris = (m1 === 'QRIS' || m2 === 'QRIS');
 
         const namaBank = hasBank ? (document.getElementById('edit_bank_nama')?.value || '') : '';

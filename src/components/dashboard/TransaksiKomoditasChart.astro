@@ -18,47 +18,53 @@
     </div>
 
     <div class="w-full mb-lg">
+        <!-- Filter Harian (Date - Date) -->
         <div id="filter-harian-transaksi" class="flex items-center gap-2 bg-surface-variant/20 p-2 rounded-xl border border-surface-variant/50 w-full focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
             <input type="date" id="start-date-transaksi" class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium" />
             <span class="text-label-sm text-primary font-bold bg-primary/10 px-2 py-0.5 rounded-md">-</span>
             <input type="date" id="end-date-transaksi" class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium" />
         </div>
 
+        <!-- Filter Mingguan (Month) -->
         <div id="filter-mingguan-transaksi" class="hidden items-center bg-surface-variant/20 p-2 rounded-xl border border-surface-variant/50 w-full focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
             <input type="month" id="month-transaksi" class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium" />
         </div>
     </div>
 
+    <!-- GRAFIK -->
     <div class="relative w-full h-64 flex-grow mb-md">
         <canvas id="chartTransaksi"></canvas>
     </div>
 
+    <!-- FOOTER: Komoditas & Mode -->
     <div class="mt-auto border-t border-outline-variant/60 pt-md flex flex-col gap-4">
         
+        <!-- Filter Komoditas -->
         <div class="flex flex-wrap justify-center gap-2" id="commodity-filters-transaksi">
-            <button data-komoditas="Minyak Jelantah" class="komoditas-btn-transaksi px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-primary text-white shadow-sm ring-2 ring-primary/20 scale-105">
+            <button data-komoditas="minyak_jelantah_rp" class="komoditas-btn-transaksi px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-primary text-white shadow-sm ring-2 ring-primary/20 scale-105">
                 Minyak Jelantah
             </button>
-            <button data-komoditas="Ampas" class="komoditas-btn-transaksi px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
+            <button data-komoditas="ampas_rp" class="komoditas-btn-transaksi px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
                 Ampas
             </button>
-            <button data-komoditas="Keriuk" class="komoditas-btn-transaksi px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
-                Keriuk
+            <button data-komoditas="kriuk_rp" class="komoditas-btn-transaksi px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
+                Kriuk
             </button>
-            <button data-komoditas="Tepung" class="komoditas-btn-transaksi px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
+            <button data-komoditas="tepung_rp" class="komoditas-btn-transaksi px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
                 Tepung
             </button>
-            <button data-komoditas="Spinner" class="komoditas-btn-transaksi px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
+            <button data-komoditas="spinner_rp" class="komoditas-btn-transaksi px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
                 Spinner
             </button>
         </div>
 
+        <!-- Tab Switch Harian/Mingguan -->
         <div class="flex justify-center">
             <div class="bg-surface-variant/20 p-1 rounded-xl inline-flex w-full sm:w-auto border border-surface-variant/40 shadow-inner">
-                <button id="btn-harian-transaksi" class="flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold transition-all duration-300">
+                <button id="btn-harian-transaksi" class="flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold transition-all duration-300 bg-primary text-white shadow-md">
                     Harian
                 </button>
-                <button id="btn-mingguan-transaksi" class="flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold transition-all duration-300">
+                <button id="btn-mingguan-transaksi" class="flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300">
                     Mingguan
                 </button>
             </div>
@@ -73,8 +79,7 @@
 
     Chart.defaults.font.family = "'Inter', sans-serif";
     Chart.defaults.color = '#8E8E93';
-    
-    // Fungsi Format Rupiah
+
     const formatRp = (number) => {
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
     };
@@ -107,7 +112,6 @@
                 beginAtZero: true,
                 ticks: {
                     callback: function(value) {
-                        // Singkat angka agar sumbu Y tidak kepanjangan (misal Rp 1Jt)
                         if (value >= 1000000) return 'Rp ' + (value / 1000000) + 'M';
                         if (value >= 1000) return 'Rp ' + (value / 1000) + 'K';
                         return 'Rp ' + value;
@@ -123,16 +127,7 @@
         let dataMingguan = [];
         
         let currentMode = 'harian';
-        let currentCommodity = 'Minyak Jelantah'; 
-
-        // Mapping nama kolom Rupiah di Database
-        const kolomDatabase = {
-            'Minyak Jelantah': 'minyak_jelantah_rp',
-            'Ampas': 'ampas_rp',
-            'Keriuk': 'keriuk_rp',
-            'Tepung': 'tepung_rp',
-            'Spinner': 'spinner_rp'
-        };
+        let currentCommodity = 'minyak_jelantah_rp';
 
         const ctx = document.getElementById('chartTransaksi').getContext('2d');
         chartInstance = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [] }, options: chartOptions });
@@ -148,72 +143,119 @@
         const elTotalRp = document.getElementById('total-rp-transaksi');
 
         async function fetchHarian() {
-            const kolomAktif = kolomDatabase[currentCommodity];
-            let query = supabase.from('rekap_transfer_harian')
-                .select(`tanggal, ${kolomAktif}`)
-                .order('tanggal', { ascending: true });
+            console.log("🕵️‍♂️ [DEBUG HARIAN] Memulai fetch data...");
+            console.log("👉 Komoditas yang dicari:", currentCommodity);
             
-            if (startDateInput.value) query = query.gte('tanggal', startDateInput.value);
-            if (endDateInput.value) query = query.lte('tanggal', endDateInput.value);
-            if (!startDateInput.value && !endDateInput.value) query = query.limit(7); 
+            try {
+                let query = supabase.from('transaksi_harian')
+                    .select(`tanggal, ${currentCommodity}`)
+                    .order('tanggal', { ascending: true }); 
 
-            const { data, error } = await query;
-            if (!error && data) {
-                dataHarian = data;
-                renderChart();
+                if (startDateInput.value) {
+                    console.log("👉 Filter Start Date aktif:", startDateInput.value);
+                    query = query.gte('tanggal', startDateInput.value);
+                }
+                if (endDateInput.value) {
+                    console.log("👉 Filter End Date aktif:", endDateInput.value);
+                    query = query.lte('tanggal', endDateInput.value);
+                }
+                if (!startDateInput.value && !endDateInput.value) {
+                    console.log("👉 Filter tanggal kosong, membatasi ke 30 data terakhir.");
+                    query = query.limit(30);
+                }
+
+                const { data, error } = await query;
+                
+                if (error) {
+                    console.error("🚨 [ERROR SUPABASE HARIAN]:", error);
+                    alert("Gagal ambil data Harian. Cek Console (F12)!\n" + error.message);
+                } else if (data) {
+                    console.log(`✅ [SUKSES HARIAN] Ditemukan ${data.length} baris data:`, data);
+                    
+                    if (data.length === 0) {
+                        console.warn("⚠️ [WARNING] Data Harian ditarik sukses, TAPI isinya kosong (0 baris). Cek apakah tanggal tersebut memang ada transaksinya.");
+                    }
+                    
+                    dataHarian = data;
+                    renderChart();
+                }
+            } catch (err) {
+                console.error("💥 [FATAL JS ERROR - HARIAN]:", err);
             }
         }
 
         async function fetchMingguan() {
-            const kolomAktif = kolomDatabase[currentCommodity];
-            let query = supabase.from('rekap_transfer_mingguan')
-                .select(`minggu_ke, periode, ${kolomAktif}`)
-                .order('periode', { ascending: true })
-                .order('minggu_ke', { ascending: true });
+            console.log("🕵️‍♂️ [DEBUG MINGGUAN] Memulai fetch data...");
+            console.log("👉 Komoditas yang dicari:", currentCommodity);
             
-            if (monthInput.value) {
-                query = query.ilike('periode', `%${monthInput.value}%`);
-            } else {
-                query = query.limit(8);
-            }
-            
-            const { data, error } = await query;
-            if (!error && data) {
-                dataMingguan = data;
-                renderChart();
+            try {
+                let query = supabase.from('transaksi_mingguan')
+                    .select(`minggu_ke, periode, ${currentCommodity}`)
+                    .order('periode', { ascending: true })
+                    .order('minggu_ke', { ascending: true });
+
+                if (monthInput && monthInput.value) {
+                    const tglInput = monthInput.value;
+                    const tahun = tglInput.substring(0, 4);
+                    const bulan = tglInput.substring(5, 7); 
+                    const formatDB = `${bulan}-${tahun}`;
+
+                    console.log(`👉 Filter Bulan aktif: Input Browser [${tglInput}] -> Diubah ke Format DB [${formatDB}]`);
+                    query = query.eq('periode', formatDB); 
+                } else {
+                    console.log("👉 Filter Bulan kosong, membatasi ke 8 data mingguan terakhir.");
+                    query = query.limit(8);
+                }
+                
+                const { data, error } = await query;
+                
+                if (error) {
+                    console.error("🚨 [ERROR SUPABASE MINGGUAN]:", error);
+                    alert("Gagal ambil data Mingguan. Cek Console (F12)!\n" + error.message);
+                    return;
+                }
+
+                if (data) {
+                    console.log(`✅ [SUKSES MINGGUAN] Ditemukan ${data.length} baris data:`, data);
+                    
+                    if (data.length === 0) {
+                        console.warn(`⚠️ [WARNING] Data Mingguan kosong. Cek apakah periode ${monthInput.value || 'terakhir'} sudah ada kalkulasinya di database.`);
+                    }
+
+                    dataMingguan = data;
+                    renderChart();
+                }
+            } catch (err) {
+                console.error("💥 [FATAL JS ERROR - MINGGUAN]:", err);
             }
         }
 
         function renderChart() {
             const gradient = ctx.createLinearGradient(0, 0, 0, 300);
             let labels, values, color, hoverColor;
-            const kolomAktif = kolomDatabase[currentCommodity];
 
-            if (currentCommodity === 'Minyak Jelantah') { color = '#F59E0B'; hoverColor = 'rgba(245, 158, 11, 0.3)'; }
-            else if (currentCommodity === 'Ampas') { color = '#6B7280'; hoverColor = 'rgba(107, 114, 128, 0.3)'; }
-            else if (currentCommodity === 'Keriuk') { color = '#D97706'; hoverColor = 'rgba(217, 119, 6, 0.3)'; }
-            else if (currentCommodity === 'Tepung') { color = '#10B981'; hoverColor = 'rgba(16, 185, 129, 0.3)'; }
+            if (currentCommodity === 'minyak_jelantah_rp') { color = '#F59E0B'; hoverColor = 'rgba(245, 158, 11, 0.3)'; }
+            else if (currentCommodity === 'ampas_rp') { color = '#6B7280'; hoverColor = 'rgba(107, 114, 128, 0.3)'; }
+            else if (currentCommodity === 'kriuk_rp') { color = '#D97706'; hoverColor = 'rgba(217, 119, 6, 0.3)'; }
+            else if (currentCommodity === 'tepung_rp') { color = '#10B981'; hoverColor = 'rgba(16, 185, 129, 0.3)'; }
             else { color = '#6366F1'; hoverColor = 'rgba(99, 102, 241, 0.3)'; }
 
             if (currentMode === 'harian') {
                 labels = dataHarian.map(d => d.tanggal);
-                values = dataHarian.map(d => d[kolomAktif] || 0); 
+                values = dataHarian.map(d => d[currentCommodity] || 0); 
                 gradient.addColorStop(0, hoverColor); 
                 gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                
                 btnHarian.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
                 btnMingguan.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
             } else {
                 labels = dataMingguan.map(d => `W${d.minggu_ke} ${d.periode}`);
-                values = dataMingguan.map(d => d[kolomAktif] || 0);
+                values = dataMingguan.map(d => d[currentCommodity] || 0);
                 gradient.addColorStop(0, hoverColor); 
                 gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                
                 btnMingguan.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
                 btnHarian.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
             }
 
-            // Kalkulasi Total Terpilih
             const totalSum = values.reduce((acc, curr) => acc + Number(curr), 0);
             elTotalRp.textContent = formatRp(totalSum);
 
@@ -274,5 +316,7 @@
         switchMode('harian');
     }
 
-    document.addEventListener('DOMContentLoaded', initChartTransaksi);
+    // 🔥 SOLUSI ASTRO MODULE: Panggil fungsinya secara langsung!
+    // ES Module sudah otomatis berjalan setelah HTML terbentuk, tidak perlu DOMContentLoaded
+    initChartTransaksi();
 </script>

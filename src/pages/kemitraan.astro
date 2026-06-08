@@ -83,7 +83,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                 <tr class="border-b border-outline-variant bg-surface-container-low">
                                     <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Tanggal Input</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">No HP</th>
-                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Sumber Customer</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Sumber Mitra</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold text-center">Follow Up Ke-</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold text-right">Aksi</th>
                                 </tr>
@@ -104,8 +104,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">Nama</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">Rute</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">No HP</th>
-                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Sumber Customer</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Sumber Mitra</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold text-center">Alamat</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold text-center">Deposit</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold text-center">Jml Transaksi</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold text-right">Aksi</th>
                                 </tr>
@@ -315,40 +316,62 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         </div>
     </div>
     <div class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-container-margin opacity-0 transition-opacity duration-300" id="modal-edit-mitra">
-        <div class="bg-surface-container-lowest rounded-xl shadow-lg w-full max-w-md p-lg transform scale-95 transition-transform duration-300 relative">
-            <button class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors" onclick="closeModal('modal-edit-mitra')">
+    
+        <div class="relative w-full max-w-md transform scale-95 transition-transform duration-300">
+            
+            <button class="absolute -top-12 right-0 md:-right-14 md:top-0 w-10 h-10 flex items-center justify-center bg-white text-gray-700 hover:text-red-600 hover:bg-gray-50 rounded-full shadow-lg border border-gray-200 transition-all z-10" onclick="closeModal('modal-edit-mitra')">
                 <span class="material-symbols-outlined">close</span>
             </button>
-            <h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Edit Mitra Langganan</h3>
-            <form class="flex flex-col gap-md" id="form-edit-mitra">
-                <input type="hidden" id="edit_mitra_id">
-                <div>
-                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Nama Lengkap Toko/Mitra</label>
-                    <input id="edit_mitra_nama" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
-                </div>
-                <div>
-                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">No HP</label>
-                    <input id="edit_mitra_hp" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container text-on-surface outline-none font-bold" readonly>
-                </div>
-                <div>
-                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Rute Penjemputan</label>
-                    <select id="edit_mitra_rute" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
-                        <option value="">-- Memuat Rute... --</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Alamat Lengkap</label>
-                    <textarea id="edit_mitra_alamat" class="w-full p-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none" rows="2" required></textarea>
-                </div>
-                <div>
-                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Link Google Maps</label>
-                    <input id="edit_mitra_gmaps" type="url" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
-                </div>
-                <div class="mt-sm flex justify-end gap-sm">
-                    <button class="px-md h-touch-target rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="closeModal('modal-edit-mitra')" type="button">Batal</button>
-                    <button class="px-md h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors" type="submit" id="btn-submit-edit-mitra">Simpan Perubahan</button>
-                </div>
-            </form>
+        
+            <div class="bg-surface-container-lowest rounded-xl shadow-xl p-lg max-h-[85vh] overflow-y-auto scrollbar-hide relative">
+                
+                <h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Edit Mitra Langganan</h3>
+                
+                <form class="flex flex-col gap-md" id="form-edit-mitra">
+                    <input type="hidden" id="edit_mitra_id">
+                    
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Nama Lengkap Toko/Mitra</label>
+                        <input id="edit_mitra_nama" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">No HP</label>
+                        <input id="edit_mitra_hp" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container text-on-surface outline-none font-bold" readonly>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Rute Penjemputan</label>
+                        <select id="edit_mitra_rute" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                            <option value="">-- Memuat Rute... --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Sumber Mitra</label>
+                        <select id="edit_mitra_sumber" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                            <option value="Instagram">Instagram</option>
+                            <option value="Facebook">Facebook</option>
+                            <option value="Tiktok">Tiktok</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Saldo Deposit Kemitraan (Rp)</label>
+                        <input id="edit_mitra_deposit" type="number" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="0" required>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Alamat Lengkap</label>
+                        <textarea id="edit_mitra_alamat" class="w-full p-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none" rows="2" required></textarea>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Link Google Maps</label>
+                        <input id="edit_mitra_gmaps" type="url" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                    </div>
+                    <div class="mt-sm flex justify-end gap-sm pt-2">
+                        <button class="px-md h-touch-target rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="closeModal('modal-edit-mitra')" type="button">Batal</button>
+                        <button class="px-md h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors" type="submit" id="btn-submit-edit-mitra">Simpan Perubahan</button>
+                    </div>
+                </form>
+            
+            </div>
         </div>
     </div>
     <div class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-container-margin opacity-0 transition-opacity duration-300" id="modal-tambah-rekening">
@@ -669,7 +692,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
                 // B. Mitra Langganan
                 const { data: langganan, error: errLang } = await window.supabase.from('mitra')
-                    .select('id, nama_mitra, rute_jemput, nomor_hp, alamat, link_gmaps, total_order, total_transaksi, activated, sumber_mitra, created_at')
+                    .select('id, nama_mitra, rute_jemput, nomor_hp, alamat, link_gmaps, total_order, total_transaksi, activated, sumber_mitra, created_at, deposit')
                     .eq('activated', true)
                     .order('created_at', { ascending: false });
 
@@ -706,6 +729,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                 <div><p class="font-label-sm text-on-surface-variant">No HP</p><p class="font-body-md text-on-surface">${l.nomor_hp || '-'}</p></div>
                                 <div><p class="font-label-sm text-on-surface-variant">Sumber</p><p class="font-body-md text-on-surface font-semibold">${l.sumber_mitra || 'Lainnya'}</p></div>
                                 <div><p class="font-label-sm text-on-surface-variant">Transaksi</p><p class="font-body-md text-on-surface">${l.total_order || 0}x</p></div>
+                                <div><p class="font-label-sm text-on-surface-variant">Deposit</p><p class="font-body-md text-green-700 font-bold">Rp ${Number(l.deposit || 0).toLocaleString('id-ID')}</p></div>
                             </div>
                         </div>`;
                         
@@ -719,6 +743,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             <td class="p-md font-body-md text-on-surface">${l.nomor_hp || '-'}</td>
                             <td class="p-md"><span class="text-[10px] bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded uppercase inline-block font-medium">${l.sumber_mitra || 'Lainnya'}</span></td>
                             <td class="p-md text-center"><a class="text-primary inline-block p-1 rounded-full hover:bg-primary-container" href="${l.link_gmaps || '#'}" target="_blank"><span class="material-symbols-outlined text-[20px]">location_on</span></a></td>
+                            <td class="p-md text-center font-mono font-bold text-green-700">Rp ${Number(l.deposit || 0).toLocaleString('id-ID')}</td>
                             <td class="p-md text-center font-body-md">${l.total_order || 0}x</td>
                             <td class="p-md text-right flex justify-end gap-2 items-center">
                                 <button onclick="window.bukaEditMitra('${l.id}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-primary rounded-full hover:bg-primary-container opacity-0 group-hover:opacity-100 transition-opacity" title="Edit Mitra">
@@ -756,6 +781,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             <div class="border-b border-outline-variant pb-sm"><p class="font-headline-md text-on-surface-variant font-semibold">${n.nama_mitra}</p></div>
                             <div class="grid grid-cols-2 gap-sm pt-xs">
                                 <div><p class="font-label-sm text-on-surface-variant">No HP</p><p class="font-body-md text-on-surface-variant">${n.nomor_hp || '-'}</p></div>
+                               
                                 <div><p class="font-label-sm text-on-surface-variant">Tgl Nonaktif</p><p class="font-body-md text-on-surface-variant">${dateOnly}</p></div>
                             </div>
                             <button class="mt-sm w-full h-touch-target bg-surface-container text-primary rounded-full font-label-lg border border-primary hover:bg-primary-container transition-colors flex items-center justify-center gap-xs" onclick="window.aktifkanMitra('${n.id}', '${n.nama_mitra}')">
@@ -1157,6 +1183,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 document.getElementById('edit_mitra_hp').value = mitra.nomor_hp || '';
                 // Ubah dari mitra.id_rutejemput menjadi mitra.rute_jemput
                 document.getElementById('edit_mitra_rute').value = mitra.rute_jemput || '';
+                document.getElementById('edit_mitra_sumber').value = mitra.sumber_mitra || 'Lainnya';
+                document.getElementById('edit_mitra_deposit').value = mitra.deposit || 0;
                 document.getElementById('edit_mitra_alamat').value = mitra.alamat || '';
                 document.getElementById('edit_mitra_gmaps').value = mitra.link_gmaps || '';
                 window.openModal('modal-edit-mitra');
@@ -1171,6 +1199,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     const payload = {
                         nama_mitra: document.getElementById('edit_mitra_nama').value,
                         rute_jemput: document.getElementById('edit_mitra_rute').value, // <-- Pake rute_jemput
+                        sumber_mitra: document.getElementById('edit_mitra_sumber').value,
+                        deposit: parseFloat(document.getElementById('edit_mitra_deposit').value),
                         alamat: document.getElementById('edit_mitra_alamat').value,
                         link_gmaps: document.getElementById('edit_mitra_gmaps').value,
                     };
@@ -1199,58 +1229,65 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
             // Wadah penyimpanan sementara hasil kalkulasi biar pindah tab/filter jadi kilat
             window.leaderboardCache = { "Juara Umum": [], "Minyak Jelantah": [], "Ampas": [], "Kriuk": [], "Tepung": [], "Spinner": [] };
-
+            
             window.generateLeaderboard = async function() {
                 const periode = document.getElementById('input-periode-leaderboard').value;
                 if (!periode || !window.supabase) return;
 
                 try {
+                    // Tarik data dari tabel kumulatif mingguan yang baru
                     const { data: rekapData, error } = await window.supabase
-                        .from('rekap_bulanan_mitra').select('mitra_id, komoditas, total_kg, mitra(nama_mitra)').eq('periode', periode);
-                    
+                        .from('rekap_kumulatif_mingguan_mitra')
+                        .select('*')
+                        .eq('periode', periode)
+                        // Urutkan minggu_ke dari yang terbesar (terbaru)
+                        .order('minggu_ke', { ascending: false });
+
                     if(error) throw error;
 
                     // Reset Cache
                     window.leaderboardCache = { "Juara Umum": [], "Minyak Jelantah": [], "Ampas": [], "Kriuk": [], "Tepung": [], "Spinner": [] };
-                    const totalUmumMap = {};
 
-                    rekapData.forEach(r => {
-                        const kg = parseFloat(r.total_kg) || 0;
-                        const nama = r.mitra?.nama_mitra || 'Mitra Lapangan';
-                        
-                        // 1. Masukkan ke Kategori Komoditas (Normalisasi nama agar masuk ke cache)
-                        for (let kat in window.leaderboardCache) {
-                            if (r.komoditas.toLowerCase().includes(kat.toLowerCase())) {
-                                window.leaderboardCache[kat].push({ nama, kg, id: r.mitra_id });
-                            }
+                    // Karena kita narik per periode (bulan), bisa jadi ada data minggu ke-1, 2, 3 untuk mitra yang sama.
+                    // Kita hanya butuh data di minggu_ke TERAKHIR untuk tiap mitra sebagai hasil final bulan tersebut.
+                    const latestDataMap = new Map();
+                    rekapData.forEach(row => {
+                        if (!latestDataMap.has(row.mitra_id)) {
+                            latestDataMap.set(row.mitra_id, row);
                         }
+                    });
+                    
+                    const latestData = Array.from(latestDataMap.values());
 
-                        // 2. Hitung Juara Umum (Total Semua Komoditas Digabung)
-                        if (!totalUmumMap[r.mitra_id]) totalUmumMap[r.mitra_id] = { nama, kg: 0, id: r.mitra_id };
-                        totalUmumMap[r.mitra_id].kg += kg;
+                    latestData.forEach(r => {
+                        const nama = r.nama_mitra || 'Mitra Lapangan';
+                        const id = r.mitra_id;
+
+                        // Langsung petakan dari kolom ke cache (Jauh lebih cepat tanpa looping IF)
+                        if (r.total_keseluruhan > 0) window.leaderboardCache["Juara Umum"].push({ nama, kg: r.total_keseluruhan, id });
+                        if (r.minyak_jelantah > 0) window.leaderboardCache["Minyak Jelantah"].push({ nama, kg: r.minyak_jelantah, id });
+                        if (r.ampas > 0) window.leaderboardCache["Ampas"].push({ nama, kg: r.ampas, id });
+                        if (r.kriuk > 0) window.leaderboardCache["Kriuk"].push({ nama, kg: r.kriuk, id });
+                        if (r.tepung > 0) window.leaderboardCache["Tepung"].push({ nama, kg: r.tepung, id });
+                        if (r.spinner > 0) window.leaderboardCache["Spinner"].push({ nama, kg: r.spinner, id });
                     });
 
-                    window.leaderboardCache["Juara Umum"] = Object.values(totalUmumMap);
-
-                    // 4. Tampilkan data default (Sesuai filter dropdown yang lagi aktif)
+                    // Tampilkan data sesuai tab kategori yang sedang aktif
                     window.renderLeaderboardSesuaiFilter();
-
                 } catch (e) { console.error("Gagal Generate Leaderboard:", e); }
             };
 
             // Variabel Pencatat Tab Aktif Saat Ini
             window.activeLeaderboardKat = 'Juara Umum';
-
+            
             // Fungsi Mengubah Tampilan Tab & Trigger Data
             window.changeLeaderboardTab = function(btn, kategori) {
                 window.activeLeaderboardKat = kategori;
-                
                 // Reset semua warna tab kembali ke pasif
                 document.querySelectorAll('.leaderboard-tab-btn').forEach(b => {
                     b.classList.remove('bg-white', 'shadow-sm', 'text-primary', 'font-bold');
                     b.classList.add('text-on-surface-variant', 'font-medium');
                 });
-                
                 // Beri highlight putih menyala di tab yang diklik
                 btn.classList.add('bg-white', 'shadow-sm', 'text-primary', 'font-bold');
                 btn.classList.remove('text-on-surface-variant', 'font-medium');
@@ -1261,13 +1298,13 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
             // Fungsi Merender Kartu Grid ke Layar
             window.renderLeaderboardSesuaiFilter = function() {
-                const kategori = window.activeLeaderboardKat; // Ambil dari variabel Tab
+                const kategori = window.activeLeaderboardKat;
                 const container = document.getElementById('leaderboard-live-list');
                 if (!container) return;
 
                 // Sortir kargo terbesar, ambil Top 5
                 const data = (window.leaderboardCache[kategori] || []).sort((a, b) => b.kg - a.kg).slice(0, 5);
-
+                
                 if (data.length === 0) {
                     container.innerHTML = `<p class="text-xs text-on-surface-variant italic text-center py-10 col-span-full border-2 border-dashed border-outline-variant rounded-xl">Belum ada penyetor di kategori ${kategori} pada bulan ini.</p>`;
                     return;
@@ -1294,26 +1331,11 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         </div>
                     </div>`;
                 }).join('');
+                
                 // Filter ulang kartu-kartu juara jika kotak pencarian sedang terisi
                 if (typeof window.applySearchMitra === 'function') {
                     setTimeout(window.applySearchMitra, 50);
                 }
-            };
-
-            // Fungsi Kurir: Menghapus data ranking lama di bulan itu, lalu menyuntikkan ranking Top 5 yang baru
-            window.syncLeaderboardToDB = async function(periode) {
-                const payload = [];
-                for (let kat in window.leaderboardCache) {
-                    const top5 = window.leaderboardCache[kat].sort((a, b) => b.kg - a.kg).slice(0, 5);
-                    top5.forEach((m, i) => {
-                        payload.push({ periode, mitra_id: m.id, tingkat: i+1, jenisnya: kat, total_kg: m.kg });
-                    });
-                }
-                
-                // Bersihkan dulu data bulan tersebut biar gak numpuk/double
-                await window.supabase.from('top_leaderboard').delete().eq('periode', periode);
-                // Tembak data terbarunya
-                if (payload.length > 0) await window.supabase.from('top_leaderboard').insert(payload);
             };
 
             // Pemicu Render Otomatis Saat Pertama Kali Halaman Terbuka

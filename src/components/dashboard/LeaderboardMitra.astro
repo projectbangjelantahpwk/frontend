@@ -1,47 +1,110 @@
 ---
 // components/dashboard/LeaderboardMitra.astro
-interface Mitra {
-  rank: number;
-  name: string;
-  total: number;
-  revenue: string;
-  rating: number;
-  bgColor: string;
-  rankColor: string;
+interface MitraDbData {
+  mitra_id: string;
+  nama_mitra: string;
+  minyak_jelantah: number;
+  ampas: number;
+  kriuk: number;
+  tepung: number;
+  spinner: number;
+  total_keseluruhan: number;
 }
 
 interface Props {
-  mitras: Mitra[];
+  rawData: MitraDbData[];
 }
 
-const { mitras } = Astro.props;
+const { rawData } = Astro.props;
 ---
+
 <div class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow">
     <div class="mb-lg">
         <h3 class="font-headline-md text-on-surface mb-md">🏆 Top 5 Mitra Terbaik</h3>
-        <div class="flex gap-sm flex-wrap">
-            <button class="px-md py-sm rounded-full bg-primary text-on-primary font-label-sm">Semua</button>
-            {['Minyak', 'Ampas', 'Kriuk', 'Spinner', 'Tepung'].map(item => (
-                <button class="px-md py-sm rounded-full border border-outline text-on-surface font-label-sm hover:bg-surface-container">{item}</button>
-            ))}
+        <div class="flex gap-sm flex-wrap" id="leaderboard-filters">
+            <button data-category="total_keseluruhan" class="filter-btn px-md py-sm rounded-full bg-primary text-on-primary font-label-sm active">Semua</button>
+            <button data-category="minyak_jelantah" class="filter-btn px-md py-sm rounded-full border border-outline text-on-surface font-label-sm hover:bg-surface-container">Minyak</button>
+            <button data-category="ampas" class="filter-btn px-md py-sm rounded-full border border-outline text-on-surface font-label-sm hover:bg-surface-container">Ampas</button>
+            <button data-category="kriuk" class="filter-btn px-md py-sm rounded-full border border-outline text-on-surface font-label-sm hover:bg-surface-container">Kriuk</button>
+            <button data-category="spinner" class="filter-btn px-md py-sm rounded-full border border-outline text-on-surface font-label-sm hover:bg-surface-container">Spinner</button>
+            <button data-category="tepung" class="filter-btn px-md py-sm rounded-full border border-outline text-on-surface font-label-sm hover:bg-surface-container">Tepung</button>
         </div>
     </div>
     
-    <div class="space-y-sm">
-        {mitras.map(mitra => (
-            <div class={`flex items-center gap-md p-md bg-gradient-to-r ${mitra.bgColor} rounded-xl border hover:border-opacity-40 transition-colors`}>
-                <div class={`flex items-center justify-center w-10 h-10 rounded-full ${mitra.rankColor} text-white font-bold text-lg flex-shrink-0`}>
-                    {mitra.rank}
-                </div>
-                <div class="flex-1 min-w-0">
-                    <p class="font-semibold text-on-surface truncate">{mitra.name}</p>
-                    <p class="text-label-sm text-on-surface-variant">Total: {mitra.total} KG</p>
-                </div>
-                <div class="text-right flex-shrink-0">
-                    <p class="font-bold text-primary">{mitra.revenue}</p>
-                    <p class="text-label-xs text-on-surface-variant">⭐ {mitra.rating}</p>
-                </div>
-            </div>
-        ))}
-    </div>
+    <div class="space-y-sm" id="leaderboard-list"></div>
+
+    <script id="mitra-data" type="application/json" set:html={JSON.stringify(rawData)}></script>
 </div>
+
+<script>
+    // 1. Ambil elemen dan data dari DOM
+    const rawDataElement = document.getElementById('mitra-data');
+    const mitras = rawDataElement ? JSON.parse(rawDataElement.textContent || '[]') : [];
+    
+    const listContainer = document.getElementById('leaderboard-list');
+    const filterButtons = document.querySelectorAll('.filter-btn');
+
+    // 2. Fungsi untuk menentukan gaya visual berdasarkan peringkat
+    function getRankStyle(rank) {
+        if (rank === 1) return { bg: "from-yellow-500/10 to-yellow-500/5", color: "bg-yellow-500" };
+        if (rank === 2) return { bg: "from-gray-400/10 to-gray-400/5", color: "bg-gray-400" };
+        if (rank === 3) return { bg: "from-orange-600/10 to-orange-600/5", color: "bg-orange-600" };
+        return { bg: "from-surface-container to-surface-container", color: "bg-surface-variant" };
+    }
+
+    // 3. Fungsi utama untuk merender Top 5 berdasarkan Kategori
+    function renderLeaderboard(category) {
+        if (!listContainer) return;
+
+        // Sortir descending (dari besar ke kecil) berdasarkan kategori yang dipilih, dan ambil Top 5
+        const top5Mitras = [...mitras]
+            .sort((a, b) => (b[category] || 0) - (a[category] || 0))
+            .slice(0, 5);
+
+        listContainer.innerHTML = '';
+
+        top5Mitras.forEach((mitra, index) => {
+            const rank = index + 1;
+            const style = getRankStyle(rank);
+            const value = mitra[category] || 0;
+            const unit = category === 'total_keseluruhan' ? 'Total' : 'Item';
+
+            const cardHtml = `
+                <div class="flex items-center gap-md p-md bg-gradient-to-r ${style.bg} rounded-xl border hover:border-opacity-40 transition-colors">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full ${style.color} text-white font-bold text-lg flex-shrink-0">
+                        ${rank}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-semibold text-on-surface truncate">${mitra.nama_mitra}</p>
+                        <p class="text-label-sm text-on-surface-variant">${unit}: ${value} KG</p>
+                    </div>
+                </div>
+            `;
+            listContainer.insertAdjacentHTML('beforeend', cardHtml);
+        });
+    }
+
+    // 4. Logika klik tombol filter
+    filterButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            const btn = e.currentTarget;
+            const category = btn.getAttribute('data-category');
+
+            // Reset styling untuk semua tombol
+            filterButtons.forEach(b => {
+                b.classList.remove('bg-primary', 'text-on-primary', 'active');
+                b.classList.add('border', 'border-outline', 'text-on-surface', 'hover:bg-surface-container');
+            });
+
+            // Set styling aktif untuk tombol yang diklik
+            btn.classList.add('bg-primary', 'text-on-primary', 'active');
+            btn.classList.remove('border', 'border-outline', 'text-on-surface', 'hover:bg-surface-container');
+
+            // Render ulang leaderboard
+            renderLeaderboard(category);
+        });
+    });
+
+    // 5. Render awal saat halaman dimuat (Kategori: Semua)
+    renderLeaderboard('total_keseluruhan');
+</script>

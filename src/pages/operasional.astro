@@ -484,12 +484,19 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 let htmlHistory = '';
                 if(history.length > 0) {
                     history.forEach(j => {
-    console.log("Cek Data Transaksi:", j.transaksi); // TAMBAHKAN BARIS INI
-    const tData = j.transaksi?.[0];
-                        // Ambil array transaksi_item, kalau kosong beri array kosong biar gak error
-                        const items = tData?.transaksi_item || []; 
-                        
-                        // PERHITUNGAN BERAT REAL: Jumlahkan semua volume di dalam transaksi_item
+    
+                        // 🔥 PERBAIKAN: JANGAN HANYA AMBIL INDEX [0] 🔥
+                        // Kita kumpulkan (push) semua item dari SELURUH row transaksi yang terikat
+                        let items = [];
+                        if (j.transaksi && j.transaksi.length > 0) {
+                            j.transaksi.forEach(tx => {
+                                if (tx.transaksi_item && tx.transaksi_item.length > 0) {
+                                    items.push(...tx.transaksi_item);
+                                }
+                            });
+                        }
+                    
+                        // PERHITUNGAN BERAT REAL: Jumlahkan semua volume di dalam kumpulan items
                         const totalRealKg = items.reduce((acc, curr) => acc + parseFloat(curr.volume || 0), 0);
                         
                         // RENDER RINCIAN KOMODITAS
@@ -501,13 +508,12 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         } else {
                             itemsHtml = '<span class="text-xs italic text-red-600">Data belum diinput lapangan</span>';
                         }
-
+                    
                         htmlHistory += `
                         <tr class="hover:bg-surface-container-low transition-colors" data-rute="${j.rute_penjemputan || ''}" data-tanggal="${j.tanggal || ''}">
                             <td class="px-md py-md whitespace-nowrap font-semibold" data-label="Nama Mitra">${j.mitra?.nama_mitra || '-'}</td>
                             <td class="px-md py-md whitespace-nowrap" data-label="Tanggal Selesai">${j.tanggal}</td>
                             <td class="px-md py-md" data-label="Rincian Komoditas">${itemsHtml}</td>
-                            
                             <td class="px-md py-md font-bold text-right text-primary" data-label="Total Berat Real">${totalRealKg} KG</td>
                             <td class="px-md py-md" data-label="Status">
                                 <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 font-label-sm text-[11px]">
@@ -519,8 +525,13 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 } else { htmlHistory = '<tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Riwayat transaksi operasional kosong.</td></tr>'; }
                 document.getElementById('tbody-history').innerHTML = htmlHistory;
 
-                // 3. Fetch Dropdown Mitra & Tampilkan Detail Gmaps
-                const { data: daftarMitra } = await window.supabase.from('mitra').select('id, nama_mitra, alamat, link_gmaps, rute_jemput').order('nama_mitra', { ascending: true });
+                // 3. Fetch Dropdown Mitra & Tampilkan Detail Gmaps (Hanya yang Activated)
+                const { data: daftarMitra } = await window.supabase
+                    .from('mitra')
+                    .select('id, nama_mitra, alamat, link_gmaps, rute_jemput')
+                    .eq('activated', true) // 🔥 Menampilkan hanya yang activated = true
+                    .order('nama_mitra', { ascending: true });
+                            
                 window.allMitra = daftarMitra || []; // Simpan global
                 
                 let optMitra = '<option value="">-- Pilih Mitra Pengumpul --</option>';
@@ -553,7 +564,11 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 });
 
                 // 4. Fetch Dropdown Karyawan & Filter Logic
-                const { data: karyawanLapangan } = await window.supabase.from('profiles').select('id, nama').eq('role', 'lapangan');
+                const { data: karyawanLapangan } = await window.supabase
+                    .from('profiles')
+                    .select('id, nama')
+                    .order('nama', { ascending: true }); // Diurutkan berdasarkan nama agar rapi
+
                 window.allKaryawan = karyawanLapangan || []; // Simpan global
                 
                 let optMotor = '<option value="">-- Pilih Kurir Motor --</option>';

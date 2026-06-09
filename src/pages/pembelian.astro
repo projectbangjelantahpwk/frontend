@@ -340,9 +340,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     ${infoBayarHtml}
 
                     <div class="border-t border-gray-200 pt-4 mb-6"> 
-                        <p class="text-sm text-gray-600 mb-1">Total Wajib Dibayar</p> 
-                        <p class="text-3xl font-bold text-gray-900">Rp ${finalTotal.toLocaleString('id-ID')}</p>
-                    </div>
+    <p class="text-sm text-gray-600 mb-1">Total Wajib Dibayar</p> 
+    <p class="text-3xl font-bold text-gray-900">Rp ${Number(trx.grand_total || 0).toLocaleString('id-ID')}</p>
+</div>
                     
                     <div class="flex gap-3"> 
                         <button onclick="window.bukaModalEditTrx('${trx.id}')" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl hover:bg-blue-100 transition font-bold active:scale-95">

@@ -453,8 +453,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             const { data: users, error } = await window.supabase
                 .from('profiles')
                 .select('id, nama')
-                .or(`role.eq.lapangan,role.eq.Lapangan,id.eq.${currentUserId}`)
-                .order('nama');
+                .order('nama', { ascending: true });
                 
             if(error) throw error;
 

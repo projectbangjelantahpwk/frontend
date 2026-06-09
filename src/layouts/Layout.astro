@@ -167,7 +167,48 @@ const { title, requireAuth = true } = Astro.props;
             </div>
 
             <div id="auth-logged-in" class="hidden items-center gap-1 md:gap-2">
-                
+                <div id="desktop-kas-widget" class="hidden items-center gap-2">
+    <div class="flex items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-full border border-outline-variant shadow-sm">
+        <span class="material-symbols-outlined text-[18px] text-primary">warehouse</span>
+        <span class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold opacity-70">Gudang:</span>
+        <span id="teks-kas-gudang" class="font-mono text-xs font-bold text-primary">Rp 0</span>
+    </div>
+
+    <div class="flex items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-full border border-outline-variant shadow-sm">
+        <span class="material-symbols-outlined text-[18px] text-secondary">payments</span>
+        <span class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold opacity-70">Keuangan:</span>
+        <span id="teks-kas-keuangan" class="font-mono text-xs font-bold text-secondary">Rp 0</span>
+    </div>
+    <button id="btn-edit-kas" onclick="window.bukaModalKas()" class="w-8 h-8 flex items-center justify-center bg-surface-container-low border border-outline-variant text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-full shadow-sm transition-colors" style="display: none;" title="Edit Saldo Kas">
+        <span class="material-symbols-outlined text-[16px]">edit</span>
+    </button>
+</div>
+                <div id="mobile-sticky-kas" class="hidden fixed bottom-4 left-4 right-4 z-50 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-2xl p-3 items-center justify-between">
+    <div class="flex items-center gap-2 w-full justify-around">
+        <div class="flex items-center gap-2 flex-1 justify-center">
+            <span class="material-symbols-outlined text-[20px] text-primary">warehouse</span>
+            <div class="flex flex-col">
+                <span class="text-[9px] uppercase tracking-wider text-on-surface-variant font-bold opacity-60 leading-none mb-0.5">Gudang</span>
+                <span id="teks-kas-gudang-mobile" class="font-mono text-xs font-bold text-primary">Rp 0</span>
+            </div>
+        </div>
+        
+        <div class="w-[1px] h-6 bg-outline-variant"></div>
+        
+        <div class="flex items-center gap-2 flex-1 justify-center">
+            <span class="material-symbols-outlined text-[20px] text-secondary">payments</span>
+            <div class="flex flex-col">
+                <span class="text-[9px] uppercase tracking-wider text-on-surface-variant font-bold opacity-60 leading-none mb-0.5">Keuangan</span>
+                <span id="teks-kas-keuangan-mobile" class="font-mono text-xs font-bold text-secondary">Rp 0</span>
+            </div>
+        </div>
+    </div>
+    
+    <button id="btn-edit-kas-mobile" onclick="window.bukaModalKas()" class="w-8 h-8 flex items-center justify-center bg-primary text-on-primary rounded-full shadow-md ml-2 transition-transform active:scale-95" style="display: none;">
+        <span class="material-symbols-outlined text-[16px]">edit</span>
+    </button>
+</div>
+
                 <!-- BUNGKUS LONCENG DENGAN DIV RELATIVE -->
                 <div class="relative">
                     <button id="notif-btn" class="relative w-10 h-10 hidden sm:flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full" type="button" aria-label="Notifikasi">
@@ -282,6 +323,37 @@ const { title, requireAuth = true } = Astro.props;
                 </button>
             </div>
         </nav>
+    </div>
+    <div class="fixed inset-0 z-[100] bg-on-background/50 hidden items-center justify-center p-container-margin opacity-0 transition-opacity duration-300" id="modal-kas-perusahaan">
+        <div class="bg-surface-container-lowest rounded-xl shadow-lg w-full max-w-sm p-lg transform scale-95 transition-transform duration-300 relative">
+            <button class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors" onclick="window.tutupModalKas()">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h3 class="font-headline-md text-headline-md text-on-surface mb-xs flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">savings</span> Edit Saldo Kas
+            </h3>
+            <p class="font-body-sm text-on-surface-variant mb-md border-b border-outline-variant pb-3">Perbarui rincian uang fisik perusahaan.</p>
+
+            <form id="form-kas-perusahaan" class="flex flex-col gap-md mt-2">
+                <div>
+                    <label class="block font-label-sm text-on-surface-variant mb-xs">Uang di Gudang (Rp)</label>
+                    <input type="number" id="input_uang_gudang" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none font-bold font-mono" value="0">
+                </div>
+                <div>
+                    <label class="block font-label-sm text-on-surface-variant mb-xs">Uang di Keuangan (Rp)</label>
+                    <input type="number" id="input_uang_keuangan" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none font-bold font-mono" value="0">
+                </div>
+                <div id="input-container-owner" class="hidden">
+                    <label class="block font-label-sm text-on-surface-variant mb-xs">Uang di Tangan Owner (Rp)</label>
+                    <input type="number" id="input_uang_owner" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none font-bold font-mono" value="0">
+                </div>
+
+                <div class="mt-sm flex justify-end gap-sm pt-2">
+                    <button class="px-md h-touch-target rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="window.tutupModalKas()" type="button">Batal</button>
+                    <button class="px-md h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors" type="submit" id="btn-submit-kas">Simpan Saldo</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <main id="app-content" class="w-full min-h-screen pt-20 pb-8 px-4 md:px-lg overflow-x-hidden">
@@ -690,6 +762,85 @@ window.addNotifToList = function(title, body) {
             });
         }
 
+        // ==========================================
+        // LOGIKA FETCH & UPDATE KAS PERUSAHAAN (STICKY)
+        // ==========================================
+        async function loadDataKas() {
+            try {
+                const { data, error } = await window.supabase
+                    .from('kas_perusahaan')
+                    .select('uang_gudang, uang_owner')
+                    .eq('id', 1)
+                    .single();
+
+                if (error) throw error;
+
+                const inputGudang = document.getElementById('input_uang_gudang');
+                const inputOwner = document.getElementById('input_uang_owner');
+
+                if (inputGudang) inputGudang.value = data?.uang_gudang || 0;
+                if (inputOwner) inputOwner.value = data?.uang_owner || 0;
+
+                window.kalkulasiTotalKas();
+            } catch (err) {
+                console.error("Gagal load data kas:", err);
+            }
+        }
+
+        // Auto-Kalkulasi format Rupiah setiap kali diketik
+        window.kalkulasiTotalKas = function() {
+            const elGudang = document.getElementById('input_uang_gudang');
+            const elOwner = document.getElementById('input_uang_owner');
+            const elTeks = document.getElementById('teks_total_kas');
+
+            const gudang = elGudang ? (parseFloat(elGudang.value) || 0) : 0;
+            const owner = elOwner ? (parseFloat(elOwner.value) || 0) : 0;
+            const total = gudang + owner;
+
+            if (elTeks) {
+                elTeks.innerText = new Intl.NumberFormat('id-ID', { 
+                    style: 'currency', 
+                    currency: 'IDR', 
+                    minimumFractionDigits: 0 
+                }).format(total);
+            }
+        }
+
+        // Pasang event listener untuk input pengetikan realtime
+        document.getElementById('input_uang_gudang')?.addEventListener('input', window.kalkulasiTotalKas);
+        document.getElementById('input_uang_owner')?.addEventListener('input', window.kalkulasiTotalKas);
+
+        // Eksekusi Update ke Database saat Form di-Submit
+        document.getElementById('form-kas-perusahaan')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-kas');
+            if (!btn) return;
+
+            const textLama = btn.innerText;
+            btn.innerText = "Menyimpan...";
+            btn.disabled = true;
+        
+            try {
+                const payload = {
+                    uang_gudang: parseFloat(document.getElementById('input_uang_gudang').value) || 0,
+                    uang_owner: parseFloat(document.getElementById('input_uang_owner').value) || 0,
+                    updated_at: new Date().toISOString()
+                };
+            
+                const { error } = await window.supabase.from('kas_perusahaan').update(payload).eq('id', 1);
+                if (error) throw error;
+            
+                alert('✅ Saldo Kas Perusahaan berhasil diperbarui!');
+                // Otomatis tutup/minimize body widget setelah sukses simpan
+                document.getElementById('sticky-kas-body')?.classList.add('hidden');
+            } catch (err) {
+                alert("Gagal menyimpan saldo: " + err.message);
+            } finally {
+                btn.innerText = textLama;
+                btn.disabled = false;
+            }
+        });
+
         runWhenReady(() => {
             initSidebar();
             initAuthCheck();
@@ -865,12 +1016,151 @@ window.addNotifToList = function(title, body) {
     // 5️⃣ JALANKAN SAAT PAGE LOAD
     // ==========================================
     window.addEventListener('load', () => {
-        // Check session dulu
-        window.supabase?.auth.getSession().then(({ data: { session } }) => {
+        // Fetch Data Kas & Distribusikan ke UI Desktop + Mobile
+        window.loadDataKas = async function() {
+            try {
+                const { data, error } = await window.supabase
+                    .from('kas_perusahaan')
+                    .select('uang_gudang, uang_owner, uang_keuangan')
+                    .eq('id', 1)
+                    .single();
+                    
+                if (error) throw error;
+                
+                const uangGudang = Number(data?.uang_gudang) || 0;
+                const uangKeuangan = Number(data?.uang_keuangan) || 0;
+                const uangOwner = Number(data?.uang_owner) || 0;
+                
+                const formatter = new Intl.NumberFormat('id-ID', { 
+                    style: 'currency', 
+                    currency: 'IDR', 
+                    minimumFractionDigits: 0 
+                });
+
+                // 🏢 Sinkronisasi ke UI Desktop
+                if (document.getElementById('teks-kas-gudang')) document.getElementById('teks-kas-gudang').innerText = formatter.format(uangGudang);
+                if (document.getElementById('teks-kas-keuangan')) document.getElementById('teks-kas-keuangan').innerText = formatter.format(uangKeuangan);
+                if (document.getElementById('teks-kas-owner')) document.getElementById('teks-kas-owner').innerText = formatter.format(uangOwner);
+                
+                // 📱 Sinkronisasi ke UI Mobile
+                if (document.getElementById('teks-kas-gudang-mobile')) document.getElementById('teks-kas-gudang-mobile').innerText = formatter.format(uangGudang);
+                if (document.getElementById('teks-kas-keuangan-mobile')) document.getElementById('teks-kas-keuangan-mobile').innerText = formatter.format(uangKeuangan);
+                if (document.getElementById('teks-kas-owner-mobile')) document.getElementById('teks-kas-owner-mobile').innerText = formatter.format(uangOwner);
+                
+                // Set Nilai Default ke dalam Form Input Modal
+                if (document.getElementById('input_uang_gudang')) document.getElementById('input_uang_gudang').value = uangGudang;
+                if (document.getElementById('input_uang_keuangan')) document.getElementById('input_uang_keuangan').value = uangKeuangan;
+                if (document.getElementById('input_uang_owner')) document.getElementById('input_uang_owner').value = uangOwner;
+            } catch (err) {
+                console.error("Gagal load data kas:", err);
+            }
+        };
+
+        // Otentikasi Sesi dan Filter Role Keamanan
+        // Check session & Hak Akses Role
+        window.supabase?.auth.getSession().then(async ({ data: { session } }) => {
             if (session) {
                 requestFCMToken();
+                
+                try {
+                    const { data: prof } = await window.supabase.from('profiles').select('role').eq('id', session.user.id).single();
+                    const userRole = prof?.role; 
+                    const allowedKasRoles = ['owner', 'keuangan', 'admin'];
+                    
+                    if (allowedKasRoles.includes(userRole)) {
+                        // Tarik data kas ke UI terlebih dahulu
+                        await window.loadDataKas();
+                        
+                        // 🔥 KUNCI UTAMA: Aktifkan responsif lewat ClassList, bukan lewat .style.display!
+                        
+                        // 📱 Untuk HP: Hapus hidden, paksa flex, tapi sembunyikan jika masuk ukuran desktop (sm:hidden)
+                        const widgetMobile = document.getElementById('mobile-sticky-kas');
+                        if (widgetMobile) {
+                            widgetMobile.classList.remove('hidden');
+                            widgetMobile.classList.add('flex', 'sm:hidden');
+                        }
+                        
+                        // 🏢 Untuk Desktop: Tetap sembunyikan di HP (hidden), tapi aktifkan flex saat ukuran desktop (sm:flex)
+                        const widgetDesktop = document.getElementById('desktop-kas-widget');
+                        if (widgetDesktop) {
+                            widgetDesktop.classList.remove('hidden');
+                            widgetDesktop.classList.add('hidden', 'sm:flex');
+                        }
+                        
+                        // Proteksi khusus kas owner di desktop
+                        if (userRole === 'owner') {
+                            document.getElementById('box-kas-owner')?.classList.remove('hidden');
+                            document.getElementById('box-kas-owner')?.classList.add('flex');
+                            document.getElementById('input-container-owner')?.classList.remove('hidden');
+                        }
+
+                        // Tombol edit aksi
+                        const btnEdit = document.getElementById('btn-edit-kas');
+                        if (btnEdit) btnEdit.style.display = 'flex'; 
+                        
+                        const btnEditMob = document.getElementById('btn-edit-kas-mobile');
+                        if (btnEditMob) btnEditMob.style.display = 'flex'; 
+                    }
+                } catch (err) {
+                    console.error("Gagal verifikasi role:", err);
+                }
             }
         });
+    });
+
+    // ==========================================
+    // LOGIKA MODAL EDIT KAS
+    // ==========================================
+    window.bukaModalKas = function() {
+        const modal = document.getElementById('modal-kas-perusahaan');
+        modal.classList.remove('hidden'); 
+        void modal.offsetWidth;
+        modal.classList.remove('opacity-0'); 
+        modal.querySelector('div').classList.remove('scale-95');
+    };
+
+    window.tutupModalKas = function() {
+        const modal = document.getElementById('modal-kas-perusahaan');
+        modal.classList.add('opacity-0'); 
+        modal.querySelector('div').classList.add('scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    };
+
+    // ==========================================
+    // INTERAKSI DATA SUBMIT KAS KE DATABASE
+    // ==========================================
+    document.getElementById('form-kas-perusahaan')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btn-submit-kas');
+        const textLama = btn.innerText;
+        btn.innerText = "Menyimpan...";
+        btn.disabled = true;
+
+        try {
+            const payload = {
+                uang_gudang: parseFloat(document.getElementById('input_uang_gudang').value) || 0,
+                uang_keuangan: parseFloat(document.getElementById('input_uang_keuangan').value) || 0,
+                updated_at: new Date().toISOString()
+            };
+
+            // Hanya update kolom uang_owner jika inputnya tidak sedang disembunyikan (artinya dia owner)
+            const inputContainerOwner = document.getElementById('input-container-owner');
+            if (inputContainerOwner && !inputContainerOwner.classList.contains('hidden')) {
+                payload.uang_owner = parseFloat(document.getElementById('input_uang_owner').value) || 0;
+            }
+
+            const { error } = await window.supabase.from('kas_perusahaan').update(payload).eq('id', 1);
+            if (error) throw error;
+
+            alert('✅ Berhasil memperbarui saldo kas perusahaan!');
+            window.loadDataKas(); // Perbarui seluruh tampilan UI secara real-time
+            window.tutupModalKas();
+        } catch (err) {
+            alert("Gagal menyimpan saldo: " + err.message);
+        } finally {
+            btn.innerText = textLama;
+            btn.disabled = false;
+        }
     });
 </script>
 </body>

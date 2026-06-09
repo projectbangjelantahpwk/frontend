@@ -85,6 +85,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 <button class="bg-primary text-on-primary font-label-lg text-label-lg rounded-full px-lg py-sm flex items-center gap-sm hover:opacity-90 shadow-sm transition-all min-h-touch-target active:scale-95" onclick="window.tambahPenjemputan()">
                     <span class="material-symbols-outlined text-[18px]">add</span> Buat Penjemputan Baru
                 </button>
+                <button onclick="window.bukaModalDuet()" class="bg-orange-600 text-white px-4 py-2 md:py-2.5 rounded-xl text-sm font-bold hover:bg-orange-700 transition shadow-sm flex items-center gap-2">
+                    <i class="bi bi-people-fill"></i> Pengaturan Duet
+                </button>
             </div>
         </div>
 
@@ -358,6 +361,63 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
     </div>
   </div>
 </div>
+<div id="modal-pengaturan-duet" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
+    <div class="bg-white rounded-2xl w-full max-w-xl overflow-hidden transform scale-95 transition-transform duration-300 shadow-2xl flex flex-col max-h-[90vh]">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-blue-50 shrink-0">
+            <div>
+                <h3 class="font-bold text-lg text-gray-900">Pengaturan Duet Mobil</h3>
+                <p class="text-xs text-blue-800 font-medium">Pasangkan Driver & Helper untuk operasional harian</p>
+            </div>
+            <button type="button" onclick="closeModal('modal-pengaturan-duet')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
+        </div>
+
+        <form id="form-pengaturan-duet" onsubmit="window.simpanDuet(event)" class="p-6 space-y-4 shrink-0 border-b border-gray-100">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Pilih Tanggal</label>
+                <input type="date" id="duet_tanggal" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 font-medium" required>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Pilih Driver</label>
+                    <select id="duet_driver" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 bg-white font-medium" required></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Pilih Helper</label>
+                    <select id="duet_helper" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 bg-white font-medium" required></select>
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <button type="submit" id="btn-save-duet" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-sm active:scale-95">
+                    Simpan Pasangan
+                </button>
+            </div>
+        </form>
+
+        <div class="p-5 overflow-y-auto flex-1 min-h-[200px] bg-gray-50/50">
+            <h4 class="font-bold text-xs text-gray-700 mb-3 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="bi bi-calendar-check text-blue-600"></i> Daftar Pasangan Aktif
+            </h4>
+            <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="border-b bg-gray-50 text-gray-600 font-bold">
+                            <th class="p-3">Tanggal</th>
+                            <th class="p-3">Driver</th>
+                            <th class="p-3">Helper</th>
+                            <th class="p-3 text-center w-16">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-list-duet" class="divide-y divide-gray-100 text-gray-700">
+                        <tr>
+                            <td colspan="4" class="p-4 text-center text-gray-400 italic">Memuat data pasangan...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.default.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 
@@ -597,23 +657,52 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 tomHelper = new TomSelect('#input_helper_mobil', { create: false, maxOptions: null });
 
                 // 🔥 LOGIKA MENCEGAH SUPIR DIPILIH LAGI JADI KENEK 🔥
-                document.getElementById('input_driver_mobil').addEventListener('change', function() {
-                    const selectedSupirId = this.value;
-                    const kenekSelect = document.getElementById('input_helper_mobil');
-                    const prevKenekId = kenekSelect.value; 
-                    
-                    let newOptKenek = '<option value="">-- Tanpa Helper --</option>';
-                    window.allKaryawan.forEach(k => {
-                        if(k.id !== selectedSupirId) { 
-                            newOptKenek += `<option value="${k.id}">${k.nama}</option>`;
-                        }
-                    });
-                    
-                    if(tomHelper) tomHelper.destroy();
-                    kenekSelect.innerHTML = newOptKenek;
-                    if(prevKenekId !== selectedSupirId) kenekSelect.value = prevKenekId;
-                    tomHelper = new TomSelect('#input_helper_mobil', { create: false, maxOptions: null });
-                });
+                document.getElementById('input_driver_mobil').addEventListener('change', async function() {
+            const selectedSupirId = this.value;
+            const kenekSelect = document.getElementById('input_helper_mobil');
+            const prevKenekId = kenekSelect.value; 
+   
+            // 1. Filter ulang daftar Helper agar nama supir nggak muncul ganda
+            let newOptKenek = '<option value="">-- Tanpa Helper --</option>';
+            window.allKaryawan.forEach(k => {
+                if(k.id !== selectedSupirId) { 
+                    newOptKenek += `<option value="${k.id}">${k.nama}</option>`;
+                }
+            });
+            
+            // 2. Refresh elemen dropdown Helper
+            if(tomHelper) tomHelper.destroy();
+            kenekSelect.innerHTML = newOptKenek;
+            if(prevKenekId !== selectedSupirId) kenekSelect.value = prevKenekId;
+            tomHelper = new TomSelect('#input_helper_mobil', { create: false, maxOptions: null });
+
+            // ==========================================
+            // 3. 🔥 PENCARIAN AUTO DUET BERDASARKAN DRIVER 🔥
+            // ==========================================
+            const tgl = document.getElementById('input_tanggal')?.value;
+            // Kalau Driver udah dipilih dan Tanggalnya ada, cari Helpernya!
+            if (selectedSupirId && tgl) {
+                console.log(`🔎 Cari pasangan duet untuk Driver pada ${tgl}`);
+                try {
+                    const { data } = await window.supabase
+                        .from('partner_kendaraan')
+                        .select('helper_id')
+                        .eq('tanggal', tgl)
+                        .eq('driver_id', selectedSupirId)
+                        .maybeSingle(); // Cari spesifik pasangan supir ini di tanggal ini
+
+                    if (data && data.helper_id) {
+                        console.log("✅ Pasangan ditemukan! Auto-isi Helper:", data.helper_id);
+                        // JEDARRR! Langsung auto-fill nama Helpernya!
+                        tomHelper.setValue(data.helper_id);
+                    } else {
+                        console.log("ℹ️ Driver ini belum punya setingan duet di tanggal ini.");
+                    }
+                } catch(e) {
+                    console.error("Gagal mencari data duet:", e);
+                }
+            }
+        });
             }
 
             await loadOperasionalData();
@@ -810,31 +899,67 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         };
 
         // ==========================================
-        // 3. HAPUS PENJEMPUTAN (DELETE CASCADE BERANTAI)
-        // ==========================================
-        window.hapusPenjemputan = async function(id) {
-            if(!isAllowed()) return alert('Akses Ditolak!');
-            if(!confirm("Yakin ingin membatalkan/menghapus penugasan ini secara permanen?")) return;
+// 3. HAPUS PENJEMPUTAN (DELETE CASCADE BERANTAI)
+// ==========================================
+window.hapusPenjemputan = async function(id) {
+    // 🔍 [FREEZE 1]: Cek ID yang masuk
+    console.log("⏸️ [FREEZE ACTIVATED] Memulai proses hapus penjemputan dengan ID:", id);
+    debugger; // Buka F12 / Inspect Element untuk melihat ini!
 
-            try {
-                const p = window.allJadwalPending.find(x => x.id == id);
-                if(p && p.transaksi && p.transaksi[0]) {
-                    const txId = p.transaksi[0].id;
-                    // Hapus Item dulu
-                    await window.supabase.from('transaksi_item').delete().eq('transaksi_id', txId);
-                    // Hapus Induk Transaksi
-                    await window.supabase.from('transaksi').delete().eq('id', txId);
-                }
-                // Terakhir hapus Jadwal Utamanya
-                const { error } = await window.supabase.from('penjemputan').delete().eq('id', id);
-                if(error) throw error;
-                
-                alert('Jadwal berhasil dihapus!');
-                window.location.reload();
-            } catch(e) {
-                alert('Gagal menghapus jadwal: ' + e.message);
+    if(!isAllowed()) return alert('Akses Ditolak!');
+    if(!confirm("Yakin ingin membatalkan/menghapus penugasan ini secara permanen?")) return;
+
+    try {
+        // 🔥 PASTIKAN STRING KE STRING AGAR MATCH 🔥
+        const p = window.allJadwalPending.find(x => String(x.id) === String(id));
+        console.log("1. Data penjemputan yang akan dibersihkan:", p);
+
+        // Hapus SEMUA transaksi & item transaksi yang terikat
+        if(p && p.transaksi && p.transaksi.length > 0) {
+            console.log(`2. Ditemukan ${p.transaksi.length} transaksi terkait. Memulai sapu bersih...`);
+            for (const tx of p.transaksi) {
+                console.log(`   -> Menghapus item dari transaksi: ${tx.id}`);
+                const { error: errItem } = await window.supabase.from('transaksi_item').delete().eq('transaksi_id', tx.id);
+                if(errItem) console.error("      ❌ Gagal hapus item:", errItem);
+
+                console.log(`   -> Menghapus transaksi: ${tx.id}`);
+                const { error: errTx } = await window.supabase.from('transaksi').delete().eq('id', tx.id);
+                if(errTx) console.error("      ❌ Gagal hapus transaksi:", errTx);
             }
-        };
+        } else {
+            console.log("2. Aman: Tidak ada transaksi anak yang nyangkut.");
+        }
+        
+        console.log("3. Mengeksekusi tembakan DELETE ke tabel Penjemputan...");
+        
+        // 🔥 TAMBAH .select() AGAR KITA TAHU BENAR-BENAR TERHAPUS ATAU DIBLOKIR RLS 🔥
+        const { data: hapusData, error } = await window.supabase
+            .from('penjemputan')
+            .delete()
+            .eq('id', id)
+            .select();
+        
+        // 🔍 [FREEZE 2]: Cek Respons Balikan Supabase
+        console.log("4. Hasil balikan hapus penjemputan:", { hapusData, error });
+        debugger; // Script akan beku lagi di sini! Cek tab Console!
+
+        if(error) throw error;
+
+        // Jika array kosong, artinya Supabase menolak perintah DELETE (biasanya karena RLS)
+        if (!hapusData || hapusData.length === 0) {
+            console.warn("⚠️ Data penjemputan gagal dihapus! Supabase memblokir eksekusi (Silent Fail).");
+            alert("❌ Penghapusan Gagal: Baris tidak terhapus. Cek Policy RLS (Delete) di tabel 'penjemputan' pada Supabase Anda!");
+            return;
+        }
+        
+        alert('Jadwal penjemputan berhasil dihapus bersih!');
+        window.location.reload();
+        
+    } catch(e) {
+        console.error("💥 Error Detail Hapus Penjemputan:", e);
+        alert('Gagal menghapus jadwal: ' + e.message);
+    }
+};
 
         // ==========================================
         // 4. KEMBALIKAN STATUS KE "BELUM DIPROSES"
@@ -859,9 +984,40 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             }
         };
         
-        window.closeModal = function() {
-            document.getElementById('new-pickup-modal').classList.remove('active');
-        };
+       // ==========================================
+       // 🔥 KONTROL MODAL (GABUNGAN LAMA & BARU) 🔥
+       // ==========================================
+       window.openModal = function(id) {
+           const m = document.getElementById(id);
+           if(!m) return;
+           m.classList.remove('hidden');
+           m.classList.add('flex');
+           setTimeout(() => { 
+               m.classList.remove('opacity-0'); 
+               const isi = m.querySelector('div');
+               if(isi) isi.classList.remove('scale-95'); 
+           }, 10);
+       };
+       
+       window.closeModal = function(id) {
+           // 1. Jika tidak ada ID, berarti itu modal form penjemputan lama
+           if (!id || typeof id !== 'string') {
+               const oldModal = document.getElementById('new-pickup-modal');
+               if(oldModal) oldModal.classList.remove('active');
+               return;
+           }
+       
+           // 2. Jika pakai ID, berarti modal Tailwind baru (seperti modal Duet)
+           const m = document.getElementById(id);
+           if(!m) return;
+           m.classList.add('opacity-0'); 
+           const isi = m.querySelector('div');
+           if(isi) isi.classList.add('scale-95');
+           setTimeout(() => { 
+               m.classList.add('hidden'); 
+               m.classList.remove('flex'); 
+           }, 300);
+       };
 
         window.addBarangRow = function() {
             const container = document.getElementById('barang-rows-container');
@@ -909,6 +1065,11 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 selectMobil.classList.replace('hidden', 'flex');
                 document.getElementById('input_driver_motor').required = false;
                 document.getElementById('input_driver_mobil').required = true;
+            }
+        
+            // 🔥 TAMBAHAN BARU: JIKA ARMADA BERUBAH JADI MOBIL, CEK DUET OTOMATIS 🔥
+            if (type === 'mobil') {
+                window.cekAutoDuet();
             }
         };
 
@@ -1138,7 +1299,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         </td>
                         <td class="px-md py-md text-right" data-label="Aksi">
                             <div class="flex gap-2 justify-end">
-                                <button onclick="window.hapusRute(${r.id}, '${r.nama_rute}')" class="bg-red-50 text-red-600 border border-red-200 px-2 py-1 rounded text-[11px] font-bold hover:bg-red-100 transition shadow-sm" title="Hapus">
+                                <button onclick="window.hapusPenjemputan(${r.id}, '${r.nama_rute}')" class="bg-red-50 text-red-600 border border-red-200 px-2 py-1 rounded text-[11px] font-bold hover:bg-red-100 transition shadow-sm" title="Hapus">
                                     <i class="bi bi-trash3"></i>
                                 </button>
                             </div>
@@ -1215,29 +1376,188 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 input.disabled = false;
             }
         };
-        window.hapusRute = async function(id, namaRute) {
-            // Proteksi keamanan ganda
-            if(!['owner', 'hrd', 'admin'].includes(currentUserRole)) {
-                return alert('Akses Ditolak: Hanya Admin, HRD, dan Owner yang diizinkan!');
-            }
+        // ==========================================
+        // 3. HAPUS PENJEMPUTAN (DELETE CASCADE BERANTAI)
+        // ==========================================
+        window.hapusPenjemputan = async function(id) {
+            // 🔍 [FREEZE 1]: Cek ID yang masuk
+            console.log("⏸️ [FREEZE ACTIVATED] Memulai proses hapus penjemputan dengan ID:", id);
+            debugger; // Buka F12 / Inspect Element untuk melihat ini!
+        
+            if(!isAllowed()) return alert('Akses Ditolak!');
+            if(!confirm("Yakin ingin membatalkan/menghapus penugasan ini secara permanen?")) return;
+        
+            try {
+                // 🔥 PASTIKAN STRING KE STRING AGAR MATCH 🔥
+                const p = window.allJadwalPending.find(x => String(x.id) === String(id));
+                console.log("1. Data penjemputan yang akan dibersihkan:", p);
             
-            // Konfirmasi sebelum menghapus
-            if(!confirm(`Yakin ingin menghapus rute "${namaRute}"?\n\nPastikan rute ini sudah tidak dipakai di jadwal penjemputan manapun ya!`)) return;
+                // Hapus SEMUA transaksi & item transaksi yang terikat
+                if(p && p.transaksi && p.transaksi.length > 0) {
+                    console.log(`2. Ditemukan ${p.transaksi.length} transaksi terkait. Memulai sapu bersih...`);
+                    for (const tx of p.transaksi) {
+                        console.log(`   -> Menghapus item dari transaksi: ${tx.id}`);
+                        const { error: errItem } = await window.supabase.from('transaksi_item').delete().eq('transaksi_id', tx.id);
+                        if(errItem) console.error("      ❌ Gagal hapus item:", errItem);
+                    
+                        console.log(`   -> Menghapus transaksi: ${tx.id}`);
+                        const { error: errTx } = await window.supabase.from('transaksi').delete().eq('id', tx.id);
+                        if(errTx) console.error("      ❌ Gagal hapus transaksi:", errTx);
+                    }
+                } else {
+                    console.log("2. Aman: Tidak ada transaksi anak yang nyangkut.");
+                }
+
+                console.log("3. Mengeksekusi tembakan DELETE ke tabel Penjemputan...");
+
+                // 🔥 TAMBAH .select() AGAR KITA TAHU BENAR-BENAR TERHAPUS ATAU DIBLOKIR RLS 🔥
+                const { data: hapusData, error } = await window.supabase
+                    .from('penjemputan')
+                    .delete()
+                    .eq('id', id)
+                    .select();
+
+                // 🔍 [FREEZE 2]: Cek Respons Balikan Supabase
+                console.log("4. Hasil balikan hapus penjemputan:", { hapusData, error });
+                debugger; // Script akan beku lagi di sini! Cek tab Console!
+            
+                if(error) throw error;
+            
+                // Jika array kosong, artinya Supabase menolak perintah DELETE (biasanya karena RLS)
+                if (!hapusData || hapusData.length === 0) {
+                    console.warn("⚠️ Data penjemputan gagal dihapus! Supabase memblokir eksekusi (Silent Fail).");
+                    alert("❌ Penghapusan Gagal: Baris tidak terhapus. Cek Policy RLS (Delete) di tabel 'penjemputan' pada Supabase Anda!");
+                    return;
+                }
+
+                alert('Jadwal penjemputan berhasil dihapus bersih!');
+                window.location.reload();
+
+            } catch(e) {
+                console.error("💥 Error Detail Hapus Penjemputan:", e);
+                alert('Gagal menghapus jadwal: ' + e.message);
+            }
+        };
+        // ==========================================
+        // 🔥 KONTROL MODAL & SIMPAN DUET 🔥
+        // ==========================================
+        // ==========================================
+        // 🔥 KONTROL MODAL, RIWAYAT, & MANAJEMEN DUET 🔥
+        // ==========================================
+        window.bukaModalDuet = function() {
+            let optHtml = '<option value="">-- Pilih --</option>';
+            if (window.allKaryawan) {
+                window.allKaryawan.forEach(k => {
+                    optHtml += `<option value="${k.id}">${k.nama}</option>`;
+                });
+            }
+
+            document.getElementById('duet_driver').innerHTML = optHtml;
+            document.getElementById('duet_helper').innerHTML = optHtml;
+        
+            const today = new Date().toLocaleDateString('en-CA');
+            document.getElementById('duet_tanggal').value = today;
+
+            // Buka tampilan modal utama
+            window.openModal('modal-pengaturan-duet');
+            
+            // Jalankan penarikan daftar data hasil pasangannya
+            window.loadListDuet();
+        };
+
+        // Fungsi Load Data Hasil Pasangan Harian
+        window.loadListDuet = async function() {
+            const tbody = document.getElementById('tbody-list-duet');
+            if(!tbody) return;
 
             try {
-                // Eksekusi hapus di Supabase
+                const { data, error } = await window.supabase
+                    .from('partner_kendaraan')
+                    .select(`
+                        id, tanggal,
+                        driver:driver_id(nama),
+                        helper:helper_id(nama)
+                    `)
+                    .order('tanggal', { ascending: false });
+
+                if(error) throw error;
+
+                let htmlContent = '';
+                if(data && data.length > 0) {
+                    data.forEach(d => {
+                        htmlContent += `
+                        <tr class="hover:bg-gray-50/80 transition-colors">
+                            <td class="p-3 font-mono text-gray-900 font-medium">${d.tanggal}</td>
+                            <td class="p-3 font-semibold text-blue-900">${d.driver?.nama || '-'}</td>
+                            <td class="p-3 text-gray-600 font-medium">${d.helper?.nama || '<span class="text-gray-400 italic font-normal">Tanpa Helper</span>'}</td>
+                            <td class="p-3 text-center">
+                                <button type="button" onclick="window.hapusDuet('${d.id}')" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded-lg transition" title="Hapus Pasangan">
+                                    <i class="bi bi-trash-fill text-sm"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                    });
+                } else {
+                    htmlContent = '<tr><td colspan="4" class="p-4 text-center text-gray-400 italic">Belum ada pasangan duet yang diatur</td></tr>';
+                }
+                tbody.innerHTML = htmlContent;
+            } catch(err) {
+                console.error("Gagal menarik data hasil duet:", err);
+                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-red-500 font-bold">Gagal memuat data dari server</td></tr>';
+            }
+        };
+
+        // Fungsi Eksekusi Hapus Pasangan Duet
+        window.hapusDuet = async function(id) {
+            if(!confirm("Hapus data pasangan duet kendaraan untuk tanggal ini?")) return;
+            try {
                 const { error } = await window.supabase
-                    .from('rute_jemput')
+                    .from('partner_kendaraan')
                     .delete()
                     .eq('id', id);
+
+                if(error) throw error;
                 
+                alert("Data pasangan berhasil dihapus bersih!");
+                await window.loadListDuet(); // Refresh tabel hasil instan
+                if(typeof window.cekAutoDuet === 'function') window.cekAutoDuet(); // Sinkronkan form pembuatan jalan
+            } catch(err) {
+                alert("Waduh, gagal menghapus data: " + err.message);
+            }
+        };
+
+        window.simpanDuet = async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save-duet');
+
+            const tanggal = document.getElementById('duet_tanggal').value;
+            const driverId = document.getElementById('duet_driver').value;
+            const helperId = document.getElementById('duet_helper').value;
+
+            if (driverId === helperId) {
+                return alert("Driver dan Helper tidak boleh orang yang sama!");
+            }
+        
+            btn.innerText = "Menyimpan...";
+            btn.disabled = true;
+        
+            try {
+                const { error } = await window.supabase.from('partner_kendaraan').upsert({
+                    tanggal: tanggal,
+                    driver_id: driverId,
+                    helper_id: helperId || null
+                }, { onConflict: 'tanggal, driver_id' });
+
                 if (error) throw error;
-                
-                // Refresh tabel dan dropdown form seketika
-                await loadTabelRute();
-                
-            } catch (error) {
-                alert('Gagal menghapus rute: ' + error.message);
+
+                alert("Pasangan Duet sukses disimpan!");
+                await window.loadListDuet(); // Otomatis muncul di list bawah tanpa menutup modal
+                if(typeof window.cekAutoDuet === 'function') window.cekAutoDuet();
+            } catch (err) {
+                alert("Gagal menyimpan duet: " + err.message);
+            } finally {
+                btn.innerText = "Simpan Pasangan";
+                btn.disabled = false;
             }
         };
         // Eksekusi penarikan data rute saat halaman dimuat

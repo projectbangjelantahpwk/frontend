@@ -239,6 +239,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             let htmlPembelian = ''; 
             transaksi?.forEach(t => {
                 const tanggal = t.penjemputan?.tanggal || t.tanggal_transaksi || '-';
+                const jam = t.created_at ? new Date(t.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) : '';
+                const waktuTampil = jam ? `${jam} WIB` : '';
                 const namaMitra = t.penjemputan?.mitra?.nama_mitra || t.nama_mitra_tidak_terdaftar || 'Tanpa Nama Mitra'; 
                 if (t.transaksi_item && t.transaksi_item.length > 0) {
                     t.transaksi_item.forEach(item => { 
@@ -246,7 +248,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         const subtotal = item.volume * hargaSatuan;
                         htmlPembelian += ` 
                         <tr class="hover:bg-gray-50" data-date="${t.penjemputan?.tanggal || ''}">
-                            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">${tanggal}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                                <div class="font-medium text-gray-900">${tanggal}</div>
+                                ${jam ? `<div class="text-[11px] text-gray-400 font-mono mt-0.5">${waktuTampil}</div>` : ''}
+                            </td>
                             <td class="px-6 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">${namaMitra}</td> 
                             <td class="px-6 py-4 text-sm font-medium text-blue-700 whitespace-nowrap">${item.komoditas}</td>
                             <td class="px-6 py-4 text-sm text-gray-700 text-right">${item.volume} Kg</td>
@@ -276,6 +281,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             const valContainer = document.getElementById('validasi-container');
             let htmlVal = ''; 
             trxMenunggu.forEach(trx => {
+                const jam = trx.created_at ? new Date(trx.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) : '';
+                const waktuTampil = jam ? `${jam} WIB` : '';
                 const subtotal = trx.transaksi_item?.reduce((acc, i) => acc + (i.volume * (i.harga_unit||0)), 0) || 0;
                 const finalTotal = subtotal - (trx.potongan_dp || 0); 
                 let itemHtml = '';
@@ -326,7 +333,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     <div class="flex items-start justify-between mb-4 border-b border-gray-100 pb-4">
                         <div> 
                             <h3 class="font-bold text-gray-900 text-lg">${trx.penjemputan?.mitra?.nama_mitra || trx.nama_mitra_tidak_terdaftar || 'Tanpa Nama Mitra'}</h3> 
-                            <p class="text-sm text-gray-500">Tgl Transaksi: ${trx.penjemputan?.tanggal || trx.tanggal_transaksi || '-'}</p>
+                            <p class="text-sm text-gray-500 flex items-center gap-1.5">
+                                Tgl Transaksi: ${trx.penjemputan?.tanggal || trx.tanggal_transaksi || '-'} 
+                                ${jam ? `<span class="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-mono font-bold">${waktuTampil}</span>` : ''}
+                            </p>
                         </div>
                         <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Belum Lunas</span> 
                     </div>
@@ -340,9 +350,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     ${infoBayarHtml}
 
                     <div class="border-t border-gray-200 pt-4 mb-6"> 
-    <p class="text-sm text-gray-600 mb-1">Total Wajib Dibayar</p> 
-    <p class="text-3xl font-bold text-gray-900">Rp ${Number(trx.grand_total || 0).toLocaleString('id-ID')}</p>
-</div>
+                        <p class="text-sm text-gray-600 mb-1">Total Wajib Dibayar</p> 
+                        <p class="text-3xl font-bold text-gray-900">Rp ${Number(trx.grand_total || 0).toLocaleString('id-ID')}</p>
+                    </div>
                     
                     <div class="flex gap-3"> 
                         <button onclick="window.bukaModalEditTrx('${trx.id}')" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl hover:bg-blue-100 transition font-bold active:scale-95">
@@ -359,10 +369,15 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             const tbodyLunas = document.getElementById('riwayat-lunas-tbody');
             let htmlLunas = ''; 
             trxSelesai.forEach(t => {
+                const jam = t.created_at ? new Date(t.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) : '';
+                const waktuTampil = jam ? `${jam} WIB` : '';
                 htmlLunas += `
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 text-sm font-bold text-gray-900">${t.penjemputan?.mitra?.nama_mitra || t.nama_mitra_tidak_terdaftar || 'Tanpa Nama Mitra'}</td>
-                    <td class="px-6 py-4 text-sm text-gray-600">${t.penjemputan?.tanggal || t.tanggal_transaksi || '-'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                        <div class="font-medium text-gray-900">${t.penjemputan?.tanggal || t.tanggal_transaksi || '-'}</div>
+                        ${jam ? `<div class="text-[11px] text-gray-400 font-mono mt-0.5">${waktuTampil}</div>` : ''}
+                    </td>
                     <td class="px-6 py-4 text-sm text-gray-600">${t.metode_bayar || '-'} ${t.metode_bayar_2 ? ' + '+t.metode_bayar_2 : ''}</td> 
                     <td class="px-6 py-4 text-sm font-bold text-green-700 text-right">Rp ${Number(t.grand_total || 0).toLocaleString('id-ID')}</td>
                 </tr>`;

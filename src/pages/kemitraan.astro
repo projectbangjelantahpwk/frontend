@@ -81,6 +81,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         <table class="w-full text-left border-collapse min-w-[600px]">
                             <thead>
                                 <tr class="border-b border-outline-variant bg-surface-container-low">
+                                    <th class="px-md py-sm w-12 text-center font-label-sm text-label-sm text-on-surface-variant uppercase">No</th>
                                     <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Tanggal Input</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">No HP</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">Sumber Mitra</th>
@@ -101,6 +102,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         <table class="w-full text-left border-collapse min-w-[800px]">
                             <thead>
                                 <tr class="border-b border-outline-variant bg-surface-container-low">
+                                    <th class="p-md w-12 text-center font-label-lg text-on-surface-variant font-semibold">No</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">Nama</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">Rute</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">No HP</th>
@@ -124,6 +126,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         <table class="w-full text-left border-collapse min-w-[800px]">
                             <thead>
                                 <tr class="border-b border-outline-variant bg-surface-container-low">
+                                    <th class="p-md w-12 text-center font-label-lg text-on-surface-variant font-semibold">No</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">Nama</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">No HP</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold text-center">Jml Transaksi</th>
@@ -192,6 +195,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         <table class="w-full text-left border-collapse min-w-[800px]">
             <thead>
                 <tr class="border-b border-outline-variant bg-surface-container-low">
+                    <th class="p-md w-12 text-center font-label-lg text-on-surface-variant font-semibold">No</th>
                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">Nama Mitra</th>
                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">Atas Nama</th>
                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">Nama Bank</th>
@@ -590,9 +594,34 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             
                 let htmlProspekMobile = '';
                 let htmlProspekTable = '';
+
+                // ==========================================
+                // FITUR AUTO BROADCAST WA MITRA LANGGANAN
+                // ==========================================
+                window.broadcastWA = function(hp, nama) {
+                    // ✅ BENAR (Pakai spasi)
+                    if (!hp || hp === '-') return alert(`Nomor HP untuk mitra ${nama} tidak ditemukan!`);
+
+                    // Sapu bersih karakter non-angka
+                    let waNumber = hp.replace(/\D/g, '');
+
+                    // Jika nomor diawali angka '0', ubah paksa jadi kode Indonesia '62'
+                    if (waNumber.startsWith('0')) {
+                        waNumber = '62' + waNumber.substring(1);
+                    }
+
+                    // Template pesan broadcast otomatis (bisa kamu ganti teksnya sesuka hati)
+                    const textPesan = `Halo Kak ${nama},\n\nKami dari *BANG JELANTAH PURWAKARTA* ingin menginformasikan jadwal penjemputan komoditas.\n\nApakah ada stok minyak jelantah atau kargo lainnya yang siap kami angkut hari ini? Mohon infonya ya Kak, terima kasih! 😊🙏`;
+
+                    // Satukan link API WhatsApp resmi
+                    const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(textPesan)}`;
+
+                    // Buka chat otomatis di tab baru browser
+                    window.open(waLink, '_blank');
+                };
                             
                 if(prospek && prospek.length > 0) {
-                    prospek.forEach(p => {
+                    prospek.forEach((p,index) => {
                         const sumber = p.sumber_customer || 'Lainnya';
                         const currentFollowUp = p.follow_up_ke || 1; 
                         
@@ -649,6 +678,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         // Tampilan Baris untuk Tabel Desktop
                         htmlProspekTable += `
                         <tr class="prospek-item hover:bg-surface-container-low transition-colors" data-tgl="${rawDate}" data-fu="${currentFollowUp}">
+                            <td class="p-md text-center text-sm font-bold text-on-surface-variant">${index + 1}</td>
                             <td class="p-md text-sm font-medium text-on-surface-variant whitespace-nowrap">
                                 <span class="material-symbols-outlined text-[14px] align-middle mr-1">calendar_today</span>${tanggalInput}
                             </td>
@@ -707,7 +737,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 let chartDataByMonth = { 'Jan':0, 'Feb':0, 'Mar':0, 'Apr':0, 'May':0, 'Jun':0, 'Jul':0, 'Aug':0, 'Sep':0, 'Oct':0, 'Nov':0, 'Dec':0 };
 
                 if(langganan && langganan.length > 0) {
-                    langganan.forEach(l => {
+                    langganan.forEach((l, index) => {
                         // Data untuk Grafik (Hitung per bulan)
                         if(l.created_at) {
                             const date = new Date(l.created_at);
@@ -716,28 +746,39 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             chartDataByMonth[monthKeys[monthIndex]] += 1;
                         }
 
+                        // 📱 TAMPILAN MOBILE CARD (Kini ada tombol Chat WA & Edit di bawahnya)
                         htmlLangMobile += `
                         <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm relative">
-                            <button onclick="window.nonaktifkanMitra('${l.id}', '${l.nama_mitra}')" class="absolute top-4 right-4 text-error hover:bg-error-container rounded-full p-1 transition-colors" title="Nonaktifkan Mitra">
+                            <button onclick="window.nonaktifkanMitra('${l.id}', '${l.nama_mitra.replace(/'/g, "\\'")}')" class="absolute top-4 right-4 text-error hover:bg-error-container rounded-full p-1 transition-colors" title="Nonaktifkan Mitra">
                                 <span class="material-symbols-outlined text-[20px]">person_off</span>
                             </button>
                             <div class="border-b border-outline-variant pb-sm">
                                 <p class="font-headline-md text-on-surface font-semibold pr-8">${l.nama_mitra}</p>
                             </div>
-                            <td><span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded uppercase mt-1 inline-block">${l.rute_jemput || 'Tanpa Rute'}</span></td>
+                            <div><span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded uppercase mt-1 inline-block">${l.rute_jemput || 'Tanpa Rute'}</span></div>
                             <div class="grid grid-cols-2 gap-sm pt-xs">
                                 <div><p class="font-label-sm text-on-surface-variant">No HP</p><p class="font-body-md text-on-surface">${l.nomor_hp || '-'}</p></div>
                                 <div><p class="font-label-sm text-on-surface-variant">Sumber</p><p class="font-body-md text-on-surface font-semibold">${l.sumber_mitra || 'Lainnya'}</p></div>
                                 <div><p class="font-label-sm text-on-surface-variant">Transaksi</p><p class="font-body-md text-on-surface">${l.total_order || 0}x</p></div>
                                 <div><p class="font-label-sm text-on-surface-variant">Deposit</p><p class="font-body-md text-green-700 font-bold">Rp ${Number(l.deposit || 0).toLocaleString('id-ID')}</p></div>
                             </div>
+                            <div class="grid grid-cols-2 gap-2 mt-xs pt-2 border-t border-outline-variant/40">
+                                <button onclick="window.broadcastWA('${l.nomor_hp}', '${l.nama_mitra.replace(/'/g, "\\'")}')" class="h-10 bg-[#25D366] text-white rounded-full font-label-lg flex items-center justify-center gap-1 shadow-xs hover:bg-[#1ebd5a] transition-colors">
+                                    <i class="bi bi-whatsapp"></i> Chat WA
+                                </button>
+                                <button onclick="window.bukaEditMitra('${l.id}')" class="h-10 bg-surface-container text-primary rounded-full font-label-lg flex items-center justify-center gap-1 hover:bg-primary-container transition-colors">
+                                    <span class="material-symbols-outlined text-[16px]">edit</span> Edit
+                                </button>
+                            </div>
                         </div>`;
-                        
+
+                        // 🏢 TAMPILAN TABEL DESKTOP (Sudah termasuk Kolom Nomor "No" & Ikon Hijau WA)
                         htmlLangTable += `
                         <tr class="hover:bg-surface-container-low transition-colors group">
+                            <td class="p-md text-center text-sm font-bold text-on-surface-variant">${index + 1}</td>
+                            
                             <td class="p-md font-body-md text-on-surface font-semibold">
                                 ${l.nama_mitra}
-                                <br>
                             </td>
                             <td><span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded uppercase mt-1 inline-block">${l.rute_jemput || 'Tanpa Rute'}</span></td>
                             <td class="p-md font-body-md text-on-surface">${l.nomor_hp || '-'}</td>
@@ -745,11 +786,16 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             <td class="p-md text-center"><a class="text-primary inline-block p-1 rounded-full hover:bg-primary-container" href="${l.link_gmaps || '#'}" target="_blank"><span class="material-symbols-outlined text-[20px]">location_on</span></a></td>
                             <td class="p-md text-center font-mono font-bold text-green-700">Rp ${Number(l.deposit || 0).toLocaleString('id-ID')}</td>
                             <td class="p-md text-center font-body-md">${l.total_order || 0}x</td>
+                            
                             <td class="p-md text-right flex justify-end gap-2 items-center">
+                                <button onclick="window.broadcastWA('${l.nomor_hp}', '${l.nama_mitra.replace(/'/g, "\\'")}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-[#25D366] rounded-full hover:bg-[#25D366]/15 opacity-0 group-hover:opacity-100 transition-opacity" title="Kirim WA Broadcast">
+                                    <i class="bi bi-whatsapp text-[18px]"></i>
+                                </button>
+                                
                                 <button onclick="window.bukaEditMitra('${l.id}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-primary rounded-full hover:bg-primary-container opacity-0 group-hover:opacity-100 transition-opacity" title="Edit Mitra">
                                     <span class="material-symbols-outlined text-[18px]">edit</span>
                                 </button>
-                                <button onclick="window.nonaktifkanMitra('${l.id}', '${l.nama_mitra}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-error rounded-full hover:bg-error-container opacity-0 group-hover:opacity-100 transition-opacity" title="Pindah ke Tidak Aktif">
+                                <button onclick="window.nonaktifkanMitra('${l.id}', '${l.nama_mitra.replace(/'/g, "\\'")}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-error rounded-full hover:bg-error-container opacity-0 group-hover:opacity-100 transition-opacity" title="Pindah ke Tidak Aktif">
                                     <span class="material-symbols-outlined text-[18px]">person_off</span>
                                 </button>
                             </td>
@@ -774,7 +820,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 let htmlNonMobile = '';
                 let htmlNonTable = '';
                 if(nonaktif && nonaktif.length > 0) {
-                    nonaktif.forEach(n => {
+                    nonaktif.forEach((n, index) => {
                         const dateOnly = n.created_at ? new Date(n.created_at).toLocaleDateString('id-ID') : '-';
                         htmlNonMobile += `
                         <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm opacity-75">
@@ -791,6 +837,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         
                         htmlNonTable += `
                         <tr class="hover:bg-surface-container-low transition-colors">
+                            <td class="p-md text-center text-sm font-bold text-on-surface-variant">${index + 1}</td>
                             <td class="p-md font-body-md text-on-surface-variant font-semibold">${n.nama_mitra}</td>
                             <td class="p-md font-body-md text-on-surface-variant">${n.nomor_hp || '-'}</td>
                             <td class="p-md text-center font-body-md text-on-surface-variant">${n.total_order || 0}x</td>
@@ -1508,7 +1555,7 @@ async function loadDataRekening() {
     let htmlMob = '', htmlTab = '';
     
     if (window.allRekening.length > 0) {
-        window.allRekening.forEach(r => {
+        window.allRekening.forEach((r,index) => {
             const namaMitra = r.mitra?.nama_mitra || 'Mitra Tidak Ditemukan';
             
             // Render Mobile
@@ -1531,6 +1578,7 @@ async function loadDataRekening() {
             // Render Desktop
             htmlTab += `
             <tr class="rekening-item hover:bg-surface-container-low transition-colors group" data-bank="${r.nama_bank.toLowerCase()}">
+                <td class="p-md text-center text-sm font-bold text-on-surface-variant">${index + 1}</td>
                 <td class="p-md font-body-md font-semibold">${namaMitra}</td>
                 <td class="p-md font-body-md">${r.atas_nama}</td>
                 <td class="p-md"><span class="px-2 py-1 bg-primary-container text-on-primary-container rounded font-bold text-xs">${r.nama_bank}</span></td>

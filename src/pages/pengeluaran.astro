@@ -747,7 +747,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
         try {
             const rincianItems = [];
-            let countUangJalan = 0; // 🔥 Alat hitung Uang Jalan di form
+            let countUangJalan = 0;
+            let totalNominalPengajuan = 0; // 🔥 Variabel baru untuk menghitung total uang yang mau diminta
 
             itemRows.forEach(row => {
                 const kategori = row.querySelector('.add_item_select').value;
@@ -755,6 +756,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 const keterangan = row.querySelector('.add_item_keterangan').value.trim();
 
                 if(kategori === 'Uang Jalan') countUangJalan++;
+                totalNominalPengajuan += nominal; // Tambahkan ke total
 
                 rincianItems.push({ 
                     nama_item: kategori, 
@@ -762,6 +764,35 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     keterangan: keterangan || null 
                 });
             });
+
+            // =================================================================
+            // 🔥 SENSOR CEK SALDO KAS PERUSAHAAN (ANTI MINUS & ANTI NOL) 🔥
+            // =================================================================
+            const { data: dataKas, error: errKas } = await window.supabase
+                .from('kas_perusahaan')
+                .select('*')
+                .eq('id', 1)
+                .single();
+
+            if (dataKas) {
+                let saldoAktif = 0;
+                if (sumberDana === 'Uang Keuangan') saldoAktif = dataKas.uang_keuangan || 0;
+                else if (sumberDana === 'Uang Gudang') saldoAktif = dataKas.uang_gudang || 0;
+                else if (sumberDana === 'Uang Owner') saldoAktif = dataKas.uang_owner || 0;
+
+                // 1. Blokir jika kas benar-benar kosong (0)
+                if (saldoAktif <= 0 && totalNominalPengajuan > 0) {
+                    btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER"; btnSubmit.disabled = false;
+                    return alert(`❌ DITOLAK! Saldo dompet [${sumberDana}] saat ini kosong (Rp 0). Tidak bisa melakukan pengeluaran!`);
+                }
+
+                // 2. Blokir jika kas ada, tapi TIDAK CUKUP (mencegah minus)
+                if (saldoAktif < totalNominalPengajuan) {
+                    btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER"; btnSubmit.disabled = false;
+                    return alert(`❌ DITOLAK! Saldo dompet [${sumberDana}] tidak mencukupi untuk tagihan ini!\n\nSisa Saldo Kas: Rp ${saldoAktif.toLocaleString('id-ID')}\nTotal Pengajuan: Rp ${totalNominalPengajuan.toLocaleString('id-ID')}\n\nSilakan kurangi nominal atau pilih dompet kas lain.`);
+                }
+            }
+            // =================================================================
 
             // 🛡️ 1. CEGAH DOBEL DI DALAM 1 FORM
             if(countUangJalan > 1) {
@@ -771,7 +802,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
             // 🛡️ 2. CEGAH DOBEL LINTAS DOMPET (Cek riwayat di database)
             if (countUangJalan > 0) {
-                // Cari semua Nota milik Karyawan ini di hari ini (dari dompet manapun)
                 const { data: pengInduk } = await window.supabase
                     .from('pengeluaran')
                     .select('id')
@@ -780,8 +810,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
                 if (pengInduk && pengInduk.length > 0) {
                     const pengIds = pengInduk.map(p => p.id);
-                    
-                    // Cek apakah di dalam nota-nota tersebut sudah ada 'Uang Jalan'
                     const { data: cekUj } = await window.supabase
                         .from('rincian_pengeluaran')
                         .select('id')
@@ -811,7 +839,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             if (existing) {
                 pengeluaranId = existing.id;
             } else {
-                // BIKIN INDUK BARU DENGAN SUMBER DANA BARU
                 const { data: inserted, error: errInsert } = await window.supabase.from('pengeluaran')
                     .insert({ 
                         user_id: userId, 
@@ -836,7 +863,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             const { error: errRincian } = await window.supabase.from('rincian_pengeluaran').insert(rincianFinalToInsert);
             if(errRincian) throw errRincian;
             
-            alert("Mantap! Seluruh data sukses dicatat sesuai sumber dana dompetnya.");
+            alert("Mantap! Seluruh data sukses dicatat dan divalidasi.");
             window.location.reload();
         } catch (err) {
             console.error(err);

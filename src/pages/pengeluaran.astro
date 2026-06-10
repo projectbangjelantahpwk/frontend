@@ -253,6 +253,17 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             <span class="inline-flex px-3 py-1 rounded text-[11px] font-bold border ${color}">${itemStatus}</span>
                             ${itemStatus === 'Ditolak' ? `<button onclick="window.hapusItemPengeluaran('${r.id}')" class="text-red-500 text-[10px] hover:text-red-700 mt-1 font-bold"><i class="bi bi-trash"></i> Hapus</button>` : ''}
                         </div>`;
+
+                        // 🔥 TAMBAHAN TOMBOL SIMPAN SISA UANG JALAN 🔥
+                        // Syarat muncul: Sudah di-ACC, namanya 'Uang Jalan', dan saldonya masih > 0
+                        if (itemStatus === 'Disetujui' && r.nama_item === 'Uang Jalan' && Number(r.nominal) > 0) {
+                            statusBtn += `
+                            <div class="mt-2 pt-2 border-t border-gray-200 w-full">
+                                <button onclick="window.simpanSisaUangJalan('${r.id}', ${r.nominal}, '${p.sumber_dana || 'Uang Keuangan'}')" class="bg-purple-50 text-purple-700 px-2 py-1.5 rounded text-[10px] font-bold hover:bg-purple-100 border border-purple-200 transition w-full shadow-sm flex items-center justify-center gap-1" title="Setor sisa uang ke laci Gudang">
+                                    <i class="bi bi-safe2"></i> Simpan Uang
+                                </button>
+                            </div>`;
+                        }
                     }
 
                     htmlPeng += `
@@ -869,6 +880,54 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             console.error(err);
             alert("Gagal menambahkan pengeluaran: " + err.message);
             btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER"; btnSubmit.disabled = false;
+        }
+    };
+    // ==========================================
+    // 🔥 FUNGSI KEMBALIKAN SISA UANG JALAN KE GUDANG 🔥
+    // ==========================================
+    window.simpanSisaUangJalan = async function(rincianId, sisaNominal, sumberDanaAsli) {
+        if(!confirm(`Kembalikan sisa Uang Jalan sebesar Rp ${sisaNominal.toLocaleString('id-ID')} ke dompet UANG GUDANG?\n\n(Aksi ini menandakan uang fisik disetor ke admin gudang dan driver tidak lagi memiliki sisa saldo)`)) return;
+
+        try {
+            // 1. Ubah nominal jadi 0 dan ganti nama item agar Trigger otomatis me-refund sisa uang ke dompet asal terlebih dahulu.
+            const { error: errUpdate } = await window.supabase
+                .from('rincian_pengeluaran')
+                .update({
+                    nominal: 0,
+                    nama_item: 'Uang Jalan (Masuk Gudang)',
+                    keterangan: `Sisa fisik Rp ${sisaNominal.toLocaleString('id-ID')} disetor ke Uang Gudang`
+                })
+                .eq('id', rincianId);
+
+            if (errUpdate) throw errUpdate;
+
+            // 2. Jika dompet asalnya BUKAN Uang Gudang, pindahkan saldo refund-nya secara paksa ke Uang Gudang!
+            if (sumberDanaAsli !== 'Uang Gudang') {
+                const { data: kas } = await window.supabase.from('kas_perusahaan').select('*').eq('id', 1).single();
+                
+                if(kas) {
+                    let uk = Number(kas.uang_keuangan) || 0;
+                    let uo = Number(kas.uang_owner) || 0;
+                    let ug = Number(kas.uang_gudang) || 0;
+
+                    // Tarik saldo dari dompet asal
+                    if (sumberDanaAsli === 'Uang Keuangan') uk -= sisaNominal;
+                    else if (sumberDanaAsli === 'Uang Owner') uo -= sisaNominal;
+                    
+                    // Masukkan ke dompet gudang
+                    ug += sisaNominal;
+
+                    // Eksekusi update mutasi kas final
+                    await window.supabase.from('kas_perusahaan')
+                        .update({ uang_keuangan: uk, uang_owner: uo, uang_gudang: ug })
+                        .eq('id', 1);
+                }
+            }
+
+            alert("Mantap! Sisa Uang Jalan sukses diamankan ke brankas Uang Gudang!");
+            window.location.reload();
+        } catch(e) {
+            alert("Gagal memproses penyetoran sisa uang: " + e.message);
         }
     };
   });

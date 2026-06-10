@@ -300,10 +300,24 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     infoBayarHtml = `
                         <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 mb-4 mt-3">
                             <p class="text-xs font-bold text-blue-800 mb-2"><i class="bi bi-bank2 mr-1"></i> Informasi Transfer Bank/E-wallet (${textMetode})</p> 
-                            <div class="grid grid-cols-3 gap-y-2 text-sm bg-white p-3 rounded-lg border border-blue-100 shadow-sm">
-                                <div class="text-gray-500">Atas Nama</div><div class="col-span-2 font-bold text-gray-900">: ${trx.atas_nama || '-'}</div> 
-                                <div class="text-gray-500">Nama Bank/E-Wallet</div><div class="col-span-2 font-bold text-gray-900">: ${trx.nama_bank || '-'}</div> 
-                                <div class="text-gray-500">No. Rek/No. Hp</div><div class="col-span-2 font-bold text-gray-900">: ${trx.no_rek || '-'}</div> 
+                            
+                            <div class="flex flex-col gap-2 text-sm bg-white p-3 rounded-lg border border-blue-100 shadow-sm">
+                                <div class="flex justify-between items-center">
+                                    <div><span class="text-gray-500 text-[10px] uppercase font-bold block">Atas Nama</span><span class="font-bold text-gray-900">${trx.atas_nama || '-'}</span></div>
+                                    <button onclick="window.salinTeks('${trx.atas_nama || ''}', 'Atas Nama')" class="text-blue-600 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Copy Atas Nama"><i class="bi bi-clipboard"></i></button>
+                                </div>
+                                <div class="w-full h-px bg-blue-50"></div>
+                                
+                                <div class="flex justify-between items-center">
+                                    <div><span class="text-gray-500 text-[10px] uppercase font-bold block">Nama Bank / E-Wallet</span><span class="font-bold text-gray-900">${trx.nama_bank || '-'}</span></div>
+                                    <button onclick="window.salinTeks('${trx.nama_bank || ''}', 'Nama Bank')" class="text-blue-600 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Copy Bank"><i class="bi bi-clipboard"></i></button>
+                                </div>
+                                <div class="w-full h-px bg-blue-50"></div>
+                                
+                                <div class="flex justify-between items-center">
+                                    <div><span class="text-gray-500 text-[10px] uppercase font-bold block">No. Rekening / No. HP</span><span class="font-mono font-bold text-lg text-blue-700">${trx.no_rek || '-'}</span></div>
+                                    <button onclick="window.salinTeks('${trx.no_rek || ''}', 'No. Rekening')" class="text-blue-600 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Copy No Rekening"><i class="bi bi-clipboard"></i></button>
+                                </div>
                             </div>
                         </div>`;
                 } else if (m1 === 'QRIS' || m2 === 'QRIS') { 
@@ -429,6 +443,18 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         m.classList.add('opacity-0'); m.querySelector('div').classList.add('scale-95'); 
         setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
     }
+    // ==========================================
+    // FUNGSI COPY TEKS KE CLIPBOARD
+    // ==========================================
+    window.salinTeks = function(teks, label) {
+        if (!teks || teks === '-') return alert(label + ' kosong, tidak ada yang disalin!');
+        
+        navigator.clipboard.writeText(teks).then(() => {
+            alert('✅ ' + label + ' berhasil disalin:\n' + teks);
+        }).catch(err => {
+            alert('❌ Gagal menyalin: ' + err);
+        });
+    };
     window.filterTabelBeli = function() { 
         const start = document.getElementById('filter-start-beli').value;
         const end = document.getElementById('filter-end-beli').value; 

@@ -561,7 +561,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
             // === TAMBAHAN: CEK ROLE USER YANG LOGIN ===
             // === 🛡️ GATEKEEPER KEUANGAN ===
-            const allowedRoles = ['owner', 'hrd', 'admin','keuangan'];
+            const allowedRoles = ['owner', 'hrd', 'admin','keuangan','it'];
             const client = window.supabase || supabase;
 
             const { data: { session } } = await client.auth.getSession();

@@ -140,7 +140,7 @@ const getRoleColor = (role) => {
 
   document.addEventListener('DOMContentLoaded', async function() {
     // === 🛡️ GATEKEEPER KEUANGAN ===
-  const allowedRoles = ['owner', 'hrd', 'keuangan', 'admin'];
+  const allowedRoles = ['owner', 'hrd', 'keuangan', 'admin', 'it'];
   const client = window.supabase || supabase;
     
   const { data: { session } } = await client.auth.getSession();

@@ -286,7 +286,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
     window.opsiKomoditasHtml = '<option value="">Pilih...</option>';
 
     document.addEventListener('DOMContentLoaded', async () => {
-        const allowedRoles = ['owner', 'hrd', 'keuangan', 'admin'];
+        const allowedRoles = ['owner', 'hrd', 'keuangan', 'admin','it'];
         const client = window.supabase; 
         
         const { data: { session } } = await client.auth.getSession();

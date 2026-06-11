@@ -432,7 +432,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             if (!window.supabase) return console.error("Supabase Client tidak ditemukan!");
             // === 🛡️ GATEKEEPER KEUANGAN ===
             // 1. Dapatkan Role Login
-            const allowedRoles = ['owner', 'hrd', 'admin'];
+            const allowedRoles = ['owner', 'hrd', 'admin','it'];
             const client = window.supabase || supabase;
 
             const { data: { session } } = await client.auth.getSession();

@@ -766,7 +766,7 @@ if (typeIzin === 'izin' || typeIzin === 'sakit' || typeIzin === 'izin pulang cep
 
         // Init
         document.addEventListener('DOMContentLoaded', async () => {
-            const allowedRoles = ['owner', 'hrd', 'keuangan'];
+            const allowedRoles = ['owner', 'hrd', 'keuangan', 'it'];
             const client = window.supabase || supabase;
             
             const { data: { session } } = await client.auth.getSession();

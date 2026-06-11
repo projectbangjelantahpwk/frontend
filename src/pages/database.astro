@@ -309,7 +309,7 @@ const statusBadgeColors = {
 
   document.addEventListener('DOMContentLoaded', async function() {
     // === 🛡️ GATEKEEPER KEUANGAN ===
-    const allowedRoles = ['owner', 'keuangan', 'admin'];
+    const allowedRoles = ['owner', 'keuangan', 'admin', 'it'];
     const client = window.supabase || supabase;
     
     const { data: { session } } = await client.auth.getSession();

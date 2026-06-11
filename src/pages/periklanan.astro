@@ -132,7 +132,7 @@ const tabs = [
     // 1. GATEKEEPER & LOAD DATA
     // ============================================
     document.addEventListener('DOMContentLoaded', async () => {
-        const allowedRoles = ['owner', 'hrd', 'periklanan', 'admin'];
+        const allowedRoles = ['owner', 'hrd', 'periklanan', 'admin', 'it'];
         const client = window.supabase || supabase;
         
         const { data: { session } } = await client.auth.getSession();

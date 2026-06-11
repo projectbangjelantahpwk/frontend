@@ -240,7 +240,7 @@ const tabs = [
 <script is:inline>
   document.addEventListener('DOMContentLoaded',async () => {
     // === 🛡️ GATEKEEPER KEUANGAN ===
-      const allowedRoles = ['owner', 'hrd', 'admin', 'keuangan'];
+      const allowedRoles = ['owner', 'hrd', 'admin', 'keuangan','it'];
       const client = window.supabase || supabase;
       
       const { data: { session } } = await client.auth.getSession();

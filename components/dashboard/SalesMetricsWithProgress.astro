@@ -72,7 +72,7 @@
             let htmlList = '';
             
             metricsPayload.forEach(m => {
-                if (m.value > 0) {
+                
                     const pct = getPercentage(m.value, totalSales);
                     htmlList += `
                         <div class="space-y-1">
@@ -84,7 +84,7 @@
                                 <div class="h-full ${m.color} rounded-full" style="width: ${pct}%"></div>
                             </div>
                         </div>`;
-                }
+                
             });
             
             listContainer.innerHTML = htmlList || '<p class="text-xs text-center text-gray-400 py-8 italic">Tidak ada penjualan pada periode ini</p>';

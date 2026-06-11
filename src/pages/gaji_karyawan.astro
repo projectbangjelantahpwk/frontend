@@ -113,6 +113,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             <input type="hidden" id="m_karyawan_id">
             <input type="hidden" id="m_setup_id">
             <input type="hidden" id="m_slip_id">
+            <input type="hidden" id="setup_kasbon" value="0">
             
             <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col">
                 <h4 class="text-sm font-bold text-gray-900 mb-4 border-b border-gray-100 pb-3 flex items-center"><i class="bi bi-sliders text-blue-600 mr-2 text-lg"></i>Parameter Setup Personal</h4>
@@ -517,6 +518,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         document.getElementById('info_total_kasbon').innerText = 'Rp ' + totalHutangKasbon.toLocaleString('id-ID');
         document.getElementById('potongan_kasbon_sekarang').value = ''; // Kosongkan awal mula
         
+        // 🔥 SUNTIKAN BARU: Masukkan nilai ke hidden input agar bisa disimpan kembali
+        const elSetupKasbon = document.getElementById('setup_kasbon');
+        if (elSetupKasbon) elSetupKasbon.value = totalHutangKasbon;
+        
         document.getElementById('chk_uang_rapat').checked = setup.activate_uang_rapat || false;
         document.getElementById('chk_uang_nginep').checked = setup.activate_uang_nginep || false;
         document.getElementById('chk_uang_kesehatan').checked = setup.activate_uang_kesehatan || false;
@@ -795,20 +800,20 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
         const payloadSetup = {
             user_id: empId,
-            gaji_menit: parseFloat(document.getElementById('setup_gaji_menit').value) || 0,
-            uang_lembur_menit: parseFloat(document.getElementById('setup_lembur_menit').value) || 0,
-            bonus_tepat_waktu: parseFloat(document.getElementById('setup_bonus_tepat').value) || 0,
-            bonus_mingguan: parseFloat(document.getElementById('setup_bonus_mingguan').value) || 0,
-            uang_kesehatan: parseFloat(document.getElementById('setup_uang_kesehatan').value) || 0,
-            uang_rapat: parseFloat(document.getElementById('setup_uang_rapat').value) || 0,
-            uang_nginep: parseFloat(document.getElementById('setup_uang_nginep').value) || 0,
-            kasbon: parseFloat(document.getElementById('setup_kasbon').value) || 0, // INSERT KASBON
-            tipe_periode: document.getElementById('setup_tipe_periode').value, // Periode
-            potongan_bonus_mingguan: parseFloat(document.getElementById('setup_potongan_absen').value) || 0,
-            activate_uang_rapat: document.getElementById('chk_uang_rapat').checked,
-            activate_uang_nginep: document.getElementById('chk_uang_nginep').checked,
-            activate_uang_kesehatan: document.getElementById('chk_uang_kesehatan').checked,
-            tadarus_alquran: document.getElementById('chk_tadarus_alquran').checked
+            gaji_menit: parseFloat(document.getElementById('setup_gaji_menit')?.value) || 0,
+            uang_lembur_menit: parseFloat(document.getElementById('setup_lembur_menit')?.value) || 0,
+            bonus_tepat_waktu: parseFloat(document.getElementById('setup_bonus_tepat')?.value) || 0,
+            bonus_mingguan: parseFloat(document.getElementById('setup_bonus_mingguan')?.value) || 0,
+            uang_kesehatan: parseFloat(document.getElementById('setup_uang_kesehatan')?.value) || 0,
+            uang_rapat: parseFloat(document.getElementById('setup_uang_rapat')?.value) || 0,
+            uang_nginep: parseFloat(document.getElementById('setup_uang_nginep')?.value) || 0,
+            kasbon: parseFloat(document.getElementById('setup_kasbon')?.value || d?.sisaKasbonDb) || 0,
+            tipe_periode: document.getElementById('setup_tipe_periode')?.value || 'Harian', 
+            potongan_bonus_mingguan: parseFloat(document.getElementById('setup_potongan_absen')?.value) || 0,
+            activate_uang_rapat: document.getElementById('chk_uang_rapat')?.checked || false,
+            activate_uang_nginep: document.getElementById('chk_uang_nginep')?.checked || false,
+            activate_uang_kesehatan: document.getElementById('chk_uang_kesehatan')?.checked || false,
+            tadarus_alquran: document.getElementById('chk_tadarus_alquran')?.checked || false
         };
         try {
             if(setupId) {

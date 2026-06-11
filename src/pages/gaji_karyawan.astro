@@ -178,13 +178,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         <input type="number" id="setup_uang_kesehatan" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-green-600">
                     </div>
 
-                    <div class="col-span-2 sm:col-span-1 flex flex-col justify-end">
-                        <div class="flex items-center justify-between bg-gray-50 border border-gray-200 p-2.5 rounded-lg h-[42px]">
-                            <label class="text-xs font-bold text-gray-700"><i class="bi bi-book text-green-600 mr-1"></i> Tadarus</label>
-                            <div class="flex items-center gap-1.5"><input type="checkbox" id="chk_tadarus_alquran" onchange="window.kalkulasiRealtimeGaji()" class="w-4 h-4 text-green-600 rounded cursor-pointer"><span class="text-[10px] text-gray-600 font-bold uppercase">Disetor</span></div>
-                        </div>
-                    </div>
-
                     <div class="col-span-2 border-t border-dashed border-gray-300 pt-3 mt-1"></div>
 
                     <div class="col-span-2 bg-red-50 p-3.5 rounded-xl border border-red-200 mt-2">
@@ -195,13 +188,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             </div>
                         </div>
                         <input type="number" id="potongan_kasbon_sekarang" oninput="window.kalkulasiRealtimeGaji()" class="w-full border border-red-300 bg-white text-red-900 font-bold font-mono rounded-lg p-2.5 text-sm outline-none focus:border-red-600 shadow-inner" placeholder="Ketik nominal potongan...">
-                    </div>
-
-                    <div class="col-span-2 border-t border-gray-100 pt-2 mt-1">
-                        <div class="flex items-center justify-between">
-                            <label class="text-xs font-bold text-gray-700"><i class="bi bi-book text-green-600 mr-1"></i> Tadarus Al-Quran</label>
-                            <div class="flex items-center gap-1.5"><input type="checkbox" id="chk_tadarus_alquran" onchange="window.kalkulasiRealtimeGaji()" class="w-4 h-4 text-green-600 rounded cursor-pointer"><span class="text-[10px] text-gray-600 font-bold uppercase">Sudah Disetor</span></div>
-                        </div>
                     </div>
                 </div>
                 
@@ -525,7 +511,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         document.getElementById('chk_uang_rapat').checked = setup.activate_uang_rapat || false;
         document.getElementById('chk_uang_nginep').checked = setup.activate_uang_nginep || false;
         document.getElementById('chk_uang_kesehatan').checked = setup.activate_uang_kesehatan || false;
-        document.getElementById('chk_tadarus_alquran').checked = setup.tadarus_alquran || false;
 
         // 🔥 MESIN WAKTU (FILTER RENTANG TANGGAL) 🔥
         const tipePeriode = setup.tipe_periode || 'Harian';
@@ -613,7 +598,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         const isKesehatan = document.getElementById('chk_uang_kesehatan').checked;
         const isRapat = document.getElementById('chk_uang_rapat').checked;
         const isNginep = document.getElementById('chk_uang_nginep').checked;
-        const isTadarus = document.getElementById('chk_tadarus_alquran').checked;
 
         // 1️⃣ GAJI POKOK NORMAL (Senin - Sabtu proporsional)
         const valGajiNormal = d.hariKerjaNormal * Math.round(tarifPokokHarian);
@@ -654,7 +638,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         let grandTotal = valGaji + valLembur + valKesehatan + valBonusTepat + valBonusMingguan + valRapat + valNginep - valPotonganKasbon;
         if(grandTotal < 0) grandTotal = 0; 
 
-        d.finalState = { valGaji, valLembur, valKesehatan, valBonusTepat, valBonusMingguan, valRapat, valNginep, valDenda, valPotonganKasbon, grandTotal, isTadarus };
+        d.finalState = { valGaji, valLembur, valKesehatan, valBonusTepat, valBonusMingguan, valRapat, valNginep, valDenda, valPotonganKasbon, grandTotal};
         
         const totalHariAbsen = d.hariKerjaNormal + d.hariMingguMasuk;
 
@@ -813,7 +797,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             activate_uang_rapat: document.getElementById('chk_uang_rapat')?.checked || false,
             activate_uang_nginep: document.getElementById('chk_uang_nginep')?.checked || false,
             activate_uang_kesehatan: document.getElementById('chk_uang_kesehatan')?.checked || false,
-            tadarus_alquran: document.getElementById('chk_tadarus_alquran')?.checked || false
         };
         try {
             if(setupId) {

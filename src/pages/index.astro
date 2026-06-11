@@ -7,6 +7,7 @@ import TransaksiKomoditasChart from '../components/dashboard/TransaksiKomoditasC
 import SumberTransaksiChart from '../components/dashboard/SumberTransaksiChart.astro';
 import LeaderboardMitra from '../components/dashboard/LeaderboardMitra.astro';
 import BestEmployees from '../components/dashboard/BestEmployees.astro';
+import BukuKasHarian from '../components/dashboard/BukuKasHarian.astro'; // 🔥 IMPORT BARU
 import MetricWithProgress from '../components/dashboard/MetricWithProgress.astro';
 
 // Data Leaderboard
@@ -104,6 +105,7 @@ const profitWeekly = [
             </div>
 
             <!-- SECTION 5: BOTTOM METRICS CHARTS -->
+            <BukuKasHarian />
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-lg">
                 <MetricWithProgress
                   title="Pengeluaran Harian"
@@ -120,9 +122,7 @@ const profitWeekly = [
                   totalLabel="Total"
                   totalValue="Rp 25.5M"
                 />
-
-                <!-- Profit Mingguan -->
-                <div class="bg-gradient-to-br from-success-container/30 to-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow">
+                <div id="card-profit-margin" class="hidden bg-gradient-to-br from-success-container/30 to-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow">
                     <div class="flex justify-between items-center mb-lg">
                         <h3 class="font-headline-md text-on-surface">📈 Profit Mingguan</h3>
                         <span class="text-label-sm text-on-surface-variant">4 minggu</span>
@@ -178,4 +178,27 @@ const profitWeekly = [
 
         </div>
     </div>
+
+    <script is:inline>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Pastikan Supabase siap ditarik
+            const client = window.supabase || supabase;
+            if (!client) return;
+
+            // 1. Cek siapa yang login saat ini
+            const { data: { session } } = await client.auth.getSession();
+            if (!session) return;
+
+            // 2. Tarik data jabatannya (role) dari tabel profiles
+            const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+
+            // 3. LOGIKA BUKA GEMBOK: Kalau jabatannya Owner atau IT, hapus class 'hidden'
+            if (prof?.role === 'owner' || prof?.role === 'it') {
+                const profitCard = document.getElementById('card-profit-margin');
+                if (profitCard) {
+                    profitCard.classList.remove('hidden');
+                }
+            }
+        });
+    </script>
 </Layout>

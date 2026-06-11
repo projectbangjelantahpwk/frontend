@@ -92,10 +92,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         </div>
 
         <div class="flex border-b border-outline-variant mb-md overflow-x-auto hide-scrollbar">
-            <button class="px-md py-sm font-label-lg text-primary border-b-2 border-primary whitespace-nowrap" id="tab-pending" onclick="switchTab('pending')">Belum Diproses (<span id="count-pending">0</span>)</button>
-            <button class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap" id="tab-progress" onclick="switchTab('progress')">Sedang Diproses (<span id="count-progress">0</span>)</button>
-            <button class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap" id="tab-history" onclick="switchTab('history')">Riwayat Selesai</button>
-            <button class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap" id="tab-rute" onclick="switchTab('rute')">Kelola Rute</button>
+            <button class="px-md py-sm font-label-lg text-primary border-b-2 border-primary whitespace-nowrap" id="tab-pending" onclick="window.switchTab('pending')">Belum Diproses (<span id="count-pending">0</span>)</button>
+            <button class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap" id="tab-progress" onclick="window.switchTab('progress')">Sedang Diproses (<span id="count-progress">0</span>)</button>
+            <button class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap" id="tab-history" onclick="window.switchTab('history')">Riwayat Selesai</button>
+            <button class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap" id="tab-rute" onclick="window.switchTab('rute')">Kelola Rute</button>
         </div>
 
         <div class="tab-content active" id="content-pending">
@@ -427,6 +427,50 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         // Penampung instance Tom Select
         let tomMitra, tomMotor, tomMobil, tomHelper;
 
+        // =======================================================
+        // FUNGSI GANTI TAB SAKTI (UI + LOGIKA TANGGAL)
+        // =======================================================
+        window.switchTab = function(tabId) {
+            const tabs = ['pending', 'progress', 'history', 'rute'];
+            
+            // 1. Reset semua tab menjadi tidak aktif (Sembunyikan)
+            tabs.forEach(id => {
+                const btn = document.getElementById(`tab-${id}`);
+                const content = document.getElementById(`content-${id}`);
+                
+                if (btn && content) {
+                    btn.classList.remove('text-primary', 'border-primary');
+                    btn.classList.add('text-on-surface-variant', 'border-transparent');
+                    content.classList.remove('active');
+                }
+            });
+
+            // 2. Aktifkan tab yang di-klik (Munculkan)
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            const activeContent = document.getElementById(`content-${tabId}`);
+            
+            if (activeBtn && activeContent) {
+                activeBtn.classList.remove('text-on-surface-variant', 'border-transparent');
+                activeBtn.classList.add('text-primary', 'border-primary');
+                activeContent.classList.add('active');
+            }
+
+            // 3. Logika Filter Tanggal (Hanya muncul di Riwayat Selesai)
+            const historySection = document.getElementById('filter-history-section');
+            if (historySection) {
+                if (tabId === 'history') {
+                    historySection.classList.remove('hidden');
+                } else {
+                    historySection.classList.add('hidden');
+                }
+            }
+            
+            // 4. Jalankan ulang filter supaya rapi
+            if (typeof window.applyMultiFilters === 'function') {
+                setTimeout(window.applyMultiFilters, 50);
+            }
+        };
+
         document.addEventListener('DOMContentLoaded', async () => {
 
             if (!window.supabase) return console.error("Supabase Client tidak ditemukan!");
@@ -438,10 +482,11 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             const { data: { session } } = await client.auth.getSession();
             if (!session) return window.location.replace('/'); // Tendang kalau belum login
 
-            const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+            const { data: prof } = await client.from('profiles').select('role, nama').eq('id', session.user.id).single();
             
             // 🔥 FIX: Update variabel global dengan role asli dari Supabase 🔥
             currentUserRole = prof?.role; 
+            window.currentUserName = prof?.nama || 'Admin';
 
             if (!allowedRoles.includes(prof?.role)) {
                 alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk ke halaman Operasional.`);
@@ -457,7 +502,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         id, status, tanggal, rute_penjemputan, kendaraan,
                         estimasi_minyak, estimasi_tepung, estimasi_kriuk, estimasi_spinner, estimasi_ampas, total_estimasi,
                         satuan_minyak, satuan_tepung, satuan_kriuk, satuan_spinner, satuan_ampas,
-                        mitra ( id, nama_mitra, alamat, link_gmaps ),
+                        mitra ( id, nama_mitra, alamat, link_gmaps, nomor_hp ),
                         driver:driver_id ( id, nama ),
                         helper:helper_id ( id, nama ),
                         transaksi ( 
@@ -501,6 +546,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             </td>
                             <td class="px-md py-md text-right" data-label="Aksi">
                                 <div class="flex gap-2 justify-end">
+                                    <button onclick="window.broadcastWAOperasional('${j.id}')" class="bg-green-50 text-green-600 border border-green-200 px-2 py-1 rounded text-[11px] font-bold hover:bg-green-100 transition shadow-sm" title="Broadcast WA Konfirmasi">
+                                        <i class="bi bi-whatsapp text-sm"></i>
+                                    </button>
                                     <button onclick="window.editPenjemputan('${j.id}')" class="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded text-[11px] font-bold hover:bg-blue-100 transition shadow-sm"><i class="bi bi-pencil-square mr-1"></i>Edit</button>
                                     <button onclick="window.hapusPenjemputan('${j.id}')" class="bg-red-50 text-red-600 border border-red-200 px-2 py-1 rounded text-[11px] font-bold hover:bg-red-100 transition shadow-sm" title="Hapus"><i class="bi bi-trash3"></i></button>
                                 </div>
@@ -759,50 +807,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             ruteCheckboxes.forEach(cb => cb.addEventListener('change', window.applyMultiFilters));
             if(startInput) startInput.addEventListener('change', window.applyMultiFilters);
             if(endInput) endInput.addEventListener('change', window.applyMultiFilters);
-
-        // =======================================================
-        // FUNGSI GANTI TAB SAKTI (UI + LOGIKA TANGGAL)
-        // =======================================================
-        window.switchTab = function(tabId) {
-            const tabs = ['pending', 'progress', 'history', 'rute'];
-            
-            // 1. Reset semua tab menjadi tidak aktif (Sembunyikan)
-            tabs.forEach(id => {
-                const btn = document.getElementById(`tab-${id}`);
-                const content = document.getElementById(`content-${id}`);
-                
-                if (btn && content) {
-                    btn.classList.remove('text-primary', 'border-primary');
-                    btn.classList.add('text-on-surface-variant', 'border-transparent');
-                    content.classList.remove('active');
-                }
-            });
-
-            // 2. Aktifkan tab yang di-klik (Munculkan)
-            const activeBtn = document.getElementById(`tab-${tabId}`);
-            const activeContent = document.getElementById(`content-${tabId}`);
-            
-            if (activeBtn && activeContent) {
-                activeBtn.classList.remove('text-on-surface-variant', 'border-transparent');
-                activeBtn.classList.add('text-primary', 'border-primary');
-                activeContent.classList.add('active');
-            }
-
-            // 3. Logika Filter Tanggal (Hanya muncul di Riwayat Selesai)
-            const historySection = document.getElementById('filter-history-section');
-            if (historySection) {
-                if (tabId === 'history') {
-                    historySection.classList.remove('hidden');
-                } else {
-                    historySection.classList.add('hidden');
-                }
-            }
-            
-            // 4. Jalankan ulang filter supaya rapi
-            if (typeof window.applyMultiFilters === 'function') {
-                setTimeout(window.applyMultiFilters, 50);
-            }
-        };
 
         const isAllowed = () => ['owner', 'hrd', 'admin'].includes(currentUserRole);
 
@@ -1564,5 +1568,47 @@ window.hapusPenjemputan = async function(id) {
         document.addEventListener('DOMContentLoaded', () => {
             setTimeout(loadTabelRute, 800); // Panggil fungsi yang benar
         });
+        // ==========================================
+        // 🔥 FUNGSI BROADCAST WA KONFIRMASI PENJEMPUTAN 🔥
+        // ==========================================
+        window.broadcastWAOperasional = function(id) {
+            const j = window.allJadwalPending.find(x => String(x.id) === String(id));
+            if(!j) return alert("Data jadwal tidak ditemukan!");
+        
+            const hp = j.mitra?.nomor_hp;
+            if (!hp || hp === '-') return alert(`Nomor HP untuk mitra ${j.mitra?.nama_mitra} belum diisi di database Kemitraan!`);
+        
+            // Bersihkan karakter aneh pada nomor HP dan set ke 62
+            let waNumber = hp.replace(/\D/g, '');
+            if (waNumber.startsWith('0')) waNumber = '62' + waNumber.substring(1);
+        
+            // 1. Susun Rincian Estimasi (Hanya munculkan yang > 0)
+            let listEstimasi = [];
+            if (j.estimasi_minyak > 0) listEstimasi.push(`- Minyak Jelantah Kotor: ${j.estimasi_minyak} Kg`);
+            if (j.estimasi_tepung > 0) listEstimasi.push(`- Tepung: ${j.estimasi_tepung} Kg`);
+            if (j.estimasi_kriuk > 0) listEstimasi.push(`- Kriuk: ${j.estimasi_kriuk} Kg`);
+            if (j.estimasi_spinner > 0) listEstimasi.push(`- Jasa Spinner: ${j.estimasi_spinner} Kg`);
+            if (j.estimasi_ampas > 0) listEstimasi.push(`- Ampas: ${j.estimasi_ampas} Kg`);
+        
+            let textEstimasi = listEstimasi.length > 0 ? listEstimasi.join('\n') : '- (Belum ada estimasi diinput)';
+        
+            // 2. Format Nama Kurir/Supir
+            let namaKurir = j.driver?.nama || 'Tim Bang Jelantah';
+            if (j.helper?.nama) namaKurir += ` & ${j.helper.nama}`;
+        
+            // 3. Format Tanggal menjadi format Indo (DD/MM/YYYY)
+            const tglArr = j.tanggal ? j.tanggal.split('-') : [];
+            const tglIndo = tglArr.length === 3 ? `${tglArr[2]}/${tglArr[1]}/${tglArr[0]}` : j.tanggal;
+        
+            // 4. Nama Admin yang klik
+            const adminName = window.currentUserName || 'Admin';
+        
+            // 5. RAKIT PESAN WHATSAPP
+            const textPesan = `Halo Kak *${j.mitra?.nama_mitra || ''}*! 👋\nSaya *${adminName}* dari Bang Jelantah Purwakarta.\n\nMenginformasikan bahwa tim kami akan melakukan penjemputan pada:\n📅 Tanggal: *${tglIndo}*\n🚚 Kurir: *${namaKurir}*\n📍 Alamat: ${j.mitra?.alamat || '-'}\n\n📦 *Perkiraan Barang yang Akan Dijemput:*\n${textEstimasi}\n\nMohon ditunggu kedatangan tim kami ya Kak! 🌿\nTerima kasih sudah ikut bantu jaga lingkungan bareng Bang Jelantah Purwakarta! 💚`;
+        
+            // 6. Buka Tab WA
+            const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(textPesan)}`;
+            window.open(waLink, '_blank');
+        };
     </script>
 </Layout>

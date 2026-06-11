@@ -7,9 +7,9 @@
     <div class="mb-sm flex justify-between items-start">
         <div>
             <h3 class="font-headline-md text-on-surface font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-                Transaksi per Sumber
+                Rekap Transaksi per Sumber
             </h3>
-            <p class="text-label-sm text-on-surface-variant font-medium">Platform & Komoditas</p>
+            <p class="text-label-sm text-on-surface-variant font-medium">Berdasarkan Platform & Komoditas</p>
         </div>
         <div class="text-right">
             <span class="text-label-xs text-on-surface-variant uppercase tracking-wider block mb-1">Total Filtered</span>
@@ -29,27 +29,25 @@
         </div>
     </div>
 
-    <div class="relative w-full h-64 flex-grow mb-md">
-        <canvas id="chartSumber"></canvas>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-md flex-grow content-start">
+        <div class="bg-[#1877F2]/10 border border-[#1877F2]/30 rounded-xl p-4 flex flex-col justify-center items-center text-center">
+            <p class="text-xs font-bold text-[#1877F2] uppercase tracking-wider mb-2"><i class="bi bi-facebook mr-1"></i> Facebook</p>
+            <p id="total-facebook" class="text-xl font-black text-[#1877F2]">Rp 0</p>
+        </div>
+        
+        <div class="bg-gray-100 border border-gray-300 rounded-xl p-4 flex flex-col justify-center items-center text-center">
+            <p class="text-xs font-bold text-gray-800 uppercase tracking-wider mb-2"><i class="bi bi-tiktok mr-1"></i> TikTok</p>
+            <p id="total-tiktok" class="text-xl font-black text-gray-900">Rp 0</p>
+        </div>
+        
+        <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 flex flex-col justify-center items-center text-center">
+            <p class="text-xs font-bold text-purple-700 uppercase tracking-wider mb-2"><i class="bi bi-share mr-1"></i> Lainnya</p>
+            <p id="total-lainnya" class="text-xl font-black text-purple-900">Rp 0</p>
+        </div>
     </div>
 
     <div class="mt-auto border-t border-outline-variant/60 pt-md flex flex-col gap-4">
         
-        <div class="flex flex-col gap-1.5">
-            <span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest text-center">Pilih Sumber</span>
-            <div class="flex flex-wrap justify-center gap-2" id="source-filters-sumber">
-                <button data-sumber="Facebook" class="sumber-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-[#1877F2] text-white shadow-sm ring-2 ring-[#1877F2]/20 scale-105">
-                    Facebook
-                </button>
-                <button data-sumber="TikTok" class="sumber-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
-                    TikTok
-                </button>
-                <button data-sumber="Lainnya" class="sumber-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
-                    Lainnya
-                </button>
-            </div>
-        </div>
-
         <div class="flex flex-col gap-1.5">
             <span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest text-center">Pilih Komoditas</span>
             <div class="flex flex-wrap justify-center gap-2" id="commodity-filters-sumber">
@@ -87,60 +85,16 @@
 
 <script>
     import { supabase } from '../../lib/supabase';
-    import Chart from 'chart.js/auto';
-
-    Chart.defaults.font.family = "'Inter', sans-serif";
-    Chart.defaults.color = '#8E8E93';
     
+    // Format Rupiah rapi
     const formatRp = (number) => {
+        if (!number) return 'Rp 0';
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
     };
 
-    const chartOptions = {
-        responsive: true, 
-        maintainAspectRatio: false,
-        plugins: { 
-            legend: { display: false },
-            tooltip: {
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                titleColor: '#1F2937',
-                bodyColor: '#4B5563',
-                borderColor: '#E5E7EB',
-                borderWidth: 1,
-                padding: 12,
-                usePointStyle: true,
-                callbacks: {
-                    label: function(context) {
-                        return ' ' + formatRp(context.raw);
-                    }
-                }
-            }
-        },
-        scales: {
-            x: { grid: { display: false } },
-            y: { 
-                border: { dash: [4, 4] }, 
-                grid: { color: '#F3F4F6' }, 
-                beginAtZero: true,
-                ticks: {
-                    callback: function(value) {
-                        if (value >= 1000000) return 'Rp ' + (value / 1000000) + 'M';
-                        if (value >= 1000) return 'Rp ' + (value / 1000) + 'K';
-                        return 'Rp ' + value;
-                    }
-                }
-            }
-        }
-    };
-
-    async function initChartSumber() {
-        let chartInstance = null;
-        let dataHarian = [];
-        let dataMingguan = [];
-        
+    async function initSumberTotals() {
         let currentMode = 'harian';
-        let currentSource = 'Facebook'; 
-        let currentCommodity = 'Minyak Jelantah'; // Tambahan State Komoditas
+        let currentCommodity = 'Minyak Jelantah';
 
         // Mapping Kolom Database Komoditas
         const kolomDatabase = {
@@ -151,16 +105,6 @@
             'Spinner': 'spinner_rp'
         };
 
-        // Konfigurasi Warna Brand Sosial Media (Warna Grafik mengikuti Sumber)
-        const brandColors = {
-            'Facebook': { solid: '#1877F2', hover: 'rgba(24, 119, 242, 0.3)' },
-            'TikTok': { solid: '#000000', hover: 'rgba(0, 0, 0, 0.3)' },
-            'Lainnya': { solid: '#8B5CF6', hover: 'rgba(139, 92, 246, 0.3)' } // Warna ungu untuk Lainnya
-        };
-
-        const ctx = document.getElementById('chartSumber').getContext('2d');
-        chartInstance = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [] }, options: chartOptions });
-
         const btnHarian = document.getElementById('btn-harian-sumber');
         const btnMingguan = document.getElementById('btn-mingguan-sumber');
         const filterHarianContainer = document.getElementById('filter-harian-sumber');
@@ -168,99 +112,62 @@
         const startDateInput = document.getElementById('start-date-sumber');
         const endDateInput = document.getElementById('end-date-sumber');
         const monthInput = document.getElementById('month-sumber');
-        
-        const sumberBtns = document.querySelectorAll('.sumber-btn');
         const komoditasBtns = document.querySelectorAll('.komo-sumber-btn');
-        const elTotalRp = document.getElementById('total-rp-sumber');
+        
+        const elTotalFacebook = document.getElementById('total-facebook');
+        const elTotalTiktok = document.getElementById('total-tiktok');
+        const elTotalLainnya = document.getElementById('total-lainnya');
+        const elTotalSemua = document.getElementById('total-rp-sumber');
 
         async function fetchHarian() {
             const kolomAktif = kolomDatabase[currentCommodity];
             
-            // Tambahan filter .eq('sumber', currentSource)
-            let query = supabase.from('sumber_transaksi_harian')
-                .select(`tanggal, ${kolomAktif}`)
-                .eq('sumber', currentSource)
-                .order('tanggal', { ascending: true });
-            
+            // Tarik SEMUA sumber sekaligus berdasarkan rentang tanggal
+            let query = supabase.from('sumber_transaksi_harian').select(`sumber, ${kolomAktif}`);
             if (startDateInput.value) query = query.gte('tanggal', startDateInput.value);
             if (endDateInput.value) query = query.lte('tanggal', endDateInput.value);
-            if (!startDateInput.value && !endDateInput.value) query = query.limit(7); 
-
+            
             const { data, error } = await query;
-            if (!error && data) {
-                dataHarian = data;
-                renderChart();
-            }
+            if (!error && data) kalkulasiDanRender(data, kolomAktif);
         }
 
         async function fetchMingguan() {
             const kolomAktif = kolomDatabase[currentCommodity];
             
-            // Tambahan filter .eq('sumber', currentSource)
-            let query = supabase.from('sumber_transaksi_mingguan')
-                .select(`minggu_ke, periode, ${kolomAktif}`)
-                .eq('sumber', currentSource)
-                .order('periode', { ascending: true })
-                .order('minggu_ke', { ascending: true });
-            
+            let query = supabase.from('sumber_transaksi_mingguan').select(`sumber, ${kolomAktif}`);
             if (monthInput.value) {
                 query = query.ilike('periode', `%${monthInput.value}%`);
-            } else {
-                query = query.limit(8);
             }
             
             const { data, error } = await query;
-            if (!error && data) {
-                dataMingguan = data;
-                renderChart();
-            }
+            if (!error && data) kalkulasiDanRender(data, kolomAktif);
         }
 
-        function renderChart() {
-            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-            let labels, values;
+        function kalkulasiDanRender(data, kolom) {
+            let totalFb = 0, totalTk = 0, totalLn = 0;
             
-            const kolomAktif = kolomDatabase[currentCommodity];
-            // Warna grafik mengikuti identitas platform sosial media
-            const activeColor = brandColors[currentSource].solid;
-            const activeHoverColor = brandColors[currentSource].hover;
+            // Mengelompokkan dan menjumlahkan data berdasarkan sumbernya
+            data.forEach(item => {
+                const val = Number(item[kolom] || 0);
+                if (item.sumber === 'Facebook') totalFb += val;
+                else if (item.sumber === 'TikTok') totalTk += val;
+                else totalLn += val;
+            });
 
+            // Tembak angkanya ke HTML
+            elTotalFacebook.textContent = formatRp(totalFb);
+            elTotalTiktok.textContent = formatRp(totalTk);
+            elTotalLainnya.textContent = formatRp(totalLn);
+            elTotalSemua.textContent = formatRp(totalFb + totalTk + totalLn);
+
+            // Styling tombol Harian/Mingguan
             if (currentMode === 'harian') {
-                labels = dataHarian.map(d => d.tanggal);
-                values = dataHarian.map(d => d[kolomAktif] || 0); 
-                gradient.addColorStop(0, activeHoverColor); 
-                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                
                 btnHarian.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
                 btnMingguan.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
             } else {
-                labels = dataMingguan.map(d => `W${d.minggu_ke} ${d.periode}`);
-                values = dataMingguan.map(d => d[kolomAktif] || 0);
-                gradient.addColorStop(0, activeHoverColor); 
-                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                
                 btnMingguan.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
                 btnHarian.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
             }
-
-            const totalSum = values.reduce((acc, curr) => acc + Number(curr), 0);
-            elTotalRp.textContent = formatRp(totalSum);
-
-            chartInstance.data = {
-                labels,
-                datasets: [{ 
-                    data: values, 
-                    borderColor: activeColor, 
-                    backgroundColor: gradient, 
-                    fill: true, 
-                    tension: 0.4,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: activeColor,
-                    pointBorderWidth: 2,
-                    pointHoverRadius: 6
-                }]
-            };
-            chartInstance.update();
         }
 
         function switchMode(mode) {
@@ -287,45 +194,28 @@
         endDateInput.addEventListener('change', () => currentMode === 'harian' && fetchHarian());
         monthInput.addEventListener('change', () => currentMode === 'mingguan' && fetchMingguan());
 
-        // Event Klik Filter Sumber
-        sumberBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                currentSource = e.target.getAttribute('data-sumber');
-                const btnColor = brandColors[currentSource].solid;
-                
-                sumberBtns.forEach(b => {
-                    b.className = "sumber-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface";
-                    b.style.backgroundColor = ''; // Reset inline style
-                });
-                
-                e.target.className = `sumber-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 text-white shadow-sm ring-2 scale-105`;
-                e.target.style.backgroundColor = btnColor;
-                e.target.style.setProperty('--tw-ring-color', `${btnColor}33`); 
-                
-                if (currentMode === 'harian') fetchHarian();
-                else fetchMingguan();
-            });
-        });
-
         // Event Klik Filter Komoditas
         komoditasBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 currentCommodity = e.target.getAttribute('data-komoditas');
                 
+                // Reset warna semua tombol komoditas
                 komoditasBtns.forEach(b => {
                     b.className = "komo-sumber-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface";
                 });
                 
-                // Gunakan style abu-abu gelap agar tidak bentrok dengan warna brand sosial media
+                // Beri warna gelap pada tombol komoditas yang aktif
                 e.target.className = "komo-sumber-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-surface-variant/80 text-on-surface shadow-sm scale-105";
                 
+                // Hitung ulang data
                 if (currentMode === 'harian') fetchHarian();
                 else fetchMingguan();
             });
         });
 
+        // Load data pertama kali
         switchMode('harian');
     }
 
-    document.addEventListener('DOMContentLoaded', initChartSumber);
+    document.addEventListener('DOMContentLoaded', initSumberTotals);
 </script>

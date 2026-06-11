@@ -1,0 +1,298 @@
+---
+// src/components/dashboard/BukuKasHarian.astro
+// Komponen Mandiri Buku Kas Harian - Hanya bisa diakses penuh oleh Owner & IT
+---
+
+<div id="wrapper-buku-kas" class="hidden bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md mb-lg">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-md border-b border-outline-variant pb-md gap-3">
+        <div>
+            <h3 class="font-headline-md text-on-surface flex items-center gap-2">
+                <i class="bi bi-journal-text text-primary"></i> Buku Kas Harian (Daily Flow)
+            </h3>
+            <p class="text-label-sm text-on-surface-variant mt-1">Pantau rincian mutasi uang masuk dan keluar.</p>
+        </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+            <select id="kas_filter_sumber" class="bg-surface-container px-3 py-1.5 rounded-lg text-sm font-bold text-on-surface border border-outline-variant outline-none">
+                <option value="Semua">Semua Dompet</option>
+                <option value="Uang Keuangan">Uang Keuangan</option>
+                <option value="Uang Gudang">Uang Gudang</option>
+            </select>
+            <input type="date" id="kas_filter_tanggal" class="bg-surface-container px-3 py-1.5 rounded-lg text-sm font-bold text-on-surface outline-none border border-outline-variant cursor-pointer">
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <div class="bg-blue-50/70 p-4 rounded-xl border border-blue-100 flex justify-between items-center">
+            <div>
+                <p class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Sisa Sebelumnya (Saldo Awal)</p>
+                <p class="text-xl font-mono font-black text-blue-900" id="kas_text_awal">Rp 0</p>
+            </div>
+            <button onclick="window.suntikSaldoAwal() " class="text-[10px] bg-blue-600 text-white px-2 py-1 rounded font-bold hover:bg-blue-700 transition" title="Set Saldo Awal Jika Pertama Kali Pakai">
+                <i class="bi bi-pencil-square"></i> Set Awal
+            </button>
+        </div>
+        <div class="bg-green-50/70 p-4 rounded-xl border border-green-100">
+            <p class="text-[10px] text-green-600 font-bold uppercase tracking-wider">Total Uang Masuk Hari Ini</p>
+            <p class="text-xl font-mono font-black text-green-700" id="kas_text_masuk">+ Rp 0</p>
+        </div>
+    </div>
+
+    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
+        <div class="flex justify-between items-center border-b border-gray-200 pb-2 mb-3">
+            <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Rincian Arus Kas harian</h4>
+            <span class="text-[10px] font-bold bg-gray-200 text-gray-700 px-2 py-0.5 rounded" id="kas_count_item">0 Item</span>
+        </div>
+        
+        <div id="kas_loop_container" class="space-y-2 max-h-[350px] overflow-y-auto pr-1 custom-scrollbar font-body-md text-sm">
+            <p class="text-gray-400 italic text-center py-4">Memilih tanggal untuk memuat mutasi kas...</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-900 p-4 rounded-xl shadow-lg border border-gray-800">
+        <div>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Total Pengeluaran Harian</p>
+            <p class="text-xl font-mono font-black text-red-400" id="kas_text_keluar">Rp 0</p>
+        </div>
+        <div class="text-right sm:text-right">
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Sisa Saldo Sekarang</p>
+            <p class="text-xl font-mono font-black text-white" id="kas_text_akhir">Rp 0</p>
+        </div>
+    </div>
+</div>
+
+<script is:inline>
+document.addEventListener('DOMContentLoaded', async () => {
+    const client = window.supabase || supabase;
+    if (!client) return;
+
+    // Set Default Tanggal Hari Ini di Input (WIB Jakarta UTC+7)
+    const wkt = new Date();
+    const offset = wkt.getTimezoneOffset() * 60000;
+    const tglHariIni = new Date(wkt - offset).toISOString().split('T')[0];
+    
+    const inputTgl = document.getElementById('kas_filter_tanggal');
+    const selectDompet = document.getElementById('kas_filter_sumber');
+    if(inputTgl) { inputTgl.value = tglHariIni; inputTgl.max = tglHariIni; }
+
+    // Gatekeeper: Hanya Owner dan IT
+    const { data: { session } } = await client.auth.getSession();
+    if (session) {
+        const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+        if (prof?.role === 'owner' || prof?.role === 'it') {
+            document.getElementById('wrapper-buku-kas')?.classList.remove('hidden');
+        }
+    }
+
+    const extractJam = (isoString) => {
+        if(!isoString) return '00:00';
+        try { return new Date(isoString).toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false }); } 
+        catch(e) { return '00:00'; }
+    };
+
+    // Fungsi Utama Loader Data Multi-Tabel
+    window.muatBukuKasHarian = async function() {
+        const tglDipilih = inputTgl.value;
+        const dompetDipilih = selectDompet.value;
+        const container = document.getElementById('kas_loop_container');
+        
+        if(!container) return;
+        container.innerHTML = '<p class="text-gray-400 italic text-center py-4 animate-pulse">Menyedot data dari 5 tabel berbeda...</p>';
+
+        try {
+            const startOfDay = `${tglDipilih}T00:00:00+07:00`;
+            const endOfDay = `${tglDipilih}T23:59:59+07:00`;
+
+            // 1. AMBIL UANG MASUK (Pemasukan Khusus)
+            let queryMasuk = client.from('pemasukan')
+                .select('id, sumber_dana, rincian_pemasukan!inner(id, nama_item, nominal, keterangan, created_at, status_approval)')
+                .gte('rincian_pemasukan.created_at', startOfDay)
+                .lte('rincian_pemasukan.created_at', endOfDay)
+                .eq('rincian_pemasukan.status_approval', 'Disetujui');
+            if(dompetDipilih !== 'Semua') queryMasuk = queryMasuk.eq('sumber_dana', dompetDipilih);
+            const { data: dataPemasukan } = await queryMasuk;
+
+            // 2. AMBIL PENJUALAN OLAHAN
+            let queryJual = client.from('penjualan_olahan')
+                .select(`id, created_at, keterangan, volume, harga_satuan, total_harga, tujuan_kas, distributor:distributor_id (nama), komoditas:komoditas_id (nama_komoditas)`)
+                .gte('created_at', startOfDay)
+                .lte('created_at', endOfDay);
+            if(dompetDipilih !== 'Semua') queryJual = queryJual.eq('tujuan_kas', dompetDipilih);
+            const { data: dataPenjualan } = await queryJual;
+
+            // 3. AMBIL PENGELUARAN (Tarik dari rincian_pengeluaran)
+            let queryKeluar = client.from('rincian_pengeluaran')
+                .select(`*, pengeluaran!inner (*, profiles:user_id(nama))`)
+                .gte('updated_at', startOfDay)
+                .lte('updated_at', endOfDay);
+            if(dompetDipilih !== 'Semua') queryKeluar = queryKeluar.eq('pengeluaran.sumber_dana', dompetDipilih);
+            const { data: dataPengeluaranItem } = await queryKeluar;
+
+            // 4. AMBIL PEMBELIAN MITRA (Tarik dari transaksi_item)
+            // Asumsi di data lu sumber dompetnya ada di tabel 'transaksi' (tujuan_kas / metode_bayar)
+            // Jika transaksi_item tidak punya dompet, kita filter manual nanti atau abaikan filter jika 'Semua'
+            let queryBeli = client.from('transaksi_item')
+                .select(`*, transaksi!inner(*, penjemputan(*, mitra(*)))`)
+                .gte('updated_at', startOfDay)
+                .lte('updated_at', endOfDay);
+            const { data: dataPembelian } = await queryBeli;
+
+            // 5. AMBIL GAJI LUNAS (Dengan Kolom Dompet Spesifik lu) 🔥
+            const { data: dataGaji } = await client.from('slip_gaji')
+                .select('*, profiles(nama)')
+                .gte('created_at', startOfDay)
+                .lte('created_at', endOfDay)
+                .eq('status', 'ACC');
+
+            // ==========================================
+            // PROSES PENGGABUNGAN & PENGURUTAN (SORTING)
+            // ==========================================
+            let totalMasuk = 0; let totalKeluar = 0;
+            let listMutasi = []; 
+
+            // -> Push Pemasukan
+            dataPemasukan?.forEach(p => {
+                p.rincian_pemasukan?.forEach(r => {
+                    const nominal = parseFloat(r.nominal) || 0; totalMasuk += nominal;
+                    const jam = extractJam(r.created_at);
+                    listMutasi.push({ jam, html: `<div class="flex justify-between items-start border-b border-gray-100 pb-2 hover:bg-gray-100 px-2 rounded transition"><div><div class="flex items-center gap-2"><span class="text-[10px] font-bold bg-gray-200 px-1.5 py-0.5 rounded text-gray-600">${jam}</span> <span class="font-bold text-green-700">[MASUK]</span></div><span class="text-sm font-semibold text-gray-800">${r.nama_item}</span><p class="text-[10px] text-gray-500 mt-0.5"><b>Ket:</b> ${r.keterangan || '-'} <br><span class="text-green-600 font-medium">Masuk ke: ${p.sumber_dana}</span></p></div><span class="font-mono font-bold text-green-600 mt-1">+ Rp ${nominal.toLocaleString('id-ID')}</span></div>`});
+                });
+            });
+
+            // -> Push Penjualan
+            dataPenjualan?.forEach(s => {
+                const nominal = parseFloat(s.total_harga) || 0; totalMasuk += nominal; 
+                const jam = extractJam(s.created_at);
+                listMutasi.push({ jam, html: `<div class="flex justify-between items-start border-b border-gray-100 pb-2 hover:bg-gray-100 px-2 rounded transition"><div><div class="flex items-center gap-2"><span class="text-[10px] font-bold bg-gray-200 px-1.5 py-0.5 rounded text-gray-600">${jam}</span> <span class="font-bold text-green-700">[JUAL OLAHAN]</span></div><span class="text-sm font-semibold text-gray-800">${s.komoditas?.nama_komoditas || 'Barang'} (${s.volume} kg)</span><p class="text-[10px] text-gray-500 mt-0.5"><b>Pembeli:</b> ${s.distributor?.nama || 'Umum'} | <b>Ket:</b> ${s.keterangan || '-'} <br><span class="text-green-600 font-medium">Masuk ke: ${s.tujuan_kas}</span></p></div><span class="font-mono font-bold text-green-600 mt-1">+ Rp ${nominal.toLocaleString('id-ID')}</span></div>`});
+            });
+
+            // -> Push Pengeluaran Keluar
+            dataPengeluaranItem?.forEach(item => {
+                if (String(item.keterangan_bayar) !== 'true') return; 
+
+                const nominal = parseFloat(item.nominal) || 0; totalKeluar += nominal;
+                let jam = item.jam_input ? item.jam_input.substring(0,5) : extractJam(item.updated_at);
+                let namaTampil = item.nama_item || item.keterangan || 'Pengeluaran Lainnya';
+                let dompet = item.pengeluaran?.sumber_dana || 'Umum';
+
+                listMutasi.push({ jam, html: `<div class="flex justify-between items-start border-b border-gray-100 pb-2 hover:bg-gray-100 px-2 rounded transition"><div><div class="flex items-center gap-2"><span class="text-[10px] font-bold bg-gray-200 px-1.5 py-0.5 rounded text-gray-600">${jam}</span> <span class="font-bold text-red-600">[Keluar]</span></div><span class="text-sm font-semibold text-gray-800">${namaTampil}</span><p class="text-[10px] text-gray-500 mt-0.5"><b>Ket:</b> ${item.keterangan || '-'} <br><span class="text-red-500 font-medium">Dari Dompet: ${dompet}</span></p></div><span class="font-mono font-bold text-red-500 mt-1">- Rp ${nominal.toLocaleString('id-ID')}</span></div>`});
+            });
+
+            // -> Push Pembelian Komoditas
+            dataPembelian?.forEach(b => {
+                const isPaid = b.transaksi?.is_paid_by_admin === true;
+                if (!isPaid) return; 
+
+                const nominal = parseFloat(b.transaksi?.grand_total) || ((parseFloat(b.volume) || 0) * (parseFloat(b.harga_unit) || 0)); 
+                totalKeluar += nominal;
+                const jam = extractJam(b.updated_at);
+                let namaMitra = 'Mitra Lapangan';
+                try { namaMitra = b.transaksi.penjemputan.mitra.nama_mitra || namaMitra; } catch(e){}
+
+                listMutasi.push({ jam, html: `<div class="flex justify-between items-start border-b border-gray-100 pb-2 hover:bg-gray-100 px-2 rounded transition"><div><div class="flex items-center gap-2"><span class="text-[10px] font-bold bg-gray-200 px-1.5 py-0.5 rounded text-gray-600">${jam}</span> <span class="font-bold text-red-600">[BELI]</span></div><span class="text-sm font-semibold text-gray-800">${b.komoditas || 'Bahan Baku'} (${b.volume || 0} kg)</span><p class="text-[10px] text-gray-500 mt-0.5"><b>Dari Mitra:</b> ${namaMitra}</p></div><span class="font-mono font-bold text-red-500 mt-1">- Rp ${nominal.toLocaleString('id-ID')}</span></div>`});
+            });
+
+            // -> Push Gaji (FILTER BERDASARKAN CSV BARU LU) 🔥
+            dataGaji?.forEach(g => {
+                let nominalPotong = 0;
+                let infoDompet = '';
+
+                if (dompetDipilih === 'Uang Keuangan') {
+                    nominalPotong = parseFloat(g.kas_keuangan_terpakai) || 0;
+                    infoDompet = 'Uang Keuangan';
+                } else if (dompetDipilih === 'Uang Gudang') {
+                    nominalPotong = parseFloat(g.kas_gudang_terpakai) || 0;
+                    infoDompet = 'Uang Gudang';
+                } else {
+                    // Kalau 'Semua', potong total diterima
+                    nominalPotong = parseFloat(g.total_diterima) || 0;
+                    infoDompet = 'Campuran (Semua Kas)';
+                }
+
+                // Hanya masukan ke list mutasi kalau kas tersebut kepakai buat gajian ini
+                if (nominalPotong > 0) {
+                    totalKeluar += nominalPotong;
+                    const jam = extractJam(g.created_at);
+                    listMutasi.push({ jam, html: `<div class="flex justify-between items-start border-b border-gray-100 pb-2 hover:bg-gray-100 px-2 rounded transition"><div><div class="flex items-center gap-2"><span class="text-[10px] font-bold bg-gray-200 px-1.5 py-0.5 rounded text-gray-600">${jam}</span> <span class="font-bold text-purple-700">[GAJI]</span></div><span class="text-sm font-semibold text-gray-800">Gaji: ${g.profiles?.nama || 'Staff'}</span><p class="text-[10px] text-gray-500 mt-0.5">Periode: ${g.periode} <br><span class="text-red-500 font-medium">Dipotong dari: ${infoDompet}</span></p></div><span class="font-mono font-bold text-red-500 mt-1">- Rp ${nominalPotong.toLocaleString('id-ID')}</span></div>`});
+                }
+            });
+
+            listMutasi.sort((a,b) => a.jam.localeCompare(b.jam));
+            let listMutasiHtml = ''; listMutasi.forEach(m => listMutasiHtml += m.html);
+
+            // ==========================================
+            // LOGIKA SALDO GABUNGAN (SEMUA DOMPET) 🔥
+            // ==========================================
+            let saldoAwal = 0;
+            
+            // 1. Coba cari saldo hari ini
+            const { data: snapshotHariIni } = await client.from('saldo_kas_harian')
+                .select('saldo_awal')
+                .eq('tanggal', tglDipilih)
+                .eq('sumber_dana', dompetDipilih === 'Semua' ? 'Uang Keuangan' : dompetDipilih)
+                .maybeSingle();
+
+            if (snapshotHariIni) {
+                saldoAwal = parseFloat(snapshotHariIni.saldo_awal || 0);
+            } else {
+                // 2. OTOMATIS AMBIL SALDO AKHIR KEMARIN (Jika hari ini belum diset)
+                const kemarin = new Date(new Date(tglDipilih) - 86400000).toISOString().split('T')[0];
+                const { data: snapshotKemarin } = await client.from('saldo_kas_harian')
+                    .select('saldo_akhir')
+                    .eq('tanggal', kemarin)
+                    .eq('sumber_dana', dompetDipilih === 'Semua' ? 'Uang Keuangan' : dompetDipilih)
+                    .maybeSingle();
+                
+                saldoAwal = snapshotKemarin ? parseFloat(snapshotKemarin.saldo_akhir || 0) : 0;
+            }
+
+            let saldoAkhir = saldoAwal + totalMasuk - totalKeluar;
+
+            // Cetak ke layar
+            document.getElementById('kas_count_item').innerText = `${listMutasi.length} Transaksi`;
+            document.getElementById('kas_text_awal').innerText = `Rp ${saldoAwal.toLocaleString('id-ID')}`;
+            document.getElementById('kas_text_masuk').innerText = `+ Rp ${totalMasuk.toLocaleString('id-ID')}`;
+            document.getElementById('kas_text_keluar').innerText = `Rp -${totalKeluar.toLocaleString('id-ID')}`;
+            document.getElementById('kas_text_akhir').innerText = `Rp ${saldoAkhir.toLocaleString('id-ID')}`;
+            container.innerHTML = listMutasiHtml || '<p class="text-gray-400 italic text-center py-4">Tidak ada aktivitas perputaran kas pada tanggal ini.</p>';
+
+            // 🔥 FIX: Hanya update/simpan histori saldo jika dompet yang dipilih spesifik (Bukan Gabungan/Semua)
+            if (dompetDipilih !== 'Semua') {
+                await client.from('saldo_kas_harian').upsert({
+                    tanggal: tglDipilih, sumber_dana: dompetDipilih, saldo_awal: saldoAwal, saldo_akhir: saldoAkhir
+                }, { onConflict: 'tanggal,sumber_dana' });
+            }
+
+        } catch (e) {
+            console.error("Gagal kalkulasi:", e);
+            container.innerHTML = `<p class="text-red-500 text-xs text-center py-4">Gagal menyambung ke database. Buka *Inspect Element > Console* untuk melihat errornya.</p>`;
+        }
+    };
+
+    window.suntikSaldoAwal = async function() {
+        const tglDipilih = inputTgl.value;
+        const dompetTarget = selectDompet.value;
+
+        // 🔥 WAJIB PILIH DOMPET DULU SEBELUM SUNTIK SALDO MASTER
+        if (dompetTarget === 'Semua') {
+            return alert("Pilih dompet spesifik (Uang Keuangan / Uang Gudang) di kanan atas terlebih dahulu untuk set saldo awal!");
+        }
+
+        const nominalStr = prompt(`Masukkan Nominal Saldo Awal untuk ${dompetTarget}:`);
+        if (!nominalStr || isNaN(nominalStr)) return alert("Nominal tidak valid!");
+        
+        const nominal = parseFloat(nominalStr);
+
+        const { error } = await client.from('saldo_kas_harian').upsert({
+            tanggal: tglDipilih, sumber_dana: dompetTarget, saldo_awal: nominal, saldo_akhir: nominal
+        }, { onConflict: 'tanggal,sumber_dana' });
+
+        if (error) alert("Gagal menyuntik saldo: " + error.message);
+        else { alert("Saldo awal master berhasil di-set!"); window.muatBukuKasHarian(); }
+    };
+
+    inputTgl?.addEventListener('change', window.muatBukuKasHarian);
+    selectDompet?.addEventListener('change', window.muatBukuKasHarian);
+    
+    window.muatBukuKasHarian();
+});
+</script>

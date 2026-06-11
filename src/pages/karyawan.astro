@@ -87,6 +87,12 @@ import Layout from '../layouts/Layout.astro';
                             <label class="text-xs text-gray-500 font-bold block mb-1">Jam Pulang Baru</label>
                             <input type="time" id="det_abs_edit_pulang" class="w-full p-2 bg-gray-100 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
                         </div>
+                        <div class="mt-3 bg-purple-50 border border-purple-100 p-2.5 rounded-lg">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="det_abs_edit_tadarus" class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500">
+                            <span class="text-xs font-bold text-purple-800 uppercase tracking-wide">Karyawan Sudah Setor Tadarus</span>
+                        </label>
+                    </div>
                     </div>
                 </div>
 
@@ -190,7 +196,8 @@ import Layout from '../layouts/Layout.astro';
                         status_pulang,
                         status_approval,
                         foto_tiba,
-                        foto_pulang
+                        foto_pulang,
+                        is_tadarus
                     ),
                     izin_karyawan (
                         id,
@@ -521,6 +528,7 @@ import Layout from '../layouts/Layout.astro';
                         <p class="font-body-md text-xs text-on-surface-variant mt-1">
                             Tiba: ${p.waktu_tiba ? p.waktu_tiba.substring(0,5) : '-'} | 
                             Pulang: ${p.waktu_pulang ? p.waktu_pulang.substring(0,5) : '-'} ${p.status_pulang ? `(${p.status_pulang})` : ''}
+                            ${p.is_tadarus ? '<br><span class="text-purple-600 font-bold mt-1 inline-block">📖 Sudah Tadarus Al-Quran</span>' : ''}
                         </p>
                     `;
 
@@ -573,6 +581,7 @@ import Layout from '../layouts/Layout.astro';
             // Isi input jam untuk diedit
             document.getElementById('det_abs_edit_masuk').value = p.waktu_tiba || '';
             document.getElementById('det_abs_edit_pulang').value = p.waktu_pulang || '';
+            document.getElementById('det_abs_edit_tadarus').checked = p.is_tadarus || false; // 🔥 SUNTIKAN BARU
             
             // Ganti warna badge
             const setBadge = (elId, status) => {
@@ -612,6 +621,7 @@ import Layout from '../layouts/Layout.astro';
             const id = document.getElementById('det_abs_id').value;
             const jamMasuk = document.getElementById('det_abs_edit_masuk').value;
             const jamPulang = document.getElementById('det_abs_edit_pulang').value;
+            const isTadarus = document.getElementById('det_abs_edit_tadarus').checked; // 🔥 TANGKAP NILAI BARU
 
             if (!jamMasuk || !jamPulang) {
                 alert('Mohon isi jam masuk dan jam pulang!');
@@ -624,7 +634,8 @@ import Layout from '../layouts/Layout.astro';
                     .update({ 
                         status_approval: status,
                         waktu_tiba: jamMasuk,
-                        waktu_pulang: jamPulang
+                        waktu_pulang: jamPulang,
+                        is_tadarus: isTadarus
                     })
                     .eq('id', id);
 
@@ -637,7 +648,7 @@ import Layout from '../layouts/Layout.astro';
                 const currentEmpId = window.currentEmployee.id;
                 const { data: freshData } = await supabase
                     .from('profiles')
-                    .select('id, id_lapangan, nama, nomor_hp, foto_profil, role, presensi(id, tanggal, waktu_tiba, waktu_pulang, status_tiba, status_pulang, status_approval, foto_tiba, foto_pulang), izin_karyawan(id, tanggal, tipe_izin, status_pengajuan, alasan, foto_bukti, jam_rencana_keluar)')
+                    .select('id, id_lapangan, nama, nomor_hp, foto_profil, role, presensi(id, tanggal, waktu_tiba, waktu_pulang, status_tiba, status_pulang, status_approval, foto_tiba, foto_pulang, is_tadarus), izin_karyawan(id, tanggal, tipe_izin, status_pengajuan, alasan, foto_bukti, jam_rencana_keluar)')
                     .order('nama', { ascending: true });
                 
                 if(freshData) {

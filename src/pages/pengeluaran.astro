@@ -154,7 +154,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 </div>
 
 <script is:inline>
-  const masterKategoriOps = ['Bensin', 'Parkir', 'Uang Makan', 'Uang Jalan', 'E-Toll', 'Admin', 'Bongkar', 'Satpam', 'Service', 'Listrik', 'Karung', 'Plastik', 'Jasa Spinner', 'Lain-lain'];
+  const masterKategoriOps = ['Bensin', 'Parkir', 'Uang Makan', 'Uang Jalan', 'Deposit Mitra', 'E-Toll', 'Admin', 'Bongkar', 'Satpam', 'Service', 'Listrik', 'Karung', 'Plastik', 'Jasa Spinner', 'Lain-lain'];
   
   document.addEventListener('DOMContentLoaded', async () => {
       // === 🛡️ GATEKEEPER KEUANGAN ===
@@ -165,6 +165,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
       if (!session) return window.location.replace('/'); 
       
       const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+
+      // 🔥 TAMBAHAN: Tarik data mitra untuk dropdown Deposit
+      const { data: dataMitraDeposit } = await client.from('mitra').select('id, nama_mitra').eq('activated', true);
+      window.allMitraPengeluaran = dataMitraDeposit || [];
       
       if (!allowedRoles.includes(prof?.role)) {
           alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk ke Keuangan.`);
@@ -688,11 +692,16 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         const container = document.getElementById('add_peng_items_container');
         let selectOptions = masterKategoriOps.map(kat => `<option value="${kat}">${kat}</option>`).join('');
 
+        // 🔥 UBAH BAGIAN INI: Bikin list untuk Datalist (hanya value nama)
+        let optMitra = '';
+        window.allMitraPengeluaran.forEach(m => optMitra += `<option value="${m.nama_mitra}">`);
+
         const rowHtml = document.createElement('div');
         rowHtml.className = "add-item-row p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2 relative";
+        
+        // Perhatikan bagian <input list="..."> dan <datalist> di bawah ini:
         rowHtml.innerHTML = `
-            <button type="button" onclick="this.closest('.add-item-row').remove(); window.hitungTotalTambahPeng();"
-            class="absolute top-1 right-2 text-gray-400 hover:text-red-600 text-sm"><i class="bi bi-trash"></i></button>
+            <button type="button" onclick="this.closest('.add-item-row').remove(); window.hitungTotalTambahPeng();" class="absolute top-1 right-2 text-gray-400 hover:text-red-600 text-sm"><i class="bi bi-trash"></i></button>
             <div class="grid grid-cols-2 gap-2 pr-4">
                 <div>
                     <label class="text-[10px] font-bold text-gray-500 uppercase">Kategori</label>
@@ -705,7 +714,16 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     <input type="number" class="add_item_nominal w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-mono font-bold text-green-800" placeholder="0" oninput="window.hitungTotalTambahPeng()" required>
                 </div>
             </div>
-            <div>
+            
+            <div class="add_mitra_box hidden mt-2">
+                <label class="text-[10px] font-bold text-teal-700 uppercase">Cari / Ketik Nama Mitra</label>
+                <input list="list-mitra-ops" class="add_item_mitra_input w-full border border-teal-200 bg-teal-50/50 rounded-lg p-2 text-xs outline-none focus:border-teal-500 text-teal-800 font-bold" placeholder="🔍 Ketik untuk mencari mitra...">
+                <datalist id="list-mitra-ops">
+                    ${optMitra}
+                </datalist>
+            </div>
+
+            <div class="mt-2">
                 <label class="text-[10px] font-bold text-gray-500 uppercase dynamic-label-ket">Keterangan / Detail (Opsional)</label>
                 <input type="text" class="add_item_keterangan w-full border border-gray-300 rounded-lg p-2 text-xs outline-none font-medium" placeholder="Cth: Pembelian karung 50 pcs / Bensin Pertalite...">
             </div>
@@ -718,12 +736,25 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         const row = selectElement.closest('.add-item-row');
         const inputKet = row.querySelector('.add_item_keterangan');
         const labelKet = row.querySelector('.dynamic-label-ket');
+        const mitraBox = row.querySelector('.add_mitra_box');
+        const inputMitra = row.querySelector('.add_item_mitra_input');
 
         if(selectElement.value === 'Lain-lain') {
             inputKet.required = true;
             inputKet.placeholder = "WAJIB DIISI! Sebutkan rincian pengeluarannya...";
             labelKet.innerHTML = 'Keterangan / Detail <span class="text-red-600 font-bold">*Wajib Diisi</span>';
             inputKet.classList.add('border-blue-400', 'bg-blue-50/30');
+        } else if (selectElement.value === 'Deposit Mitra') {
+            inputKet.required = false;
+            inputKet.readOnly = true; 
+            inputKet.value = '';
+            inputKet.placeholder = "Otomatis: Deposit - [Nama Mitra]";
+            labelKet.innerHTML = 'Keterangan (Otomatis dari Sistem)';
+            inputKet.classList.remove('border-blue-400', 'bg-blue-50/30');
+            
+            mitraBox.classList.remove('hidden'); 
+            inputMitra.value = ''; // 🔥 Kosongkan pencarian saat baru dipilih
+            inputMitra.required = true;
         } else {
             inputKet.required = false;
             inputKet.placeholder = "Cth: Pembelian karung 50 pcs / Bensin Pertalite...";
@@ -761,14 +792,40 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             const rincianItems = [];
             let countUangJalan = 0;
             let totalNominalPengajuan = 0; // 🔥 Variabel baru untuk menghitung total uang yang mau diminta
+            const depositPromises = []; // 🔥 TAMBAHAN: Untuk menampung eksekusi nambah deposit
 
             itemRows.forEach(row => {
                 const kategori = row.querySelector('.add_item_select').value;
                 const nominal = parseFloat(row.querySelector('.add_item_nominal').value) || 0;
-                const keterangan = row.querySelector('.add_item_keterangan').value.trim();
+                let keterangan = row.querySelector('.add_item_keterangan').value.trim();
 
                 if(kategori === 'Uang Jalan') countUangJalan++;
                 totalNominalPengajuan += nominal; // Tambahkan ke total
+
+                // 🔥 LOGIKA JIKA ITEM ADALAH DEPOSIT MITRA 🔥
+                if (kategori === 'Deposit Mitra') {
+                    const namaDiketik = row.querySelector('.add_item_mitra_input').value.trim();
+                    
+                    // Cari ID mitra berdasarkan nama yang diketik
+                    const mitraMatch = window.allMitraPengeluaran.find(m => m.nama_mitra.toLowerCase() === namaDiketik.toLowerCase());
+                    
+                    // Validasi ketat jika admin ngetik ngasal / typo
+                    if (!mitraMatch) {
+                        btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER"; btnSubmit.disabled = false;
+                        throw new Error(`Mitra dengan nama "${namaDiketik}" tidak ditemukan! Silakan pilih dari daftar dropdown yang muncul.`);
+                    }
+
+                    const mitraId = mitraMatch.id;
+                    keterangan = `Deposit - ${mitraMatch.nama_mitra}`; // Teks otomatis sesuai request lu
+
+                    // Task update saldo mitra
+                    const taskDeposit = async () => {
+                        const { data: dbMitra } = await window.supabase.from('mitra').select('deposit').eq('id', mitraId).single();
+                        const currentDeposit = Number(dbMitra?.deposit) || 0;
+                        await window.supabase.from('mitra').update({ deposit: currentDeposit + nominal }).eq('id', mitraId);
+                    };
+                    depositPromises.push(taskDeposit());
+                }
 
                 rincianItems.push({ 
                     nama_item: kategori, 
@@ -874,6 +931,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             
             const { error: errRincian } = await window.supabase.from('rincian_pengeluaran').insert(rincianFinalToInsert);
             if(errRincian) throw errRincian;
+
+            if (depositPromises.length > 0) {
+                await Promise.all(depositPromises);
+            }
             
             alert("Mantap! Seluruh data sukses dicatat dan divalidasi.");
             window.location.reload();

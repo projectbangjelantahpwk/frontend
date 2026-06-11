@@ -1,0 +1,295 @@
+---
+import 'bootstrap-icons/font/bootstrap-icons.css';
+---
+
+<style>
+  /* CSS Untuk Efek Animasi Sliding */
+  .slider-wrapper {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+  .slider-track {
+    display: flex;
+    width: 200%; /* Lebar 2 kali lipat untuk menampung 2 panel form */
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .slider-panel {
+    width: 50%;
+    flex-shrink: 0;
+    padding: 2px; /* Mencegah shadow terpotong */
+  }
+  .slide-to-forgot {
+    transform: translateX(-50%);
+  }
+  .back-btn {
+    background: none; border: none; color: #1b6d24; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 0; margin-bottom: 20px; font-size: 14px;
+  }
+  .back-btn:hover {
+    text-decoration: underline;
+  }
+</style>
+
+<div class="slider-wrapper">
+  <div class="slider-track" id="sliderTrack">
+    
+    <div class="slider-panel">
+      <form id="loginForm">
+        <div class="form-group">
+          <label class="form-label" for="username">Username / ID Lapangan</label>
+          <div class="input-icon">
+            <i class="bi bi-person"></i>
+            <input type="text" id="username" name="username" class="form-input" placeholder="Masukkan username anda" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <div class="input-icon">
+            <i class="bi bi-lock" id="togglePassword" style="cursor: pointer;"></i>
+            <input type="password" id="password" name="password" class="form-input" placeholder="Masukkan password anda" required />
+          </div>
+        </div>
+
+        <div class="remember-forgot">
+          <div class="checkbox-wrapper">
+            <input type="checkbox" id="remember" name="remember" />
+            <label for="remember" style="cursor: pointer; margin: 0;">Ingat saya</label>
+          </div>
+          <a href="#" class="forgot-link" id="linkLupaPassword">Lupa Password?</a>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">Masuk</button>
+        
+        <div id="errorMessage" style="display: none; color: #dc2626; font-size: 14px; margin-top: 12px; padding: 12px; background-color: #fee2e2; border-radius: 6px;"></div>
+
+        <div id="loadingIndicator" style="display: none; text-align: center; margin-top: 16px;">
+          <p style="color: #6b7280; font-size: 14px;">Sedang memproses...</p>
+        </div>
+      </form>
+    </div>
+
+    <div class="slider-panel">
+      <button type="button" class="back-btn" id="btnBackToLogin">
+        <i class="bi bi-arrow-left"></i> Kembali ke Login
+      </button>
+
+      <form id="forgotForm">
+        <div id="forgotStep1">
+          <p style="font-size: 13px; color: #4b5563; margin-bottom: 16px; line-height: 1.5;">Masukkan Username dan Nomor Handphone Anda yang terdaftar di sistem untuk verifikasi akun.</p>
+          
+          <div class="form-group">
+            <label class="form-label" for="forgotUsername">Username / ID Lapangan</label>
+            <div class="input-icon">
+              <i class="bi bi-person-badge"></i>
+              <input type="text" id="forgotUsername" class="form-input" placeholder="Contoh: LAP-001" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="forgotHp">Nomor HP / WhatsApp</label>
+            <div class="input-icon">
+              <i class="bi bi-telephone"></i>
+              <input type="tel" id="forgotHp" class="form-input" placeholder="Contoh: 08123456789" required />
+            </div>
+          </div>
+
+          <button type="button" class="submit-btn" id="btnVerifyData" style="background-color: #1b6d24; margin-top: 8px;">Cek Data Akun</button>
+        </div>
+
+        <div id="forgotStep2" style="display: none;">
+          <div style="padding: 12px; background-color: #d1fae5; border: 1px solid #34d399; border-radius: 6px; margin-bottom: 16px;">
+            <p style="color: #065f46; font-size: 13px; font-weight: 600; margin: 0;"><i class="bi bi-check-circle-fill mr-1"></i> Data Cocok! Silakan buat password baru.</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="newPassword">Password Baru</label>
+            <div class="input-icon">
+              <i class="bi bi-lock" id="toggleNewPassword" style="cursor: pointer;"></i>
+              <input type="password" id="newPassword" class="form-input" placeholder="Minimal 6 karakter" required />
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn" id="btnSaveNewPassword" style="margin-top: 8px;">Simpan Password Baru</button>
+        </div>
+
+        <div id="forgotErrorMessage" style="display: none; color: #dc2626; font-size: 14px; margin-top: 12px; padding: 12px; background-color: #fee2e2; border-radius: 6px;"></div>
+        <div id="forgotLoadingIndicator" style="display: none; text-align: center; margin-top: 16px;">
+          <p style="color: #6b7280; font-size: 14px;">Memproses data...</p>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // 🔥 INI KUNCI UTAMANYA: Import Supabase lu secara langsung!
+  import { supabase } from '../lib/supabase'; 
+
+  // ==========================================
+  // 1. LOGIKA ANIMASI SLIDER & KEMBALI
+  // ==========================================
+  const track = document.getElementById('sliderTrack');
+  const linkLupaPassword = document.getElementById('linkLupaPassword');
+  const btnBackToLogin = document.getElementById('btnBackToLogin');
+
+  linkLupaPassword?.addEventListener('click', (e) => {
+    e.preventDefault();
+    track.classList.add('slide-to-forgot');
+  });
+
+  btnBackToLogin?.addEventListener('click', () => {
+    track.classList.remove('slide-to-forgot');
+    
+    // Kasih delay biar nggak kelihatan pas lagi geser baliknya
+    setTimeout(() => {
+      document.getElementById('forgotStep1').style.display = 'block';
+      document.getElementById('forgotStep2').style.display = 'none';
+      document.getElementById('forgotErrorMessage').style.display = 'none';
+      document.getElementById('forgotForm').reset();
+    }, 400);
+  });
+
+  // ==========================================
+  // 2. TOGGLE VISIBILITAS PASSWORD (MATA)
+  // ==========================================
+  const setupPasswordToggle = (inputId, iconId) => {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (icon && input) {
+      icon.addEventListener('click', function() {
+        if (input.type === 'password') {
+          input.type = 'text';
+          this.classList.replace('bi-lock', 'bi-lock-fill');
+        } else {
+          input.type = 'password';
+          this.classList.replace('bi-lock-fill', 'bi-lock');
+        }
+      });
+    }
+  };
+  setupPasswordToggle('password', 'togglePassword'); 
+  setupPasswordToggle('newPassword', 'toggleNewPassword'); 
+
+  // ==========================================
+  // 3. LOGIKA CEK DATABASE (STEP 1 - LUPA PASSWORD)
+  // ==========================================
+  const btnVerifyData = document.getElementById('btnVerifyData');
+  btnVerifyData?.addEventListener('click', async () => {
+    const username = document.getElementById('forgotUsername').value.trim();
+    const hp = document.getElementById('forgotHp').value.trim();
+    const errMsg = document.getElementById('forgotErrorMessage');
+    const loader = document.getElementById('forgotLoadingIndicator');
+
+    if (!username || !hp) {
+      errMsg.textContent = 'Harap isi Username dan Nomor HP Anda!';
+      errMsg.style.display = 'block';
+      return;
+    }
+
+    errMsg.style.display = 'none';
+    loader.style.display = 'block';
+    btnVerifyData.disabled = true;
+    btnVerifyData.innerText = 'Mencari...';
+
+    try {
+      // Langsung panggil supabase hasil import dari atas
+      const { data, error } = await supabase.from('profiles')
+        .select('id, id_lapangan, nomor_hp')
+        .eq('id_lapangan', username)
+        .single(); 
+
+      if (error || !data || data.nomor_hp !== hp) {
+        throw new Error('Data tidak ditemukan atau Nomor HP tidak cocok!');
+      }
+
+      // LOLOS! Sembunyikan Step 1, Tampilkan Step 2
+      document.getElementById('forgotStep1').style.display = 'none';
+      document.getElementById('forgotStep2').style.display = 'block';
+
+    } catch (error) {
+      errMsg.textContent = error.message;
+      errMsg.style.display = 'block';
+    } finally {
+      loader.style.display = 'none';
+      btnVerifyData.disabled = false;
+      btnVerifyData.innerText = 'Cek Data Akun';
+    }
+  });
+
+  // ==========================================
+  // 4. LOGIKA SIMPAN PASSWORD BARU (STEP 2)
+  // ==========================================
+  const forgotForm = document.getElementById('forgotForm');
+  forgotForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const newPass = document.getElementById('newPassword').value;
+    const errMsg = document.getElementById('forgotErrorMessage');
+    const btnSave = document.getElementById('btnSaveNewPassword');
+
+    if (newPass.length < 6) {
+      errMsg.textContent = "Password baru minimal 6 karakter!";
+      errMsg.style.display = 'block';
+      return;
+    }
+
+    errMsg.style.display = 'none';
+    btnSave.disabled = true;
+    btnSave.innerText = 'Menyimpan...';
+
+    try {
+      alert("PEMBERITAHUAN KEAMANAN:\n\nSistem mendeteksi penggunaan Email Internal Perusahaan.\n\nUntuk menghindari peretasan akun, fitur ganti password langsung dari luar ditangguhkan sementara. Silakan laporkan ID Anda ke HRD/Admin untuk mereset password melalui Menu Hak Akses di Dashboard.");
+      
+      track.classList.remove('slide-to-forgot');
+      setTimeout(() => document.getElementById('forgotForm').reset(), 500);
+
+    } catch (err) {
+      errMsg.textContent = "Gagal memperbarui password: " + err.message;
+      errMsg.style.display = 'block';
+    } finally {
+      btnSave.disabled = false;
+      btnSave.innerText = 'Simpan Password Baru';
+    }
+  });
+
+  // ==========================================
+  // 5. LOGIKA LOGIN UTAMA
+  // ==========================================
+  const loginForm = document.getElementById('loginForm');
+  const errorMessage = document.getElementById('errorMessage');
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  const submitBtn = document.getElementById('submitBtn');
+
+  loginForm?.addEventListener('submit', async (e) => {
+    e.preventDefault(); 
+    if (errorMessage) errorMessage.style.display = 'none';
+    if (loadingIndicator) loadingIndicator.style.display = 'block';
+    if (submitBtn) submitBtn.disabled = true;
+
+    const usernameInput = document.getElementById('username').value.trim();
+    const passwordInputVal = document.getElementById('password').value;
+    const dummyEmail = `${usernameInput}@bangjelantah.local`.toLowerCase();
+
+    try {
+      // Langsung panggil supabase hasil import dari atas
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: dummyEmail,
+        password: passwordInputVal,
+      });
+
+      if (error) throw error;
+      
+      window.location.href = '/';
+    } catch (error) {
+      if (errorMessage) {
+        errorMessage.textContent = error.message === 'Invalid login credentials' ? 'Username atau password salah!' : error.message;
+        errorMessage.style.display = 'block';
+      }
+    } finally {
+      if (loadingIndicator) loadingIndicator.style.display = 'none';
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  });
+</script>

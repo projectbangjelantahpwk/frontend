@@ -1,0 +1,205 @@
+---
+// components/dashboard/ExpenditureMetricsWithProgress.astro
+---
+
+<div class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow">
+    <div class="flex justify-between items-center mb-md border-b border-outline-variant pb-3">
+        <h3 class="font-headline-md text-on-surface flex items-center gap-2">
+            <i class="bi bi-cash-stack text-red-600"></i> Metrik Pengeluaran
+        </h3>
+        <div class="bg-surface-container-low p-1 rounded-lg border border-outline-variant flex text-xs font-bold">
+            <button id="btn-keluar-harian" class="px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all" onclick="window.togglePengeluaran('harian')">Harian</button>
+            <button id="btn-keluar-mingguan" class="px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all" onclick="window.togglePengeluaran('mingguan')">Mingguan</button>
+        </div>
+    </div>
+    
+    <div>
+        <div class="flex justify-between items-center mb-4 bg-gray-50 p-2 rounded-lg border border-gray-100">
+            <span id="keluar-lbl-periode" class="text-xs font-bold text-gray-500 uppercase ml-1">Pilih Periode:</span>
+            
+            <div id="wrapper-keluar-picker-harian">
+                <input type="date" id="keluar-date-picker" class="border border-red-300 rounded-md px-2 py-1 text-xs font-bold text-red-700 bg-red-50 outline-none focus:ring-2 focus:ring-red-500 cursor-pointer max-w-[150px]">
+            </div>
+            
+            <div id="wrapper-keluar-picker-mingguan" class="hidden">
+                <input type="month" id="keluar-week-month-picker" class="border border-orange-300 rounded-md px-2 py-1 text-xs font-bold text-orange-700 bg-orange-50 outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer max-w-[150px]">
+            </div>
+        </div>
+        
+        <div id="keluar-metrics-list" class="space-y-3 min-h-[150px]">
+            <p class="text-xs text-center text-gray-400 italic py-8">Memuat data metrik pengeluaran...</p>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
+            <span id="keluar-total-label" class="text-xs font-bold text-gray-500">Total Pengeluaran</span>
+            <span id="keluar-total-harga" class="text-lg font-black text-red-700 font-mono">Rp 0</span>
+        </div>
+    </div>
+</div>
+
+<script is:inline>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const client = window.supabase;
+        if (!client) return console.error("Supabase client tidak ditemukan!");
+
+        const datePicker = document.getElementById('keluar-date-picker');
+        const monthPicker = document.getElementById('keluar-week-month-picker'); 
+        const txtTotalHarga = document.getElementById('keluar-total-harga');
+        const txtTotalLabel = document.getElementById('keluar-total-label');
+        
+        // Setup Batas Kalender & Default
+        const now = new Date();
+        const offset = now.getTimezoneOffset() * 60000;
+        const todayStr = new Date(now - offset).toISOString().split('T')[0];
+        
+        if (datePicker) {
+            if (!datePicker.value) datePicker.value = todayStr; 
+            datePicker.max = todayStr; 
+        }
+
+        if (monthPicker) {
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            if (!monthPicker.value) monthPicker.value = `${yyyy}-${mm}`; 
+            monthPicker.max = `${yyyy}-${mm}`; 
+        }
+
+        const formatRupiah = (num) => 'Rp ' + Number(num).toLocaleString('id-ID', { minimumFractionDigits: 0 });
+        const getPercentage = (value, total) => (!total || total === 0) ? 0 : Math.round((value / total) * 100);
+
+        function renderProgressBarsKeluar(metricsPayload, totalSales) {
+            const listContainer = document.getElementById('keluar-metrics-list');
+            let htmlList = '';
+            metricsPayload.forEach(m => {
+                if (m.value > 0) {
+                    const pct = getPercentage(m.value, totalSales);
+                    htmlList += `
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-[11px] font-bold text-gray-700 uppercase">
+                                <span>${m.label}</span>
+                                <span>${formatRupiah(m.value)}</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="h-full ${m.color} rounded-full" style="width: ${pct}%"></div>
+                            </div>
+                        </div>`;
+                }
+            });
+            listContainer.innerHTML = htmlList || '<p class="text-xs text-center text-gray-400 py-8 italic">Tidak ada pengeluaran pada periode ini</p>';
+            txtTotalHarga.innerText = formatRupiah(totalSales);
+        }
+
+        function buildMetricsArray(data) {
+            return [
+                { label: "Gaji Karyawan", value: data?.gaji || 0, color: "bg-blue-600" },
+                { label: "Uang Makan", value: data?.makan || 0, color: "bg-blue-400" },
+                { label: "Bonus", value: data?.bonus || 0, color: "bg-indigo-500" },
+                { label: "Lembur", value: data?.lembur || 0, color: "bg-indigo-400" },
+                { label: "Kesehatan", value: data?.uang_kesehatan || 0, color: "bg-teal-500" },
+                { label: "Bensin", value: data?.bensin || 0, color: "bg-primary" },
+                { label: "Parkir", value: data?.parkir || 0, color: "bg-success" },
+                { label: "Admin", value: data?.admin || 0, color: "bg-tertiary" },
+                { label: "Iklan", value: data?.iklan || 0, color: "bg-warning" },
+                { label: "Listrik", value: data?.listrik || 0, color: "bg-error" },
+                { label: "Karung", value: data?.karung || 0, color: "bg-primary/70" },
+                { label: "Plastik", value: data?.plastik || 0, color: "bg-success/70" },
+                { label: "Service", value: data?.service || 0, color: "bg-tertiary/70" },
+                { label: "Jasa Spinner", value: data?.jasa_spinner || 0, color: "bg-warning/70" },
+                { label: "Lain-lain", value: data?.lain_lain || 0, color: "bg-error/70" }
+            ];
+        }
+
+        // 1. Fetch Harian
+        window.loadLiveHarianKeluar = async function() {
+            const tgl = datePicker.value;
+            if (!tgl) return;
+            const { data } = await client.from('rekap_pengeluaran_harian').select('*').eq('tanggal', tgl).maybeSingle();
+            renderProgressBarsKeluar(buildMetricsArray(data), data?.total_pengeluaran || 0);
+            txtTotalHarga.className = "text-lg font-black text-red-700 font-mono";
+        };
+
+        // 2. Fetch Mingguan (Berdasarkan Bulan Terpilih)
+        window.loadLiveMingguanKeluar = async function() {
+            const blnRaw = monthPicker.value; // Hasil picker HTML: "2026-06"
+            if (!blnRaw) return renderProgressBarsKeluar([], 0);
+
+            try {
+                // 🔥 SIKAT FORMAT: Balik dari YYYY-MM menjadi MM-YYYY sesuai isi database lu! 🔥
+                const parts = blnRaw.split('-');
+                const formatDbPeriode = `${parts[1]}-${parts[0]}`; // Hasil: "06-2026"
+
+                // Query database pakai kolom periode yang ada di CSV lu!
+                const { data, error } = await client.from('rekap_pengeluaran_mingguan')
+                                             .select('*')
+                                             .eq('periode', formatDbPeriode);
+                
+                if (error) throw error;
+
+                // Akumulasi Data Pekanan
+                const rekapMingguanMurni = {
+                    gaji: 0, makan: 0, bonus: 0, lembur: 0, uang_kesehatan: 0,
+                    bensin: 0, parkir: 0, admin: 0, iklan: 0, listrik: 0,
+                    karung: 0, plastik: 0, service: 0, jasa_spinner: 0, lain_lain: 0, total_pengeluaran: 0
+                };
+
+                if (data && data.length > 0) {
+                    data.forEach(curr => {
+                        rekapMingguanMurni.gaji += parseFloat(curr.gaji) || 0;
+                        rekapMingguanMurni.makan += parseFloat(curr.makan) || 0;
+                        rekapMingguanMurni.bonus += parseFloat(curr.bonus) || 0;
+                        rekapMingguanMurni.lembur += parseFloat(curr.lembur) || 0;
+                        rekapMingguanMurni.uang_kesehatan += parseFloat(curr.uang_kesehatan) || 0;
+                        rekapMingguanMurni.bensin += parseFloat(curr.bensin) || 0;
+                        rekapMingguanMurni.parkir += parseFloat(curr.parkir) || 0;
+                        rekapMingguanMurni.admin += parseFloat(curr.admin) || 0;
+                        rekapMingguanMurni.iklan += parseFloat(curr.iklan) || 0;
+                        rekapMingguanMurni.listrik += parseFloat(curr.listrik) || 0;
+                        rekapMingguanMurni.karung += parseFloat(curr.karung) || 0;
+                        rekapMingguanMurni.plastik += parseFloat(curr.plastik) || 0;
+                        rekapMingguanMurni.service += parseFloat(curr.service) || 0;
+                        rekapMingguanMurni.jasa_spinner += parseFloat(curr.jasa_spinner) || 0;
+                        rekapMingguanMurni.lain_lain += parseFloat(curr.lain_lain) || 0;
+                        rekapMingguanMurni.total_pengeluaran += parseFloat(curr.total_pengeluaran) || 0;
+                    });
+                }
+
+                renderProgressBarsKeluar(buildMetricsArray(rekapMingguanMurni), rekapMingguanMurni.total_pengeluaran);
+                txtTotalHarga.className = "text-lg font-black text-orange-700 font-mono";
+            } catch (err) {
+                console.error("🛑 Gagal kalkulasi mingguan pengeluaran:", err);
+            }
+        };
+
+        // Kontrol Tombol Switch 
+        window.togglePengeluaran = function(tipe) {
+            const btnHarian = document.getElementById('btn-keluar-harian');
+            const btnMingguan = document.getElementById('btn-keluar-mingguan');
+            const wrapperHarian = document.getElementById('wrapper-keluar-picker-harian');
+            const wrapperMingguan = document.getElementById('wrapper-keluar-picker-mingguan');
+            const txtTotalLabel = document.getElementById('keluar-total-label');
+
+            if (tipe === 'harian') {
+                btnHarian.className = "px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all";
+                btnMingguan.className = "px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all";
+                wrapperHarian.classList.remove('hidden');
+                wrapperMingguan.classList.add('hidden');
+                txtTotalLabel.innerText = "Total Pengeluaran Harian";
+                window.loadLiveHarianKeluar();
+            } else {
+                btnMingguan.className = "px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all";
+                btnHarian.className = "px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all";
+                wrapperHarian.classList.add('hidden');
+                wrapperMingguan.classList.remove('hidden');
+                txtTotalLabel.innerText = "Total Akumulasi Pekanan";
+                window.loadLiveMingguanKeluar();
+            }
+        };
+
+        // Init
+        window.togglePengeluaran('harian'); 
+
+        // Listener (Harian & Month Picker)
+        datePicker?.addEventListener('change', window.loadLiveHarianKeluar);
+        monthPicker?.addEventListener('change', window.loadLiveMingguanKeluar);
+    });
+</script>

@@ -1,0 +1,148 @@
+---
+// components/dashboard/BestEmployees.astro
+// Frontmatter dikosongkan karena data ditarik langsung oleh mesin Javascript di bawah
+---
+
+<div class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow">
+    <h3 class="font-headline-md text-on-surface mb-lg">⭐ Karyawan Terbaik Bulan Ini</h3>
+    
+    <div id="best-employees-container" class="space-y-lg">
+        <p class="text-sm text-gray-500 animate-pulse text-center py-4">Memuat data leaderboard karyawan...</p>
+    </div>
+</div>
+
+<script is:inline>
+document.addEventListener('DOMContentLoaded', async () => {
+    // Pastikan Supabase sudah ter-load
+    const client = window.supabase || supabase;
+    if (!client) return;
+
+    // ==============================================================
+    // 1. TENTUKAN RENTANG WAKTU (BULAN INI) & TOTAL HARI KERJA
+    // ==============================================================
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = today.getMonth();
+
+    const firstDay = new Date(y, m, 1).toISOString().split('T')[0];
+    const lastDay = new Date(y, m + 1, 0).toISOString().split('T')[0];
+
+    let totalHariKerjaBulanIni = 0;
+    for (let d = new Date(y, m, 1); d <= new Date(y, m + 1, 0); d.setDate(d.getDate() + 1)) {
+        if (d.getDay() !== 0) totalHariKerjaBulanIni++; // 0 = Hari Minggu (Dilewati)
+    }
+
+    // ==============================================================
+    // 2. TARIK DATA DARI DATABASE PRESENSI
+    // ==============================================================
+    const { data: presensiData, error } = await client
+        .from('presensi')
+        .select('user_id, tanggal, status_tiba, is_tadarus, profiles(nama)')
+        .gte('tanggal', firstDay)
+        .lte('tanggal', lastDay);
+
+    if (error) {
+        console.error("Gagal memuat data presensi:", error);
+        document.getElementById('best-employees-container').innerHTML = '<p class="text-red-500 text-sm">Gagal memuat data.</p>';
+        return;
+    }
+
+    // ==============================================================
+    // 3. MESIN PENGHITUNG POIN MASING-MASING KARYAWAN
+    // ==============================================================
+    const stats = {};
+
+    presensiData?.forEach(p => {
+        const isMinggu = new Date(p.tanggal).getDay() === 0;
+        if (isMinggu) return; 
+
+        if (!stats[p.user_id]) {
+            stats[p.user_id] = { nama: p.profiles?.nama || 'Unknown', hadir: 0, tepatWaktu: 0, tadarus: 0 };
+        }
+        
+        stats[p.user_id].hadir += 1;
+        if (p.status_tiba === 'Tepat Waktu') stats[p.user_id].tepatWaktu += 1;
+        if (p.is_tadarus === true) stats[p.user_id].tadarus += 1;
+    });
+
+    // ==============================================================
+    // 4. CARI PEMENANG TERTINGGI (KARYAWAN TERBAIK)
+    // ==============================================================
+    let topKehadiran = { nama: '-', skor: 0, maxSkor: totalHariKerjaBulanIni };
+    let topTepatWaktu = { nama: '-', skor: 0, maxSkor: 0 };
+    let topTadarus = { nama: '-', skor: 0, maxSkor: totalHariKerjaBulanIni };
+
+    Object.values(stats).forEach(emp => {
+        if (emp.hadir > topKehadiran.skor) {
+            topKehadiran = { nama: emp.nama, skor: emp.hadir, maxSkor: totalHariKerjaBulanIni };
+        }
+        if (emp.tepatWaktu > topTepatWaktu.skor) {
+            topTepatWaktu = { nama: emp.nama, skor: emp.tepatWaktu, maxSkor: emp.hadir }; // Acuan persentase dari kehadirannya
+        }
+        if (emp.tadarus > topTadarus.skor) {
+            topTadarus = { nama: emp.nama, skor: emp.tadarus, maxSkor: totalHariKerjaBulanIni }; 
+        }
+    });
+
+    // ==============================================================
+    // 5. FORMAT & RENDER HTML KE LAYAR
+    // ==============================================================
+    const dataKaryawanTerbaik = [
+      {
+        category: "Paling Rajin (Kehadiran)",
+        icon: "calendar_month", 
+        iconBgColor: "bg-blue-100", iconColor: "blue-600",
+        name: topKehadiran.nama,
+        description: `Hadir ${topKehadiran.skor} dari total ${topKehadiran.maxSkor} hari kerja.`,
+        percentage: `${Math.round((topKehadiran.skor / (topKehadiran.maxSkor || 1)) * 100)}%`,
+        percentageColor: "blue-600", borderColor: "blue-200"
+      },
+      {
+        category: "Paling Disiplin (Tepat Waktu)",
+        icon: "timer", 
+        iconBgColor: "bg-green-100", iconColor: "green-600",
+        name: topTepatWaktu.nama,
+        description: `Tepat waktu ${topTepatWaktu.skor} kali dari ${topTepatWaktu.maxSkor} kedatangan.`,
+        percentage: `${Math.round((topTepatWaktu.skor / (topTepatWaktu.maxSkor || 1)) * 100)}%`,
+        percentageColor: "green-600", borderColor: "green-200"
+      },
+      {
+        category: "Rajin Tadarus Al-Quran",
+        icon: "menu_book", 
+        iconBgColor: "bg-purple-100", iconColor: "purple-600",
+        name: topTadarus.nama,
+        description: `Menyetorkan tadarus ${topTadarus.skor} kali bulan ini.`,
+        percentage: `${topTadarus.skor}x`,
+        percentageColor: "purple-600", borderColor: "purple-200"
+      }
+    ];
+
+    const container = document.getElementById('best-employees-container');
+    let htmlStr = '';
+
+    dataKaryawanTerbaik.forEach(emp => {
+        // Render UI persis seperti kode Astro lu sebelumnya
+        htmlStr += `
+            <div class="space-y-md">
+                <div class="flex items-center gap-sm">
+                    <div class="w-8 h-8 rounded-full ${emp.iconBgColor} flex items-center justify-center">
+                        <span class="material-symbols-outlined text-${emp.iconColor} text-lg">${emp.icon}</span>
+                    </div>
+                    <h4 class="font-semibold text-on-surface">${emp.category}</h4>
+                </div>
+                <div class="ml-10">
+                    <div class="flex items-center justify-between p-md rounded-lg border border-${emp.borderColor}" style="background-color: var(--color-${emp.iconColor.split('-')[0]}-50, #f8fafc);">
+                        <div>
+                            <p class="font-semibold text-on-surface">${emp.name}</p>
+                            <p class="text-label-sm text-on-surface-variant">${emp.description}</p>
+                        </div>
+                        <p class="text-headline-sm font-bold text-${emp.percentageColor}">${emp.percentage}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = htmlStr;
+});
+</script>

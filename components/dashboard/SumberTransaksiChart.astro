@@ -1,0 +1,221 @@
+---
+// src/components/dashboard/SumberTransaksiChart.astro
+---
+
+<div class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md flex flex-col h-full hover:shadow-lg transition-shadow duration-300">
+    
+    <div class="mb-sm flex justify-between items-start">
+        <div>
+            <h3 class="font-headline-md text-on-surface font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+                Rekap Transaksi per Sumber
+            </h3>
+            <p class="text-label-sm text-on-surface-variant font-medium">Berdasarkan Platform & Komoditas</p>
+        </div>
+        <div class="text-right">
+            <span class="text-label-xs text-on-surface-variant uppercase tracking-wider block mb-1">Total Filtered</span>
+            <span id="total-rp-sumber" class="text-title-lg font-bold text-primary">Rp 0</span>
+        </div>
+    </div>
+
+    <div class="w-full mb-md">
+        <div id="filter-harian-sumber" class="flex items-center gap-2 bg-surface-variant/20 p-2 rounded-xl border border-surface-variant/50 w-full focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
+            <input type="date" id="start-date-sumber" class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium" />
+            <span class="text-label-sm text-primary font-bold bg-primary/10 px-2 py-0.5 rounded-md">-</span>
+            <input type="date" id="end-date-sumber" class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium" />
+        </div>
+
+        <div id="filter-mingguan-sumber" class="hidden items-center bg-surface-variant/20 p-2 rounded-xl border border-surface-variant/50 w-full focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
+            <input type="month" id="month-sumber" class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium" />
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-md flex-grow content-start">
+        <div class="bg-[#1877F2]/10 border border-[#1877F2]/30 rounded-xl p-4 flex flex-col justify-center items-center text-center">
+            <p class="text-xs font-bold text-[#1877F2] uppercase tracking-wider mb-2"><i class="bi bi-facebook mr-1"></i> Facebook</p>
+            <p id="total-facebook" class="text-xl font-black text-[#1877F2]">Rp 0</p>
+        </div>
+        
+        <div class="bg-gray-100 border border-gray-300 rounded-xl p-4 flex flex-col justify-center items-center text-center">
+            <p class="text-xs font-bold text-gray-800 uppercase tracking-wider mb-2"><i class="bi bi-tiktok mr-1"></i> TikTok</p>
+            <p id="total-tiktok" class="text-xl font-black text-gray-900">Rp 0</p>
+        </div>
+        
+        <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 flex flex-col justify-center items-center text-center">
+            <p class="text-xs font-bold text-purple-700 uppercase tracking-wider mb-2"><i class="bi bi-share mr-1"></i> Lainnya</p>
+            <p id="total-lainnya" class="text-xl font-black text-purple-900">Rp 0</p>
+        </div>
+    </div>
+
+    <div class="mt-auto border-t border-outline-variant/60 pt-md flex flex-col gap-4">
+        
+        <div class="flex flex-col gap-1.5">
+            <span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest text-center">Pilih Komoditas</span>
+            <div class="flex flex-wrap justify-center gap-2" id="commodity-filters-sumber">
+                <button data-komoditas="Minyak Jelantah" class="komo-sumber-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-surface-variant/80 text-on-surface shadow-sm scale-105">
+                    Minyak Jelantah
+                </button>
+                <button data-komoditas="Ampas" class="komo-sumber-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
+                    Ampas
+                </button>
+                <button data-komoditas="Keriuk" class="komo-sumber-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
+                    Keriuk
+                </button>
+                <button data-komoditas="Tepung" class="komo-sumber-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
+                    Tepung
+                </button>
+                <button data-komoditas="Spinner" class="komo-sumber-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
+                    Spinner
+                </button>
+            </div>
+        </div>
+
+        <div class="flex justify-center mt-2">
+            <div class="bg-surface-variant/20 p-1 rounded-xl inline-flex w-full sm:w-auto border border-surface-variant/40 shadow-inner">
+                <button id="btn-harian-sumber" class="flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold transition-all duration-300">
+                    Harian
+                </button>
+                <button id="btn-mingguan-sumber" class="flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold transition-all duration-300">
+                    Mingguan
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    import { supabase } from '../../lib/supabase';
+    
+    // Format Rupiah rapi
+    const formatRp = (number) => {
+        if (!number) return 'Rp 0';
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+    };
+
+    async function initSumberTotals() {
+        let currentMode = 'harian';
+        let currentCommodity = 'Minyak Jelantah';
+
+        // Mapping Kolom Database Komoditas
+        const kolomDatabase = {
+            'Minyak Jelantah': 'minyak_jelantah_rp',
+            'Ampas': 'ampas_rp',
+            'Keriuk': 'keriuk_rp',
+            'Tepung': 'tepung_rp',
+            'Spinner': 'spinner_rp'
+        };
+
+        const btnHarian = document.getElementById('btn-harian-sumber');
+        const btnMingguan = document.getElementById('btn-mingguan-sumber');
+        const filterHarianContainer = document.getElementById('filter-harian-sumber');
+        const filterMingguanContainer = document.getElementById('filter-mingguan-sumber');
+        const startDateInput = document.getElementById('start-date-sumber');
+        const endDateInput = document.getElementById('end-date-sumber');
+        const monthInput = document.getElementById('month-sumber');
+        const komoditasBtns = document.querySelectorAll('.komo-sumber-btn');
+        
+        const elTotalFacebook = document.getElementById('total-facebook');
+        const elTotalTiktok = document.getElementById('total-tiktok');
+        const elTotalLainnya = document.getElementById('total-lainnya');
+        const elTotalSemua = document.getElementById('total-rp-sumber');
+
+        async function fetchHarian() {
+            const kolomAktif = kolomDatabase[currentCommodity];
+            
+            // Tarik SEMUA sumber sekaligus berdasarkan rentang tanggal
+            let query = supabase.from('sumber_transaksi_harian').select(`sumber, ${kolomAktif}`);
+            if (startDateInput.value) query = query.gte('tanggal', startDateInput.value);
+            if (endDateInput.value) query = query.lte('tanggal', endDateInput.value);
+            
+            const { data, error } = await query;
+            if (!error && data) kalkulasiDanRender(data, kolomAktif);
+        }
+
+        async function fetchMingguan() {
+            const kolomAktif = kolomDatabase[currentCommodity];
+            
+            let query = supabase.from('sumber_transaksi_mingguan').select(`sumber, ${kolomAktif}`);
+            if (monthInput.value) {
+                query = query.ilike('periode', `%${monthInput.value}%`);
+            }
+            
+            const { data, error } = await query;
+            if (!error && data) kalkulasiDanRender(data, kolomAktif);
+        }
+
+        function kalkulasiDanRender(data, kolom) {
+            let totalFb = 0, totalTk = 0, totalLn = 0;
+            
+            // Mengelompokkan dan menjumlahkan data berdasarkan sumbernya
+            data.forEach(item => {
+                const val = Number(item[kolom] || 0);
+                if (item.sumber === 'Facebook') totalFb += val;
+                else if (item.sumber === 'TikTok') totalTk += val;
+                else totalLn += val;
+            });
+
+            // Tembak angkanya ke HTML
+            elTotalFacebook.textContent = formatRp(totalFb);
+            elTotalTiktok.textContent = formatRp(totalTk);
+            elTotalLainnya.textContent = formatRp(totalLn);
+            elTotalSemua.textContent = formatRp(totalFb + totalTk + totalLn);
+
+            // Styling tombol Harian/Mingguan
+            if (currentMode === 'harian') {
+                btnHarian.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
+                btnMingguan.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
+            } else {
+                btnMingguan.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
+                btnHarian.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
+            }
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            if (mode === 'harian') {
+                filterHarianContainer.classList.remove('hidden');
+                filterHarianContainer.classList.add('flex');
+                filterMingguanContainer.classList.add('hidden');
+                filterMingguanContainer.classList.remove('flex');
+                fetchHarian();
+            } else {
+                filterHarianContainer.classList.add('hidden');
+                filterHarianContainer.classList.remove('flex');
+                filterMingguanContainer.classList.remove('hidden');
+                filterMingguanContainer.classList.add('flex');
+                fetchMingguan();
+            }
+        }
+
+        // Events Dasar
+        btnHarian.addEventListener('click', () => switchMode('harian'));
+        btnMingguan.addEventListener('click', () => switchMode('mingguan'));
+        startDateInput.addEventListener('change', () => currentMode === 'harian' && fetchHarian());
+        endDateInput.addEventListener('change', () => currentMode === 'harian' && fetchHarian());
+        monthInput.addEventListener('change', () => currentMode === 'mingguan' && fetchMingguan());
+
+        // Event Klik Filter Komoditas
+        komoditasBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                currentCommodity = e.target.getAttribute('data-komoditas');
+                
+                // Reset warna semua tombol komoditas
+                komoditasBtns.forEach(b => {
+                    b.className = "komo-sumber-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface";
+                });
+                
+                // Beri warna gelap pada tombol komoditas yang aktif
+                e.target.className = "komo-sumber-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-surface-variant/80 text-on-surface shadow-sm scale-105";
+                
+                // Hitung ulang data
+                if (currentMode === 'harian') fetchHarian();
+                else fetchMingguan();
+            });
+        });
+
+        // Load data pertama kali
+        switchMode('harian');
+    }
+
+    document.addEventListener('DOMContentLoaded', initSumberTotals);
+</script>

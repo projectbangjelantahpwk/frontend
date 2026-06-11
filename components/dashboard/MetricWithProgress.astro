@@ -1,0 +1,44 @@
+---
+// components/dashboard/MetricWithProgress.astro
+interface Metric {
+  label: string;
+  value: string;
+  percentage: number;
+  barColor: string;
+}
+
+interface Props {
+  title: string;
+  subtitle: string;
+  metrics: Metric[];
+  totalLabel: string;
+  totalValue: string;
+}
+
+const { title, subtitle, metrics, totalLabel, totalValue } = Astro.props;
+---
+<div class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow">
+    <div class="flex justify-between items-center mb-lg">
+        <h3 class="font-headline-md text-on-surface">{title}</h3>
+        <span class="text-label-sm text-on-surface-variant">{subtitle}</span>
+    </div>
+    
+    <div class="space-y-md">
+        {metrics.map(metric => (
+            <div class="space-y-xs">
+                <div class="flex justify-between text-label-sm">
+                    <span>{metric.label}</span>
+                    <span class="font-semibold">{metric.value}</span>
+                </div>
+                <div class="h-1.5 bg-surface-container rounded-full overflow-hidden">
+                    <div class={`h-full ${metric.barColor} rounded-full`} style={`width: ${metric.percentage}%`}></div>
+                </div>
+            </div>
+        ))}
+    </div>
+    
+    <div class="mt-md pt-md border-t border-outline-variant flex justify-between">
+        <span class="text-label-md text-on-surface-variant">{totalLabel}</span>
+        <span class="text-headline-sm font-bold">{totalValue}</span>
+    </div>
+</div>

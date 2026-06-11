@@ -1,0 +1,201 @@
+---
+// components/dashboard/SalesMetricsWithProgress.astro
+---
+
+<div class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow">
+    <div class="flex justify-between items-center mb-md border-b border-outline-variant pb-3">
+        <h3 class="font-headline-md text-on-surface flex items-center gap-2">
+            <i class="bi bi-wallet2 text-green-600"></i> Metrik Penjualan
+        </h3>
+        <div class="bg-surface-container-low p-1 rounded-lg border border-outline-variant flex text-xs font-bold">
+            <button id="btn-jual-harian" class="px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all" onclick="window.togglePenjualan('harian')">Harian</button>
+            <button id="btn-jual-mingguan" class="px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all" onclick="window.togglePenjualan('mingguan')">Mingguan</button>
+        </div>
+    </div>
+    
+    <div>
+        <div class="flex justify-between items-center mb-4 bg-gray-50 p-2 rounded-lg border border-gray-100">
+            <span id="jual-lbl-periode" class="text-xs font-bold text-gray-500 uppercase ml-1">Pilih Periode:</span>
+            
+            <div id="wrapper-picker-harian">
+                <input type="date" id="jual-date-picker" class="border border-green-300 rounded-md px-2 py-1 text-xs font-bold text-green-700 bg-green-50 outline-none focus:ring-2 focus:ring-green-500 cursor-pointer max-w-[150px]">
+            </div>
+            
+            <div id="wrapper-picker-mingguan" class="hidden">
+                <input type="month" id="jual-week-month-picker" class="border border-blue-300 rounded-md px-2 py-1 text-xs font-bold text-blue-700 bg-blue-50 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer max-w-[150px]">
+            </div>
+        </div>
+        
+        <div id="jual-metrics-list" class="space-y-3 min-h-[150px]">
+            <p class="text-xs text-center text-gray-400 italic py-8">Memuat data metrik penjualan...</p>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
+            <span id="jual-total-label" class="text-xs font-bold text-gray-500">Total Penjualan</span>
+            <span id="jual-total-harga" class="text-lg font-black text-green-700 font-mono">Rp 0</span>
+        </div>
+    </div>
+</div>
+
+<script is:inline>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const client = window.supabase;
+        if (!client) return console.error("🛑 Supabase client tidak ditemukan di window!");
+
+        const datePicker = document.getElementById('jual-date-picker');
+        const monthPicker = document.getElementById('jual-week-month-picker'); 
+        const txtTotalHarga = document.getElementById('jual-total-harga');
+        const txtTotalLabel = document.getElementById('jual-total-label');
+        
+        // Setup Batas Kalender & Default Hari ini / Bulan ini
+        const now = new Date();
+        const offset = now.getTimezoneOffset() * 60000;
+        const todayStr = new Date(now - offset).toISOString().split('T')[0];
+        
+        if (datePicker) {
+            if (!datePicker.value) datePicker.value = todayStr;
+            datePicker.max = todayStr; 
+        }
+
+        if (monthPicker) {
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            if (!monthPicker.value) monthPicker.value = `${yyyy}-${mm}`; 
+            monthPicker.max = `${yyyy}-${mm}`;
+        }
+
+        const formatRupiah = (num) => 'Rp ' + Number(num).toLocaleString('id-ID', { minimumFractionDigits: 0 });
+        const getPercentage = (value, total) => (!total || total === 0) ? 0 : Math.round((value / total) * 100);
+        
+        function renderProgressBarsJual(metricsPayload, totalSales) {
+            const listContainer = document.getElementById('jual-metrics-list');
+            let htmlList = '';
+            
+            metricsPayload.forEach(m => {
+                if (m.value > 0) {
+                    const pct = getPercentage(m.value, totalSales);
+                    htmlList += `
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-[11px] font-bold text-gray-700 uppercase">
+                                <span>${m.label}</span>
+                                <span>${formatRupiah(m.value)}</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="h-full ${m.color} rounded-full" style="width: ${pct}%"></div>
+                            </div>
+                        </div>`;
+                }
+            });
+            
+            listContainer.innerHTML = htmlList || '<p class="text-xs text-center text-gray-400 py-8 italic">Tidak ada penjualan pada periode ini</p>';
+            txtTotalHarga.innerText = formatRupiah(totalSales);
+        }
+
+        // Fetch Data Penjualan Harian
+        window.loadLiveHarian = async function() {
+            const tgl = datePicker.value;
+            if (!tgl) return;
+            
+            console.log(`🔍 [DEBUG] Mencoba fetch harian tanggal: ${tgl}`);
+
+            const { data, error } = await client
+                .from('rekap_penjualan_harian')
+                .select('*')
+                .eq('tanggal', tgl)
+                .maybeSingle();
+            
+            if (error) {
+                console.error("🛑 [DEBUG ERROR] Gagal fetch data harian:", error);
+            } else {
+                console.log("✅ [DEBUG SUCCESS] Data harian didapat:", data);
+            }
+
+            renderProgressBarsJual([
+                { label: "Minyak Jelantah", value: data?.minyak_jelantah || 0, color: "bg-orange-500" },
+                { label: "Ampas", value: data?.ampas || 0, color: "bg-[#5C4033]" },
+                { label: "Tepung", value: data?.tepung || 0, color: "bg-[#FFDAB9]" },
+                { label: "Kriuk", value: data?.kriuk || 0, color: "bg-yellow-400" },
+                { label: "Spinner", value: data?.spinner || 0, color: "bg-[#D2B48C]" }
+            ], data?.total_penjualan || 0);
+            
+            txtTotalHarga.className = "text-lg font-black text-green-700 font-mono";
+        };
+
+        // Fetch Mingguan Berdasarkan Akumulasi Bulan & Tahun Terpilih
+        window.loadLiveMingguan = async function() {
+            const blnRaw = monthPicker.value;
+            if (!blnRaw) return renderProgressBarsJual([], 0);
+            
+            try {
+                const parts = blnRaw.split('-');
+                const formatDbPeriode = `${parts[1]}-${parts[0]}`; 
+
+                console.log(`🔍 [DEBUG] Mencoba fetch mingguan periode: ${formatDbPeriode}`);
+
+                const { data, error } = await client
+                    .from('rekap_penjualan_mingguan')
+                    .select('*')
+                    .eq('periode', formatDbPeriode);
+                
+                if (error) throw error;
+                console.log("✅ [DEBUG SUCCESS] Data mingguan didapat:", data);
+
+                const rekapJualMurni = {
+                    minyak_jelantah: 0, ampas: 0, tepung: 0, kriuk: 0, spinner: 0, total_penjualan: 0
+                };
+                
+                if (data && data.length > 0) {
+                    data.forEach(curr => {
+                        rekapJualMurni.minyak_jelantah += parseFloat(curr.minyak_jelantah) || 0;
+                        rekapJualMurni.ampas += parseFloat(curr.ampas) || 0;
+                        rekapJualMurni.tepung += parseFloat(curr.tepung) || 0;
+                        rekapJualMurni.kriuk += parseFloat(curr.kriuk) || 0;
+                        rekapJualMurni.spinner += parseFloat(curr.spinner) || 0;
+                        rekapJualMurni.total_penjualan += parseFloat(curr.total_penjualan) || 0;
+                    });
+                }
+
+                renderProgressBarsJual([
+                    { label: "Minyak Jelantah", value: rekapJualMurni.minyak_jelantah, color: "bg-orange-500" },
+                    { label: "Ampas", value: rekapJualMurni.ampas, color: "bg-[#5C4033]" },
+                    { label: "Tepung", value: rekapJualMurni.tepung, color: "bg-[#FFDAB9]" },
+                    { label: "Kriuk", value: rekapJualMurni.kriuk, color: "bg-yellow-400" },
+                    { label: "Spinner", value: rekapJualMurni.spinner, color: "bg-[#D2B48C]" }
+                ], rekapJualMurni.total_penjualan);
+                
+                txtTotalHarga.className = "text-lg font-black text-blue-700 font-mono";
+            } catch (err) {
+                console.error("🛑 [DEBUG ERROR] Gagal kalkulasi mingguan:", err);
+            }
+        };
+
+        // Kontrol Tombol Switch Harian/Mingguan
+        window.togglePenjualan = function(tipe) {
+            const btnHarian = document.getElementById('btn-jual-harian');
+            const btnMingguan = document.getElementById('btn-jual-mingguan');
+            const wrapperHarian = document.getElementById('wrapper-picker-harian');
+            const wrapperMingguan = document.getElementById('wrapper-picker-mingguan');
+            
+            if (tipe === 'harian') {
+                btnHarian.className = "px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all";
+                btnMingguan.className = "px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all";
+                wrapperHarian.classList.remove('hidden');
+                wrapperMingguan.classList.add('hidden');
+                txtTotalLabel.innerText = "Total Penjualan Hari Ini";
+                window.loadLiveHarian();
+            } else {
+                btnMingguan.className = "px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all";
+                btnHarian.className = "px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all";
+                wrapperHarian.classList.add('hidden');
+                wrapperMingguan.classList.remove('hidden');
+                txtTotalLabel.innerText = "Total Akumulasi Pekanan";
+                window.loadLiveMingguan();
+            }
+        };
+
+        window.togglePenjualan('harian');
+        
+        datePicker?.addEventListener('change', window.loadLiveHarian);
+        monthPicker?.addEventListener('change', window.loadLiveMingguan);
+    });
+</script>

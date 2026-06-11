@@ -27,8 +27,15 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
   </div>
 
   <div id="gaji" class="tab-content block">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-3">
         <h2 class="text-xl font-bold text-gray-900">Rekapitulasi Gaji Karyawan</h2>
+        
+        <div class="bg-gray-100 p-1.5 rounded-xl flex overflow-x-auto hide-scrollbar w-full md:w-auto text-sm font-bold shadow-inner">
+            <button onclick="window.filterTipeGaji('Semua')" class="filter-gaji-btn active bg-white shadow-sm px-4 py-2 rounded-lg text-green-700 whitespace-nowrap transition-all">Semua</button>
+            <button onclick="window.filterTipeGaji('Harian')" class="filter-gaji-btn px-4 py-2 rounded-lg text-gray-500 hover:text-gray-900 whitespace-nowrap transition-all">Harian</button>
+            <button onclick="window.filterTipeGaji('Mingguan')" class="filter-gaji-btn px-4 py-2 rounded-lg text-gray-500 hover:text-gray-900 whitespace-nowrap transition-all">Mingguan</button>
+            <button onclick="window.filterTipeGaji('Bulanan')" class="filter-gaji-btn px-4 py-2 rounded-lg text-gray-500 hover:text-gray-900 whitespace-nowrap transition-all">Bulanan</button>
+        </div>
     </div>
     <div id="gaji-karyawan-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <p class="text-gray-500">Memuat data gaji...</p>
@@ -88,112 +95,175 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
     </div>
 </div>
 
-<div id="modal-detail-gaji" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
-    <div class="bg-white rounded-2xl w-full max-w-2xl overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[95vh]">
-        <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-green-50">
-            <div>
-                <h3 class="font-bold text-lg text-gray-900" id="m_nama_karyawan">Nama Karyawan</h3>
-                <p class="text-xs text-green-700 font-medium">Setup & Slip Gaji Karyawan</p>
+<div id="modal-detail-gaji" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0 backdrop-blur-sm">
+    <div class="bg-gray-100 rounded-2xl w-full max-w-6xl overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[95vh] shadow-2xl border border-gray-200">
+        
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-white shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold shadow-sm"><i class="bi bi-person-bounding-box text-xl"></i></div>
+                <div>
+                    <h3 class="font-bold text-lg text-gray-900" id="m_nama_karyawan">Nama Karyawan</h3>
+                    <p class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Setup Parameter & Kalkulasi Gaji</p>
+                </div>
             </div>
-            <button onclick="closeModal('modal-detail-gaji')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
+            <button onclick="closeModal('modal-detail-gaji')" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-600 transition"><i class="bi bi-x-lg text-lg"></i></button>
         </div>
         
-        <div class="p-5 overflow-y-auto flex-1 space-y-6">
+        <div class="p-5 overflow-y-auto flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6">
             <input type="hidden" id="m_karyawan_id">
             <input type="hidden" id="m_setup_id">
             <input type="hidden" id="m_slip_id">
             
-            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                <h4 class="text-sm font-bold text-gray-900 mb-3 border-b pb-2"><i class="bi bi-sliders mr-2"></i>Parameter Setup Gaji Personal</h4>
-                <div class="grid grid-cols-2 gap-3 mb-3">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Gaji per Menit (Rp)</label>
-                        <input type="number" id="setup_gaji_menit" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col">
+                <h4 class="text-sm font-bold text-gray-900 mb-4 border-b border-gray-100 pb-3 flex items-center"><i class="bi bi-sliders text-blue-600 mr-2 text-lg"></i>Parameter Setup Personal</h4>
+                
+                <div class="grid grid-cols-2 gap-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block text-xs font-bold text-blue-700 mb-1">Gaji Pokok Flat</label>
+                        <input type="number" id="setup_gaji_menit" class="w-full border border-blue-300 bg-blue-50/50 text-blue-900 font-bold rounded-lg p-2.5 text-sm outline-none focus:border-blue-600" placeholder="Misal: 1500000">
+                        <p class="text-[9px] text-gray-500 mt-1 font-medium">*Isi full per hari/minggu/bulan</p>
                     </div>
-                    <div>
+                    <div class="col-span-2 sm:col-span-1">
                         <label class="block text-xs font-bold text-gray-700 mb-1">Uang Lembur per Menit (Rp)</label>
-                        <input type="number" id="setup_lembur_menit" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+                        <input type="number" id="setup_lembur_menit" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-green-600 font-medium">
                     </div>
-                    <div>
+
+                    <div class="col-span-2 sm:col-span-1">
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-xs font-bold text-gray-700">Uang Rapat (Rp)</label>
-                            <div class="flex items-center gap-1">
-                                <input type="checkbox" id="chk_uang_rapat" onchange="window.kalkulasiRealtimeGaji()" class="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer">
-                                <span class="text-[10px] text-gray-500 font-bold">Aktifkan</span>
-                            </div>
+                            <div class="flex items-center gap-1.5"><input type="checkbox" id="chk_uang_rapat" onchange="window.kalkulasiRealtimeGaji()" class="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer"><span class="text-[10px] text-gray-500 font-bold">Aktif</span></div>
                         </div>
-                        <input type="number" id="setup_uang_rapat" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+                        <input type="number" id="setup_uang_rapat" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-green-600">
                     </div>
 
-                    <div>
+                    <div class="col-span-2 sm:col-span-1">
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-xs font-bold text-gray-700">Uang Nginep (Rp)</label>
-                            <div class="flex items-center gap-1">
-                                <input type="checkbox" id="chk_uang_nginep" onchange="window.kalkulasiRealtimeGaji()" class="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer">
-                                <span class="text-[10px] text-gray-500 font-bold">Aktifkan</span>
-                            </div>
+                            <div class="flex items-center gap-1.5"><input type="checkbox" id="chk_uang_nginep" onchange="window.kalkulasiRealtimeGaji()" class="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer"><span class="text-[10px] text-gray-500 font-bold">Aktif</span></div>
                         </div>
-                        <input type="number" id="setup_uang_nginep" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+                        <input type="number" id="setup_uang_nginep" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-green-600">
                     </div>
 
-                    <div>
+                    <div class="col-span-2 sm:col-span-1">
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-xs font-bold text-gray-700">Uang Kesehatan (Rp)</label>
-                            <div class="flex items-center gap-1">
-                                <input type="checkbox" id="chk_uang_kesehatan" onchange="window.kalkulasiRealtimeGaji()" class="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer">
-                                <span class="text-[10px] text-gray-500 font-bold">Aktifkan</span>
-                            </div>
+                            <div class="flex items-center gap-1.5"><input type="checkbox" id="chk_uang_kesehatan" onchange="window.kalkulasiRealtimeGaji()" class="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer"><span class="text-[10px] text-gray-500 font-bold">Aktif</span></div>
                         </div>
-                        <input type="number" id="setup_uang_kesehatan" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+                        <input type="number" id="setup_uang_kesehatan" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-green-600">
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Bonus Tepat Waktu (Rp)</label>
-                        <input type="number" id="setup_bonus_tepat" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Bonus Mingguan (Rp)</label>
-                        <input type="number" id="setup_bonus_mingguan" class="w-full border border-gray-300 rounded p-2 text-sm outline-none focus:border-green-600">
+
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Bonus Tepat Wkt (Rp)</label>
+                        <input type="number" id="setup_bonus_tepat" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-green-600">
                     </div>
                     
-                    <!-- INPUT KASBON BARU DITAMBAHKAN -->
-                    <div>
-                        <label class="block text-xs font-bold text-red-700 mb-1">Potongan Kasbon (Rp)</label>
-                        <input type="number" id="setup_kasbon" oninput="window.kalkulasiRealtimeGaji()" class="w-full border border-red-300 bg-red-50 text-red-900 rounded p-2 text-sm outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600" placeholder="0">
+                    <div class="col-span-2">
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Bonus Mingguan (Rp)</label>
+                        <input type="number" id="setup_bonus_mingguan" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-green-600">
                     </div>
-                    <!-- --------------------------- -->
 
-                    <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <label class="text-xs font-bold text-gray-700">Tadarus Al-Quran</label>
+                    <div class="col-span-2 border-t border-dashed border-gray-300 pt-3 mt-1"></div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block text-xs font-bold text-blue-700 mb-1">Tipe Siklus Gaji</label>
+                        <select id="setup_tipe_periode" class="w-full border border-blue-300 bg-blue-50 text-blue-900 rounded-lg p-2.5 text-sm outline-none focus:border-blue-600 font-bold">
+                            <option value="Harian">Harian (Tiap Hari Masuk)</option>
+                            <option value="Mingguan">Mingguan (Tiap Sabtu)</option>
+                            <option value="Bulanan">Bulanan (Tiap Tgl 28)</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block text-xs font-bold text-red-700 mb-1">Denda Telat/Menit (Rp)</label>
+                        <input type="number" id="setup_denda_telat" class="w-full border border-red-300 bg-red-50 text-red-900 rounded-lg p-2.5 text-sm outline-none focus:border-red-600 font-bold" placeholder="0">
+                    </div>
+
+                    <div class="col-span-2 bg-red-50 p-3.5 rounded-xl border border-red-200 mt-2">
+                        <div class="flex justify-between items-center mb-2.5">
+                            <label class="text-xs font-bold text-red-800 uppercase flex items-center"><i class="bi bi-wallet2 mr-1"></i> Potong Kasbon Periode Ini</label>
+                            <div class="text-[9px] font-black bg-red-200 text-red-900 px-2 py-1 rounded shadow-sm">
+                                TOTAL HUTANG: <span id="info_total_kasbon" class="font-mono">Rp 0</span>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-1">
-                            <input type="checkbox" id="chk_tadarus_alquran" onchange="window.kalkulasiRealtimeGaji()" class="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer">
-                            <span class="text-[10px] text-gray-500 font-bold">Sudah</span>
+                        <input type="number" id="potongan_kasbon_sekarang" oninput="window.kalkulasiRealtimeGaji()" class="w-full border border-red-300 bg-white text-red-900 font-bold font-mono rounded-lg p-2.5 text-sm outline-none focus:border-red-600 shadow-inner" placeholder="Ketik nominal potongan...">
+                    </div>
+
+                    <div class="col-span-2 border-t border-gray-100 pt-2 mt-1">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold text-gray-700"><i class="bi bi-book text-green-600 mr-1"></i> Tadarus Al-Quran</label>
+                            <div class="flex items-center gap-1.5"><input type="checkbox" id="chk_tadarus_alquran" onchange="window.kalkulasiRealtimeGaji()" class="w-4 h-4 text-green-600 rounded cursor-pointer"><span class="text-[10px] text-gray-600 font-bold uppercase">Sudah Disetor</span></div>
                         </div>
                     </div>
                 </div>
-                <button onclick="simpanSetupGaji()" class="w-full bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-sm hover:bg-black transition">
-                    <i class="bi bi-floppy mr-1"></i> Simpan Parameter Setup
-                </button>
+                
+                <div class="mt-4 pt-4 border-t border-gray-100 shrink-0">
+                    <button onclick="simpanSetupGaji()" class="w-full bg-gray-900 text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-black transition shadow-md flex justify-center items-center gap-2">
+                        <i class="bi bi-floppy"></i> Simpan Parameter Ke Database
+                    </button>
+                </div>
             </div>
 
-            <div>
-                <h4 class="font-bold text-gray-900 mb-3 border-b pb-2"><i class="bi bi-calculator mr-2"></i>Kalkulasi Slip Gaji Bulan Ini</h4>
-                <div class="space-y-2 text-sm bg-white border border-gray-200 p-4 rounded-xl" id="m_rincian_list"></div>
+            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-blue-500"></div>
+                <h4 class="text-sm font-bold text-gray-900 mb-4 border-b border-gray-100 pb-3 flex items-center"><i class="bi bi-receipt-cutoff text-green-600 mr-2 text-lg"></i>Kalkulasi Slip Gaji Terkini</h4>
+                
+                <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                    <div class="space-y-3" id="m_rincian_list">
+                        </div>
+                </div>
 
-                <div class="bg-green-700 text-white p-4 rounded-xl flex justify-between items-center mt-3 shadow-sm">
-                    <span class="font-bold">Total Diterima:</span>
-                    <span class="text-2xl font-bold" id="m_total_gaji">Rp 0</span>
+                <div class="shrink-0 mt-4">
+                    <div class="bg-gradient-to-br from-green-700 to-green-800 text-white p-5 rounded-xl flex justify-between items-center shadow-lg border border-green-600">
+                        <span class="font-bold text-sm uppercase tracking-wider text-green-100">Total Diterima:</span>
+                        <span class="text-3xl font-black font-mono tracking-tight" id="m_total_gaji">Rp 0</span>
+                    </div>
+                    
+                    <div class="flex gap-3 mt-4">
+                         <button id="btn-draf-gaji" onclick="simpanSlipGaji('Menunggu')" class="flex-1 bg-white border-2 border-gray-200 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition shadow-sm text-sm flex justify-center items-center gap-2">
+                            <i class="bi bi-save"></i> Simpan Draf
+                         </button>
+                         <button id="btn-bayar-gaji" onclick="simpanSlipGaji('ACC')" class="flex-[1.5] bg-green-600 text-white font-bold py-3.5 rounded-xl hover:bg-green-700 transition shadow-md text-sm uppercase tracking-wider flex justify-center items-center gap-2">
+                            <i class="bi bi-check2-circle text-lg"></i> Approve & Lunas
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <div class="p-4 border-t border-gray-100 bg-gray-50 flex gap-3">
-             <button id="btn-draf-gaji" onclick="simpanSlipGaji('Menunggu')" class="flex-1 bg-white border border-gray-300 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-100 transition shadow-sm">
-                <i class="bi bi-clock-history mr-2"></i> Simpan Saja
-             </button>
-             <button id="btn-bayar-gaji" onclick="simpanSlipGaji('ACC')" class="flex-1 bg-green-700 text-white font-bold py-3 rounded-xl hover:bg-green-800 transition shadow-sm">
-                <i class="bi bi-check-circle-fill mr-2"></i> Approve & Lunas
+    </div>
+</div>
+
+<div id="modal-kasir-gaji" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[60] p-4 transition-opacity opacity-0">
+    <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 shadow-2xl border border-gray-100">
+        <div class="p-4 border-b border-gray-100 bg-blue-50 flex justify-between items-center">
+            <div>
+                <h3 class="font-bold text-base text-blue-900">Kasir Pembayaran Gaji</h3>
+                <p class="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Metode Split Payment Brankas</p>
+            </div>
+            <button onclick="closeModal('modal-kasir-gaji')" class="text-blue-400 hover:text-blue-900"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="p-5 space-y-4">
+            <div class="bg-gray-100 p-3 rounded-xl text-center border border-gray-200 shadow-inner">
+                <p class="text-xs text-gray-500 font-bold uppercase mb-1">Total Tagihan Gaji Lunas</p>
+                <p class="text-2xl font-black text-gray-900 font-mono" id="kasir_total_tagihan">Rp 0</p>
+            </div>
+            <div class="space-y-3 bg-green-50/50 p-3 rounded-xl border border-green-100">
+                <div>
+                    <label class="block text-[10px] font-bold text-green-800 uppercase mb-1">Ambil dr Uang Keuangan</label>
+                    <input type="number" id="kasir_keuangan" value="0" oninput="window.kalkulasiKasir()" class="w-full border border-green-300 rounded-lg p-2 text-sm font-bold text-green-900 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 bg-white">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-green-800 uppercase mb-1">Ambil dr Uang Gudang</label>
+                    <input type="number" id="kasir_gudang" value="0" oninput="window.kalkulasiKasir()" class="w-full border border-green-300 rounded-lg p-2 text-sm font-bold text-green-900 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 bg-white">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-green-800 uppercase mb-1">Ambil dr Uang Owner</label>
+                    <input type="number" id="kasir_owner" value="0" oninput="window.kalkulasiKasir()" class="w-full border border-green-300 rounded-lg p-2 text-sm font-bold text-green-900 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 bg-white">
+                </div>
+            </div>
+            <div class="flex justify-between items-center text-xs font-bold p-2.5 rounded-lg bg-red-50 border border-red-200 transition-colors" id="kasir_sisa_box">
+                <span class="text-red-800">Sisa Belum Terbayar:</span>
+                <span id="kasir_sisa" class="text-red-700 font-mono text-sm">Rp 0</span>
+            </div>
+            <button id="btn-eksekusi-bayar" onclick="window.eksekusiBayarGaji()" class="w-full bg-blue-700 text-white font-bold py-3.5 rounded-xl hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm font-mono text-sm uppercase tracking-wide" disabled>
+                <i class="bi bi-safe2 mr-2"></i> POTONG KAS & BAYAR
             </button>
         </div>
     </div>
@@ -280,15 +350,21 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     const peran = k.tipe_kendaraan ? k.tipe_kendaraan.replace('_', ' ') : (k.role || 'Karyawan');
                     const setup = k.setup_gaji && k.setup_gaji.length > 0 ? k.setup_gaji[0] : {};
                     const tarif = Number(setup.gaji_menit || 0).toLocaleString('id-ID');
+                    
+                    // 🔥 Trik narik tipe periode untuk ditaruh di Card Karyawan
+                    const tipePeriode = setup.tipe_periode || 'Harian'; 
 
                     htmlKaryawan += `
-                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+                    <div class="karyawan-card bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col transition-all" data-periode="${tipePeriode}">
                         <div class="bg-gradient-to-r from-green-50 to-green-100 px-6 py-4 flex items-center justify-between border-b border-green-200">
                             <div class="flex items-center gap-4">
                                 ${avatarKomponen} 
                                 <div>
-                                    <h3 class="font-bold text-gray-900">${k.nama}</h3>
-                                    <p class="text-sm text-gray-600 capitalize">${peran}</p>
+                                    <h3 class="font-bold text-gray-900 flex items-center gap-2">
+                                        ${k.nama} 
+                                        <span class="px-2 py-0.5 rounded text-[9px] font-black bg-blue-200 text-blue-800 uppercase tracking-wider shadow-sm">${tipePeriode}</span>
+                                    </h3>
+                                    <p class="text-xs font-semibold text-gray-600 capitalize mt-0.5">${peran}</p>
                                 </div>
                             </div>
                         </div>
@@ -357,16 +433,22 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
     // 3. MODAL CONTROLS & FUNCTIONS
     // ==========================================
     window.openModal = function(id) {
-        const m = document.getElementById(id);
+        const m = document.getElementById(id); if(!m) return;
         m.classList.remove('hidden'); m.classList.add('flex');
-        setTimeout(() => { m.classList.remove('opacity-0'); m.querySelector('div').classList.remove('scale-95'); }, 10);
-    }
+        setTimeout(() => { m.classList.remove('opacity-0'); const c = m.querySelector('div'); if(c) c.classList.remove('scale-95'); }, 10);
+        
+        // 🔥 Kunci body layar belakang biar gak bisa di-scroll
+        document.body.style.overflow = 'hidden'; 
+    };
     
     window.closeModal = function(id) {
-        const m = document.getElementById(id);
-        m.classList.add('opacity-0'); m.querySelector('div').classList.add('scale-95');
+        const m = document.getElementById(id); if(!m) return;
+        m.classList.add('opacity-0'); const c = m.querySelector('div'); if(c) c.classList.add('scale-95');
         setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
-    }
+        
+        // 🔥 Lepas kunci scroll saat modal ditutup
+        document.body.style.overflow = ''; 
+    };
 
     // UPDATE PENGATURAN GLOBAL
     document.getElementById('form-global-gaji')?.addEventListener('submit', async (e) => {
@@ -390,22 +472,21 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
     window.currentSalaryData = null;
 
     // BUKA MODAL DETAIL GAJI KARYAWAN
+    // ==========================================
+    // 🚀 ENGINE MESIN WAKTU & KALKULASI GAJI 🚀
+    // ==========================================
     window.openModalGaji = async function(empId) {
         const emp = dataKaryawan.find(k => String(k.id) === String(empId));
-        if(!emp) return alert('Waduh, data karyawan gak ketemu!');
+        if(!emp) return alert('Data karyawan tidak ditemukan!');
 
         document.getElementById('m_karyawan_id').value = emp.id;
         document.getElementById('m_nama_karyawan').innerText = emp.nama;
 
         let setup = {};
         try {
-            const { data: liveSetup } = await window.supabase
-                .from('setup_gaji')
-                .select('*')
-                .eq('user_id', emp.id)
-                .maybeSingle();
+            const { data: liveSetup } = await window.supabase.from('setup_gaji').select('*').eq('user_id', emp.id).maybeSingle();
             if(liveSetup) setup = liveSetup;
-        } catch(e) { console.error("Gagal narik live setup:", e); }
+        } catch(e) { console.error("Gagal narik setup:", e); }
 
         document.getElementById('m_setup_id').value = setup.id || '';
         document.getElementById('setup_gaji_menit').value = setup.gaji_menit || 0;
@@ -415,143 +496,241 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         document.getElementById('setup_uang_nginep').value = setup.uang_nginep || 0;
         document.getElementById('setup_bonus_tepat').value = setup.bonus_tepat_waktu || 0;
         document.getElementById('setup_bonus_mingguan').value = setup.bonus_mingguan || 0;
-        document.getElementById('setup_kasbon').value = setup.kasbon || 0; // KASBON DITAMBAHKAN
         
-        //checked box
+        document.getElementById('setup_tipe_periode').value = setup.tipe_periode || 'Harian';
+        document.getElementById('setup_denda_telat').value = setup.denda_telat_menit || 0;
+        
+        // Setup Kasbon UI Pintar
+        const totalHutangKasbon = parseFloat(setup.kasbon) || 0;
+        document.getElementById('info_total_kasbon').innerText = 'Rp ' + totalHutangKasbon.toLocaleString('id-ID');
+        document.getElementById('potongan_kasbon_sekarang').value = ''; // Kosongkan awal mula
+        
         document.getElementById('chk_uang_rapat').checked = setup.activate_uang_rapat || false;
         document.getElementById('chk_uang_nginep').checked = setup.activate_uang_nginep || false;
         document.getElementById('chk_uang_kesehatan').checked = setup.activate_uang_kesehatan || false;
         document.getElementById('chk_tadarus_alquran').checked = setup.tadarus_alquran || false;
 
+        // 🔥 MESIN WAKTU (FILTER RENTANG TANGGAL) 🔥
+        const tipePeriode = setup.tipe_periode || 'Harian';
         const tglLokalObj = new Date(waktuLokal - offset);
         const tglHariIni = tglLokalObj.toISOString().split('T')[0];
-        const hariDalamMinggu = tglLokalObj.getUTCDay(); 
         
-        const isSabtu = hariDalamMinggu === 6;
-        let kehadiranMingguIni = 0;
+        let tglMulai = tglHariIni;
+        let tglAkhir = tglHariIni;
+        let teksPeriode = "Hari Ini (" + tglHariIni + ")";
 
-        if (isSabtu) {
-            const tglSeninObj = new Date(tglLokalObj.getTime() - (5 * 24 * 60 * 60 * 1000));
-            const strSenin = tglSeninObj.toISOString().split('T')[0];
-            
-            const presensiMingguIni = (emp.presensi || []).filter(p => 
-                p.tanggal >= strSenin && 
-                p.tanggal <= tglHariIni && 
-                p.status_tiba
-            );
-            kehadiranMingguIni = presensiMingguIni.length;
+        if (tipePeriode === 'Mingguan') {
+            const day = tglLokalObj.getDay() || 7; // Jadikan minggu(0) sebagai 7
+            const diff = tglLokalObj.getDate() - day + 1; // Senin
+            const tglSenin = new Date(tglLokalObj.setDate(diff));
+            tglMulai = tglSenin.toISOString().split('T')[0];
+            teksPeriode = `Siklus Mingguan (${tglMulai} s/d ${tglAkhir})`;
+        } else if (tipePeriode === 'Bulanan') {
+            let m = tglLokalObj.getMonth();
+            let y = tglLokalObj.getFullYear();
+            if (tglLokalObj.getDate() <= 28) {
+                let lalu = new Date(y, m - 1, 29);
+                tglMulai = lalu.toISOString().split('T')[0];
+            } else {
+                let skrg = new Date(y, m, 29);
+                tglMulai = skrg.toISOString().split('T')[0];
+            }
+            teksPeriode = `Siklus Bulanan (${tglMulai} s/d ${tglAkhir})`;
         }
 
-        const slip = (emp.slip_gaji || []).find(s => s.periode === tglHariIni && s.status === 'Menunggu');
-        document.getElementById('m_slip_id').value = slip ? slip.id : '';
+        // Ambil absensi sesuai rentang mesin waktu
+        const presensiPeriode = (emp.presensi || []).filter(p => p.tanggal >= tglMulai && p.tanggal <= tglAkhir && p.status_tiba);
 
-        let totalNormalMenit = 0;
-        let totalLemburMenit = 0;
-        let tepatWaktuCount = 0;
+        let totalNormalMenit = 0; let totalLemburMenit = 0; let tepatWaktuCount = 0; let totalMenitTelat = 0;
+        const parseJamMenit = (timeStr) => { if(!timeStr) return null; const [h, m] = timeStr.split(':'); return (parseInt(h) * 60) + parseInt(m); };
 
-        const parseJamMenit = (timeStr) => {
-            if(!timeStr) return null;
-            const [h, m] = timeStr.split(':');
-            return (parseInt(h) * 60) + parseInt(m);
-        };
-        const presensiHariIni = (emp.presensi || []).filter(p => p.tanggal === tglHariIni);
-        let hariMasuk = presensiHariIni.length > 0 ? 1 : 0;
-        let jamTibaStr = '-';
-        let jamPulangStr = '-';
+        const JAM_MASUK_NORMAL = 8 * 60;   // Jam 08:00
+        const BATAS_PULANG_NORMAL = 17 * 60; // Jam 17:00
 
-        presensiHariIni.forEach(p => {
+        presensiPeriode.forEach(p => {
             if (p.status_tiba === 'Tepat Waktu') tepatWaktuCount++;
-            jamTibaStr = p.waktu_tiba || '-';
-            jamPulangStr = p.waktu_pulang || '-';
+            let masuk = parseJamMenit(p.waktu_tiba) || JAM_MASUK_NORMAL;
+            let pulang = p.waktu_pulang ? parseJamMenit(p.waktu_pulang) : masuk;
 
-            let masukMenit = parseJamMenit(p.waktu_tiba) || (8*60);  
-            let pulangMenit = p.waktu_pulang ? parseJamMenit(p.waktu_pulang) : masukMenit; 
-            
-            let batasPulangNormalMenit = 17 * 60; 
-            let actualPulangNormal = Math.min(pulangMenit, batasPulangNormalMenit);
-            let kerjaNormal = Math.max(0, actualPulangNormal - masukMenit);
-            totalNormalMenit += kerjaNormal;
+            // Hitung Denda Keterlambatan
+            if (masuk > JAM_MASUK_NORMAL) totalMenitTelat += (masuk - JAM_MASUK_NORMAL);
 
-            if (pulangMenit > batasPulangNormalMenit) {
-                totalLemburMenit += (pulangMenit - batasPulangNormalMenit);
-            }
+            let actualPulangNormal = Math.min(pulang, BATAS_PULANG_NORMAL);
+            totalNormalMenit += Math.max(0, actualPulangNormal - masuk);
+
+            if (pulang > BATAS_PULANG_NORMAL) totalLemburMenit += (pulang - BATAS_PULANG_NORMAL);
         });
 
+        // Hitung persentase kehadiran untuk bonus mingguan (khusus Mingguan)
+        const isSabtu = new Date(waktuLokal - offset).getDay() === 6;
+        const kehadiranMingguIni = presensiPeriode.length;
+
+        const slip = (emp.slip_gaji || []).find(s => s.periode === tglAkhir && s.status === 'Menunggu');
+        document.getElementById('m_slip_id').value = slip ? slip.id : '';
+
         window.currentSalaryData = {
-            empId: emp.id, totalNormalMenit, totalLemburMenit, tepatWaktuCount, hariMasuk, tglHariIni, jamTibaStr, jamPulangStr,
-            isSabtu, kehadiranMingguIni
+            empId: emp.id, tipePeriode, teksPeriode, tglAkhir,
+            totalNormalMenit, totalLemburMenit, tepatWaktuCount, hariMasuk: presensiPeriode.length, 
+            totalMenitTelat, isSabtu, kehadiranMingguIni, sisaKasbonDb: totalHutangKasbon
         };
+
         window.kalkulasiRealtimeGaji();
         window.openModal('modal-detail-gaji');
     };
 
-    // FUNGSI KALKULASI REAL-TIME
     window.kalkulasiRealtimeGaji = function() {
-        const d = window.currentSalaryData;
-        if(!d) return;
+        const d = window.currentSalaryData; if(!d) return;
 
-        const tarifMenit = parseFloat(document.getElementById('setup_gaji_menit').value) || 0;
+        // 🔥 UBAH FUNGSI: tarifMenit sekarang menjadi Gaji Pokok Flat!
+        const tarifPokokFlat = parseFloat(document.getElementById('setup_gaji_menit').value) || 0;
+        
         const tarifLemburMenit = parseFloat(document.getElementById('setup_lembur_menit').value) || 0;
+        const tarifDendaTelat = parseFloat(document.getElementById('setup_denda_telat').value) || 0;
+        
         const paramBonusMingguan = parseFloat(document.getElementById('setup_bonus_mingguan').value) || 0;
+        const valPotonganKasbon = parseFloat(document.getElementById('potongan_kasbon_sekarang').value) || 0;
+        
         const isKesehatan = document.getElementById('chk_uang_kesehatan').checked;
         const isRapat = document.getElementById('chk_uang_rapat').checked;
         const isNginep = document.getElementById('chk_uang_nginep').checked;
-        const isTadarus = document.getElementById('chk_tadarus_alquran').checked; 
-        const valKasbon = parseFloat(document.getElementById('setup_kasbon').value) || 0; // KASBON DIBACA
+        const isTadarus = document.getElementById('chk_tadarus_alquran').checked;
         
-        let valBonusMingguan = 0;
-        let labelBonusMingguan = '';
-        if (d.isSabtu) {
-            if (d.kehadiranMingguIni >= 6) {
-                valBonusMingguan = paramBonusMingguan;
-                labelBonusMingguan = 'Full 6 Hari (5/5)';
-            } else if (d.kehadiranMingguIni >= 2) {
+        let valBonusMingguan = 0; let labelBonusMingguan = '';
+        if (d.tipePeriode === 'Mingguan' && d.isSabtu) {
+            if (d.kehadiranMingguIni >= 6) { valBonusMingguan = paramBonusMingguan; labelBonusMingguan = 'Full 6 Hari'; } 
+            else if (d.kehadiranMingguIni >= 2) {
                 const fraction = d.kehadiranMingguIni - 1;
                 valBonusMingguan = Math.round((fraction / 5) * paramBonusMingguan);
-                labelBonusMingguan = `Prorata ${fraction}/5 (${d.kehadiranMingguIni}x Hadir)`;
-            } else {
-                valBonusMingguan = 0;
-                labelBonusMingguan = `Hadir ${d.kehadiranMingguIni}x (Tidak Dapat)`;
+                labelBonusMingguan = `Prorata ${fraction}/5`;
             }
         }
 
-        const valGaji = d.totalNormalMenit * tarifMenit;
+        // ==========================================
+        // 🔥 LOGIKA GAJI FLAT OPSI 2 🔥
+        // ==========================================
+        // Jika dalam siklus ini karyawan punya minimal 1 hari masuk, dia dapat Gaji Flat-nya.
+        const valGaji = (d.hariMasuk > 0) ? tarifPokokFlat : 0;
+        
         const valLembur = d.totalLemburMenit * tarifLemburMenit;
+        const valDenda = d.totalMenitTelat * tarifDendaTelat; // Denda per menit telat
+        
         const valKesehatan = isKesehatan ? (parseFloat(document.getElementById('setup_uang_kesehatan').value) || 0) : 0;
         const valBonusTepat = d.tepatWaktuCount * (parseFloat(document.getElementById('setup_bonus_tepat').value) || 0);
         const valRapat = isRapat ? (parseFloat(document.getElementById('setup_uang_rapat').value) || 0) : 0;
         const valNginep = isNginep ? (parseFloat(document.getElementById('setup_uang_nginep').value) || 0) : 0;
         
-        // PENGURANGAN KASBON PADA TOTAL GAJI
-        const grandTotal = valGaji + valLembur + valKesehatan + valBonusTepat + valBonusMingguan + valRapat + valNginep - valKasbon;
-        
-        d.finalState = { valGaji, valLembur, valKesehatan, valBonusTepat, valBonusMingguan, valRapat, valNginep, valKasbon, grandTotal, isTadarus };
-        
+        // PENGURANGAN PADA TOTAL GAJI (Gaji Flat + Bonus - Denda Telat - Kasbon)
+        let grandTotal = valGaji + valLembur + valKesehatan + valBonusTepat + valBonusMingguan + valRapat + valNginep - valDenda - valPotonganKasbon;
+        if(grandTotal < 0) grandTotal = 0; // Jaga-jaga agar gaji tidak minus berlebihan
+
+        d.finalState = { valGaji, valLembur, valKesehatan, valBonusTepat, valBonusMingguan, valRapat, valNginep, valDenda, valPotonganKasbon, grandTotal, isTadarus };
+
         document.getElementById('m_rincian_list').innerHTML = `
-            <div class="bg-gray-50 p-2.5 rounded mb-3 border border-gray-200">
-                <div class="text-xs font-bold text-gray-700 mb-1.5"><i class="bi bi-clock-history mr-1"></i> Jam Absen Hari Ini (Bisa Diedit):</div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="text-[10px] text-gray-500 block font-medium">Jam Tiba:</label>
-                        <input type="time" id="edit_absen_tiba" value="${d.jamTibaStr !== '-' ? d.jamTibaStr.substring(0,5) : ''}" class="w-full text-xs p-1 rounded border border-gray-300 bg-white font-semibold" onchange="window.updateJamAbsenManual()" />
-                    </div>
-                    <div>
-                        <label class="text-[10px] text-gray-500 block font-medium">Jam Pulang:</label>
-                        <input type="time" id="edit_absen_pulang" value="${d.jamPulangStr !== '-' ? d.jamPulangStr.substring(0,5) : ''}" class="w-full text-xs p-1 rounded border border-gray-300 bg-white font-semibold" onchange="window.updateJamAbsenManual()" />
-                    </div>
-                </div>
+            <div class="bg-blue-50/50 p-2.5 rounded mb-3 border border-blue-200">
+                <div class="text-[11px] font-bold text-blue-900 uppercase tracking-widest text-center"><i class="bi bi-calendar-range mr-1"></i> ${d.teksPeriode}</div>
+                <div class="text-[10px] font-semibold text-blue-700 text-center mt-1">Total Hari Absen: ${d.hariMasuk} Hari Masuk</div>
             </div>
-            <div class="flex justify-between"><span>Gaji Karyawan (${d.totalNormalMenit} mnt)</span> <span class="font-medium text-gray-900">Rp ${valGaji.toLocaleString('id-ID')}</span></div>
-            ${valLembur > 0 ? `<div class="flex justify-between"><span>Uang Lembur (${d.totalLemburMenit} mnt)</span> <span class="font-medium text-gray-900">Rp ${valLembur.toLocaleString('id-ID')}</span></div>` : ''}
-            ${d.tepatWaktuCount > 0 ? `<div class="flex justify-between text-green-700"><span>Bonus Tepat Waktu (${d.tepatWaktuCount}x)</span> <span>+ Rp ${valBonusTepat.toLocaleString('id-ID')}</span></div>` : ''}
-            ${isKesehatan ? `<div class="flex justify-between text-green-700"><span>Uang Kesehatan</span> <span>+ Rp ${valKesehatan.toLocaleString('id-ID')}</span></div>` : ''}
-            ${d.isSabtu ? `<div class="flex justify-between text-green-700"><span>Bonus Mingguan (${labelBonusMingguan})</span> <span>+ Rp ${valBonusMingguan.toLocaleString('id-ID')}</span></div>` : ''}
-            ${isRapat ? `<div class="flex justify-between text-green-700"><span>Uang Rapat</span> <span>+ Rp ${valRapat.toLocaleString('id-ID')}</span></div>` : ''}
-            ${isNginep ? `<div class="flex justify-between text-green-700"><span>Uang Nginep</span> <span>+ Rp ${valNginep.toLocaleString('id-ID')}</span></div>` : ''}
-            ${isTadarus ? `<div class="flex justify-between text-green-700"><span>Tadarus Al-Quran</span> <span>✅ Sudah</span></div>` : ''}
-            ${valKasbon > 0 ? `<div class="flex justify-between text-red-600 font-bold border-t mt-1 pt-1"><span>Potongan Kasbon</span> <span>- Rp ${valKasbon.toLocaleString('id-ID')}</span></div>` : ''}
+            
+            <div class="flex justify-between text-xs"><span>Gaji Pokok Flat (${d.tipePeriode})</span> <span class="font-bold text-gray-900">Rp ${valGaji.toLocaleString('id-ID')}</span></div>
+            ${valLembur > 0 ? `<div class="flex justify-between text-xs"><span>Uang Lembur (${d.totalLemburMenit} mnt)</span> <span class="font-bold text-gray-900">Rp ${valLembur.toLocaleString('id-ID')}</span></div>` : ''}
+            ${d.tepatWaktuCount > 0 ? `<div class="flex justify-between text-xs text-green-700"><span>Bonus Tepat Waktu (${d.tepatWaktuCount}x)</span> <span class="font-bold">+ Rp ${valBonusTepat.toLocaleString('id-ID')}</span></div>` : ''}
+            ${valBonusMingguan > 0 ? `<div class="flex justify-between text-xs text-green-700"><span>Bonus Mingguan (${labelBonusMingguan})</span> <span class="font-bold">+ Rp ${valBonusMingguan.toLocaleString('id-ID')}</span></div>` : ''}
+            ${isRapat ? `<div class="flex justify-between text-xs text-green-700"><span>Uang Rapat</span> <span class="font-bold">+ Rp ${valRapat.toLocaleString('id-ID')}</span></div>` : ''}
+            ${isNginep ? `<div class="flex justify-between text-xs text-green-700"><span>Uang Nginep</span> <span class="font-bold">+ Rp ${valNginep.toLocaleString('id-ID')}</span></div>` : ''}
+            
+            ${valDenda > 0 ? `<div class="flex justify-between text-xs text-red-600 font-bold border-t border-dashed border-gray-300 mt-2 pt-2"><span>Denda Telat Masuk (${d.totalMenitTelat} mnt)</span> <span>- Rp ${valDenda.toLocaleString('id-ID')}</span></div>` : ''}
+            ${valPotonganKasbon > 0 ? `<div class="flex justify-between text-xs text-red-600 font-bold"><span>Potongan Kasbon Periode Ini</span> <span>- Rp ${valPotonganKasbon.toLocaleString('id-ID')}</span></div>` : ''}
         `;
         document.getElementById('m_total_gaji').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+    };
+
+    // FUNGSI PENJEMBATAN (Simpan Draf ATAU Lempar ke Kasir)
+    window.simpanSlipGaji = async function(statusTarget) {
+        if(statusTarget === 'ACC') {
+            // LEMPAR KE KASIR SPLIT PAYMENT
+            document.getElementById('kasir_total_tagihan').innerText = `Rp ${window.currentSalaryData.finalState.grandTotal.toLocaleString('id-ID')}`;
+            document.getElementById('kasir_keuangan').value = window.currentSalaryData.finalState.grandTotal; // Default isi semua ke Keuangan
+            document.getElementById('kasir_gudang').value = 0;
+            document.getElementById('kasir_owner').value = 0;
+            window.kalkulasiKasir();
+            window.openModal('modal-kasir-gaji');
+        } else {
+            // SIMPAN SEBAGAI DRAF MENUNGGU
+            if(!confirm("Simpan Slip Periode ini sebagai Draf (Menunggu)?")) return;
+            window.eksekusiBayarGaji('Menunggu'); 
+        }
+    };
+
+    // LOGIKA KASIR SPLIT PAYMENT (UI)
+    window.kalkulasiKasir = function() {
+        const uK = parseFloat(document.getElementById('kasir_keuangan').value) || 0;
+        const uG = parseFloat(document.getElementById('kasir_gudang').value) || 0;
+        const uO = parseFloat(document.getElementById('kasir_owner').value) || 0;
+        
+        const totalTagihan = window.currentSalaryData.finalState.grandTotal;
+        const totalSplit = uK + uG + uO;
+        const sisa = totalTagihan - totalSplit;
+
+        const elSisa = document.getElementById('kasir_sisa');
+        const boxSisa = document.getElementById('kasir_sisa_box');
+        const btnBayar = document.getElementById('btn-eksekusi-bayar');
+
+        elSisa.innerText = `Rp ${sisa.toLocaleString('id-ID')}`;
+
+        if (sisa === 0) {
+            boxSisa.classList.replace('bg-red-50', 'bg-green-50');
+            boxSisa.classList.replace('border-red-200', 'border-green-200');
+            elSisa.classList.replace('text-red-700', 'text-green-700');
+            btnBayar.disabled = false;
+        } else {
+            boxSisa.classList.replace('bg-green-50', 'bg-red-50');
+            boxSisa.classList.replace('border-green-200', 'border-red-200');
+            elSisa.classList.replace('text-green-700', 'text-red-700');
+            btnBayar.disabled = true;
+        }
+    };
+
+    // EKSEKUSI PEMBAYARAN FINAL KE DATABASE
+    window.eksekusiBayarGaji = async function(overrideStatus = 'ACC') {
+        if(!window.supabase) return;
+        const d = window.currentSalaryData; const fs = d.finalState;
+        const slipId = document.getElementById('m_slip_id').value;
+        const btnBayar = document.getElementById('btn-eksekusi-bayar');
+        btnBayar.innerText = "Memproses..."; btnBayar.disabled = true;
+
+        try {
+            const uK = parseFloat(document.getElementById('kasir_keuangan').value) || 0;
+            const uG = parseFloat(document.getElementById('kasir_gudang').value) || 0;
+            const uO = parseFloat(document.getElementById('kasir_owner').value) || 0;
+
+            const payloadSlip = {
+                user_id: d.empId, periode: d.tglAkhir, gaji_karyawan: fs.valGaji, uang_lembur: fs.valLembur,
+                bonus_tepat_waktu: fs.valBonusTepat, bonus_mingguan: fs.valBonusMingguan, uang_kesehatan: fs.valKesehatan,
+                uang_rapat: fs.valRapat, uang_nginep: fs.valNginep, 
+                potongan_telat: fs.valDenda, menit_telat: d.totalMenitTelat, // Simpan histori denda
+                kasbon: fs.valPotonganKasbon, total_diterima: fs.grandTotal,
+                status: overrideStatus, is_paid_by_admin: overrideStatus === 'ACC',
+                kas_keuangan_terpakai: overrideStatus === 'ACC' ? uK : 0, // Split payment dicatat
+                kas_gudang_terpakai: overrideStatus === 'ACC' ? uG : 0,
+                kas_owner_terpakai: overrideStatus === 'ACC' ? uO : 0
+            };
+
+            // 1. Simpan Slip Gaji (Akan mentrigger pemotongan dompet otomatis di DB)
+            if(slipId) await window.supabase.from('slip_gaji').update(payloadSlip).eq('id', slipId);
+            else await window.supabase.from('slip_gaji').insert([payloadSlip]);
+
+            // 2. Kurangi total hutang kasbon di profil karyawan (Jika ada kasbon yang dipotong)
+            if(overrideStatus === 'ACC' && fs.valPotonganKasbon > 0) {
+                const sisaHutangBaru = d.sisaKasbonDb - fs.valPotonganKasbon;
+                await window.supabase.from('setup_gaji').update({ kasbon: sisaHutangBaru }).eq('user_id', d.empId);
+            }
+
+            alert(`✅ SUKSES LUNAS!\n\nGaji dibayarkan dari:\n- Keuangan: Rp ${uK.toLocaleString('id-ID')}\n- Gudang: Rp ${uG.toLocaleString('id-ID')}\n- Owner: Rp ${uO.toLocaleString('id-ID')}\n\n*Hutang kasbon karyawan otomatis berkurang (jika ada potongan).`);
+            window.location.reload();
+        } catch(err) {
+            alert('Waduh gagal bayar: ' + err.message);
+            btnBayar.innerText = "POTONG KAS & BAYAR"; btnBayar.disabled = false;
+        }
     };
 
     window.updateJamAbsenManual = () => {
@@ -595,6 +774,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             uang_rapat: parseFloat(document.getElementById('setup_uang_rapat').value) || 0,
             uang_nginep: parseFloat(document.getElementById('setup_uang_nginep').value) || 0,
             kasbon: parseFloat(document.getElementById('setup_kasbon').value) || 0, // INSERT KASBON
+            tipe_periode: document.getElementById('setup_tipe_periode').value, // Periode
+            denda_telat_menit: parseFloat(document.getElementById('setup_denda_telat').value) || 0, //Denda Telat
             activate_uang_rapat: document.getElementById('chk_uang_rapat').checked,
             activate_uang_nginep: document.getElementById('chk_uang_nginep').checked,
             activate_uang_kesehatan: document.getElementById('chk_uang_kesehatan').checked,
@@ -614,82 +795,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         } catch(err) { 
             console.error("Error Detail Supabase:", err);
             alert('Gagal simpan setup! Cek pesan ini:\n' + err.message); 
-        }
-    };
-
-    // FUNGSI SIMPAN SLIP (DRAF ATAU ACC LUNAS)
-    window.simpanSlipGaji = async function(statusTarget) {
-        if(!window.supabase) return;
-        const d = window.currentSalaryData;
-        const fs = d.finalState;
-        const slipId = document.getElementById('m_slip_id').value;
-        let txtConfirm = statusTarget === 'ACC' ? "Approve dan Lunasi Gaji Harian ini?" : "Simpan Slip Harian ini sebagai Menunggu (Draf)?";
-            
-        if(!confirm(txtConfirm)) return;
-
-        const btnDraf = document.getElementById('btn-draf-gaji');
-        const btnAcc = document.getElementById('btn-bayar-gaji');
-        btnDraf.disabled = true; btnAcc.disabled = true;
-
-        try {
-            const payloadSlip = {
-                user_id: d.empId,
-                periode: d.tglHariIni, 
-                gaji_karyawan: fs.valGaji,
-                uang_lembur: fs.valLembur,
-                bonus_tepat_waktu: fs.valBonusTepat,
-                bonus_mingguan: fs.valBonusMingguan,
-                uang_kesehatan: fs.valKesehatan,
-                uang_rapat: fs.valRapat,
-                uang_nginep: fs.valNginep,
-                kasbon: fs.valKasbon, // INSERT KASBON KE SLIP
-                total_diterima: fs.grandTotal,
-                status: statusTarget,
-                is_paid_by_admin: statusTarget === 'ACC'
-            };
-
-            if(slipId) {
-                await window.supabase.from('slip_gaji').update(payloadSlip).eq('id', slipId);
-            } else {
-                await window.supabase.from('slip_gaji').insert([payloadSlip]);
-            }
-
-            if (d.jamTibaStr !== '-') {
-                await window.supabase
-                    .from('presensi')
-                    .update({
-                        waktu_tiba: d.jamTibaStr,
-                        waktu_pulang: d.jamPulangStr !== '-' ? d.jamPulangStr : null
-                    })
-                    .eq('user_id', d.empId)
-                    .eq('tanggal', d.tglHariIni);
-            }
-
-            let rincianAlert = `Gaji Karyawan  : Rp ${fs.valGaji.toLocaleString('id-ID')}\n`;
-            if (fs.valLembur > 0) rincianAlert += `Uang Lembur    : Rp ${fs.valLembur.toLocaleString('id-ID')}\n`;
-            if (fs.valKesehatan > 0) rincianAlert += `Uang Kesehatan : Rp ${fs.valKesehatan.toLocaleString('id-ID')}\n`;
-            if (fs.valBonusMingguan > 0) rincianAlert += `Bonus Mingguan : Rp ${fs.valBonusMingguan.toLocaleString('id-ID')}\n`;
-            if (fs.valBonusTepat > 0) rincianAlert += `Bonus Tepat Wkt: Rp ${fs.valBonusTepat.toLocaleString('id-ID')}\n`;
-            if (fs.valRapat > 0) rincianAlert += `Uang Rapat     : Rp ${fs.valRapat.toLocaleString('id-ID')}\n`;
-            if (fs.valNginep > 0) rincianAlert += `Uang Nginep    : Rp ${fs.valNginep.toLocaleString('id-ID')}\n`;
-            if (fs.isTadarus) rincianAlert += `Tadarus Quran  : ✅ Sudah\n`;
-            if (fs.valKasbon > 0) rincianAlert += `Potongan Kasbon: -Rp ${fs.valKasbon.toLocaleString('id-ID')}\n`; // TAMPIL DI ALERT
-
-            const pesanSukses = `✅ SUKSES! Data Berhasil Direkam.\n\n` +
-                                `Status Slip    : ${statusTarget === 'ACC' ? 'LUNAS (ACC)' : 'MENUNGGU (Draf)'}\n` +
-                                `Tanggal        : ${d.tglHariIni}\n` +
-                                `-------------------------------------------------\n` +
-                                rincianAlert +
-                                `-------------------------------------------------\n` +
-                                `TOTAL DITERIMA : Rp ${fs.grandTotal.toLocaleString('id-ID')}\n\n` +
-                                `Parameter hitungan juga sudah tersimpan aman sebagai riwayat.`;
-                                
-            alert(pesanSukses);
-            window.location.reload();
-            
-        } catch(err) {
-            alert('Waduh gagal simpan slip: ' + err.message);
-            btnDraf.disabled = false; btnAcc.disabled = false;
         }
     };
 
@@ -780,5 +885,24 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         }
     }
     document.getElementById('btn-filter-gaji')?.addEventListener('click', muatRiwayatGaji);
+    window.filterTipeGaji = function(tipe) {
+        document.querySelectorAll('.filter-gaji-btn').forEach(btn => {
+            if (btn.innerText.includes(tipe) || (tipe === 'Semua' && btn.innerText === 'Semua')) {
+                btn.classList.add('active', 'bg-white', 'shadow-sm', 'text-green-700');
+                btn.classList.remove('text-gray-500');
+            } else {
+                btn.classList.remove('active', 'bg-white', 'shadow-sm', 'text-green-700');
+                btn.classList.add('text-gray-500');
+            }
+        });
+        
+        document.querySelectorAll('.karyawan-card').forEach(card => {
+            if (tipe === 'Semua' || card.getAttribute('data-periode') === tipe) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    };
   });
 </script>

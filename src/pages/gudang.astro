@@ -39,61 +39,58 @@ const tabs = [
 
   <div id="dashboard-tab" class="tab-content block">
     <div class="mb-8">
-        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <i class="bi bi-box-seam text-primary"></i> Komoditas Minyak
-        </h3>
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            
+            <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm flex flex-col justify-between">
                 <div class="flex items-center gap-3 mb-3">
-                  <div class="w-10 h-10 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center text-xl shrink-0"><i class="bi bi-droplet-half"></i></div>
+                  <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0 p-1">
+                      <img src="/icon/6.png" alt="Jelantah" class="w-full h-full object-contain drop-shadow-sm" onerror="this.style.display='none'">
+                  </div>
                   <p class="text-sm font-semibold text-gray-700 leading-tight">Minyak Jelantah Kotor</p>
                 </div>
-                <p class="text-3xl font-bold text-gray-900"><span id="stok-minyak_jelantah">0</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
+                <p class="text-3xl font-bold text-gray-900"><span id="stok-minyak_jelantah">0.00</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
             </div>
-        </div>
-    </div>
 
-    <div class="mb-8 border-t border-gray-200 pt-6">
-        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <i class="bi bi-gear-wide-connected text-green-600"></i> Komoditas tepung
-        </h3>
-        <div class="grid grid-cols-2 gap-4">
-            <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm">
+            <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm flex flex-col justify-between">
                 <div class="flex items-center gap-3 mb-3">
-                  <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xl shrink-0"><i class="bi bi-record-circle"></i></div>
+                  <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center shrink-0 p-1">
+                      <img src="/icon/8.png" alt="Kriuk" class="w-full h-full object-contain drop-shadow-sm" onerror="this.style.display='none'">
+                  </div>
                   <p class="text-sm font-semibold text-gray-700 leading-tight">Kriuk</p>
                 </div>
-                <p class="text-3xl font-bold text-gray-900"><span id="stok-kriuk">0</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
+                <p class="text-3xl font-bold text-gray-900"><span id="stok-kriuk">0.00</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
             </div>
-            <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm">
+
+            <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm flex flex-col justify-between">
                 <div class="flex items-center gap-3 mb-3">
-                  <div class="w-10 h-10 rounded-lg bg-gray-200 text-gray-700 flex items-center justify-center text-xl shrink-0"><i class="bi bi-trash3"></i></div>
+                  <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 p-1">
+                      <img src="/icon/7.png" alt="Ampas" class="w-full h-full object-contain drop-shadow-sm" onerror="this.style.display='none'">
+                  </div>
                   <p class="text-sm font-semibold text-gray-700 leading-tight">Ampas (Sludge)</p>
                 </div>
-                <p class="text-3xl font-bold text-gray-900"><span id="stok-ampas">0</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
+                <p class="text-3xl font-bold text-gray-900"><span id="stok-ampas">0.00</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
             </div>
-            <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm">
+
+            <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm flex flex-col justify-between">
                 <div class="flex items-center gap-3 mb-3">
-                  <div class="w-10 h-10 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center text-xl shrink-0"><i class="bi bi-cloud-haze2"></i></div>
+                  <div class="w-10 h-10 rounded-lg bg-yellow-50 flex items-center justify-center shrink-0 p-1">
+                      <img src="/icon/9.png" alt="Tepung" class="w-full h-full object-contain drop-shadow-sm" onerror="this.style.display='none'">
+                  </div>
                   <p class="text-sm font-semibold text-gray-700 leading-tight">Tepung Ayakan</p>
                 </div>
-                <p class="text-3xl font-bold text-gray-900"><span id="stok-tepung">0</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
+                <p class="text-3xl font-bold text-gray-900"><span id="stok-tepung">0.00</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
             </div>
-        </div>
-    </div>
 
-    <div class="border-t border-gray-200 pt-6">
-        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <i class="bi bi-plus-circle-dotted text-blue-600"></i> Komoditas Independen
-        </h3>
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm">
+            <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm flex flex-col justify-between">
                 <div class="flex items-center gap-3 mb-3">
-                  <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-xl shrink-0"><i class="bi bi-arrow-repeat"></i></div>
+                  <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 p-1">
+                      <img src="/icon/10.png" alt="Spinner" class="w-full h-full object-contain drop-shadow-sm" onerror="this.style.display='none'">
+                  </div>
                   <p class="text-sm font-semibold text-gray-700 leading-tight">Spinner</p>
                 </div>
-                <p class="text-3xl font-bold text-gray-900"><span id="stok-spinner">0</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
+                <p class="text-3xl font-bold text-gray-900"><span id="stok-spinner">0.00</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
             </div>
+
         </div>
     </div>
   </div>
@@ -110,17 +107,17 @@ const tabs = [
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-orange-900 mb-1">Minyak Jelantah (Kg)</label>
-                        <input type="number" step="0.1" id="input_minyak_jelantah" class="w-full px-3 py-2 border border-orange-300 rounded-lg outline-none bg-white font-bold" placeholder="0" required />
+                        <input type="number" step="0.01" id="input_minyak_jelantah" class="w-full px-3 py-2 border border-orange-300 rounded-lg outline-none bg-white font-bold" placeholder="0" required />
                         <span class="text-[10px] text-orange-700 block mt-1">Stok Gudang: <strong id="max_minyak_jelantah">0</strong> Kg</span>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-orange-900 mb-1">Kriuk (Kg)</label>
-                        <input type="number" step="0.1" id="input_kriuk" class="w-full px-3 py-2 border border-orange-300 rounded-lg outline-none bg-white font-bold" placeholder="0" required />
+                        <input type="number" step="0.01" id="input_kriuk" class="w-full px-3 py-2 border border-orange-300 rounded-lg outline-none bg-white font-bold" placeholder="0" required />
                         <span class="text-[10px] text-orange-700 block mt-1">Stok Gudang: <strong id="max_kriuk">0</strong> Kg</span>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-orange-900 mb-1">Ampas / Sludge (Kg)</label>
-                        <input type="number" step="0.1" id="input_ampas" class="w-full px-3 py-2 border border-orange-300 rounded-lg outline-none bg-white font-bold" placeholder="0" required />
+                        <input type="number" step="0.01" id="input_ampas" class="w-full px-3 py-2 border border-orange-300 rounded-lg outline-none bg-white font-bold" placeholder="0" required />
                         <span class="text-[10px] text-orange-700 block mt-1">Stok Gudang: <strong id="max_ampas">0</strong> Kg</span>
                     </div>
                 </div>
@@ -132,11 +129,11 @@ const tabs = [
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-green-900 mb-1">Minyak Jelantah (Kg)</label>
-                        <input type="number" step="0.1" id="hasil_minyak_jelantah" class="w-full px-3 py-2 border border-green-300 rounded-lg outline-none bg-white font-bold text-green-900" placeholder="0" required />
+                        <input type="number" step="0.01" id="hasil_minyak_jelantah" class="w-full px-3 py-2 border border-green-300 rounded-lg outline-none bg-white font-bold text-green-900" placeholder="0" required />
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-green-900 mb-1">Hasil Spinner (Kg)</label>
-                        <input type="number" step="0.1" id="hasil_spinner" class="w-full px-3 py-2 border border-green-300 rounded-lg outline-none bg-white font-bold text-green-900" placeholder="0" required />
+                        <input type="number" step="0.01" id="hasil_spinner" class="w-full px-3 py-2 border border-green-300 rounded-lg outline-none bg-white font-bold text-green-900" placeholder="0" required />
                     </div>
                 </div>
             </div>
@@ -187,7 +184,7 @@ const tabs = [
           <div>
             <label class="block text-sm font-bold text-primary mb-2">Stok Fisik Real</label>
             <div class="relative">
-              <input type="number" step="0.1" id="kalibrasiFisik" class="w-full px-4 py-3 border border-primary bg-green-50 rounded-lg font-bold text-gray-900 outline-none" placeholder="0" required />
+              <input type="number" step="0.01" id="kalibrasiFisik" class="w-full px-4 py-3 border border-primary bg-green-50 rounded-lg font-bold text-gray-900 outline-none" placeholder="0" required />
               <span class="absolute right-3 top-3 text-gray-500">Kg</span>
             </div>
           </div>
@@ -264,30 +261,33 @@ const tabs = [
 
         // A. Ambil Data Stok Komoditas
         const { data: komoditas, error: errKom } = await window.supabase.from('gudang_komoditas').select('*');
-        
         if(!errKom && komoditas) {
             komoditas.forEach(k => {
+                // 🔥 KUNCI UTAMANYA DI SINI: Pakai parseFloat lalu toFixed(2)
+                const stokAngka = parseFloat(k.stok || 0);
+                const stokFormatted = stokAngka.toFixed(2);
+
                 // Update angka di Dashboard
                 const elStok = document.getElementById(`stok-${k.id}`);
-                if(elStok) elStok.innerText = k.stok;
+                if(elStok) elStok.innerText = stokFormatted;
 
                 // Update batas maksimal di form Produksi Olahan
                 if(k.id === 'minyak_jelantah') {
                     const el = document.getElementById('max_minyak_jelantah');
-                    if(el) el.innerText = k.stok;
+                    if(el) el.innerText = stokFormatted;
                 }
                 if(k.id === 'kriuk') {
                     const el = document.getElementById('max_kriuk');
-                    if(el) el.innerText = k.stok;
+                    if(el) el.innerText = stokFormatted;
                 }
                 if(k.id === 'ampas') {
                     const el = document.getElementById('max_ampas');
-                    if(el) el.innerText = k.stok;
+                    if(el) el.innerText = stokFormatted;
                 }
 
                 // Update data-stok di dropdown form Kalibrasi
                 const opt = document.querySelector(`#kalibrasiKomoditas option[value="${k.id}"]`);
-                if(opt) opt.setAttribute('data-stok', k.stok);
+                if(opt) opt.setAttribute('data-stok', stokAngka); // Biarkan angka asli untuk hitungan mesin
             });
         }
 
@@ -319,6 +319,8 @@ const tabs = [
                     const sign = item.jumlah > 0 ? '+' : '';
                     const colorNum = item.jumlah > 0 ? 'text-green-600' : 'text-red-600';
                     const ket = item.keterangan ? item.keterangan : '-';
+                    // 🔥 Format nilai mutasi jadi 2 desimal
+                    const jumlahFormatted = parseFloat(item.jumlah || 0).toFixed(2);
 
                     html += `
                     <tr class="hover:bg-gray-50 transition">
@@ -327,7 +329,7 @@ const tabs = [
                             <span class="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${badge}">${item.jenis_mutasi}</span>
                         </td>
                         <td class="px-6 py-4 text-sm font-medium text-gray-900">${namaK}</td>
-                        <td class="px-6 py-4 text-sm font-bold text-right ${colorNum}">${sign}${item.jumlah} Kg</td>
+                        <td class="px-6 py-4 text-sm font-bold text-right ${colorNum}">${sign}${jumlahFormatted} Kg</td>
                         <td class="px-6 py-4 text-sm text-gray-500 max-w-[250px] truncate" title="${ket}">${ket}</td>
                     </tr>
                     `;

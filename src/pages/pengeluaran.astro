@@ -216,11 +216,13 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     let textColor, nominalColor, badgeStatus;
 
                     // 🔥 LOGIKA WARNA (SESUAI REQUEST: HITAM JIKA ACC, MERAH JIKA BELUM) 🔥
-                    if (itemStatus === 'Disetujui' || r.keterangan_bayar === true) {
-                        // SUDAH DI-ACC / LUNAS -> HITAM
-                        textColor = 'text-gray-800 font-bold';
-                        nominalColor = 'text-gray-900 font-mono font-bold';
-                        badgeStatus = `<span class="text-[9px] font-bold text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-300 ml-2 uppercase">✔ ACC</span>`;
+                    if (itemStatus === 'Disetujui' && r.nama_item === 'Uang Jalan' && Number(r.nominal) > 0) {
+                            statusBtn += `
+                            <div class="mt-2 pt-2 border-t border-gray-200 w-full">
+                                <button onclick="window.simpanSisaUangJalan('${r.id}', ${r.nominal}, '${p.sumber_dana || 'Uang Keuangan'}', '${p.id}')" class="bg-purple-50 text-purple-700 px-2 py-1.5 rounded text-[10px] font-bold hover:bg-purple-100 border border-purple-200 transition w-full shadow-sm flex items-center justify-center gap-1" title="Setor sisa uang ke laci Gudang">
+                                    <i class="bi bi-safe2"></i> Simpan Uang
+                                </button>
+                            </div>`;
                     } else {
                         // BELUM DI-ACC / NOMBOK -> MERAH (Kecuali Uang Jalan = Biru)
                         if (r.nama_item === 'Uang Jalan') {
@@ -885,46 +887,85 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
     // ==========================================
     // 🔥 FUNGSI KEMBALIKAN SISA UANG JALAN KE GUDANG 🔥
     // ==========================================
-    window.simpanSisaUangJalan = async function(rincianId, sisaNominal, sumberDanaAsli) {
-        if(!confirm(`Kembalikan sisa Uang Jalan sebesar Rp ${sisaNominal.toLocaleString('id-ID')} ke dompet UANG GUDANG?\n\n(Aksi ini menandakan uang fisik disetor ke admin gudang dan driver tidak lagi memiliki sisa saldo)`)) return;
+    window.simpanSisaUangJalan = async function(rincianId, sisaNominalSistem, sumberDanaAsli, pengeluaranId) {
+        // 1. Munculkan Pop-Up Interaktif nanya uang fisik yang ada di tangan
+        const inputNominal = prompt(
+            `Sisa Uang Jalan di sistem adalah: Rp ${sisaNominalSistem.toLocaleString('id-ID')}\n\n` +
+            `Berapa jumlah uang fisik yang BENAR-BENAR DISETOR oleh driver ke Laci Gudang? (Ketik angkanya saja):`,
+            sisaNominalSistem
+        );
+
+        if (inputNominal === null) return; // Dibatalkan oleh admin
+        
+        // Bersihkan inputan dari titik/koma dan jadikan angka
+        const setorFisik = parseInt(inputNominal.replace(/[^0-9]/g, '')) || 0;
+
+        if (setorFisik > sisaNominalSistem) {
+            return alert("❌ Gagal! Nominal setor tidak boleh lebih besar dari sisa uang jalan di sistem.");
+        }
+
+        const selisihKasbon = sisaNominalSistem - setorFisik;
+
+        let msgConfirm = `Rincian Penutupan:\n- Setor uang fisik: Rp ${setorFisik.toLocaleString('id-ID')} (Masuk Uang Gudang)`;
+        if (selisihKasbon > 0) {
+            msgConfirm += `\n- Kurang setor: Rp ${selisihKasbon.toLocaleString('id-ID')} ⚠️\n\nSistem akan OTOMATIS mencatat selisih ini sebagai KASBON dan memotong gaji driver!`;
+        }
+        msgConfirm += `\n\nLanjutkan proses?`;
+
+        if (!confirm(msgConfirm)) return;
 
         try {
-            // 1. Ubah nominal jadi 0 dan ganti nama item agar Trigger otomatis me-refund sisa uang ke dompet asal terlebih dahulu.
+            // LANGKAH A: Nol-kan sisa Uang Jalan.
+            // (Trigger database akan otomatis me-refund seluruh uang ini ke dompet asalnya terlebih dahulu)
             const { error: errUpdate } = await window.supabase
                 .from('rincian_pengeluaran')
                 .update({
                     nominal: 0,
                     nama_item: 'Uang Jalan (Masuk Gudang)',
-                    keterangan: `Sisa fisik Rp ${sisaNominal.toLocaleString('id-ID')} disetor ke Uang Gudang`
+                    keterangan: `Ditutup. Fisik: Rp ${setorFisik.toLocaleString('id-ID')} | Kasbon: Rp ${selisihKasbon.toLocaleString('id-ID')}`
                 })
                 .eq('id', rincianId);
 
             if (errUpdate) throw errUpdate;
 
-            // 2. Jika dompet asalnya BUKAN Uang Gudang, pindahkan saldo refund-nya secara paksa ke Uang Gudang!
-            if (sumberDanaAsli !== 'Uang Gudang') {
+            // LANGKAH B: Pindahkan Uang FISIK-nya saja ke Uang Gudang
+            if (sumberDanaAsli !== 'Uang Gudang' && setorFisik > 0) {
                 const { data: kas } = await window.supabase.from('kas_perusahaan').select('*').eq('id', 1).single();
-                
                 if(kas) {
                     let uk = Number(kas.uang_keuangan) || 0;
                     let uo = Number(kas.uang_owner) || 0;
                     let ug = Number(kas.uang_gudang) || 0;
 
-                    // Tarik saldo dari dompet asal
-                    if (sumberDanaAsli === 'Uang Keuangan') uk -= sisaNominal;
-                    else if (sumberDanaAsli === 'Uang Owner') uo -= sisaNominal;
+                    // Tarik uang fisiknya dari dompet asal
+                    if (sumberDanaAsli === 'Uang Keuangan') uk -= setorFisik;
+                    else if (sumberDanaAsli === 'Uang Owner') uo -= setorFisik;
                     
                     // Masukkan ke dompet gudang
-                    ug += sisaNominal;
+                    ug += setorFisik;
 
-                    // Eksekusi update mutasi kas final
                     await window.supabase.from('kas_perusahaan')
                         .update({ uang_keuangan: uk, uang_owner: uo, uang_gudang: ug })
                         .eq('id', 1);
                 }
             }
 
-            alert("Mantap! Sisa Uang Jalan sukses diamankan ke brankas Uang Gudang!");
+            // LANGKAH C: Eksekusi Kasbon (Jika ada selisih uang hilang)
+            if (selisihKasbon > 0) {
+                const { error: errKasbon } = await window.supabase
+                    .from('rincian_pengeluaran')
+                    .insert({
+                        pengeluaran_id: pengeluaranId,
+                        nama_item: 'Kasbon - Kurang Setor Uang Jalan',
+                        nominal: selisihKasbon,
+                        keterangan: 'Otomatis dari sistem karena fisik yang disetor kurang',
+                        keterangan_bayar: true,
+                        status_approval: 'Disetujui' // 🔥 Langsung di-ACC supaya Trigger Gaji bekerja!
+                    });
+                    
+                if (errKasbon) throw errKasbon;
+            }
+
+            alert("Mantap! Buku harian driver sukses ditutup dan disinkronisasi ke Kas & Gaji.");
             window.location.reload();
         } catch(e) {
             alert("Gagal memproses penyetoran sisa uang: " + e.message);

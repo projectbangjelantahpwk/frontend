@@ -7,7 +7,7 @@ export async function uploadImageToImgbb(file) {
 
   // Jaga-jaga kalau .env lu belum ke-load atau salah ketik[cite: 2]
   if (!API_KEY) {
-    throw new Error("API Key ImgBB belum terbaca dari .env bro! Coba restart server Astro-nya.");
+    throw new Error("API Key ImgBB belum terbaca dari .env! Coba restart server Astro-nya.");
   }
 
   // 1. Ubah file jadi teks Base64 biar gampang nembus CORS browser[cite: 2]

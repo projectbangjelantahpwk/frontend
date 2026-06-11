@@ -1,0 +1,470 @@
+---
+import GeneralLayout from '../layouts/Layout.astro';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+---
+
+<GeneralLayout title="Pemasukan Kas - Manajemen Bang Jelantah">
+    <style is:global>
+        body { display: none; } /* Keamanan rute layout utama kalian */
+    </style>
+
+    <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Pemasukan & Setoran Kas</h1>
+            <p class="text-gray-600">Catat omset penjualan minyak jelantah, suntikan modal owner, serta setoran driver lapangan.</p>
+        </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex flex-wrap gap-4 items-center relative z-20">
+        <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Mulai Tanggal</label>
+            <input type="date" id="filter-start-pemasukan" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-600">
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Sampai Tanggal</label>
+            <input type="date" id="filter-end-pemasukan" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-600">
+        </div>
+        <div class="flex gap-2 items-center">
+            <button onclick="filterTabelPemasukan()" class="bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-800 transition">Filter Data</button>
+            
+            <div class="group relative cursor-help">
+                <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-200 hover:bg-blue-100 transition shadow-sm">
+                    <i class="bi bi-info-circle-fill text-lg"></i>
+                </div>
+                <div class="absolute left-0 md:left-auto md:right-0 top-full mt-2 w-64 bg-white border border-gray-200 shadow-xl rounded-xl p-4 hidden group-hover:block transition-all z-50">
+                    <h4 class="text-xs font-bold text-gray-800 mb-3 border-b border-gray-100 pb-2"><i class="bi bi-palette mr-1 text-blue-500"></i> Panduan Mutasi Warna</h4>
+                    <ul class="text-[11px] space-y-2.5 font-medium text-gray-600">
+                        <li class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-gray-800 shadow-sm"></span> <b>Hitam / Gelap:</b> Dana sukses masuk brankas kas (ACC).</li>
+                        <li class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-orange-500 shadow-sm"></span> <b class="text-orange-600">Oranye:</b> Data dana masih menunggu diverifikasi.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end w-full md:w-auto md:ml-auto">
+            <button onclick="window.bukaModalTambahPemasukan()" class="bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-800 transition shadow-sm flex items-center gap-2 w-full md:w-auto justify-center">
+                <i class="bi bi-plus-circle-fill"></i> Input Pemasukan Kas
+            </button>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-gray-50 id-sticky top-0">
+                    <tr>
+                        <th class="px-6 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">Jam</th>
+                        <th class="px-6 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">Pencatat / Admin</th>
+                        <th class="px-6 py-4 text-sm font-bold text-gray-900">Rincian Aliran Pemasukan</th>
+                        <th class="px-6 py-4 text-sm font-bold text-gray-900 text-center w-36">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="pemasukan-tbody" class="divide-y divide-gray-200 text-gray-700">
+                    <tr>
+                        <td colspan="4" class="text-center py-8 text-gray-400 italic">Memuat data mutasi pemasukan kas...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="modal-tambah-pemasukan" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
+        <div class="bg-white rounded-2xl w-full max-w-xl overflow-hidden transform scale-95 transition-transform duration-300 shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-blue-50 shrink-0">
+                <div>
+                    <h3 class="font-bold text-lg text-gray-900">Catat Pemasukan Kas</h3>
+                    <p class="text-xs text-blue-800 font-medium">Suntik dana segar langsung terhubung ke pencatatan kas utama</p>
+                </div>
+                <button type="button" onclick="closeModal('modal-tambah-pemasukan')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
+            </div>
+
+            <form id="form-tambah-pemasukan" onsubmit="window.eksekusiTambahPemasukan(event)" class="p-6 flex flex-col overflow-hidden space-y-4">
+                <div class="grid grid-cols-2 gap-3 shrink-0">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Pencatat / Admin</label>
+                        <input type="text" id="add_pem_user_nama" class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-none bg-gray-100 text-gray-600 font-bold cursor-not-allowed" readonly>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Tanggal Terima Dana</label>
+                        <input type="date" id="add_pem_tgl" class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-none focus:border-blue-600 font-medium" required>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto space-y-3 pr-1 min-h-[150px]" id="add_pem_items_container"></div>
+
+                <div class="pt-2 shrink-0 border-t border-gray-100">
+                    <button type="button" onclick="window.tambahBarisItemPemasukan()" class="w-full bg-gray-100 text-gray-700 font-bold py-2 rounded-xl text-xs hover:bg-gray-200 transition border border-gray-300 flex items-center justify-center gap-1.5 mb-3">
+                        <i class="bi bi-plus-lg"></i> TAMBAH RINCIAN NOTA BARU
+                    </button>
+
+                    <div class="bg-gray-100 p-3 rounded-xl border border-gray-200 font-bold text-xs flex justify-between items-center mt-2">
+                        <span>TOTAL AKUMULASI OMSET MASUK:</span>
+                        <span id="add_pem_total_text" class="text-blue-700 text-base font-mono">Rp 0</span>
+                    </div>
+
+                    <div class="mt-3 mb-3">
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Tujuan Aliran Kas (Uang Masuk ke Mana?)</label>
+                        <select id="add_sumber_dana" class="w-full border border-blue-300 rounded-xl p-2.5 text-sm outline-none focus:border-blue-600 bg-blue-50/30 font-semibold shadow-sm text-blue-900" required>
+                            <option value="Uang Keuangan">Uang Keuangan (Brankas Utama)</option>
+                            <option value="Uang Gudang">Uang Gudang (Kas Operasional)</option>
+                            <option value="Uang Owner">Uang Owner (Kas Pribadi Owner)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" id="btn-submit-tambah-pem" class="w-full bg-blue-700 text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition shadow-sm font-mono tracking-wide">
+                        SIMPAN DATA MASUK KE SERVER
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-edit-pemasukan" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
+        <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 shadow-2xl flex flex-col">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 class="font-bold text-base text-gray-900">Koreksi Item Rincian</h3>
+                <button type="button" onclick="closeModal('modal-edit-pemasukan')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <form id="form-edit-pemasukan" class="p-6 space-y-4">
+                <input type="hidden" id="edit_pem_id">
+                <div id="edit_pem_items_container" class="space-y-3"></div>
+                <div class="pt-2 flex justify-between items-center bg-gray-50 p-3 rounded-xl border text-xs font-bold">
+                    <span>NILAI KOREKSI BARU:</span>
+                    <span id="edit_pem_total_text" class="text-blue-700 text-sm font-mono">Rp 0</span>
+                </div>
+                <button type="submit" id="btn-save-pem" class="w-full bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs hover:bg-blue-800 shadow-sm font-mono">
+                    SIMPAN PERUBAHAN DATA MASUK
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script is:inline>
+        const masterKategoriPem = ['Hasil Jual Minyak', 'Setoran Driver', 'Suntikan Modal Owner', 'Lain-lain'];
+
+        // KONTROL ANIMASI MODAL UTAMA
+        window.openModal = function(id) {
+            const m = document.getElementById(id); if(!m) return;
+            m.classList.remove('hidden'); m.classList.add('flex');
+            setTimeout(() => { m.classList.remove('opacity-0'); const c = m.querySelector('div'); if(c) c.classList.remove('scale-95'); }, 10);
+        };
+        window.closeModal = function(id) {
+            const m = document.getElementById(id); if(!m) return;
+            m.classList.add('opacity-0'); const c = m.querySelector('div'); if(c) c.classList.add('scale-95');
+            setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
+        };
+
+        // RENDER DAN KONEKSI DATA TIMELINE HARIAN
+        async function loadDataPemasukan() {
+            if(!window.supabase) return;
+            try {
+                const { data: pemasukan } = await window.supabase.from('pemasukan')
+                    .select('*, profiles(nama), rincian_pemasukan(*)')
+                    .order('tanggal', { ascending: false })
+                    .order('updated_at', { ascending: false });
+
+                const tbody = document.getElementById('pemasukan-tbody');
+                let htmlStr = ''; let currentDate = '';
+
+                pemasukan?.forEach(p => {
+                    // SEPARATOR PITAS TANGGAL
+                    if (p.tanggal !== currentDate) {
+                        currentDate = p.tanggal;
+                        const dateObj = new Date(currentDate);
+                        const tglFormat = dateObj.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Jakarta' });
+                        htmlStr += `
+                        <tr class="bg-blue-50/70 border-y border-blue-200 shadow-[inset_0_1px_0_rgba(255,255,255,1)]">
+                            <td colspan="4" class="px-6 py-3 text-xs font-black text-blue-900 uppercase tracking-widest">
+                                <i class="bi bi-calendar-check-fill mr-1 text-blue-700 text-sm"></i> ${tglFormat}
+                            </td>
+                        </tr>`;
+                    }
+
+                    const timestamp = p.updated_at || p.created_at;
+                    const jamStr = timestamp ? new Date(timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) : '-';
+
+                    p.rincian_pemasukan?.forEach(r => {
+                        const subKeterangan = r.keterangan ? `<div class="text-[10px] text-gray-400 mt-0.5 line-clamp-1">${r.keterangan}</div>` : '';
+                        const itemStatus = r.status_approval || p.status_approval || 'Menunggu';
+
+                        let textColor, nominalColor, badgeStatus;
+                        if (itemStatus === 'Disetujui') {
+                            textColor = 'text-gray-800 font-bold';
+                            nominalColor = 'text-gray-900 font-mono font-bold';
+                            badgeStatus = `<span class="text-[9px] font-bold text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-300 ml-2 uppercase">✔ MASUK KAS</span>`;
+                        } else {
+                            textColor = 'text-orange-600 font-bold';
+                            nominalColor = 'text-orange-600 font-mono font-bold';
+                            badgeStatus = `<span class="text-[9px] font-bold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-200 ml-2 uppercase">PENDING</span>`;
+                        }
+
+                        // HANDLING TOMBOL AKSI MANDIRI PER-ITEM
+                        let statusBtn = '';
+                        if(itemStatus === 'Menunggu') {
+                            statusBtn = `
+                            <div class="flex flex-col gap-1.5">
+                                <button onclick="window.approveItemDirect('${r.id}', 'Disetujui')" class="bg-green-50 text-green-700 px-2.5 py-1.5 rounded text-[11px] font-bold hover:bg-green-100 border border-green-200 text-left transition"><i class="bi bi-check2-circle mr-1"></i> ACC Masuk</button>
+                                <div class="grid grid-cols-2 gap-1.5">
+                                    <button onclick="window.bukaModalEditItemDirect('${r.id}', '${r.nama_item}', ${r.nominal}, '${r.keterangan || ''}', '${p.sumber_dana || 'Uang Keuangan'}', '${p.id}')" class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-[10px] font-bold hover:bg-blue-100 border border-blue-200 transition" title="Edit"><i class="bi bi-pencil-square"></i></button>
+                                    <button onclick="window.hapusItemPemasukan('${r.id}')" class="bg-red-50 text-red-600 px-2 py-1 rounded text-[10px] font-bold hover:bg-red-100 border border-red-200 transition" title="Hapus"><i class="bi bi-trash"></i></button>
+                                </div>
+                            </div>`;
+                        } else {
+                            statusBtn = `<div class="text-center"><span class="inline-flex px-3 py-1 rounded text-[11px] font-bold border bg-gray-100 text-gray-700 border-gray-300">${itemStatus}</span></div>`;
+                        }
+
+                        htmlStr += `
+                        <tr class="hover:bg-white transition-colors border-b border-gray-100">
+                            <td class="px-6 py-4 text-sm align-middle font-mono text-gray-400 font-semibold whitespace-nowrap">${jamStr}</td>
+                            <td class="px-6 py-4 text-sm align-middle whitespace-nowrap">
+                                <div class="text-gray-700 font-semibold"><i class="bi bi-person-circle text-gray-300 mr-1"></i> ${p.profiles?.nama || 'Unknown'}</div>
+                                ${p.sumber_dana ? `<div class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-purple-50 text-purple-700 border border-purple-200"><i class="bi bi-wallet2"></i> Ke: ${p.sumber_dana}</div>` : ''}
+                            </td>
+                            <td class="px-6 py-4 text-sm align-middle">
+                                <div class="flex justify-between items-start gap-4">
+                                    <div class="${textColor}">
+                                        <div class="flex items-center"><span class="text-sm tracking-tight">${r.nama_item}</span>${badgeStatus}</div>
+                                        ${subKeterangan}
+                                    </div>
+                                    <div class="text-right whitespace-nowrap">
+                                        <span class="${nominalColor} text-sm">Rp ${Number(r.nominal).toLocaleString('id-ID')}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 text-xs align-middle">${statusBtn}</td>
+                        </tr>`;
+                    });
+                });
+
+                tbody.innerHTML = htmlStr || '<tr><td colspan="4" class="text-center py-6 text-gray-400 font-medium italic">Belum ada mutasi keuangan masuk</td></tr>';
+            } catch (err) { console.error("Gagal memuat list:", err); }
+        }
+
+        // AKSI INTERAKTIF DROPDOWN INJECT FORM INPUT BARU
+        window.bukaModalTambahPemasukan = function() {
+            // 🔥 Otomatis tembak nama asli yang lagi login ke form
+            const inputNama = document.getElementById('add_pem_user_nama');
+            if(inputNama) inputNama.value = window.namaPencatatAsli;
+
+            document.getElementById('add_pem_tgl').value = new Date().toLocaleDateString('en-CA');
+            document.getElementById('add_pem_items_container').innerHTML = '';
+            window.tambahBarisItemPemasukan();
+            window.openModal('modal-tambah-pemasukan');
+        };
+
+        window.tambahBarisItemPemasukan = function() {
+            const container = document.getElementById('add_pem_items_container');
+            let optKategori = masterKategoriPem.map(kat => `<option value="${kat}">${kat}</option>`).join('');
+            
+            const div = document.createElement('div');
+            div.className = "add-item-row p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2 relative";
+            div.innerHTML = `
+                <button type="button" onclick="this.parentElement.remove(); window.hitungTotalTambahPem();" class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-xs"><i class="bi bi-trash"></i></button>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Kategori</label>
+                        <select class="add_item_select w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-semibold" onchange="window.togglePemLainLain(this)">
+                            ${optKategori}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Nominal Uang Masuk (Rp)</label>
+                        <input type="number" class="add_item_nominal w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-mono font-bold text-blue-800" value="0" oninput="window.hitungTotalTambahPem()" required>
+                    </div>
+                </div>
+                <div class="add_custom_box hidden">
+                    <label class="text-[10px] font-bold text-blue-700 uppercase">Keterangan Spesifik / Sumber Custom</label>
+                    <input type="text" class="add_item_custom w-full border border-blue-200 bg-blue-50/50 rounded-lg p-2 text-xs outline-none font-medium focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">Catatan Tambahan (Opsional)</label>
+                    <input type="text" class="add_item_keterangan w-full border border-gray-300 rounded-lg p-2 text-xs outline-none font-medium" placeholder="Contoh: Setoran 40 Liter">
+                </div>`;
+            container.appendChild(div);
+        };
+
+        window.togglePemLainLain = function(selectEl) {
+            const box = selectEl.parentElement.parentElement.parentElement.querySelector('.add_custom_box, .peng_custom_box');
+            if(box) { selectEl.value === 'Lain-lain' ? box.classList.remove('hidden') : box.classList.add('hidden'); }
+        };
+        window.hitungTotalTambahPem = function() {
+            let total = 0;
+            document.querySelectorAll('.add_item_nominal').forEach(input => total += parseFloat(input.value) || 0);
+            document.getElementById('add_pem_total_text').innerText = "Rp " + total.toLocaleString('id-ID');
+        };
+
+        // SIMPAN DATA INPUTAN BARU KE SERVER (SUPABASE)
+        window.eksekusiTambahPemasukan = async function(e) {
+            e.preventDefault(); if(!window.supabase) return;
+
+            const userId = window.idPencatatAsli;
+            const tanggalStr = document.getElementById('add_pem_tgl').value;
+            const sumberDana = document.getElementById('add_sumber_dana').value; 
+            const btnSubmit = document.getElementById('btn-submit-tambah-pem');
+            const itemRows = document.querySelectorAll('.add-item-row');
+
+            if(itemRows.length === 0) return alert('Tambahkan rincian item-nya minimal satu baris!');
+            btnSubmit.innerText = "Memproses Pemasukan..."; btnSubmit.disabled = true;
+
+            try {
+                const rincianItems = [];
+                itemRows.forEach(row => {
+                    const kategori = row.querySelector('.add_item_select').value;
+                    const customText = row.querySelector('.add_item_custom')?.value.trim();
+                    const nominal = parseFloat(row.querySelector('.add_item_nominal').value) || 0;
+                    const keterangan = row.querySelector('.add_item_keterangan').value.trim();
+
+                    let finalNama = kategori === 'Lain-lain' ? (customText || 'Lain-lain') : kategori;
+                    rincianItems.push({ nama_item: finalNama, nominal: nominal, keterangan: keterangan || null });
+                });
+
+                // LANGKAH A: Cek baris induk harian berdasarkan dompet tujuan kas yang sama
+                const { data: existing } = await window.supabase.from('pemasukan')
+                    .select('id').eq('user_id', userId).eq('tanggal', tanggalStr).eq('sumber_dana', sumberDana).maybeSingle();
+
+                let pemasukanId;
+                if (existing) {
+                    pemasukanId = existing.id;
+                } else {
+                    const { data: inserted, error: errInsert } = await window.supabase.from('pemasukan')
+                        .insert({ user_id: userId, tanggal: tanggalStr, total_harian: 0, status_approval: 'Menunggu', sumber_dana: sumberDana })
+                        .select('id').single();
+                    if(errInsert) throw errInsert;
+                    pemasukanId = inserted.id;
+                }
+
+                // LANGKAH B: Masukkan data anak-anak rinciannya
+                const finalToInsert = rincianItems.map(item => ({
+                    pemasukan_id: pemasukanId, nama_item: item.nama_item, nominal: item.nominal, keterangan: item.keterangan
+                }));
+                const { error: errRincian } = await window.supabase.from('rincian_pemasukan').insert(finalToInsert);
+                if(errRincian) throw errRincian;
+
+                alert("Mantap! Setoran pemasukan sukses dicatat ke server."); window.location.reload();
+            } catch (err) { alert(err.message); btnSubmit.innerText = "SIMPAN DATA MASUK KE SERVER"; btnSubmit.disabled = false; }
+        };
+
+        // EXECUTE PERSETUJUAN ACC PER ITEM (AUTO CREDIT RUNNING)
+        window.approveItemDirect = async function(id, statusText) {
+            if(!confirm(`Yakin ingin menyetujui aliran dana ini? Saldo brankas otomatis akan bertambah.`)) return;
+            try {
+                const { error } = await window.supabase.from('rincian_pemasukan').update({ status_approval: statusText }).eq('id', id);
+                if(error) throw error; window.location.reload();
+            } catch (err) { alert(err.message); }
+        };
+
+        // HAPUS ITEM TUNGGAL
+        window.hapusItemPemasukan = async function(id) {
+            if(!confirm('Hapus item rincian ini?')) return;
+            try {
+                const { error } = await window.supabase.from('rincian_pemasukan').delete().eq('id', id);
+                if(error) throw error; window.location.reload();
+            } catch (err) { alert(err.message); }
+        };
+
+        // EDIT LOGIK MANDIRI PER ITEM
+        window.bukaModalEditItemDirect = function(rincianId, namaItem, nominal, keterangan, sumberDana, pemasukanId) {
+            document.getElementById('edit_pem_id').value = rincianId;
+            document.getElementById('form-edit-pemasukan').dataset.pemId = pemasukanId;
+
+            const isBase = masterKategoriPem.includes(namaItem);
+            const selectVal = isBase ? namaItem : 'Lain-lain';
+            const customVal = isBase ? '' : namaItem;
+
+            let optHtml = masterKategoriPem.map(k => `<option value="${k}" ${k === selectVal ? 'selected' : ''}>${k}</option>`).join('');
+
+            document.getElementById('edit_pem_items_container').innerHTML = `
+            <div class="peng-item-row p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2.5 relative">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Kategori</label>
+                        <select class="peng_item_select w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-semibold" onchange="window.togglePemLainLain(this)">
+                            ${optHtml}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Nominal Omset (Rp)</label>
+                        <input type="number" class="peng_item_nominal w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-mono font-bold text-green-800" value="${nominal}" oninput="window.hitungTotalEditPem()" required>
+                    </div>
+                </div>
+                <div class="peng_custom_box ${selectVal === 'Lain-lain' ? '' : 'hidden'}">
+                    <label class="text-[10px] font-bold text-blue-700 uppercase">Keterangan Spesifik / Custom</label>
+                    <input type="text" class="peng_item_custom w-full border border-blue-200 bg-blue-50/50 rounded-lg p-2 text-xs outline-none font-medium focus:border-blue-500" value="${customVal}">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">Catatan / Detail (Opsional)</label>
+                    <input type="text" class="edit_item_keterangan w-full border border-gray-300 rounded-lg p-2 text-xs outline-none font-medium" value="${keterangan}">
+                </div>
+                <div class="mt-2 pt-2 border-t border-gray-200">
+                    <label class="text-[10px] font-bold text-purple-700 uppercase">Koreksi Tujuan Kas</label>
+                    <select class="edit_sumber_dana w-full border border-purple-200 bg-purple-50/50 rounded-lg p-2 text-xs outline-none font-semibold text-purple-800">
+                        <option value="Uang Keuangan" ${sumberDana === 'Uang Keuangan' ? 'selected' : ''}>Uang Keuangan</option>
+                        <option value="Uang Gudang" ${sumberDana === 'Uang Gudang' ? 'selected' : ''}>Uang Gudang</option>
+                        <option value="Uang Owner" ${sumberDana === 'Uang Owner' ? 'selected' : ''}>Uang Owner</option>
+                    </select>
+                </div>
+            </div>`;
+
+            window.hitungTotalEditPem();
+            const form = document.getElementById('form-edit-pemasukan');
+            form.onsubmit = window.simpanEditItemSinglePem;
+            window.openModal('modal-edit-pemasukan');
+        };
+
+        window.hitungTotalEditPem = function() {
+            const val = parseFloat(document.querySelector('.peng_item_nominal')?.value) || 0;
+            document.getElementById('edit_pem_total_text').innerText = "Rp " + val.toLocaleString('id-ID');
+        };
+
+        window.simpanEditItemSinglePem = async function(e) {
+            e.preventDefault(); if(!window.supabase) return;
+            const btn = document.getElementById('btn-save-pem');
+            btn.innerText = "Menyimpan..."; btn.disabled = true;
+
+            try {
+                const pId = document.getElementById('form-edit-pemasukan').dataset.pemId;
+                const rId = document.getElementById('edit_pem_id').value;
+                const row = document.querySelector('.peng-item-row');
+
+                const kategori = row.querySelector('.peng_item_select').value;
+                const nominal = parseFloat(row.querySelector('.peng_item_nominal').value) || 0;
+                const txtCustom = row.querySelector('.peng_item_custom').value.trim();
+                const keterangan = row.querySelector('.edit_item_keterangan').value.trim();
+                const kasBaru = row.querySelector('.edit_sumber_dana').value;
+
+                let finalNama = kategori === 'Lain-lain' ? (txtCustom || 'Lain-lain') : kategori;
+
+                await window.supabase.from('rincian_pemasukan').update({ nama_item: finalNama, nominal: nominal, keterangan: keterangan || null }).eq('id', rId);
+                if(pId) { await window.supabase.from('pemasukan').update({ sumber_dana: kasBaru }).eq('id', pId); }
+
+                alert("Koreksi pemasukan sukses diperbarui!"); window.location.reload();
+            } catch (err) { alert(err.message); btn.innerText = "SIMPAN PERUBAHAN DATA MASUK"; btn.disabled = false; }
+        };
+
+        // BOOTSTRAP INITIALIZER LOADERS & SESSION GATEKEEPER
+        document.addEventListener('DOMContentLoaded', async () => {
+            const allowedRoles = ['owner', 'hrd', 'admin', 'keuangan'];
+            const client = window.supabase || supabase;
+            
+            const { data: { session } } = await client.auth.getSession();
+            if (!session) return window.location.replace('/');
+            
+            // Tarik data profil dari Supabase
+            const { data: prof } = await client.from('profiles').select('role, nama').eq('id', session.user.id).single();
+            if (!allowedRoles.includes(prof?.role)) {
+                alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk ke Keuangan.`);
+                return window.location.replace('/');
+            }
+            
+            // 🔥 SIMPAN ID DAN NAMA LOGIN SECARA GLOBAL
+            window.idPencatatAsli = session.user.id;
+            window.namaPencatatAsli = prof?.nama || 'Admin/User';
+
+            // Mengizinkan halaman terlihat
+            document.body.style.display = 'block'; 
+            setTimeout(() => {
+                loadDataPemasukan();
+            }, 100);
+        });
+    </script>
+</GeneralLayout>

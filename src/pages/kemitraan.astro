@@ -107,6 +107,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">Rute</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">No HP</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold">Sumber Mitra</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Jenis Pelanggan</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold text-center">Alamat</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold text-center">Deposit</th>
                                     <th class="p-md font-label-lg text-on-surface-variant font-semibold text-center">Jml Transaksi</th>
@@ -242,81 +243,115 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         </div>
     </div>
 
-    <div class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-container-margin opacity-0 transition-opacity duration-300" id="conversionModal">
-        <div class="bg-surface-container-lowest rounded-xl shadow-lg w-full max-w-md p-lg transform scale-95 transition-transform duration-300 relative">
-            <button class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors" onclick="closeModal('conversionModal')">
+    <div class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300" id="conversionModal">
+        
+        <div class="relative w-full max-w-md transform scale-95 transition-transform duration-300 mt-8 md:mt-0">
+            
+            <button class="absolute -top-12 right-0 md:-right-14 md:top-0 w-10 h-10 flex items-center justify-center bg-white text-gray-700 hover:text-red-600 hover:bg-gray-50 rounded-full shadow-lg border border-gray-200 transition-all z-10" onclick="closeModal('conversionModal')">
                 <span class="material-symbols-outlined">close</span>
             </button>
-            <h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Jadikan Langganan</h3>
-            <p class="font-body-md text-body-md text-on-surface-variant mb-md">Prospek ini akan dipindahkan ke daftar Mitra Langganan.</p>
-            <form class="flex flex-col gap-md" id="formKonversiLangganan">
-                <div>
-                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">No HP Prospek</label>
-                    <input class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container text-on-surface outline-none font-bold" id="konversi_hp" type="text" readonly>
-                </div>
-                <div>
-                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Nama Lengkap Toko/Mitra</label>
-                    <input id="konversi_nama" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="Masukkan nama mitra" type="text" required>
-                </div>
-                <div>
-                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Rute Penjemputan</label>
-                    <select id="konversi_rute" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
-                        <option value="">-- Memuat Rute... --</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Alamat Lengkap Domisili</label>
-                    <textarea id="konversi_alamat" class="w-full p-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none" placeholder="Contoh: Jl. Raya Purwakarta No. 123, Mulyamekar" rows="2" required></textarea>
-                </div>
-                <div>
-                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Link Google Maps (G-Maps)</label>
-                    <input id="konversi_gmaps" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="https://maps.google.com/..." type="url" required>
-                </div>
-                <div class="mt-sm flex justify-end gap-sm">
-                    <button class="px-md h-touch-target rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="closeModal('conversionModal')" type="button">Batal</button>
-                    <button class="px-md h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors" type="submit" id="btn-submit-konversi">Simpan & Pindahkan</button>
-                </div>
-            </form>
+            
+            <div class="bg-surface-container-lowest rounded-xl shadow-xl p-5 md:p-6 max-h-[80vh] overflow-y-auto scrollbar-hide relative flex flex-col">
+                
+                <h3 class="font-headline-md text-headline-md text-on-surface mb-1">Jadikan Langganan</h3>
+                <p class="font-body-md text-body-md text-on-surface-variant mb-4">Prospek ini akan dipindahkan ke daftar Mitra Langganan.</p>
+                
+                <form class="flex flex-col gap-4 pb-2" id="formKonversiLangganan">
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">No HP Prospek</label>
+                        <input class="w-full h-12 px-3 rounded-lg border border-outline-variant bg-surface-container text-on-surface outline-none font-bold" id="konversi_hp" type="text" readonly>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">Nama Lengkap Toko/Mitra</label>
+                        <input id="konversi_nama" class="w-full h-12 px-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="Masukkan nama mitra" type="text" required>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">Rute Penjemputan</label>
+                        <select id="konversi_rute" class="w-full h-12 px-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                            <option value="">-- Memuat Rute... --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">Jenis Pelanggan</label>
+                        <select id="konversi_jenis" class="w-full h-12 px-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                            <option value="Rumah Tangga">Rumah Tangga / Perorangan</option>
+                            <option value="Restoran/Rumah Makan">Restoran / Rumah Makan</option>
+                            <option value="Pengepul Kecil">Pengepul Kecil</option>
+                            <option value="Pabrik/Industri">Pabrik / Industri</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">Alamat Lengkap Domisili</label>
+                        <textarea id="konversi_alamat" class="w-full p-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none" placeholder="Contoh: Jl. Raya Purwakarta No. 123, Mulyamekar" rows="2" required></textarea>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">Link Google Maps (G-Maps)</label>
+                        <input id="konversi_gmaps" class="w-full h-12 px-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="https://maps.google.com/..." type="url" required>
+                    </div>
+                    
+                    <div class="mt-2 flex justify-end gap-3 pt-4 border-t border-gray-100">
+                        <button class="px-5 py-2.5 rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="closeModal('conversionModal')" type="button">Batal</button>
+                        <button class="px-5 py-2.5 bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors" type="submit" id="btn-submit-konversi">Simpan & Pindahkan</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
     <div class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-container-margin opacity-0 transition-opacity duration-300" id="modal-tambah-langganan">
-        <div class="bg-surface-container-lowest rounded-xl shadow-lg w-full max-w-md p-lg transform scale-95 transition-transform duration-300 relative">
-            <button class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors" onclick="closeModal('modal-tambah-langganan')">
+        
+        <div class="relative w-full max-w-md transform scale-95 transition-transform duration-300">
+            
+            <button class="absolute -top-12 right-0 md:-right-14 md:top-0 w-10 h-10 flex items-center justify-center bg-white text-gray-700 hover:text-red-600 hover:bg-gray-50 rounded-full shadow-lg border border-gray-200 transition-all z-10" onclick="closeModal('modal-tambah-langganan')">
                 <span class="material-symbols-outlined">close</span>
             </button>
-            <h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Tambah Langganan Baru</h3>
-            <p class="font-body-md text-body-md text-on-surface-variant mb-md">Pilih prospek untuk dikonversi menjadi Mitra Langganan.</p>
-            <form class="flex flex-col gap-md" id="form-tambah-langganan">
-                <div>
-                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Pilih Prospek (No HP)</label>
-                    <select id="tambah_langganan_hp" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none cursor-pointer" required>
-                        <option value="">-- Memuat Data Prospek... --</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Nama Lengkap Toko/Mitra</label>
-                    <input id="tambah_langganan_nama" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="Masukkan nama mitra" type="text" required>
-                </div>
-                <div>
-                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Alamat Lengkap Domisili</label>
-                    <textarea id="tambah_langganan_alamat" class="w-full p-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none" placeholder="Contoh: Jl. Raya Purwakarta No. 123, Mulyamekar" rows="2" required></textarea>
-                </div>
-                <div>
-                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Rute Penjemputan</label>
-                    <select id="tambah_langganan_rute" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
-                        <option value="">-- Memuat Rute... --</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Link Google Maps (G-Maps)</label>
-                    <input id="tambah_langganan_gmaps" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="https://maps.google.com/..." type="url" required>
-                </div>
-                <div class="mt-sm flex justify-end gap-sm">
-                    <button class="px-md h-touch-target rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="closeModal('modal-tambah-langganan')" type="button">Batal</button>
-                    <button class="px-md h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors" type="submit" id="btn-submit-tambah-langganan">Simpan & Konversi</button>
-                </div>
-            </form>
+            
+            <div class="bg-surface-container-lowest rounded-xl shadow-xl p-lg max-h-[85vh] overflow-y-auto scrollbar-hide relative">
+                <h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Tambah Langganan Baru</h3>
+                <p class="font-body-md text-body-md text-on-surface-variant mb-md">Pilih prospek untuk dikonversi menjadi Mitra Langganan.</p>
+                
+                <form class="flex flex-col gap-md" id="form-tambah-langganan">
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Pilih Prospek (No HP)</label>
+                        <select id="tambah_langganan_hp" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none cursor-pointer" required>
+                            <option value="">-- Memuat Data Prospek... --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Nama Lengkap Toko/Mitra</label>
+                        <input id="tambah_langganan_nama" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="Masukkan nama mitra" type="text" required>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Alamat Lengkap Domisili</label>
+                        <textarea id="tambah_langganan_alamat" class="w-full p-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none" placeholder="Contoh: Jl. Raya Purwakarta No. 123, Mulyamekar" rows="2" required></textarea>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Rute Penjemputan</label>
+                        <select id="tambah_langganan_rute" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                            <option value="">-- Memuat Rute... --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Jenis Pelanggan</label>
+                        <select id="tambah_langganan_jenis" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                            <option value="Rumah Tangga">Rumah Tangga / Perorangan</option>
+                            <option value="Restoran/Rumah Makan">Restoran / Rumah Makan</option>
+                            <option value="Pengepul Kecil">Pengepul Kecil</option>
+                            <option value="Pabrik/Industri">Pabrik / Industri</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Link Google Maps (G-Maps)</label>
+                        <input id="tambah_langganan_gmaps" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="https://maps.google.com/..." type="url" required>
+                    </div>
+                    <div class="mt-sm flex justify-end gap-sm pt-2">
+                        <button class="px-md h-touch-target rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="closeModal('modal-tambah-langganan')" type="button">Batal</button>
+                        <button class="px-md h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors" type="submit" id="btn-submit-tambah-langganan">Simpan & Konversi</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
     <div class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-container-margin opacity-0 transition-opacity duration-300" id="modal-edit-mitra">
@@ -354,6 +389,17 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             <option value="Instagram">Instagram</option>
                             <option value="Facebook">Facebook</option>
                             <option value="Tiktok">Tiktok</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Jenis Pelanggan</label>
+                        <select id="edit_mitra_jenis" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                            <option value="Rumah Tangga">Rumah Tangga / Perorangan</option>
+                            <option value="Restoran/Rumah Makan">Restoran / Rumah Makan</option>
+                            <option value="MBG">MBG</option>
+                            <option value="Pengepul Kecil">Pengepul Kecil</option>
+                            <option value="Pabrik/Industri">Pabrik / Industri</option>
                             <option value="Lainnya">Lainnya</option>
                         </select>
                     </div>
@@ -722,7 +768,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
                 // B. Mitra Langganan
                 const { data: langganan, error: errLang } = await window.supabase.from('mitra')
-                    .select('id, nama_mitra, rute_jemput, nomor_hp, alamat, link_gmaps, total_order, total_transaksi, activated, sumber_mitra, created_at, deposit')
+                    .select('id, nama_mitra, rute_jemput, nomor_hp, alamat, link_gmaps, total_order, total_transaksi, activated, sumber_mitra, created_at, deposit, jenis_pelanggan, tgl_transaksi_pertama')
                     .eq('activated', true)
                     .order('created_at', { ascending: false });
 
@@ -759,6 +805,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             <div class="grid grid-cols-2 gap-sm pt-xs">
                                 <div><p class="font-label-sm text-on-surface-variant">No HP</p><p class="font-body-md text-on-surface">${l.nomor_hp || '-'}</p></div>
                                 <div><p class="font-label-sm text-on-surface-variant">Sumber</p><p class="font-body-md text-on-surface font-semibold">${l.sumber_mitra || 'Lainnya'}</p></div>
+                                <div><p class="font-label-sm text-on-surface-variant">Jenis Mitra</p><p class="font-body-md text-on-surface">${l.jenis_pelanggan || 'Lainnya'}</p></div>
                                 <div><p class="font-label-sm text-on-surface-variant">Transaksi</p><p class="font-body-md text-on-surface">${l.total_order || 0}x</p></div>
                                 <div><p class="font-label-sm text-on-surface-variant">Deposit</p><p class="font-body-md text-green-700 font-bold">Rp ${Number(l.deposit || 0).toLocaleString('id-ID')}</p></div>
                             </div>
@@ -776,17 +823,16 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         htmlLangTable += `
                         <tr class="hover:bg-surface-container-low transition-colors group">
                             <td class="p-md text-center text-sm font-bold text-on-surface-variant">${index + 1}</td>
-                            
-                            <td class="p-md font-body-md text-on-surface font-semibold">
-                                ${l.nama_mitra}
-                            </td>
+                            <td class="p-md font-body-md text-on-surface font-semibold">${l.nama_mitra}</td>
                             <td><span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded uppercase mt-1 inline-block">${l.rute_jemput || 'Tanpa Rute'}</span></td>
                             <td class="p-md font-body-md text-on-surface">${l.nomor_hp || '-'}</td>
                             <td class="p-md"><span class="text-[10px] bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded uppercase inline-block font-medium">${l.sumber_mitra || 'Lainnya'}</span></td>
+                            
+                            <td class="p-md font-body-md text-on-surface">${l.jenis_pelanggan || 'Lainnya'}</td>
+
                             <td class="p-md text-center"><a class="text-primary inline-block p-1 rounded-full hover:bg-primary-container" href="${l.link_gmaps || '#'}" target="_blank"><span class="material-symbols-outlined text-[20px]">location_on</span></a></td>
                             <td class="p-md text-center font-mono font-bold text-green-700">Rp ${Number(l.deposit || 0).toLocaleString('id-ID')}</td>
                             <td class="p-md text-center font-body-md">${l.total_order || 0}x</td>
-                            
                             <td class="p-md text-right flex justify-end gap-2 items-center">
                                 <button onclick="window.broadcastWA('${l.nomor_hp}', '${l.nama_mitra.replace(/'/g, "\\'")}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-[#25D366] rounded-full hover:bg-[#25D366]/15 opacity-0 group-hover:opacity-100 transition-opacity" title="Kirim WA Broadcast">
                                     <i class="bi bi-whatsapp text-[18px]"></i>
@@ -804,6 +850,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 } else {
                     const empty = '<p class="text-on-surface-variant text-center p-md">Tidak ada mitra langganan.</p>';
                     htmlLangMobile = empty; htmlLangTable = `<tr><td colspan="5">${empty}</td></tr>`;
+                    htmlLangTable = `<tr><td colspan="10">${empty}</td></tr>`;
                 }
                 document.getElementById('mitra-langganan-mobile').innerHTML = htmlLangMobile;
                 document.getElementById('mitra-langganan-tbody').innerHTML = htmlLangTable;
@@ -865,14 +912,30 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             // ==========================================
             window.openModal = function(id) {
                 const modal = document.getElementById(id);
+                if(!modal) return;
+                
                 modal.classList.remove('hidden'); void modal.offsetWidth;
-                modal.classList.remove('opacity-0'); modal.querySelector('div').classList.remove('scale-95');
+                modal.classList.remove('opacity-0'); 
+                const isi = modal.querySelector('div');
+                if(isi) isi.classList.remove('scale-95');
+                
+                // 🔥 Kunci body layar belakang biar gak bocor scroll-nya
+                document.body.style.overflow = 'hidden'; 
             };
 
             window.closeModal = function(id) {
                 const modal = document.getElementById(id);
-                modal.classList.add('opacity-0'); modal.querySelector('div').classList.add('scale-95');
-                setTimeout(() => modal.classList.add('hidden'), 300);
+                if(!modal) return;
+                
+                modal.classList.add('opacity-0'); 
+                const isi = modal.querySelector('div');
+                if(isi) isi.classList.add('scale-95');
+                
+                setTimeout(() => { 
+                    modal.classList.add('hidden'); 
+                    // 🔥 Lepas gembok scroll saat modal ditutup
+                    document.body.style.overflow = ''; 
+                }, 300);
             };
 
             // A. TAMBAH PROSPEK BARU
@@ -891,7 +954,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         rute_jemput: document.getElementById('tambah_langganan_rute').value,
                         nomor_hp: hp,
                         alamat: document.getElementById('tambah_langganan_alamat').value,
-                        link_gmaps: document.getElementById('tambah_langganan_gmaps').value, // <--- UBAH JADI GMAPS
+                        link_gmaps: document.getElementById('tambah_langganan_gmaps').value,
+                        jenis_pelanggan: document.getElementById('tambah_langganan_jenis').value, // 🔥 SUNTIKAN BARU
                         total_order: 0,
                         total_transaksi: 0,
                         activated: true
@@ -1139,7 +1203,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         nomor_hp: hp,
                         alamat: document.getElementById('konversi_alamat').value,
                         link_gmaps: document.getElementById('konversi_gmaps').value,
-                        sumber_mitra: sumberCustomer,  // ✅ TAMBAH INI (PINDAHKAN DARI SUMBER_CUSTOMER)
+                        sumber_mitra: sumberCustomer,  
+                        jenis_pelanggan: document.getElementById('konversi_jenis').value, // 🔥 SUNTIKAN BARU
                         total_order: 0,
                         total_transaksi: 0,
                         activated: true
@@ -1231,6 +1296,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 // Ubah dari mitra.id_rutejemput menjadi mitra.rute_jemput
                 document.getElementById('edit_mitra_rute').value = mitra.rute_jemput || '';
                 document.getElementById('edit_mitra_sumber').value = mitra.sumber_mitra || 'Lainnya';
+                document.getElementById('edit_mitra_jenis').value = mitra.jenis_pelanggan || 'Lainnya'; // 🔥 SUNTIKAN BARU
                 document.getElementById('edit_mitra_deposit').value = mitra.deposit || 0;
                 document.getElementById('edit_mitra_alamat').value = mitra.alamat || '';
                 document.getElementById('edit_mitra_gmaps').value = mitra.link_gmaps || '';
@@ -1245,8 +1311,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     const id = document.getElementById('edit_mitra_id').value;
                     const payload = {
                         nama_mitra: document.getElementById('edit_mitra_nama').value,
-                        rute_jemput: document.getElementById('edit_mitra_rute').value, // <-- Pake rute_jemput
+                        rute_jemput: document.getElementById('edit_mitra_rute').value,
                         sumber_mitra: document.getElementById('edit_mitra_sumber').value,
+                        jenis_pelanggan: document.getElementById('edit_mitra_jenis').value, // 🔥 SUNTIKAN BARU
                         deposit: parseFloat(document.getElementById('edit_mitra_deposit').value),
                         alamat: document.getElementById('edit_mitra_alamat').value,
                         link_gmaps: document.getElementById('edit_mitra_gmaps').value,

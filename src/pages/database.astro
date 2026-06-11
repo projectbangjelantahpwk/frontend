@@ -765,53 +765,67 @@ const statusBadgeColors = {
       const container = document.getElementById('formFieldsContainer');
       const ruteOptions = ['Purwakarta', 'Subang', 'Bandung', 'Jakarta', 'Bekasi', 'Karawang'];
       const sumberOptions = ['Facebook', 'Tiktok', 'Lainnya'];
-
+      
+      // Susunan Form yang Mengalir Lurus ke Bawah (Tanpa Grid Menyamping)
       let html = `
         <div class="space-y-4">
           <h3 class="text-sm font-bold text-gray-900 border-b pb-2">Informasi Mitra</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-gray-700 mb-1">Nama Mitra</label>
-              <input type="text" name="nama_mitra" value="${data?.nama_mitra || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-gray-700 mb-1">No. HP</label>
-              <input type="tel" name="nomor_hp" value="${data?.nomor_hp || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
-            </div>
+          
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Nama Mitra</label>
+            <input type="text" name="nama_mitra" value="${data?.nama_mitra || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
           </div>
+          
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">No. HP</label>
+            <input type="tel" name="nomor_hp" value="${data?.nomor_hp || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
+          </div>
+          
           <div>
             <label class="block text-xs font-bold text-gray-700 mb-1">Alamat</label>
             <textarea name="alamat" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" rows="2" required>${data?.alamat || ''}</textarea>
           </div>
+          
           <div>
             <label class="block text-xs font-bold text-gray-700 mb-1">Link Google Maps (Opsional)</label>
             <input type="url" name="link_gmaps" value="${data?.link_gmaps || ''}" placeholder="https://maps.google.com/..." class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-gray-700 mb-1">Rute Jemput</label>
-              <select name="rute_jemput" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required>
-                <option value="">-- Pilih Rute --</option>
-                ${ruteOptions.map(r => `<option value="${r}" ${data?.rute_jemput === r ? 'selected' : ''}>${r}</option>`).join('')}
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-gray-700 mb-1">Sumber Mitra</label>
-              <select name="sumber_mitra" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required>
-                <option value="">-- Pilih Sumber --</option>
-                ${sumberOptions.map(s => `<option value="${s}" ${data?.sumber_mitra === s ? 'selected' : ''}>${s}</option>`).join('')}
-              </select>
-            </div>
-          </div>
+          
           <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Rute Jemput</label>
+            <select name="rute_jemput" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required>
+              <option value="">-- Pilih Rute --</option>
+              ${ruteOptions.map(r => `<option value="${r}" ${data?.rute_jemput === r ? 'selected' : ''}>${r}</option>`).join('')}
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Sumber Mitra</label>
+            <select name="sumber_mitra" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required>
+              <option value="">-- Pilih Sumber --</option>
+              ${sumberOptions.map(s => `<option value="${s}" ${data?.sumber_mitra === s ? 'selected' : ''}>${s}</option>`).join('')}
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Jenis Pelanggan</label>
+            <select name="jenis_pelanggan" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required>
+              <option value="Rumah Tangga" ${data?.jenis_pelanggan === 'Rumah Tangga' ? 'selected' : ''}>Rumah Tangga / Perorangan</option>
+              <option value="Restoran/Rumah Makan" ${data?.jenis_pelanggan === 'Restoran/Rumah Makan' ? 'selected' : ''}>Restoran / Rumah Makan</option>
+              <option value="Pengepul Kecil" ${data?.jenis_pelanggan === 'Pengepul Kecil' ? 'selected' : ''}>Pengepul Kecil</option>
+              <option value="Pabrik/Industri" ${data?.jenis_pelanggan === 'Pabrik/Industri' ? 'selected' : ''}>Pabrik / Industri</option>
+              <option value="Lainnya" ${data?.jenis_pelanggan === 'Lainnya' ? 'selected' : ''}>Lainnya</option>
+            </select>
+          </div>
+
+          <div class="mt-2 pt-2 border-t border-gray-100">
             <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" name="activated" ${data?.activated ? 'checked' : ''} class="w-4 h-4 rounded border-gray-300 text-green-700 focus:ring-green-700" />
+              <input type="checkbox" name="activated" ${data?.activated || !data ? 'checked' : ''} class="w-4 h-4 rounded border-gray-300 text-green-700 focus:ring-green-700" />
               <span class="text-xs font-bold text-gray-700">Mitra Aktif</span>
             </label>
           </div>
         </div>
       `;
-
       container.innerHTML = html;
     }
 
@@ -1295,7 +1309,8 @@ const statusBadgeColors = {
               nomor_hp: String(row['No. HP'] || ''),
               link_gmaps: row['Link GMaps'] || '',
               rute_jemput: row['Rute Jemput'] || 'Purwakarta',
-              sumber_mitra: row['Sumber Mitra'] || 'Reseller',
+              sumber_mitra: row['Sumber Mitra'] || 'Lainnya',
+              jenis_pelanggan: row['Jenis Pelanggan'] || 'Lainnya', // 🔥 SUNTIKAN BARU DARI EXCEL
               total_order: row['Total Order'] || 0,
               total_transaksi: row['Total Transaksi'] || 0,
               activated: true
@@ -1411,14 +1426,40 @@ const statusBadgeColors = {
         const workbook = window.XLSX.utils.book_new();
         let fileName = '';
 
-        // 2. Buat Template SESUAI TAB YANG AKTIF SAJA
         if (currentTab === 'mitra') {
-            const mitraTemplate = [{ 'Nama Mitra': '', 'Alamat': '', 'No. HP': '', 'Link GMaps': '', 'Rute Jemput': 'Purwakarta', 'Sumber Mitra': 'Reseller', 'Total Order': 0, 'Total Transaksi': 0 }];
+            // 🔥 Objek template disesuaikan penuh dengan struktur kolom database.astro lu
+            const mitraTemplate = [{ 
+                'Nama Mitra': '', 
+                'No. HP': '', 
+                'Rute Jemput': 'Purwakarta', 
+                'Sumber Mitra': 'Lainnya', 
+                'Jenis Pelanggan': 'Rumah Tangga', // Kelompok baru kita
+                'Deposit': 0, 
+                'Total Order': 0, 
+                'Total Transaksi': 0,
+                'Alamat': '', 
+                'Link GMaps': '' 
+            }];
+            
             const mitraSheet = window.XLSX.utils.json_to_sheet(mitraTemplate);
-            mitraSheet['!cols'] = [{ wch: 20 }, { wch: 30 }, { wch: 15 }, { wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 15 }];
+            
+            // Atur lebar tiap kolom secara presisi (Total ada 10 kolom sesuai objek di atas)
+            mitraSheet['!cols'] = [
+                { wch: 20 }, // Nama Mitra
+                { wch: 15 }, // No. HP
+                { wch: 15 }, // Rute Jemput
+                { wch: 15 }, // Sumber Mitra
+                { wch: 20 }, // Jenis Pelanggan (wch dikasih 20 biar muat teks panjang)
+                { wch: 12 }, // Deposit
+                { wch: 12 }, // Total Order
+                { wch: 15 }, // Total Transaksi
+                { wch: 35 }, // Alamat
+                { wch: 35 }  // Link GMaps
+            ];
+            
             window.XLSX.utils.book_append_sheet(workbook, mitraSheet, 'Mitra');
             fileName = `Template_Mitra_${new Date().toISOString().split('T')[0]}.xlsx`;
-        } 
+        }
         else if (currentTab === 'stock_harian') {
             const stockTemplate = [{ 'Tanggal': '2026-01-01', 'Sumber': '', 'Minyak Jelantah': 0, 'Ampas': 0, 'Kriuk': 0, 'Spinner': 0, 'Tepung': 0, 'Total Kg': 0 }];
             const stockSheet = window.XLSX.utils.json_to_sheet(stockTemplate);

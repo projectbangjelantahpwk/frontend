@@ -215,14 +215,11 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
                     let textColor, nominalColor, badgeStatus;
 
-                    // 🔥 LOGIKA WARNA (SESUAI REQUEST: HITAM JIKA ACC, MERAH JIKA BELUM) 🔥
-                    if (itemStatus === 'Disetujui' && r.nama_item === 'Uang Jalan' && Number(r.nominal) > 0) {
-                            statusBtn += `
-                            <div class="mt-2 pt-2 border-t border-gray-200 w-full">
-                                <button onclick="window.simpanSisaUangJalan('${r.id}', ${r.nominal}, '${p.sumber_dana || 'Uang Keuangan'}', '${p.id}')" class="bg-purple-50 text-purple-700 px-2 py-1.5 rounded text-[10px] font-bold hover:bg-purple-100 border border-purple-200 transition w-full shadow-sm flex items-center justify-center gap-1" title="Setor sisa uang ke laci Gudang">
-                                    <i class="bi bi-safe2"></i> Simpan Uang
-                                </button>
-                            </div>`;
+                    // 🔥 1. LOGIKA WARNA TEKS & BADGE (HITAM JIKA ACC, MERAH JIKA BELUM) 🔥
+                    if (itemStatus === 'Disetujui') {
+                        textColor = 'text-gray-800 font-bold';
+                        nominalColor = 'text-gray-900 font-mono font-bold';
+                        badgeStatus = `<span class="text-[9px] font-bold text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-300 ml-2 uppercase">✔ DISETUJUI</span>`;
                     } else {
                         // BELUM DI-ACC / NOMBOK -> MERAH (Kecuali Uang Jalan = Biru)
                         if (r.nama_item === 'Uang Jalan') {
@@ -236,10 +233,11 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         }
                     }
 
-                    // Logika tombol aksi per item
-                    // 🔥 LOGIKA TOMBOL AKSI PER ITEM (SUDAH DIBUNGKUS BACKTICK DENGAN BENAR) 🔥
+                    // 🔥 2. DEKLARASI VARIABEL TOMBOL AKSI (HARUS DI SINI) 🔥
                     let statusBtn = '';
-                    if(itemStatus === 'Menunggu') {
+                    
+                    // 🔥 3. PENGISIAN TOMBOL AKSI SESUAI STATUS 🔥
+                    if (itemStatus === 'Menunggu') {
                         statusBtn = `
                         <div class="flex flex-col gap-1.5">
                             <button onclick="window.approveItemDirect('${r.id}', 'Disetujui', '${p.sumber_dana || ''}', '${p.id}')" class="bg-green-50 text-green-700 px-2.5 py-1.5 rounded text-[11px] font-bold hover:bg-green-100 border border-green-200 text-left transition"><i class="bi bi-check2-circle mr-1"></i> ACC Item</button>
@@ -261,13 +259,14 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         if (itemStatus === 'Disetujui' && r.nama_item === 'Uang Jalan' && Number(r.nominal) > 0) {
                             statusBtn += `
                             <div class="mt-2 pt-2 border-t border-gray-200 w-full">
-                                <button onclick="window.simpanSisaUangJalan('${r.id}', ${r.nominal}, '${p.sumber_dana || 'Uang Keuangan'}')" class="bg-purple-50 text-purple-700 px-2 py-1.5 rounded text-[10px] font-bold hover:bg-purple-100 border border-purple-200 transition w-full shadow-sm flex items-center justify-center gap-1" title="Setor sisa uang ke laci Gudang">
+                                <button onclick="window.simpanSisaUangJalan('${r.id}', ${r.nominal}, '${p.sumber_dana || 'Uang Keuangan'}', '${p.id}')" class="bg-purple-50 text-purple-700 px-2 py-1.5 rounded text-[10px] font-bold hover:bg-purple-100 border border-purple-200 transition w-full shadow-sm flex items-center justify-center gap-1" title="Setor sisa uang ke laci Gudang">
                                     <i class="bi bi-safe2"></i> Simpan Uang
                                 </button>
                             </div>`;
                         }
                     }
 
+                    // 🔥 4. CETAK KE DALAM TABEL 🔥
                     htmlPeng += `
                     <tr class="hover:bg-white transition-colors border-b border-gray-100" data-date="${p.tanggal}">
                         <td class="px-6 py-4 text-sm align-middle whitespace-nowrap font-mono text-gray-400 font-semibold">${jamStr}</td>

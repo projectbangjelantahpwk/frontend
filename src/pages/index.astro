@@ -97,69 +97,70 @@ const employeesData = [
         </div>
     </div>
 
-    <script type="module">
-        import { supabase } from '/src/lib/supabase.js'; // Sesuaikan path-nya jika beda
+    <script>
+    // 1. WAJIB IMPORT SUPABASE DI SINI (Sesuaikan letak folder lib lu)
+    import { supabase } from '../lib/supabase'; 
 
-        async function initDashboardRahasia() {
-            if (!supabase) return;
+    // 2. BUNGKUS DENGAN DOMContentLoaded BIAR HTML JADI DULU
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // 3. TARIK SESSION USER DULU
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            
+            // Kalau belum login atau error, hentikan script biar nggak crash
+            if (sessionError || !session) return; 
 
-            try {
-                // 1. Ambil sesi user yang login
-                const { data: { session } } = await supabase.auth.getSession();
-                if (!session) return;
+            // 4. CEK ROLE DARI TABEL PROFILES
+            const { data: prof, error: roleError } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', session.user.id)
+                .single();
 
-                // 2. Cek Role dari tabel profiles
-                const { data: prof, error: roleError } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', session.user.id)
-                    .single();
+            if (roleError) throw roleError;
 
-                if (roleError) throw roleError;
-
-                // 3. BUKA GEMBOK AREA RAHASIA JIKA OWNER / IT
-                if (prof?.role === 'owner' || prof?.role === 'it') {
-                    const areaRahasia = document.getElementById('area-rahasia');
-                    if (areaRahasia) {
-                        areaRahasia.classList.remove('hidden'); 
-                    }
-
-                    // 4. FETCH DATA PROFIT MINGGUAN (CSR)
-                    // (Hanya di-fetch kalau dia owner/it, biar user biasa nggak ngabisin kuota DB lu)
-                    const { data: profitWeeklyRaw, error: errProfit } = await supabase
-                        .from('rekap_penjualan_mingguan')
-                        .select('minggu_ke, periode, total_penjualan')
-                        .order('minggu_ke', { ascending: true })
-                        .limit(4);
-
-                    if (profitWeeklyRaw) {
-                        const container = document.getElementById('profit-weekly-list');
-                        const totalEl = document.getElementById('profit-total-sebulan');
-                        
-                        let htmlList = '';
-                        let totalAccumulated = 0;
-
-                        profitWeeklyRaw.forEach(item => {
-                            const val = Number(item.total_penjualan || 0);
-                            totalAccumulated += val;
-                            htmlList += `
-                                <div class="flex justify-between items-center p-sm bg-success/5 rounded-lg border border-success/20">
-                                    <span class="text-label-sm">Minggu ${item.minggu_ke}</span>
-                                    <span class="font-bold text-success">Rp ${val.toLocaleString('id-ID')}</span>
-                                </div>
-                            `;
-                        });
-
-                        if (container) container.innerHTML = htmlList || '<p class="text-xs text-gray-500 text-center py-4">Belum ada data profit.</p>';
-                        if (totalEl) totalEl.innerText = `Rp ${totalAccumulated.toLocaleString('id-ID')}`;
-                    }
+            // 5. BUKA GEMBOK AREA RAHASIA JIKA OWNER / IT
+            if (prof?.role === 'owner' || prof?.role === 'it') {
+                const areaRahasia = document.getElementById('area-rahasia');
+                if (areaRahasia) {
+                    areaRahasia.classList.remove('hidden'); 
                 }
-            } catch (err) {
-                console.error("Error saat inisialisasi Area Rahasia:", err);
-            }
-        }
 
-        // Langsung eksekusi fungsinya
-        initDashboardRahasia();
-    </script>
+                // 6. FETCH DATA PROFIT MINGGUAN (CSR)
+                const { data: profitWeeklyRaw, error: errProfit } = await supabase
+                    .from('rekap_penjualan_mingguan')
+                    .select('minggu_ke, periode, total_penjualan')
+                    .order('minggu_ke', { ascending: true })
+                    .limit(4);
+
+                if (errProfit) throw errProfit;
+
+                if (profitWeeklyRaw) {
+                    const container = document.getElementById('profit-weekly-list');
+                    const totalEl = document.getElementById('profit-total-sebulan');
+                    
+                    let htmlList = '';
+                    let totalAccumulated = 0;
+
+                    profitWeeklyRaw.forEach(item => {
+                        const val = Number(item.total_penjualan || 0);
+                        totalAccumulated += val;
+                        htmlList += `
+                            <div class="flex justify-between items-center p-sm bg-success/5 rounded-lg border border-success/20">
+                                <span class="text-label-sm">Minggu ${item.minggu_ke}</span>
+                                <span class="font-bold text-success">Rp ${val.toLocaleString('id-ID')}</span>
+                            </div>
+                        `;
+                    });
+
+                    if (container) container.innerHTML = htmlList || '<p class="text-xs text-gray-500 text-center py-4">Belum ada data profit.</p>';
+                    if (totalEl) totalEl.innerText = `Rp ${totalAccumulated.toLocaleString('id-ID')}`;
+                }
+            }
+        } catch (error) {
+            // 7. TANGKAP ERROR BIAR KELIATAN DI F12 BROWSER
+            console.error("🛑 Gagal memuat area rahasia:", error);
+        }
+    });
+</script>
 </Layout>

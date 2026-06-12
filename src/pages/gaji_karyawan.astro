@@ -155,6 +155,11 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     </div>
                     
                     <div class="col-span-2 sm:col-span-1">
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Uang Makan / Hari (Rp)</label>
+                        <input type="number" id="setup_uang_makan" oninput="window.kalkulasiRealtimeGaji()" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-green-600" placeholder="0">
+                    </div>
+
+                    <div class="col-span-2 sm:col-span-1">
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-xs font-bold text-gray-700">Uang Rapat (Rp)</label>
                             <div class="flex items-center gap-1.5"><input type="checkbox" id="chk_uang_rapat" onchange="window.kalkulasiRealtimeGaji()" class="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer"><span class="text-[10px] text-gray-500 font-bold">Aktif</span></div>
@@ -495,7 +500,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         document.getElementById('setup_uang_nginep').value = setup.uang_nginep || 0;
         document.getElementById('setup_bonus_tepat').value = setup.bonus_tepat_waktu || 0;
         document.getElementById('setup_bonus_mingguan').value = setup.bonus_mingguan || 0;
-        
+        document.getElementById('setup_uang_makan').value = setup.uang_makan || 0;
         document.getElementById('setup_tipe_periode').value = setup.tipe_periode || 'Harian';
         document.getElementById('setup_potongan_absen').value = setup.potongan_bonus_mingguan || 0;
         
@@ -591,6 +596,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         else if (d.tipePeriode === 'Bulanan') tarifPokokHarian = paramGajiUtuh / 26; // Dibagi 26 Hari Normal
         
         const tarifLemburMenit = parseFloat(document.getElementById('setup_lembur_menit').value) || 0;
+        const paramUangMakan = parseFloat(document.getElementById('setup_uang_makan').value) || 0;
         const paramBonusMingguan = parseFloat(document.getElementById('setup_bonus_mingguan').value) || 0;
         const paramPotonganAbsen = parseFloat(document.getElementById('setup_potongan_absen').value) || 0;
         const valPotonganKasbon = parseFloat(document.getElementById('potongan_kasbon_sekarang').value) || 0;
@@ -634,11 +640,15 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         
         const valDenda = 0; // Denda menit dihapus sesuai request
 
-        // GRAND TOTAL
-        let grandTotal = valGaji + valLembur + valKesehatan + valBonusTepat + valBonusMingguan + valRapat + valNginep - valPotonganKasbon;
+        // 🔥 LOGIKA UANG MAKAN WAJIB (Hari Normal + Hari Minggu Masuk)
+        const valMakan = (d.hariKerjaNormal + d.hariMingguMasuk) * paramUangMakan;
+
+        // GRAND TOTAL (Tambahkan valMakan di akhir)
+        let grandTotal = valGaji + valLembur + valKesehatan + valBonusTepat + valBonusMingguan + valRapat + valNginep + valMakan - valPotonganKasbon;
         if(grandTotal < 0) grandTotal = 0; 
 
-        d.finalState = { valGaji, valLembur, valKesehatan, valBonusTepat, valBonusMingguan, valRapat, valNginep, valDenda, valPotonganKasbon, grandTotal};
+        // Tambahkan valMakan ke dalam object finalState
+        d.finalState = { valGaji, valLembur, valKesehatan, valBonusTepat, valBonusMingguan, valRapat, valNginep, valDenda, valPotonganKasbon, grandTotal, valMakan };
         
         const totalHariAbsen = d.hariKerjaNormal + d.hariMingguMasuk;
 
@@ -652,6 +662,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             ${valGajiMinggu > 0 ? `<div class="flex justify-between text-xs text-purple-700 font-bold bg-purple-50 p-1 rounded"><span>⭐ Extra Masuk Hari Minggu (${d.hariMingguMasuk} Hari)</span> <span>+ Rp ${valGajiMinggu.toLocaleString('id-ID')}</span></div>` : ''}
             
             ${valLembur > 0 ? `<div class="flex justify-between text-xs"><span>Uang Lembur (${d.totalLemburMenit} mnt)</span> <span class="font-bold text-gray-900">Rp ${valLembur.toLocaleString('id-ID')}</span></div>` : ''}
+            ${valMakan > 0 ? `<div class="flex justify-between text-xs text-green-700"><span>Uang Makan (${d.hariKerjaNormal + d.hariMingguMasuk} Hari)</span> <span class="font-bold">+ Rp ${valMakan.toLocaleString('id-ID')}</span></div>` : ''}
             ${d.tepatWaktuCount > 0 ? `<div class="flex justify-between text-xs text-green-700"><span>Bonus Tepat Waktu (${d.tepatWaktuCount}x)</span> <span class="font-bold">+ Rp ${valBonusTepat.toLocaleString('id-ID')}</span></div>` : ''}
             ${valBonusMingguan > 0 ? `<div class="flex justify-between text-xs text-green-700"><span>Bonus Mingguan (${labelBonusMingguan})</span> <span class="font-bold">+ Rp ${valBonusMingguan.toLocaleString('id-ID')}</span></div>` : ''}
             ${isRapat ? `<div class="flex justify-between text-xs text-green-700"><span>Uang Rapat</span> <span class="font-bold">+ Rp ${valRapat.toLocaleString('id-ID')}</span></div>` : ''}
@@ -723,6 +734,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
             const payloadSlip = {
                 user_id: d.empId, periode: d.tglAkhir, gaji_karyawan: fs.valGaji, uang_lembur: fs.valLembur,
+                uang_makan: fs.valMakan,
                 bonus_tepat_waktu: fs.valBonusTepat, bonus_mingguan: fs.valBonusMingguan, uang_kesehatan: fs.valKesehatan,
                 uang_rapat: fs.valRapat, uang_nginep: fs.valNginep, 
                 potongan_telat: fs.valDenda, menit_telat: d.totalMenitTelat, // Simpan histori denda
@@ -786,6 +798,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             user_id: empId,
             gaji_menit: parseFloat(document.getElementById('setup_gaji_menit')?.value) || 0,
             uang_lembur_menit: parseFloat(document.getElementById('setup_lembur_menit')?.value) || 0,
+            uang_makan: parseFloat(document.getElementById('setup_uang_makan')?.value) || 0,
             bonus_tepat_waktu: parseFloat(document.getElementById('setup_bonus_tepat')?.value) || 0,
             bonus_mingguan: parseFloat(document.getElementById('setup_bonus_mingguan')?.value) || 0,
             uang_kesehatan: parseFloat(document.getElementById('setup_uang_kesehatan')?.value) || 0,
@@ -858,6 +871,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                 <div class="mt-2 text-xs space-y-1 border-t pt-2 border-dashed border-gray-300">
                                     <div class="flex justify-between"><span>Gaji Pokok:</span> <span>Rp ${Number(slip.gaji_karyawan || 0).toLocaleString('id-ID')}</span></div>
                                     <div class="flex justify-between text-gray-500"><span>Uang Lembur:</span> <span>Rp ${Number(slip.uang_lembur || 0).toLocaleString('id-ID')}</span></div>
+                                    <div class="flex justify-between text-gray-500"><span>Uang Makan:</span> <span>Rp ${Number(slip.uang_makan || 0).toLocaleString('id-ID')}</span></div>
                                     <div class="flex justify-between text-green-700"><span>Total Bonus (Tepat Waktu, Mingguan, Sehat):</span> <span>+Rp ${Number((slip.bonus_tepat_waktu || 0) + (slip.bonus_mingguan || 0) + (slip.uang_kesehatan || 0)).toLocaleString('id-ID')}</span></div>
                                     ${Number(slip.kasbon || 0) > 0 ? `<div class="flex justify-between text-red-600 font-bold"><span>Potongan Kasbon:</span> <span>-Rp ${Number(slip.kasbon).toLocaleString('id-ID')}</span></div>` : ''}
                                     <div class="flex justify-between font-bold text-green-700 mt-1 pt-1 border-t">

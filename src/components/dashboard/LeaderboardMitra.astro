@@ -1,21 +1,49 @@
 ---
-// components/dashboard/LeaderboardMitra.astro
-interface MitraDbData {
-  mitra_id: string;
-  nama_mitra: string;
-  minyak_jelantah: number;
-  ampas: number;
-  kriuk: number;
-  tepung: number;
-  spinner: number;
-  total_keseluruhan: number;
+import { supabase } from '../../lib/supabase'; // Pastikan path Supabase lu bener
+
+// 1. Tentukan periode bulan ini (Format YYYY-MM)
+const now = new Date();
+const currentPeriode = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+// 2. Fetch data Server-Side HANYA untuk bulan berjalan
+const { data: dbData, error } = await supabase
+    .from('leaderboard_mingguan')
+    .select('*')
+    .eq('periode', currentPeriode);
+
+if (error) {
+    console.error("Gagal fetch leaderboard:", error);
 }
 
-interface Props {
-  rawData: MitraDbData[];
-}
+// 3. Kalkulasi agregasi (Sum) per Mitra untuk 1 bulan
+const aggregatedMap = new Map();
 
-const { rawData } = Astro.props;
+(dbData || []).forEach(row => {
+    const id = row.mitra_id;
+    
+    // Kalau mitra belum ada di map, buat kerangkanya
+    if (!aggregatedMap.has(id)) {
+        aggregatedMap.set(id, {
+            mitra_id: id,
+            nama_mitra: row.nama_mitra || 'Mitra Tanpa Nama',
+            minyak_jelantah: 0, ampas: 0, kriuk: 0, tepung: 0, spinner: 0, total_keseluruhan: 0
+        });
+    }
+    
+    // Akumulasikan nilai dari tiap minggu ke total bulanan
+    const mitra = aggregatedMap.get(id);
+    mitra.minyak_jelantah += Number(row.minyak_jelantah_kg || 0);
+    mitra.ampas += Number(row.ampas_kg || 0);
+    mitra.kriuk += Number(row.kriuk_kg || 0);
+    mitra.tepung += Number(row.tepung_kg || 0);
+    mitra.spinner += Number(row.spinner_kg || 0);
+});
+
+// 4. Hitung Grand Total (total_keseluruhan) tiap mitra dan ubah ke Array
+const finalData = Array.from(aggregatedMap.values()).map(mitra => {
+    mitra.total_keseluruhan = mitra.minyak_jelantah + mitra.ampas + mitra.kriuk + mitra.tepung + mitra.spinner;
+    return mitra;
+});
 ---
 
 <div class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow">
@@ -33,7 +61,7 @@ const { rawData } = Astro.props;
     
     <div class="space-y-sm" id="leaderboard-list"></div>
 
-    <script id="mitra-data" type="application/json" set:html={JSON.stringify(rawData)}></script>
+    <script id="mitra-data" type="application/json" set:html={JSON.stringify(finalData)}></script>
 </div>
 
 <script>
@@ -55,14 +83,21 @@ const { rawData } = Astro.props;
     // 3. Fungsi utama untuk merender Top 5 berdasarkan Kategori
     function renderLeaderboard(category) {
         if (!listContainer) return;
-
-        // Sortir descending (dari besar ke kecil) berdasarkan kategori yang dipilih, dan ambil Top 5
+        
+        // Filter yang nilainya di atas 0, lalu Sortir descending, lalu ambil Top 5
         const top5Mitras = [...mitras]
+            .filter(mitra => (mitra[category] || 0) > 0) // 🔥 TAMBAHAN INI
             .sort((a, b) => (b[category] || 0) - (a[category] || 0))
             .slice(0, 5);
-
+        
         listContainer.innerHTML = '';
-
+        
+        // 🔥 TAMBAHAN LOGIKA KOSONG: Kalau setelah difilter ternyata datanya 0
+        if (top5Mitras.length === 0) {
+            listContainer.innerHTML = `<p class="text-sm text-center text-on-surface-variant italic py-4">Belum ada penyetor di kategori ini.</p>`;
+            return;
+        }
+    
         top5Mitras.forEach((mitra, index) => {
             const rank = index + 1;
             const style = getRankStyle(rank);

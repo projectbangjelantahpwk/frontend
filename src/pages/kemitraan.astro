@@ -276,6 +276,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         <select id="konversi_jenis" class="w-full h-12 px-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
                             <option value="Rumah Tangga">Rumah Tangga / Perorangan</option>
                             <option value="Restoran/Rumah Makan">Restoran / Rumah Makan</option>
+                            <option value="MBG">MBG</option>
                             <option value="Pengepul Kecil">Pengepul Kecil</option>
                             <option value="Pabrik/Industri">Pabrik / Industri</option>
                             <option value="Lainnya">Lainnya</option>
@@ -337,6 +338,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         <select id="tambah_langganan_jenis" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
                             <option value="Rumah Tangga">Rumah Tangga / Perorangan</option>
                             <option value="Restoran/Rumah Makan">Restoran / Rumah Makan</option>
+                            <option value="MBG">MBG</option>
                             <option value="Pengepul Kecil">Pengepul Kecil</option>
                             <option value="Pabrik/Industri">Pabrik / Industri</option>
                             <option value="Lainnya">Lainnya</option>
@@ -1343,48 +1345,58 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             window.generateLeaderboard = async function() {
                 const periode = document.getElementById('input-periode-leaderboard').value;
                 if (!periode || !window.supabase) return;
-
+                        
                 try {
-                    // Tarik data dari tabel kumulatif mingguan yang baru
+                    // 1. Tarik semua data dari tabel leaderboard baru berdasarkan periode (YYYY-MM)
                     const { data: rekapData, error } = await window.supabase
-                        .from('rekap_kumulatif_mingguan_mitra')
+                        .from('leaderboard_mingguan')
                         .select('*')
-                        .eq('periode', periode)
-                        // Urutkan minggu_ke dari yang terbesar (terbaru)
-                        .order('minggu_ke', { ascending: false });
-
-                    if(error) throw error;
-
-                    // Reset Cache
-                    window.leaderboardCache = { "Juara Umum": [], "Minyak Jelantah": [], "Ampas": [], "Kriuk": [], "Tepung": [], "Spinner": [] };
-
-                    // Karena kita narik per periode (bulan), bisa jadi ada data minggu ke-1, 2, 3 untuk mitra yang sama.
-                    // Kita hanya butuh data di minggu_ke TERAKHIR untuk tiap mitra sebagai hasil final bulan tersebut.
-                    const latestDataMap = new Map();
-                    rekapData.forEach(row => {
-                        if (!latestDataMap.has(row.mitra_id)) {
-                            latestDataMap.set(row.mitra_id, row);
-                        }
-                    });
+                        .eq('periode', periode);
                     
-                    const latestData = Array.from(latestDataMap.values());
-
-                    latestData.forEach(r => {
-                        const nama = r.nama_mitra || 'Mitra Lapangan';
-                        const id = r.mitra_id;
-
-                        // Langsung petakan dari kolom ke cache (Jauh lebih cepat tanpa looping IF)
-                        if (r.total_keseluruhan > 0) window.leaderboardCache["Juara Umum"].push({ nama, kg: r.total_keseluruhan, id });
-                        if (r.minyak_jelantah > 0) window.leaderboardCache["Minyak Jelantah"].push({ nama, kg: r.minyak_jelantah, id });
-                        if (r.ampas > 0) window.leaderboardCache["Ampas"].push({ nama, kg: r.ampas, id });
-                        if (r.kriuk > 0) window.leaderboardCache["Kriuk"].push({ nama, kg: r.kriuk, id });
-                        if (r.tepung > 0) window.leaderboardCache["Tepung"].push({ nama, kg: r.tepung, id });
-                        if (r.spinner > 0) window.leaderboardCache["Spinner"].push({ nama, kg: r.spinner, id });
+                    if(error) throw error;
+                
+                    // 2. Reset Cache Wadah Leaderboard
+                    window.leaderboardCache = { "Juara Umum": [], "Minyak Jelantah": [], "Ampas": [], "Kriuk": [], "Tepung": [], "Spinner": [] };
+                
+                    // 3. Agregasi (Kalkulasi) Kumulatif per Mitra selama 1 Bulan
+                    const aggregatedData = {};
+                
+                    rekapData.forEach(row => {
+                        // Kalau mitra belum ada di object, bikin kerangkanya
+                        if (!aggregatedData[row.mitra_id]) {
+                            aggregatedData[row.mitra_id] = {
+                                id: row.mitra_id,
+                                nama: row.nama_mitra || 'Mitra Lapangan',
+                                minyak: 0, ampas: 0, kriuk: 0, tepung: 0, spinner: 0
+                            };
+                        }
+                        // Tambahkan nilai dari tiap minggu (W1, W2, dst) ke total bulanan
+                        aggregatedData[row.mitra_id].minyak += Number(row.minyak_jelantah_kg || 0);
+                        aggregatedData[row.mitra_id].ampas += Number(row.ampas_kg || 0);
+                        aggregatedData[row.mitra_id].kriuk += Number(row.kriuk_kg || 0);
+                        aggregatedData[row.mitra_id].tepung += Number(row.tepung_kg || 0);
+                        aggregatedData[row.mitra_id].spinner += Number(row.spinner_kg || 0);
                     });
-
-                    // Tampilkan data sesuai tab kategori yang sedang aktif
+                
+                    // 4. Masukkan hasil agregasi ke dalam Cache Leaderboard
+                    Object.values(aggregatedData).forEach(r => {
+                        // Hitung grand total (Juara Umum) secara on-the-fly
+                        const totalUmum = r.minyak + r.ampas + r.kriuk + r.tepung + r.spinner;
+                    
+                        if (totalUmum > 0) window.leaderboardCache["Juara Umum"].push({ nama: r.nama, kg: totalUmum, id: r.id });
+                        if (r.minyak > 0) window.leaderboardCache["Minyak Jelantah"].push({ nama: r.nama, kg: r.minyak, id: r.id });
+                        if (r.ampas > 0) window.leaderboardCache["Ampas"].push({ nama: r.nama, kg: r.ampas, id: r.id });
+                        if (r.kriuk > 0) window.leaderboardCache["Kriuk"].push({ nama: r.nama, kg: r.kriuk, id: r.id });
+                        if (r.tepung > 0) window.leaderboardCache["Tepung"].push({ nama: r.nama, kg: r.tepung, id: r.id });
+                        if (r.spinner > 0) window.leaderboardCache["Spinner"].push({ nama: r.nama, kg: r.spinner, id: r.id });
+                    });
+                
+                    // 5. Tampilkan data sesuai tab kategori yang sedang aktif
                     window.renderLeaderboardSesuaiFilter();
-                } catch (e) { console.error("Gagal Generate Leaderboard:", e); }
+                
+                } catch (e) { 
+                    console.error("Gagal Generate Leaderboard:", e); 
+                }
             };
 
             // Variabel Pencatat Tab Aktif Saat Ini

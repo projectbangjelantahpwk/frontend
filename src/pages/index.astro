@@ -5,12 +5,14 @@ import KPICard from '../components/dashboard/KPICard.astro';
 import StokKomoditasChart from '../components/dashboard/StokKomoditasChart.astro';
 import TransaksiKomoditasChart from '../components/dashboard/TransaksiKomoditasChart.astro';
 import SumberTransaksiChart from '../components/dashboard/SumberTransaksiChart.astro';
+import JenisPelangganTransaksiChart from '../components/dashboard/JenisPelangganTransaksiChart.astro';
 import LeaderboardMitra from '../components/dashboard/LeaderboardMitra.astro';
 import BestEmployees from '../components/dashboard/BestEmployees.astro';
 import BukuKasHarian from '../components/dashboard/BukuKasHarian.astro';
 import SalesMetricsWithProgress from '../components/dashboard/SalesMetricsWithProgress.astro';
 import SalaryMetricsWithProgress from '../components/dashboard/SalaryMetricsWithProgress.astro';
 import ExpenditureMetricsWithProgress from '../components/dashboard/ExpenditureMetricsWithProgress.astro';
+import IncomeMetricsWithProgress from  '../components/dashboard/IncomeMetricsWithProgress.astro';
 import { supabase } from '../lib/supabase';
 
 // Data Leaderboard
@@ -91,11 +93,15 @@ const profitWeekly = profitWeeklyRaw?.map(item => ({
             <!-- SECTION 1: KPI CARDS (5 KOLOM) -->
             <KPICard />
 
-            <!-- SECTION 2: CHARTS GRID (3 AREA CHARTS) -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-lg">
+            <!-- SECTION 2: CHARTS GRID (4 AREA CHARTS) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
                 <StokKomoditasChart />
                 <TransaksiKomoditasChart/>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
                 <SumberTransaksiChart/>
+                <JenisPelangganTransaksiChart/>
             </div>
 
             <!-- SECTION 3: LEADERBOARD & TOP PERFORMERS -->
@@ -103,94 +109,109 @@ const profitWeekly = profitWeeklyRaw?.map(item => ({
                 <LeaderboardMitra mitras={leaderboardData} />
                 <BestEmployees employees={employeesData} />
             </div>
+            <div id="area-rahasia" class="hidden space-y-lg">
+                <!-- SECTION 4: BUKU KAS HARIAN -->
+                <BukuKasHarian />
 
-            <!-- SECTION 4: BUKU KAS HARIAN -->
-            <BukuKasHarian />
-
-            <!-- SECTION 5: METRICS DENGAN DATA REAL -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
-                <SalaryMetricsWithProgress />
-                <ExpenditureMetricsWithProgress />
-                <SalesMetricsWithProgress />
-            </div>
-
-            <!-- SECTION 6: PROFIT MINGGUAN (Hidden untuk non-owner/IT) -->
-            <div id="card-profit-margin" class="hidden bg-gradient-to-br from-success-container/30 to-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow">
-                <div class="flex justify-between items-center mb-lg">
-                    <h3 class="font-headline-md text-on-surface">📈 Profit Mingguan</h3>
-                    <span class="text-label-sm text-on-surface-variant">4 minggu</span>
+                <!-- SECTION 5: METRICS DENGAN DATA REAL -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
+                    <SalaryMetricsWithProgress />
+                    <ExpenditureMetricsWithProgress />
+                    <SalesMetricsWithProgress />
+                    <IncomeMetricsWithProgress/>
                 </div>
 
-                <div class="w-full h-64 chart-grid relative rounded-lg overflow-hidden border border-surface-variant mb-lg">
-                    <div class="absolute left-0 top-0 h-full flex flex-col justify-between py-2 px-2 text-label-xs font-label-sm text-on-surface-variant bg-surface-container-lowest/80 backdrop-blur-sm z-10">
-                        <span>6.5M</span>
-                        <span>5.0M</span>
-                        <span>3.5M</span>
-                        <span>2.0M</span>
-                        <span>0</span>
+                <!-- SECTION 6: PROFIT MINGGUAN (Hidden untuk non-owner/IT) -->
+                <div id="card-profit-margin" class="bg-gradient-to-br from-success-container/30 to-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow">
+                    <div class="flex justify-between items-center mb-lg">
+                        <h3 class="font-headline-md text-on-surface">📈 Profit Mingguan</h3>
+                        <span class="text-label-sm text-on-surface-variant">4 minggu</span>
                     </div>
-                    
-                    <svg class="w-full h-full absolute inset-0 pl-12 pt-4 pb-8 pr-4" preserveAspectRatio="none" viewBox="0 0 100 100">
-                        <defs>
-                            <linearGradient id="profitGradient" x1="0" x2="0" y1="0" y2="1">
-                                <stop offset="0%" stop-color="#2E7D32" stop-opacity="0.3"></stop>
-                                <stop offset="100%" stop-color="#2E7D32" stop-opacity="0"></stop>
-                            </linearGradient>
-                        </defs>
-                        <polygon fill="url(#profitGradient)" points="0,100 0,25 33.3,35 66.7,15 100,30 100,100"></polygon>
-                        <polyline fill="none" points="0,25 33.3,35 66.7,15 100,30" stroke="#2E7D32" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></polyline>
-                        <circle cx="0" cy="25" fill="#ffffff" r="2" stroke="#2E7D32" stroke-width="1.5"></circle>
-                        <circle cx="33.3" cy="35" fill="#ffffff" r="2" stroke="#2E7D32" stroke-width="1.5"></circle>
-                        <circle cx="66.7" cy="15" fill="#ffffff" r="2" stroke="#2E7D32" stroke-width="1.5"></circle>
-                        <circle cx="100" cy="30" fill="#ffffff" r="2" stroke="#2E7D32" stroke-width="1.5"></circle>
-                    </svg>
-                    
-                    <div class="absolute bottom-0 left-0 w-full flex justify-between pl-12 pr-4 py-1 text-label-xs font-label-sm text-on-surface-variant bg-surface-container-lowest/80 backdrop-blur-sm z-10">
-                        <span>Minggu 1</span>
-                        <span>Minggu 2</span>
-                        <span>Minggu 3</span>
-                        <span>Minggu 4</span>
-                    </div>
-                </div>
 
-                <div class="space-y-sm">
-                    {profitWeekly.map(item => (
-                        <div class="flex justify-between items-center p-sm bg-success/5 rounded-lg border border-success/20">
-                            <span class="text-label-sm">{item.label}</span>
-                            <span class="font-bold text-success">{item.value}</span>
+                    <div class="w-full h-64 chart-grid relative rounded-lg overflow-hidden border border-surface-variant mb-lg">
+                        <div class="absolute left-0 top-0 h-full flex flex-col justify-between py-2 px-2 text-label-xs font-label-sm text-on-surface-variant bg-surface-container-lowest/80 backdrop-blur-sm z-10">
+                            <span>6.5M</span>
+                            <span>5.0M</span>
+                            <span>3.5M</span>
+                            <span>2.0M</span>
+                            <span>0</span>
                         </div>
-                    ))}
-                </div>
 
-                <div class="mt-md pt-md border-t border-outline-variant flex justify-between items-center">
-                    <span class="text-label-md text-on-surface-variant">Total Sebulan</span>
-                    <span class="text-headline-sm font-bold text-success">
-                        {`Rp ${profitWeekly.reduce((acc, item) => {
-                          const value = parseInt(item.value.replace(/[^\d]/g, '')) || 0;
-                          return acc + value;
-                        }, 0).toLocaleString('id-ID')}`}
-                    </span>
+                        <svg class="w-full h-full absolute inset-0 pl-12 pt-4 pb-8 pr-4" preserveAspectRatio="none" viewBox="0 0 100 100">
+                            <defs>
+                                <linearGradient id="profitGradient" x1="0" x2="0" y1="0" y2="1">
+                                    <stop offset="0%" stop-color="#2E7D32" stop-opacity="0.3"></stop>
+                                    <stop offset="100%" stop-color="#2E7D32" stop-opacity="0"></stop>
+                                </linearGradient>
+                            </defs>
+                            <polygon fill="url(#profitGradient)" points="0,100 0,25 33.3,35 66.7,15 100,30 100,100"></polygon>
+                            <polyline fill="none" points="0,25 33.3,35 66.7,15 100,30" stroke="#2E7D32" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></polyline>
+                            <circle cx="0" cy="25" fill="#ffffff" r="2" stroke="#2E7D32" stroke-width="1.5"></circle>
+                            <circle cx="33.3" cy="35" fill="#ffffff" r="2" stroke="#2E7D32" stroke-width="1.5"></circle>
+                            <circle cx="66.7" cy="15" fill="#ffffff" r="2" stroke="#2E7D32" stroke-width="1.5"></circle>
+                            <circle cx="100" cy="30" fill="#ffffff" r="2" stroke="#2E7D32" stroke-width="1.5"></circle>
+                        </svg>
+
+                        <div class="absolute bottom-0 left-0 w-full flex justify-between pl-12 pr-4 py-1 text-label-xs font-label-sm text-on-surface-variant bg-surface-container-lowest/80 backdrop-blur-sm z-10">
+                            <span>Minggu 1</span>
+                            <span>Minggu 2</span>
+                            <span>Minggu 3</span>
+                            <span>Minggu 4</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-sm">
+                        {profitWeekly.map(item => (
+                            <div class="flex justify-between items-center p-sm bg-success/5 rounded-lg border border-success/20">
+                                <span class="text-label-sm">{item.label}</span>
+                                <span class="font-bold text-success">{item.value}</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div class="mt-md pt-md border-t border-outline-variant flex justify-between items-center">
+                        <span class="text-label-md text-on-surface-variant">Total Sebulan</span>
+                        <span class="text-headline-sm font-bold text-success">
+                            {`Rp ${profitWeekly.reduce((acc, item) => {
+                              const value = parseInt(item.value.replace(/[^\d]/g, '')) || 0;
+                              return acc + value;
+                            }, 0).toLocaleString('id-ID')}`}
+                        </span>
+                    </div>
                 </div>
             </div>
-
         </div>
     </div>
 
-    <script is:inline>
+    <script type="module">
+        import { supabase } from '/src/lib/supabase.js'; // Sesuaikan path-nya
+
         document.addEventListener('DOMContentLoaded', async () => {
-            const client = window.supabase || supabase;
-            if (!client) return;
+            if (!supabase) return;
 
-            const { data: { session } } = await client.auth.getSession();
-            if (!session) return;
+            try {
+                // Ambil sesi
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) return;
 
-            const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+                // Cek Role
+                const { data: prof, error } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', session.user.id)
+                    .single();
 
-            if (prof?.role === 'owner' || prof?.role === 'it') {
-                const profitCard = document.getElementById('card-profit-margin');
-                if (profitCard) {
-                    profitCard.classList.remove('hidden');
+                if (error) throw error;
+
+                // Buka Bungkusan Area Rahasia kalau dia Owner / IT
+                if (prof?.role === 'owner' || prof?.role === 'it') {
+                    const areaRahasia = document.getElementById('area-rahasia');
+                    if (areaRahasia) {
+                        areaRahasia.classList.remove('hidden'); // Gembok dibuka!
+                    }
                 }
+            } catch (err) {
+                console.error("Error cek akses role:", err);
             }
         });
     </script>

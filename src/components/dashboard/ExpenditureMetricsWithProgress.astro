@@ -1,7 +1,22 @@
 ---
 // components/dashboard/ExpenditureMetricsWithProgress.astro
 ---
-
+<style>
+    /* Styling khusus scrollbar biar tipis dan elegan */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #e5e7eb; /* Warna abu-abu muda ala Tailwind */
+        border-radius: 10px;
+    }
+    .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+        background-color: #d1d5db; /* Agak gelap pas di-hover */
+    }
+</style>
 <div class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow">
     <div class="flex justify-between items-center mb-md border-b border-outline-variant pb-3">
         <h3 class="font-headline-md text-on-surface flex items-center gap-2">
@@ -26,7 +41,7 @@
             </div>
         </div>
         
-        <div id="keluar-metrics-list" class="space-y-3 min-h-[150px]">
+        <div id="keluar-metrics-list" class="space-y-3 min-h-[150px] max-h-[240px] overflow-y-auto pr-2 custom-scrollbar">
             <p class="text-xs text-center text-gray-400 italic py-8">Memuat data metrik pengeluaran...</p>
         </div>
 
@@ -49,12 +64,13 @@
         
         // Setup Batas Kalender & Default
         const now = new Date();
-        const offset = now.getTimezoneOffset() * 60000;
-        const todayStr = new Date(now - offset).toISOString().split('T')[0];
+        const yesterday = new Date(now.getTime() - 86400000);
+        const offset = yesterday.getTimezoneOffset() * 60000;
+        const yesterdayStr = new Date(yesterday - offset).toISOString().split('T')[0];
         
         if (datePicker) {
-            if (!datePicker.value) datePicker.value = todayStr; 
-            datePicker.max = todayStr; 
+            if (!datePicker.value) datePicker.value = yesterdayStr; 
+            datePicker.max = yesterdayStr; 
         }
 
         if (monthPicker) {
@@ -71,7 +87,7 @@
             const listContainer = document.getElementById('keluar-metrics-list');
             let htmlList = '';
             metricsPayload.forEach(m => {
-                if (m.value > 0) {
+                
                     const pct = getPercentage(m.value, totalSales);
                     htmlList += `
                         <div class="space-y-1">
@@ -83,7 +99,7 @@
                                 <div class="h-full ${m.color} rounded-full" style="width: ${pct}%"></div>
                             </div>
                         </div>`;
-                }
+                
             });
             listContainer.innerHTML = htmlList || '<p class="text-xs text-center text-gray-400 py-8 italic">Tidak ada pengeluaran pada periode ini</p>';
             txtTotalHarga.innerText = formatRupiah(totalSales);
@@ -91,11 +107,6 @@
 
         function buildMetricsArray(data) {
             return [
-                { label: "Gaji Karyawan", value: data?.gaji || 0, color: "bg-blue-600" },
-                { label: "Uang Makan", value: data?.makan || 0, color: "bg-blue-400" },
-                { label: "Bonus", value: data?.bonus || 0, color: "bg-indigo-500" },
-                { label: "Lembur", value: data?.lembur || 0, color: "bg-indigo-400" },
-                { label: "Kesehatan", value: data?.uang_kesehatan || 0, color: "bg-teal-500" },
                 { label: "Bensin", value: data?.bensin || 0, color: "bg-primary" },
                 { label: "Parkir", value: data?.parkir || 0, color: "bg-success" },
                 { label: "Admin", value: data?.admin || 0, color: "bg-tertiary" },

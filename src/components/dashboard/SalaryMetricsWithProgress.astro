@@ -1,7 +1,22 @@
 ---
 // components/dashboard/SalaryMetricsWithProgress.astro
 ---
-
+<style>
+    /* Styling khusus scrollbar biar tipis dan elegan */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #e5e7eb; /* Warna abu-abu muda ala Tailwind */
+        border-radius: 10px;
+    }
+    .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+        background-color: #d1d5db; /* Agak gelap pas di-hover */
+    }
+</style>
 <div class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow">
     <div class="flex justify-between items-center mb-md border-b border-outline-variant pb-3">
         <h3 class="font-headline-md text-on-surface flex items-center gap-2">
@@ -26,7 +41,7 @@
             </div>
         </div>
         
-        <div id="gaji-metrics-list" class="space-y-3 min-h-[150px]">
+        <div id="gaji-metrics-list" class="space-y-3 min-h-[150px] max-h-[240px] overflow-y-auto pr-2 custom-scrollbar">
             <p class="text-xs text-center text-gray-400 italic py-8">Memuat data metrik gaji...</p>
         </div>
 
@@ -49,12 +64,14 @@
         
         // Setup Batas Kalender & Default
         const now = new Date();
-        const offset = now.getTimezoneOffset() * 60000;
-        const todayStr = new Date(now - offset).toISOString().split('T')[0];
+        
+        const yesterday = new Date(now.getTime() - 86400000);
+        const offset = yesterday.getTimezoneOffset() * 60000;
+        const yesterdayStr = new Date(yesterday - offset).toISOString().split('T')[0];
         
         if (datePicker) {
-            if (!datePicker.value) datePicker.value = todayStr; 
-            datePicker.max = todayStr; 
+            if (!datePicker.value) datePicker.value = yesterdayStr; 
+            datePicker.max = yesterdayStr; 
         }
 
         if (monthPicker) {
@@ -77,7 +94,7 @@
             const listContainer = document.getElementById('gaji-metrics-list');
             let htmlList = '';
             metricsPayload.forEach(m => {
-                if (m.value > 0) {
+                
                     const pct = getPercentageGaji(m.value, totalSales);
                     htmlList += `
                         <div class="space-y-1">
@@ -89,7 +106,7 @@
                                 <div class="h-full ${m.color} rounded-full" style="width: ${pct}%"></div>
                             </div>
                         </div>`;
-                }
+                
             });
             listContainer.innerHTML = htmlList || '<p class="text-xs text-center text-gray-400 py-8 italic">Tidak ada catatan gaji pada periode ini</p>';
             txtTotalHarga.innerText = formatRupiah(totalSales);

@@ -71,13 +71,13 @@ const kpiCards = [
 </div>
 
 <script>
-    import { supabase } from '../../lib/supabase'; // Pastikan path ke supabase udah bener
+    import { supabase } from '../../lib/supabase'; // Pastikan path ini benar
 
     const komoditasIds = ['minyak_jelantah', 'ampas', 'kriuk', 'spinner', 'tepung'];
 
     async function fetchRealtimeDashboard() {
         try {
-            // Ambil stok semua komoditas
+            // 1. Ambil stok utama dari gudang_komoditas (Aman, gak perlu dirubah)
             const { data: komoditasData, error: errStok } = await supabase
                 .from('gudang_komoditas')
                 .select('id, stok');
@@ -89,27 +89,51 @@ const kpiCards = [
                 });
             }
 
-            // Fungsi tarik mutasi tunggal
+            // 2. Set waktu rentang HARI INI (WIB) untuk filter mutasi harian
+            const now = new Date();
+            const offset = now.getTimezoneOffset() * 60000;
+            const todayStr = new Date(now - offset).toISOString().split('T')[0];
+            const startOfDay = `${todayStr}T00:00:00+07:00`;
+            const endOfDay = `${todayStr}T23:59:59+07:00`;
+
+            // 3. Fungsi Pintar Narik dan Ngitung Mutasi Harian Per Item
             const fetchMutasi = async (id) => {
+                const el = document.getElementById(`mutasi-${id}`);
+                if (!el) return;
+
+                // Ambil SEMUA aktivitas mutasi si komoditas ini khusus hari ini saja
                 const { data, error } = await supabase
                     .from('gudang_mutasi')
-                    .select('volume, jenis_mutasi')
+                    .select('jumlah, jenis_mutasi') // 🔥 FIX: Pakai kolom 'jumlah', bukan 'volume'
                     .eq('komoditas_id', id)
-                    .order('id', { ascending: false })
-                    .limit(1)
-                    .single();
+                    .gte('tanggal', startOfDay)
+                    .lte('tanggal', endOfDay);
 
-                const el = document.getElementById(`mutasi-${id}`);
-                if (el) {
-                    if (!error && data) {
-                        el.textContent = `Mutasi: ${data.volume} KG (${data.jenis_mutasi})`;
-                    } else {
-                        el.textContent = 'Belum ada mutasi';
-                    }
+                if (!error && data && data.length > 0) {
+                    let totalMasuk = 0;
+                    let totalKeluar = 0;
+
+                    // Kalkulasi barang masuk dan keluar
+                    data.forEach(m => {
+                        const nominal = parseFloat(m.jumlah) || 0;
+                        if (m.jenis_mutasi === 'Masuk') {
+                            totalMasuk += nominal;
+                        } else if (m.jenis_mutasi === 'Keluar') {
+                            totalKeluar += nominal;
+                        }
+                    });
+
+                    // Cetak ke layar
+                    el.innerHTML = `
+                        <span class="text-green-800 font-bold">Masuk: ${totalMasuk.toLocaleString('id-ID')} Kg</span> | 
+                        <span class="text-red-800 font-bold">Keluar: ${totalKeluar.toLocaleString('id-ID')} Kg</span>
+                    `;
+                } else {
+                    el.textContent = 'Belum ada mutasi hari ini';
                 }
             };
 
-            // Jalankan fetching mutasi paralel
+            // Jalankan fetching mutasi paralel biar kenceng
             await Promise.all(komoditasIds.map(id => fetchMutasi(id)));
 
         } catch (error) {

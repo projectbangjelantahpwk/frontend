@@ -6,7 +6,7 @@ const kpiCards = [
     {
         id: 'minyak_jelantah',
         title: 'Minyak Jelantah',
-        icon: 'oil_barrel',
+        icon: '/icons/6.png',
         gradient: 'from-primary-container to-primary-container/70',
         border: 'border-primary/20',
         text: 'text-on-primary-container'
@@ -14,7 +14,7 @@ const kpiCards = [
     {
         id: 'ampas',
         title: 'Ampas',
-        icon: 'compost',
+        icon: '/icons/7.png',
         gradient: 'from-secondary-container to-secondary-container/70',
         border: 'border-secondary/20',
         text: 'text-on-secondary-container'
@@ -22,7 +22,7 @@ const kpiCards = [
     {
         id: 'kriuk',
         title: 'Kriuk',
-        icon: 'grain',
+        icon: '/icons/8.png',
         gradient: 'from-tertiary-container to-tertiary-container/70',
         border: 'border-tertiary/20',
         text: 'text-on-tertiary-container'
@@ -30,7 +30,7 @@ const kpiCards = [
     {
         id: 'spinner',
         title: 'Spinner',
-        icon: 'settings',
+        icon: '/icons/9.png',
         gradient: 'from-error-container to-error-container/70',
         border: 'border-error/20',
         text: 'text-on-error-container'
@@ -38,7 +38,7 @@ const kpiCards = [
     {
         id: 'tepung',
         title: 'Tepung',
-        icon: 'bakery_dining',
+        icon: '/icons/10.png',
         gradient: 'from-success-container to-success-container/70',
         border: 'border-success/20',
         text: 'text-on-success-container'
@@ -54,7 +54,7 @@ const kpiCards = [
                 <div class="flex items-center justify-between mb-md">
                     <span class={`font-label-lg ${card.text} opacity-90`}>{card.title}</span>
                     <div class="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                        <span class={`material-symbols-outlined text-2xl ${card.text}`}>{card.icon}</span>
+                        <img src={card.icon} alt={card.title} class="w-7 h-7 object-contain drop-shadow-sm" />
                     </div>
                 </div>
                 

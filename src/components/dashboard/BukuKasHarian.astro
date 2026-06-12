@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 p.rincian_pemasukan?.forEach(r => {
                     const nominal = parseFloat(r.nominal) || 0; totalMasuk += nominal;
                     const jam = extractJam(r.created_at);
-                    listMutasi.push({ jam, html: `<div class="flex justify-between items-start border-b border-gray-100 pb-2 hover:bg-gray-100 px-2 rounded transition"><div><div class="flex items-center gap-2"><span class="text-[10px] font-bold bg-gray-200 px-1.5 py-0.5 rounded text-gray-600">${jam}</span> <span class="font-bold text-green-700">[MASUK]</span></div><span class="text-sm font-semibold text-gray-800">${r.nama_item}</span><p class="text-[10px] text-gray-500 mt-0.5"><b>Ket:</b> ${r.keterangan || '-'} <br><span class="text-green-600 font-medium">Masuk ke: ${p.sumber_dana}</span></p></div><span class="font-mono font-bold text-green-600 mt-1">+ Rp ${nominal.toLocaleString('id-ID')}</span></div>`});
+                    listMutasi.push({ jam, html: `<div class="flex justify-between items-start border-b border-gray-100 pb-2 hover:bg-gray-100 px-2 rounded transition"><div><div class="flex items-center gap-2"><span class="text-[10px] font-bold bg-gray-200 px-1.5 py-0.5 rounded text-gray-600">${jam}</span> <span class="font-bold text-green-700">[Pemasukan]</span></div><span class="text-sm font-semibold text-gray-800">${r.nama_item}</span><p class="text-[10px] text-gray-500 mt-0.5"><b>Ket:</b> ${r.keterangan || '-'} <br><span class="text-green-600 font-medium">Masuk ke: ${p.sumber_dana}</span></p></div><span class="font-mono font-bold text-green-600 mt-1">+ Rp ${nominal.toLocaleString('id-ID')}</span></div>`});
                 });
             });
 
@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             dataPenjualan?.forEach(s => {
                 const nominal = parseFloat(s.total_harga) || 0; totalMasuk += nominal; 
                 const jam = extractJam(s.created_at);
-                listMutasi.push({ jam, html: `<div class="flex justify-between items-start border-b border-gray-100 pb-2 hover:bg-gray-100 px-2 rounded transition"><div><div class="flex items-center gap-2"><span class="text-[10px] font-bold bg-gray-200 px-1.5 py-0.5 rounded text-gray-600">${jam}</span> <span class="font-bold text-green-700">[JUAL OLAHAN]</span></div><span class="text-sm font-semibold text-gray-800">${s.komoditas?.nama_komoditas || 'Barang'} (${s.volume} kg)</span><p class="text-[10px] text-gray-500 mt-0.5"><b>Pembeli:</b> ${s.distributor?.nama || 'Umum'} | <b>Ket:</b> ${s.keterangan || '-'} <br><span class="text-green-600 font-medium">Masuk ke: ${s.tujuan_kas}</span></p></div><span class="font-mono font-bold text-green-600 mt-1">+ Rp ${nominal.toLocaleString('id-ID')}</span></div>`});
+                listMutasi.push({ jam, html: `<div class="flex justify-between items-start border-b border-gray-100 pb-2 hover:bg-gray-100 px-2 rounded transition"><div><div class="flex items-center gap-2"><span class="text-[10px] font-bold bg-gray-200 px-1.5 py-0.5 rounded text-gray-600">${jam}</span> <span class="font-bold text-green-700">[Penjualan Barang]</span></div><span class="text-sm font-semibold text-gray-800">${s.komoditas?.nama_komoditas || 'Barang'} (${s.volume} kg)</span><p class="text-[10px] text-gray-500 mt-0.5"><b>Pembeli:</b> ${s.distributor?.nama || 'Umum'} | <b>Ket:</b> ${s.keterangan || '-'} <br><span class="text-green-600 font-medium">Masuk ke: ${s.tujuan_kas}</span></p></div><span class="font-mono font-bold text-green-600 mt-1">+ Rp ${nominal.toLocaleString('id-ID')}</span></div>`});
             });
 
             // -> Push Pengeluaran Keluar
@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 let namaTampil = item.nama_item || item.keterangan || 'Pengeluaran Lainnya';
                 let dompet = item.pengeluaran?.sumber_dana || 'Umum';
 
-                listMutasi.push({ jam, html: `<div class="flex justify-between items-start border-b border-gray-100 pb-2 hover:bg-gray-100 px-2 rounded transition"><div><div class="flex items-center gap-2"><span class="text-[10px] font-bold bg-gray-200 px-1.5 py-0.5 rounded text-gray-600">${jam}</span> <span class="font-bold text-red-600">[Keluar]</span></div><span class="text-sm font-semibold text-gray-800">${namaTampil}</span><p class="text-[10px] text-gray-500 mt-0.5"><b>Ket:</b> ${item.keterangan || '-'} <br><span class="text-red-500 font-medium">Dari Dompet: ${dompet}</span></p></div><span class="font-mono font-bold text-red-500 mt-1">- Rp ${nominal.toLocaleString('id-ID')}</span></div>`});
+                listMutasi.push({ jam, html: `<div class="flex justify-between items-start border-b border-gray-100 pb-2 hover:bg-gray-100 px-2 rounded transition"><div><div class="flex items-center gap-2"><span class="text-[10px] font-bold bg-gray-200 px-1.5 py-0.5 rounded text-gray-600">${jam}</span> <span class="font-bold text-red-600">[Pengeluaran]</span></div><span class="text-sm font-semibold text-gray-800">${namaTampil}</span><p class="text-[10px] text-gray-500 mt-0.5"><b>Ket:</b> ${item.keterangan || '-'} <br><span class="text-red-500 font-medium">Dari Dompet: ${dompet}</span></p></div><span class="font-mono font-bold text-red-500 mt-1">- Rp ${nominal.toLocaleString('id-ID')}</span></div>`});
             });
 
             // -> Push Pembelian Komoditas
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 let namaMitra = 'Mitra Lapangan';
                 try { namaMitra = b.transaksi.penjemputan.mitra.nama_mitra || namaMitra; } catch(e){}
 
-                listMutasi.push({ jam, html: `<div class="flex justify-between items-start border-b border-gray-100 pb-2 hover:bg-gray-100 px-2 rounded transition"><div><div class="flex items-center gap-2"><span class="text-[10px] font-bold bg-gray-200 px-1.5 py-0.5 rounded text-gray-600">${jam}</span> <span class="font-bold text-red-600">[BELI]</span></div><span class="text-sm font-semibold text-gray-800">${b.komoditas || 'Bahan Baku'} (${b.volume || 0} kg)</span><p class="text-[10px] text-gray-500 mt-0.5"><b>Dari Mitra:</b> ${namaMitra}</p></div><span class="font-mono font-bold text-red-500 mt-1">- Rp ${nominal.toLocaleString('id-ID')}</span></div>`});
+                listMutasi.push({ jam, html: `<div class="flex justify-between items-start border-b border-gray-100 pb-2 hover:bg-gray-100 px-2 rounded transition"><div><div class="flex items-center gap-2"><span class="text-[10px] font-bold bg-gray-200 px-1.5 py-0.5 rounded text-gray-600">${jam}</span> <span class="font-bold text-red-600">[Pembelian Barang]</span></div><span class="text-sm font-semibold text-gray-800">${b.komoditas || 'Bahan Baku'} (${b.volume || 0} kg)</span><p class="text-[10px] text-gray-500 mt-0.5"><b>Dari Mitra:</b> ${namaMitra}</p></div><span class="font-mono font-bold text-red-500 mt-1">- Rp ${nominal.toLocaleString('id-ID')}</span></div>`});
             });
 
             // -> Push Gaji (FILTER BERDASARKAN CSV BARU LU) 🔥

@@ -47,21 +47,24 @@ import Layout from '../layouts/Layout.astro';
 
     <!-- MODAL APPROVAL PRESENSI (HADIR/TELAT) -->
     <div id="modal-detail-absen" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[80] p-4 transition-opacity opacity-0">
-        <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 shadow-2xl">
-            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-blue-50">
+        <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 shadow-2xl flex flex-col">
+            
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-blue-50 shrink-0">
                 <div>
                     <h3 class="font-bold text-lg text-gray-900">Detail Kehadiran</h3>
                     <p class="text-xs text-blue-800 font-medium">Rincian absensi reguler harian</p>
                 </div>
                 <button onclick="closeModal('modal-detail-absen')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
             </div>
-            <div class="p-6 space-y-4">
+            
+            <div class="p-6 space-y-4 max-h-[65vh] overflow-y-auto hide-scrollbar">
                 <input type="hidden" id="det_abs_id">
                 
                 <div class="text-center pb-3 border-b border-gray-100">
                     <p class="text-xs text-gray-500 uppercase tracking-wider font-bold">Tanggal Absen</p>
                     <p id="det_abs_tgl" class="font-bold text-gray-900 text-lg mt-0.5"></p>
                 </div>
+                
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 text-center shadow-sm">
                         <p class="text-[10px] font-bold text-gray-500 uppercase mb-1">Jam Masuk</p>
@@ -75,31 +78,52 @@ import Layout from '../layouts/Layout.astro';
                     </div>
                 </div>
                 
-                <!-- 🔥 SECTION BARU: EDIT JAM MASUK & PULANG UNTUK APPROVAL -->
+                <div id="det_abs_info_lembur" class="mt-3 mb-2 text-center bg-indigo-50 border border-indigo-100 p-2.5 rounded-xl hidden transition-all">
+                    <p class="text-[11px] font-bold text-indigo-800 uppercase tracking-wider">Kalkulasi Lembur Sistem (Dibulatkan)</p>
+                    <p id="det_abs_jam_lembur" class="text-xl font-black text-indigo-900 mt-0.5">0 Jam</p>
+                </div>
+                
                 <div class="border-t border-gray-100 pt-4">
-                    <h4 class="text-sm font-bold text-gray-700 mb-3">⏰ Edit Jam (Jika Diperlukan)</h4>
-                    <div class="grid grid-cols-2 gap-3">
+                    <h4 class="text-sm font-bold text-gray-700 mb-3">⏰ Edit Jam & Info Tambahan</h4>
+                    
+                    <div class="grid grid-cols-2 gap-3 mb-4">
                         <div>
                             <label class="text-xs text-gray-500 font-bold block mb-1">Jam Masuk Baru</label>
-                            <input type="time" id="det_abs_edit_masuk" class="w-full p-2 bg-gray-100 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                            <input type="time" id="det_abs_edit_masuk" class="w-full p-2 bg-gray-100 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm font-bold">
                         </div>
                         <div>
                             <label class="text-xs text-gray-500 font-bold block mb-1">Jam Pulang Baru</label>
-                            <input type="time" id="det_abs_edit_pulang" class="w-full p-2 bg-gray-100 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                            <input type="time" id="det_abs_edit_pulang" class="w-full p-2 bg-gray-100 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm font-bold">
                         </div>
-                        <div class="mt-3 bg-purple-50 border border-purple-100 p-2.5 rounded-lg">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" id="det_abs_edit_tadarus" class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500">
-                            <span class="text-xs font-bold text-purple-800 uppercase tracking-wide">Karyawan Sudah Setor Tadarus</span>
-                        </label>
-                    </div>
                     </div>
                 </div>
-
                 <div id="det_abs_foto_container" class="mt-4"></div>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl bg-blue-50/50 cursor-pointer active:bg-blue-100 transition shadow-sm select-none">
+                        <input type="checkbox" id="det_abs_edit_rapat" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 cursor-pointer shrink-0">
+                        <div class="flex flex-col">
+                            <span class="text-[11px] font-bold text-blue-900 uppercase">Ikut Rapat</span>
+                        </div>
+                    </label>
+                    
+                    <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl bg-purple-50/50 cursor-pointer active:bg-purple-100 transition shadow-sm select-none">
+                        <input type="checkbox" id="det_abs_edit_nginep" class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 cursor-pointer shrink-0">
+                        <div class="flex flex-col">
+                            <span class="text-[11px] font-bold text-purple-900 uppercase">Tugas Nginep</span>
+                        </div>
+                    </label>
+                </div>
 
-                <!-- 🔥 TOMBOL APPROVAL PRESENSI -->
-                <div class="flex gap-2 pt-4 border-t border-gray-100">
+                <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl bg-emerald-50/50 cursor-pointer active:bg-emerald-100 transition shadow-sm select-none">
+                    <input type="checkbox" id="det_abs_edit_tadarus" class="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer shrink-0">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-bold text-emerald-900 uppercase tracking-wide">Karyawan Sudah Setor Tadarus</span>
+                    </div>
+                </label>
+            </div>
+
+            <div class="p-4 bg-white border-t border-gray-100 shrink-0">
+                <div class="flex gap-2">
                     <button onclick="approvePresensi('Ditolak')" class="flex-1 bg-red-100 text-red-700 font-bold py-2.5 rounded-xl hover:bg-red-200 transition text-sm">
                         ❌ Tolak
                     </button>
@@ -107,11 +131,11 @@ import Layout from '../layouts/Layout.astro';
                         ✅ Setujui
                     </button>
                 </div>
-
                 <button onclick="closeModal('modal-detail-absen')" class="w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-200 transition text-sm border border-gray-200 mt-2">
                     Kembali / Tutup
                 </button>
             </div>
+
         </div>
     </div>
 
@@ -177,6 +201,7 @@ import Layout from '../layouts/Layout.astro';
         window.currentEmployee = null;
 
         // Ambil data dari Supabase
+        // Ambil data dari Supabase
         async function fetchKaryawan() {
             const { data, error } = await supabase
                 .from('profiles')
@@ -197,7 +222,9 @@ import Layout from '../layouts/Layout.astro';
                         status_approval,
                         foto_tiba,
                         foto_pulang,
-                        is_tadarus
+                        is_tadarus,
+                        is_rapat,    
+                        is_nginep    
                     ),
                     izin_karyawan (
                         id,
@@ -569,6 +596,7 @@ import Layout from '../layouts/Layout.astro';
         };
 
         // 🔥 Buka Modal Detail Absen (untuk approval)
+        // 🔥 Buka Modal Detail Absen (untuk approval)
         window.bukaModalDetailAbsen = function(idAbsen) {
             const p = window.currentEmployee?.presensi?.find(x => String(x.id) === String(idAbsen));
             if(!p) return alert("Data absensi tidak ditemukan!");
@@ -581,8 +609,39 @@ import Layout from '../layouts/Layout.astro';
             // Isi input jam untuk diedit
             document.getElementById('det_abs_edit_masuk').value = p.waktu_tiba || '';
             document.getElementById('det_abs_edit_pulang').value = p.waktu_pulang || '';
-            document.getElementById('det_abs_edit_tadarus').checked = p.is_tadarus || false; // 🔥 SUNTIKAN BARU
             
+            // 🔥 TAMPILKAN STATUS CENTANGAN TERBARU DARI DATABASE
+            document.getElementById('det_abs_edit_tadarus').checked = p.is_tadarus || false; 
+            document.getElementById('det_abs_edit_rapat').checked = p.is_rapat || false; 
+            document.getElementById('det_abs_edit_nginep').checked = p.is_nginep || false; 
+            
+            // 🔥 FUNGSI KALKULATOR LIVE LEMBUR (LINTAS HARI)
+            const parseJam = (t) => { if(!t) return null; const [h,m] = t.split(':'); return parseInt(h)*60 + parseInt(m); };
+            
+            const hitungLemburLive = () => {
+                let mStr = document.getElementById('det_abs_edit_masuk').value;
+                let pStr = document.getElementById('det_abs_edit_pulang').value;
+                const infoLembur = document.getElementById('det_abs_info_lembur');
+                
+                let mM = parseJam(mStr); let pM = parseJam(pStr);
+                
+                if (mM !== null && pM !== null) {
+                    if (pM < mM) pM += (24 * 60); // Logika Lintas Hari
+                    if (pM > 17 * 60) {
+                        let jam = Math.round((pM - (17 * 60)) / 60);
+                        document.getElementById('det_abs_jam_lembur').innerText = jam + ' Jam';
+                        infoLembur.classList.remove('hidden');
+                        return;
+                    }
+                }
+                infoLembur.classList.add('hidden');
+            };
+
+            // Panggil saat pertama buka, dan jadikan responsif saat diketik
+            hitungLemburLive();
+            document.getElementById('det_abs_edit_masuk').oninput = hitungLemburLive;
+            document.getElementById('det_abs_edit_pulang').oninput = hitungLemburLive;
+
             // Ganti warna badge
             const setBadge = (elId, status) => {
                 const el = document.getElementById(elId);
@@ -621,7 +680,11 @@ import Layout from '../layouts/Layout.astro';
             const id = document.getElementById('det_abs_id').value;
             const jamMasuk = document.getElementById('det_abs_edit_masuk').value;
             const jamPulang = document.getElementById('det_abs_edit_pulang').value;
-            const isTadarus = document.getElementById('det_abs_edit_tadarus').checked; // 🔥 TANGKAP NILAI BARU
+            
+            // 🔥 TANGKAP NILAI KETIGA CHECKBOX
+            const isTadarus = document.getElementById('det_abs_edit_tadarus').checked; 
+            const isRapat = document.getElementById('det_abs_edit_rapat').checked; 
+            const isNginep = document.getElementById('det_abs_edit_nginep').checked; 
 
             if (!jamMasuk || !jamPulang) {
                 alert('Mohon isi jam masuk dan jam pulang!');
@@ -635,7 +698,9 @@ import Layout from '../layouts/Layout.astro';
                         status_approval: status,
                         waktu_tiba: jamMasuk,
                         waktu_pulang: jamPulang,
-                        is_tadarus: isTadarus
+                        is_tadarus: isTadarus,
+                        is_rapat: isRapat,     // 🔥 SIMPAN KE DB
+                        is_nginep: isNginep    // 🔥 SIMPAN KE DB
                     })
                     .eq('id', id);
 
@@ -644,11 +709,11 @@ import Layout from '../layouts/Layout.astro';
                 alert(`Presensi berhasil ${status.toLowerCase()}!`);
                 closeModal('modal-detail-absen');
 
-                // Refresh data
+                // Refresh data (dengan select tambahan kolom)
                 const currentEmpId = window.currentEmployee.id;
                 const { data: freshData } = await supabase
                     .from('profiles')
-                    .select('id, id_lapangan, nama, nomor_hp, foto_profil, role, presensi(id, tanggal, waktu_tiba, waktu_pulang, status_tiba, status_pulang, status_approval, foto_tiba, foto_pulang, is_tadarus), izin_karyawan(id, tanggal, tipe_izin, status_pengajuan, alasan, foto_bukti, jam_rencana_keluar)')
+                    .select('id, id_lapangan, nama, nomor_hp, foto_profil, role, presensi(id, tanggal, waktu_tiba, waktu_pulang, status_tiba, status_pulang, status_approval, foto_tiba, foto_pulang, is_tadarus, is_rapat, is_nginep), izin_karyawan(id, tanggal, tipe_izin, status_pengajuan, alasan, foto_bukti, jam_rencana_keluar)')
                     .order('nama', { ascending: true });
                 
                 if(freshData) {

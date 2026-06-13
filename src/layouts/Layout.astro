@@ -267,10 +267,16 @@ const { title, requireAuth = true } = Astro.props;
                     <span class="material-symbols-outlined text-[22px]">handshake</span>
                     <span class="font-medium text-sm">Kemitraan</span>
                 </a>
-                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/operasional" data-nav>
-                    <span class="material-symbols-outlined text-[22px]">local_shipping</span>
-                    <span class="font-medium text-sm">Operasional</span>
+                <p class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Operasional</p>
+                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/manajemen_armada" data-nav>
+                    <span class="material-symbols-outlined text-[22px]">garage</span>
+                    <span class="font-medium text-sm">Kendaraan</span>
                 </a>
+                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/penjemputan" data-nav>
+                    <span class="material-symbols-outlined text-[22px]">local_shipping</span>
+                    <span class="font-medium text-sm">Penjemputan</span>
+                </a>
+                <p class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Gudang</p>
                 <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/gudang" data-nav>
                     <span class="material-symbols-outlined text-[22px]">inventory_2</span>
                     <span class="font-medium text-sm">Gudang</span>
@@ -280,7 +286,7 @@ const { title, requireAuth = true } = Astro.props;
                     <span class="font-medium text-sm">Pengolahan Eksternal</span>
                 </a>
                 
-                <p class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mt-4 mb-1">Manajemen</p>
+                <p class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mt-4 mb-1">Karyawan</p>
                 
                 <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/karyawan" data-nav>
                     <span class="material-symbols-outlined text-[22px]">people</span>
@@ -290,6 +296,13 @@ const { title, requireAuth = true } = Astro.props;
                     <span class="material-symbols-outlined text-[22px]">payments</span>
                     <span class="font-medium text-sm">Gajian Karyawan</span>
                 </a>
+                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/benefit_karyawan" data-nav>
+                    <span class="material-symbols-outlined text-[22px]">health_and_safety</span>
+                    <span class="font-medium text-sm">Benefit Karyawan</span>
+                </a>
+
+                <p class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mt-4 mb-1">Manajemen</p>
+
                 <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/pembelian" data-nav>
                     <span class="material-symbols-outlined text-[22px]">shopping_cart_checkout</span>
                     <span class="font-medium text-sm">Pembelian Barang</span>
@@ -306,10 +319,16 @@ const { title, requireAuth = true } = Astro.props;
                     <span class="material-symbols-outlined text-[22px]">monetization_on</span>
                     <span class="font-medium text-sm">Pemasukan</span>
                 </a>
+
+                <p class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mt-4 mb-1">Periklanan</p>
+
                 <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/periklanan" data-nav>
                     <span class="material-symbols-outlined text-[22px]">campaign</span>
                     <span class="font-medium text-sm">Periklanan</span>
                 </a>
+
+                <p class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mt-4 mb-1">Administrasi</p>
+                
                 <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/hak-akses" data-nav>
                     <span class="material-symbols-outlined text-[22px]">manage_accounts</span>
                     <span class="font-medium text-sm">Hak Akses</span>

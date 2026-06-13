@@ -1,0 +1,613 @@
+---
+import Layout from '../layouts/Layout.astro';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+---
+
+<Layout title="Manajemen Armada - Bang Jelantah">
+    <style is:global>
+        body { display: none; } /* Kunci layar sampai verifikasi role beres */
+    </style>
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Mobile Table Cards Style */
+        @media (max-width: 768px) {
+            .mobile-table-card thead { display: none; }
+            .mobile-table-card tbody tr {
+                display: flex; flex-direction: column; margin-bottom: 1rem;
+                border: 1px solid #e0e4d6; border-radius: 0.75rem; background-color: #ffffff;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            }
+            .mobile-table-card tbody td {
+                display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start;
+                padding: 12px 16px; border-bottom: 1px solid #f0f2ec;
+                font-size: 13px; text-align: right; gap: 16px;
+            }
+            .mobile-table-card tbody td:last-child {
+                border-bottom: none; background-color: #fdfdf5; align-items: center; justify-content: flex-end;
+            }
+            .mobile-table-card tbody td::before {
+                content: attr(data-label); font-weight: 700; color: #5d624c; font-size: 11px;
+                text-transform: uppercase; text-align: left; flex-shrink: 0; width: 35%;
+            }
+            .mobile-table-card tbody td > div, .mobile-table-card tbody td > span, .mobile-table-card tbody td > img {
+                word-break: break-word; text-align: right; justify-content: flex-end;
+            }
+        }
+    </style>
+
+    <div class="max-w-7xl mx-auto flex flex-col h-full">
+        <!-- HEADER -->
+        <div class="mb-lg flex flex-col md:flex-row md:items-end justify-between gap-md">
+            <div>
+                <h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary">Manajemen Armada</h1>
+                <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Pendaftaran kendaraan operasional & verifikasi pengecekan harian kendaraan</p>
+            </div>
+            <div class="flex gap-2 w-full md:w-auto mt-4 md:mt-0" id="action-buttons-container">
+                <button id="btn-tambah-mobil" onclick="window.bukaModalTambahMobil()" class="bg-primary text-on-primary font-label-lg rounded-full px-5 py-2.5 hover:opacity-90 transition-all shadow-sm flex items-center gap-2">
+                    <i class="bi bi-truck text-lg"></i> Tambah Mobil Baru
+                </button>
+            </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="flex border-b border-outline-variant mb-md overflow-x-auto hide-scrollbar">
+            <button class="px-md py-sm font-label-lg text-primary border-b-2 border-primary whitespace-nowrap" id="tab-armada" onclick="window.switchTab('armada')">Daftar Armada Aktif</button>
+            <button class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap" id="tab-pengecekan" onclick="window.switchTab('pengecekan')">Verifikasi Pengecekan</button>
+        </div>
+
+        <!-- TAB 1: DATA MOBIL -->
+        <div class="tab-content active" id="content-armada">
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse mobile-table-card md:min-w-[800px]">
+                        <thead>
+                            <tr class="bg-surface-container-low border-b border-outline-variant">
+                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase w-20 text-center">Foto</th>
+                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase">Plat Nomor</th>
+                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase">Nama Kendaraan</th>
+                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase">Jenis</th>
+                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-outline-variant font-body-md text-on-surface bg-surface-container-lowest" id="tbody-mobil">
+                            <tr><td colspan="5" class="p-4 text-center text-on-surface-variant">Memuat data armada...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: RIWAYAT PENGECEKAN DARI ANDROID -->
+        <div class="tab-content" id="content-pengecekan">
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
+                <div class="p-3 bg-surface-container-low border-b border-outline-variant flex justify-between items-center">
+                    <h3 class="font-bold text-sm">Laporan Pengecekan</h3>
+                    <input type="month" id="filter-bulan-cek" onchange="window.loadPengecekan()" class="border border-outline-variant rounded-md px-2 py-1 text-xs outline-none focus:border-primary">
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse mobile-table-card md:min-w-[900px]">
+                        <thead>
+                            <tr class="bg-surface-container-low border-b border-outline-variant">
+                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase">Tanggal & Sesi</th>
+                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase">Armada</th>
+                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase">Hasil Inspeksi Kendaraan</th>
+                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase">Petugas Lapangan</th>
+                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase text-right">Verifikasi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-outline-variant font-body-md text-on-surface bg-surface-container-lowest" id="tbody-pengecekan">
+                            <tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Memuat histori pengecekan...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TAMBAH MOBIL -->
+    <div class="fixed inset-0 z-50 bg-black/50 hidden items-center justify-center p-4 opacity-0 transition-opacity" id="modal-tambah-mobil">
+        <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
+                <h3 class="font-bold text-lg">Registrasi Armada Baru</h3>
+                <button type="button" onclick="window.closeModal('modal-tambah-mobil')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
+            </div>
+            
+            <form id="form-mobil" onsubmit="window.simpanMobil(event)" class="p-6 space-y-4 overflow-y-auto">
+                <input type="hidden" id="edit_mobil_id" value="">
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Plat Nomor</label>
+                    <input type="text" id="mob_plat" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-primary uppercase" required placeholder="Contoh: T 1234 ABC">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nama Kendaraan</label>
+                    <input type="text" id="mob_nama" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-primary" required placeholder="Contoh: Grand Max Hitam">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Jenis Kendaraan</label>
+                    <select id="mob_jenis" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-primary">
+                        <option value="Pickup">Pickup</option>
+                        <option value="Box">Mobil Box</option>
+                        <option value="Engkel">Truk Engkel</option>
+                        <option value="Motor">Motor Tossa</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Foto Kendaraan</label>
+                    <div id="dropZoneMobil" class="relative border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition bg-surface-container-lowest overflow-hidden h-40 flex flex-col items-center justify-center">
+                        
+                        <div id="dropZonePlaceholder">
+                            <i class="bi bi-cloud-upload text-3xl text-gray-400 mb-2 block"></i>
+                            <p class="text-sm text-gray-600 mb-1">Tarik & Lepas Gambar</p>
+                            <p class="text-xs text-gray-500">atau klik untuk memilih (JPG, PNG)</p>
+                        </div>
+
+                        <img id="previewMobil" src="" alt="Preview" class="hidden absolute inset-0 w-full h-full object-cover z-10" />
+                        <input type="file" id="mob_foto_file" accept="image/jpeg,image/png" class="hidden" />
+                    </div>
+                    
+                    <div class="flex justify-between items-center mt-2">
+                        <p id="fileNameMobil" class="text-sm text-primary font-bold truncate"></p>
+                        <button type="button" id="btnHapusPreview" class="hidden text-xs text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-50 hover:bg-red-100 rounded transition" title="Batal pilih foto">Hapus Foto</button>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" id="btn-save-mobil" class="w-full bg-primary text-white font-bold py-3 rounded-xl hover:opacity-90 transition shadow-sm">Simpan Ke Database</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    // Astro akan memproses ini sebagai module otomatis
+    import { uploadImageToImgbb } from '../lib/imgbb.js';
+    
+    // Kita jadikan global agar bisa diakses oleh <script is:inline> di bawahnya
+    window.uploadImageToImgbb = uploadImageToImgbb;
+    </script>
+
+
+    <script is:inline>
+        // ==========================================
+        // 1. GATEKEEPER KHUSUS MANAJEMEN
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!window.supabase) return console.error("Supabase Client tidak ditemukan!");
+            
+            // Hanya manajemen yang bisa akses halaman ini
+            const allowedRoles = ['owner', 'hrd', 'admin', 'it'];
+            const { data: { session } } = await window.supabase.auth.getSession();
+            
+            if (!session) return window.location.replace('/');
+
+            const { data: prof } = await window.supabase.from('profiles').select('role, nama').eq('id', session.user.id).single();
+
+            if (!allowedRoles.includes(prof?.role)) {
+                alert(`Akses Ditolak! Anda tidak memiliki wewenang untuk menambah armada.`);
+                return window.location.replace('/');
+            }
+
+            // Lolos, Buka Layar
+            document.body.style.display = 'block';
+
+            // Set Kalender Default Pengecekan
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            document.getElementById('filter-bulan-cek').value = `${yyyy}-${mm}`;
+
+            // Tarik Data
+            await loadMobil();
+            await loadPengecekan();
+        });
+
+        // ==========================================
+        // 2. FUNGSI TAB & MODAL
+        // ==========================================
+        window.switchTab = function(tabId) {
+            ['armada', 'pengecekan'].forEach(id => {
+                document.getElementById(`tab-${id}`).classList.remove('text-primary', 'border-primary');
+                document.getElementById(`tab-${id}`).classList.add('text-on-surface-variant', 'border-transparent');
+                document.getElementById(`content-${id}`).classList.remove('active');
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('text-on-surface-variant', 'border-transparent');
+            document.getElementById(`tab-${tabId}`).classList.add('text-primary', 'border-primary');
+            document.getElementById(`content-${tabId}`).classList.add('active');
+        };
+
+        window.openModal = function(id) {
+            const m = document.getElementById(id);
+            if(!m) return;
+            m.classList.remove('hidden'); m.classList.add('flex');
+            setTimeout(() => { m.classList.remove('opacity-0'); m.querySelector('div').classList.remove('scale-95'); }, 10);
+        };
+        
+        window.closeModal = function(id) {
+            const m = document.getElementById(id);
+            m.classList.add('opacity-0'); m.querySelector('div').classList.add('scale-95');
+            setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
+        };
+
+        // ==========================================
+        // EFEK UPLOAD FOTO MOBIL
+        // ==========================================
+        const dropZoneMobil = document.getElementById('dropZoneMobil');
+        const fotoInputMobil = document.getElementById('mob_foto_file');
+        const fileNameMobil = document.getElementById('fileNameMobil');
+        const previewMobil = document.getElementById('previewMobil');
+        const dropZonePlaceholder = document.getElementById('dropZonePlaceholder');
+        const btnHapusPreview = document.getElementById('btnHapusPreview');
+        
+        if (dropZoneMobil && fotoInputMobil) {
+            dropZoneMobil.addEventListener('click', () => fotoInputMobil.click());
+            
+            fotoInputMobil.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if(file) {
+                    // Tampilkan nama file
+                    fileNameMobil.innerText = "✓ Siap diupload: " + file.name;
+                    dropZoneMobil.classList.add('border-primary', 'border-solid');
+                    dropZoneMobil.classList.remove('border-dashed', 'border-gray-300');
+
+                    // Buat URL lokal sementara untuk Preview Gambar
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        previewMobil.src = event.target.result;
+                        previewMobil.classList.remove('hidden');
+                        dropZonePlaceholder.classList.add('hidden');
+                        btnHapusPreview.classList.remove('hidden');
+                    }
+                    reader.readAsDataURL(file);
+
+                } else {
+                    window.resetPreviewMobil();
+                }
+            });
+
+            // Fungsi Reset Preview (Dipanggil saat dihapus atau setelah save)
+            window.resetPreviewMobil = function() {
+                fotoInputMobil.value = '';
+                fileNameMobil.innerText = "";
+                previewMobil.src = "";
+                previewMobil.classList.add('hidden');
+                dropZonePlaceholder.classList.remove('hidden');
+                btnHapusPreview.classList.add('hidden');
+                dropZoneMobil.classList.remove('border-primary', 'border-solid');
+                dropZoneMobil.classList.add('border-gray-300', 'border-dashed');
+            };
+
+            // Event Tombol Hapus Preview
+            if(btnHapusPreview) {
+                btnHapusPreview.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Mencegah klik tembus ke Dropzone
+                    window.resetPreviewMobil();
+                });
+            }
+        }
+
+        // ==========================================
+        // 3. LOGIKA DATA MOBIL (ARMADA)
+        // ==========================================
+        window.allMobilData = []; // Variabel global untuk nyimpen data armada
+
+        window.loadMobil = async function() {
+            const tbody = document.getElementById('tbody-mobil');
+            try {
+                const { data, error } = await window.supabase.from('mobil').select('*').eq('is_active', true).order('nama_kendaraan');
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">Belum ada armada mobil yang didaftarkan.</td></tr>';
+                    return;
+                }
+
+                window.allMobilData = data; // Simpan ke global
+                let html = '';
+                data.forEach(m => {
+                    const foto = m.foto_kendaraan ? `<img src="${m.foto_kendaraan}" class="w-12 h-12 object-cover rounded-md mx-auto">` : `<div class="w-12 h-12 bg-gray-200 rounded-md mx-auto flex items-center justify-center text-gray-400"><i class="bi bi-car-front-fill"></i></div>`;
+                    
+                    html += `
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="p-3 text-center" data-label="Foto">${foto}</td>
+                        <td class="p-3 font-mono font-bold text-gray-900" data-label="Plat Nomor"><span class="bg-gray-200 px-2 py-1 rounded text-sm">${m.plat_nomor}</span></td>
+                        <td class="p-3 font-bold text-primary" data-label="Nama Kendaraan">${m.nama_kendaraan}</td>
+                        <td class="p-3 text-gray-600" data-label="Jenis">${m.jenis_kendaraan}</td>
+                        <td class="p-3 text-right" data-label="Aksi">
+                            <div class="flex gap-2 justify-end">
+                                <button onclick="window.editMobil('${m.id}')" class="bg-blue-50 text-blue-600 p-2 rounded hover:bg-blue-100 transition shadow-sm" title="Edit Armada"><i class="bi bi-pencil-square"></i></button>
+                                <button onclick="window.hapusMobil('${m.id}', '${m.nama_kendaraan}')" class="bg-red-50 text-red-600 p-2 rounded hover:bg-red-100 transition shadow-sm" title="Hapus Mobil"><i class="bi bi-trash3"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
+            } catch(e) { console.error("Error load mobil:", e); }
+        };
+
+        // ==========================================
+        // FUNGSI KOMPRESI GAMBAR (CANVAS HTML5)
+        // ==========================================
+        window.kompresGambar = function(file, maxWidth = 800, quality = 0.7) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        // Hitung rasio ukuran baru (Maksimal width sesuai parameter)
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Konversi ke file JPG yang sudah dikompresi
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                                    type: 'image/jpeg',
+                                    lastModified: Date.now()
+                                });
+                                resolve(compressedFile);
+                            } else {
+                                reject(new Error('Gagal kompresi gambar'));
+                            }
+                        }, 'image/jpeg', quality);
+                    };
+                    img.onerror = error => reject(error);
+                };
+                reader.onerror = error => reject(error);
+            });
+        };
+
+        window.bukaModalTambahMobil = function() {
+            document.getElementById('form-mobil').reset();
+            document.getElementById('edit_mobil_id').value = '';
+            document.querySelector('#modal-tambah-mobil h3').innerText = "Registrasi Armada Baru";
+            if (typeof window.resetPreviewMobil === 'function') window.resetPreviewMobil();
+            window.openModal('modal-tambah-mobil');
+        };
+
+        window.editMobil = function(id) {
+            const m = window.allMobilData.find(x => String(x.id) === String(id));
+            if(!m) return alert("Data tidak ditemukan, silakan refresh halaman.");
+
+            document.getElementById('edit_mobil_id').value = m.id;
+            document.getElementById('mob_plat').value = m.plat_nomor;
+            document.getElementById('mob_nama').value = m.nama_kendaraan;
+            document.getElementById('mob_jenis').value = m.jenis_kendaraan;
+            document.querySelector('#modal-tambah-mobil h3').innerText = "Edit Data Armada";
+
+            if (typeof window.resetPreviewMobil === 'function') window.resetPreviewMobil();
+
+            // Kalau ada foto lama, tempel ke preview
+            if (m.foto_kendaraan) {
+                const previewMobil = document.getElementById('previewMobil');
+                const dropZonePlaceholder = document.getElementById('dropZonePlaceholder');
+                const btnHapusPreview = document.getElementById('btnHapusPreview');
+                const dropZoneMobil = document.getElementById('dropZoneMobil');
+
+                previewMobil.src = m.foto_kendaraan;
+                previewMobil.classList.remove('hidden');
+                dropZonePlaceholder.classList.add('hidden');
+                btnHapusPreview.classList.remove('hidden');
+                dropZoneMobil.classList.add('border-primary', 'border-solid');
+                dropZoneMobil.classList.remove('border-gray-300', 'border-dashed');
+            }
+
+            window.openModal('modal-tambah-mobil');
+        };
+
+        window.simpanMobil = async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save-mobil');
+            const fileInput = document.getElementById('mob_foto_file');
+            const file = fileInput?.files[0];
+            const editId = document.getElementById('edit_mobil_id').value;
+
+            btn.innerText = "Menyiapkan Data..."; 
+            btn.disabled = true;
+
+            try {
+                let finalImageUrl = null;
+
+                // 1. Kompres & Upload ke ImgBB jika ada file baru dipilih
+                if (file) {
+                    btn.innerText = "Mengkompresi Foto...";
+                    try {
+                        const compressedFile = await window.kompresGambar(file, 800, 0.7); 
+                        btn.innerText = "Mengunggah Foto Kendaraan...";
+                        finalImageUrl = await window.uploadImageToImgbb(compressedFile);
+                    } catch(err) {
+                        finalImageUrl = await window.uploadImageToImgbb(file); 
+                    }
+                }
+
+                btn.innerText = "Menyimpan ke Database...";
+
+                // 2. Siapkan Data
+                let payload = {
+                    plat_nomor: document.getElementById('mob_plat').value.toUpperCase(),
+                    nama_kendaraan: document.getElementById('mob_nama').value,
+                    jenis_kendaraan: document.getElementById('mob_jenis').value,
+                };
+
+                // Logika penyimpanan foto (Pakai foto baru ATAU hapus foto lama)
+                const previewMobil = document.getElementById('previewMobil');
+                if (finalImageUrl) {
+                    payload.foto_kendaraan = finalImageUrl;
+                } else if (previewMobil.src === '' || previewMobil.classList.contains('hidden')) {
+                    payload.foto_kendaraan = null; // Admin klik "Hapus Foto"
+                }
+
+                // 3. Update atau Insert
+                if (editId) {
+                    const { error } = await window.supabase.from('mobil').update(payload).eq('id', editId);
+                    if (error) throw error;
+                    alert("Data Armada berhasil diperbarui!");
+                } else {
+                    const { error } = await window.supabase.from('mobil').insert([payload]);
+                    if (error) throw error;
+                    alert("Armada baru berhasil ditambahkan!");
+                }
+                
+                // 4. Bersihkan Form & Refresh
+                window.closeModal('modal-tambah-mobil');
+                document.getElementById('form-mobil').reset();
+                if (typeof window.resetPreviewMobil === 'function') window.resetPreviewMobil();
+                window.loadMobil();
+
+            } catch(err) { 
+                if(err.code === '23505') alert("Plat nomor ini sudah terdaftar!");
+                else alert(err.message); 
+            } finally { 
+                btn.innerText = "Simpan Ke Database"; 
+                btn.disabled = false; 
+            }
+        };
+
+        window.hapusMobil = async function(id, nama) {
+            if(!confirm(`Yakin ingin menghapus ${nama} dari daftar armada aktif?`)) return;
+            try {
+                // Soft-delete supaya riwayat operasional yang udah lalu gak error/hilang
+                await window.supabase.from('mobil').update({ is_active: false }).eq('id', id);
+                alert("Armada berhasil dihapus!");
+                window.loadMobil();
+            } catch(err) { alert("Gagal hapus: "+err.message); }
+        };
+
+        // ==========================================
+        // AUTO-FORMAT PLAT NOMOR KENDARAAN
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputPlat = document.getElementById('mob_plat');
+            if (inputPlat) {
+                inputPlat.addEventListener('input', function(e) {
+                    // Hilangkan semua spasi & karakter aneh, ubah ke Huruf Kapital
+                    let val = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                    let result = '';
+
+                    // 1. Ambil 1-2 Huruf Depan (Kode Wilayah)
+                    const kodeWilayah = val.match(/^[A-Z]{1,2}/);
+                    if (kodeWilayah) {
+                        result += kodeWilayah[0];
+                        val = val.substring(kodeWilayah[0].length);
+
+                        // 2. Ambil 1-4 Angka Tengah (Nomor Polisi)
+                        const nomorPolisi = val.match(/^[0-9]{1,4}/);
+                        if (nomorPolisi) {
+                            result += ' ' + nomorPolisi[0];
+                            val = val.substring(nomorPolisi[0].length);
+
+                            // 3. Ambil 1-3 Huruf Belakang (Kode Seri)
+                            const kodeSeri = val.match(/^[A-Z]{1,3}/);
+                            if (kodeSeri) {
+                                result += ' ' + kodeSeri[0];
+                            }
+                        }
+                    } else {
+                        result = val; // Fallback jika format tidak standar
+                    }
+
+                    this.value = result; // Tampilkan hasil format ke input
+                });
+            }
+        });
+
+        // ==========================================
+        // 4. VERIFIKASI PENGECEKAN DARI ANDROID
+        // ==========================================
+        window.loadPengecekan = async function() {
+            const tbody = document.getElementById('tbody-pengecekan');
+            if(!tbody) return;
+            const bln = document.getElementById('filter-bulan-cek').value; 
+            if(!bln) return;
+            
+            // 🔥 PERBAIKAN: Cari tanggal terakhir di bulan yang dipilih otomatis
+            const [tahun, bulan] = bln.split('-');
+            const tanggalTerakhir = new Date(tahun, bulan, 0).getDate(); 
+            
+            const startDate = `${bln}-01`;
+            const endDate = `${bln}-${tanggalTerakhir}`;
+
+            try {
+                const { data, error } = await window.supabase
+                    .from('pengecekan_mobil')
+                    .select(`id, tanggal, waktu_cek, kondisi_ban, kebersihan, catatan, nama_pemeriksa, bensin, oli, radiator, rem_tangan, rem_kaki, wiper, kaki_kaki, stnk, mobil:mobil_id(nama_kendaraan, plat_nomor)`)
+                    .gte('tanggal', startDate)
+                    .lte('tanggal', endDate)
+                    .order('tanggal', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">Belum ada data laporan masuk dari Android bulan ini.</td></tr>';
+                    return;
+                }
+
+                let html = '';
+                data.forEach(d => {
+                    const warnaMesin = d.kondisi_mesin === 'Baik' ? 'text-green-600' : 'text-red-600 font-bold';
+                    const warnaBan = d.kondisi_ban === 'Baik' ? 'text-green-600' : 'text-amber-600 font-bold';
+                    const warnaBersih = d.kebersihan === 'Bersih' ? 'text-blue-600' : 'text-amber-700';
+
+                    html += `
+                        <tr class="hover:bg-surface-container-low transition-colors">
+                            <td class="p-3 font-mono font-bold text-gray-800" data-label="Tanggal & Sesi">
+                                ${d.tanggal}<br>
+                                <span class="text-[10px] ${d.waktu_cek === 'Awal' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'} px-2 py-0.5 rounded uppercase tracking-wider mt-1 inline-block">
+                                    ${d.waktu_cek || 'Awal'} Pemakaian
+                                </span>
+                            </td>
+                            <td class="p-3 leading-tight" data-label="Armada">
+                                <span class="font-bold text-primary">${d.mobil?.nama_kendaraan || '-'}</span><br>
+                                <span class="text-[10px] bg-gray-200 px-1 rounded">${d.mobil?.plat_nomor || '-'}</span>
+                            </td>
+                            <td class="p-3 text-xs" data-label="Hasil Inspeksi">
+                                <div class="grid grid-cols-2 gap-x-2 gap-y-1 max-w-[300px] text-gray-600">
+                                    <div>⛽ Bensin: <span class="font-bold text-gray-900">${d.bensin || '-'}</span></div>
+                                    <div>🛢️ Oli: <span class="font-bold text-gray-900">${d.oli || '-'}</span></div>
+                                    <div>🌡️ Radiator: <span class="font-bold text-gray-900">${d.radiator || '-'}</span></div>
+                                    <div>🛞 Ban: <span class="font-bold text-gray-900">${d.kondisi_ban || '-'}</span></div>
+                                    <div>🛑 Rem Tgn: <span class="font-bold text-gray-900">${d.rem_tangan || '-'}</span></div>
+                                    <div>🛑 Rem Kaki: <span class="font-bold text-gray-900">${d.rem_kaki || '-'}</span></div>
+                                    <div>🌧️ Wiper: <span class="font-bold text-gray-900">${d.wiper || '-'}</span></div>
+                                    <div>⚙️ Kaki-kaki: <span class="font-bold text-gray-900">${d.kaki_kaki || '-'}</span></div>
+                                    <div>📄 STNK: <span class="font-bold text-gray-900">${d.stnk || '-'}</span></div>
+                                    <div>✨ Bersih: <span class="font-bold text-gray-900">${d.kebersihan || '-'}</span></div>
+                                </div>
+                                ${d.catatan ? `<div class="mt-2 text-[11px] text-gray-500 italic p-1.5 bg-gray-50 rounded border border-gray-200">📝 Catatan: "${d.catatan}"</div>` : ''}
+                            </td>
+                            <td class="p-3 text-xs font-semibold text-gray-600" data-label="Petugas Lapangan">${d.nama_pemeriksa}</td>
+                            <td class="p-3 text-right" data-label="Verifikasi">
+                                <button onclick="window.hapusCek('${d.id}')" class="text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 text-xs font-bold rounded" title="Tolak Laporan">Tolak</button>
+                            </td>
+                        </tr>`;
+                });
+                tbody.innerHTML = html;
+            } catch(e) { console.error("Error load cek:", e.message || e); }
+        };
+
+        // Tombol tolak laporan untuk membuang input supir/tim lapangan yang salah/ngawur dari DB
+        window.hapusCek = async function(id) {
+            if(!confirm("Tolak dan hapus laporan pengecekan harian ini? (Laporan dari Android akan dihapus dari sistem)")) return;
+            try {
+                await window.supabase.from('pengecekan_mobil').delete().eq('id', id);
+                window.loadPengecekan();
+            } catch(err) { alert("Gagal menolak laporan: "+err.message); }
+        };
+    </script>
+</Layout>

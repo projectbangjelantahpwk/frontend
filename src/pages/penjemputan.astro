@@ -753,13 +753,13 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             // 3. 🔥 PENCARIAN AUTO DUET BERDASARKAN DRIVER 🔥
             // ==========================================
             const tgl = document.getElementById('input_tanggal')?.value;
-            // Kalau Driver udah dipilih dan Tanggalnya ada, cari Helpernya!
+            
             if (selectedSupirId && tgl) {
                 console.log(`🔎 Cari pasangan duet untuk Driver pada ${tgl}`);
                 try {
                     const { data } = await window.supabase
                         .from('partner_kendaraan')
-                        .select('helper_id, mobil') // <-- Tarik mobil juga
+                        .select('helper_id, mobil_id') // ✅ FIX: Ganti dari 'mobil' jadi 'mobil_id'
                         .eq('tanggal', tgl)
                         .eq('driver_id', selectedSupirId)
                         .maybeSingle();
@@ -767,12 +767,45 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     if (data) {
                         console.log("✅ Pasangan ditemukan! Auto-isi Helper dan Armada:", data);
                         if(data.helper_id) tomHelper.setValue(data.helper_id);
-                        if(data.mobil && tomMobilPickup) tomMobilPickup.setValue(data.mobil); // <-- Auto isi Mobil
+                        if(data.mobil_id && tomMobilPickup) tomMobilPickup.setValue(data.mobil_id); // ✅ FIX: Panggil data.mobil_id
                     } else {
                         console.log("ℹ️ Driver ini belum punya setingan duet di tanggal ini.");
                     }
                 } catch(e) {
                     console.error("Gagal mencari data duet:", e);
+                }
+            }
+        });
+
+        // ==========================================
+        // 4. 🔥 FITUR BARU: PENCARIAN AUTO DUET BERDASARKAN ARMADA (MOBIL) 🔥
+        // ==========================================
+        document.getElementById('input_mobil_pickup').addEventListener('change', async function() {
+            const selectedMobilId = this.value;
+            const tgl = document.getElementById('input_tanggal')?.value;
+
+            // Kalau Armada udah dipilih, otomatis cari siapa Driver & Helpernya!
+            if (selectedMobilId && tgl) {
+                try {
+                    const { data } = await window.supabase
+                        .from('partner_kendaraan')
+                        .select('driver_id, helper_id')
+                        .eq('tanggal', tgl)
+                        .eq('mobil_id', selectedMobilId)
+                        .maybeSingle();
+
+                    if (data) {
+                        console.log("✅ Armada dikenali! Auto-isi Driver dan Helper:", data);
+                        // Set Driver
+                        if(data.driver_id && tomMobil) tomMobil.setValue(data.driver_id);
+                        
+                        // Set Helper (Kasih jeda dikit biar logic driver gak bentrok)
+                        setTimeout(() => {
+                            if(data.helper_id && tomHelper) tomHelper.setValue(data.helper_id);
+                        }, 150);
+                    }
+                } catch(e) {
+                    console.error("Gagal menarik data mobil:", e);
                 }
             }
         });
@@ -1608,7 +1641,7 @@ window.hapusPenjemputan = async function(id) {
 
             const payload = {
                 tanggal: document.getElementById('duet_tanggal').value,
-                mobil_id: document.getElementById('duet_mobil').value, // Simpan ID Mobil
+                mobil: document.getElementById('duet_mobil').value, // Simpan ID Mobil
                 driver_id: document.getElementById('duet_driver').value,
                 helper_id: document.getElementById('duet_helper').value,
             };

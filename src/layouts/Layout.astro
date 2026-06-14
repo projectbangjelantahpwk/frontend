@@ -168,41 +168,63 @@ const { title, requireAuth = true } = Astro.props;
 
             <div id="auth-logged-in" class="hidden items-center gap-1 md:gap-2">
                 <div id="desktop-kas-widget" class="hidden items-center gap-2">
-    <div class="flex items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-full border border-outline-variant shadow-sm">
-        <span class="material-symbols-outlined text-[18px] text-primary">warehouse</span>
-        <span class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold opacity-70">Gudang:</span>
-        <span id="teks-kas-gudang" class="font-mono text-xs font-bold text-primary">Rp 0</span>
-    </div>
+                    <div class="flex items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-full border border-outline-variant shadow-sm">
+                        <span class="material-symbols-outlined text-[18px] text-primary">warehouse</span>
+                        <span class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold opacity-70">Gudang:</span>
+                        <span id="teks-kas-gudang" class="font-mono text-xs font-bold text-primary">Rp 0</span>
+                    </div>
 
-    <div class="flex items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-full border border-outline-variant shadow-sm">
-        <span class="material-symbols-outlined text-[18px] text-secondary">payments</span>
-        <span class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold opacity-70">Keuangan:</span>
-        <span id="teks-kas-keuangan" class="font-mono text-xs font-bold text-secondary">Rp 0</span>
-    </div>
-    <button id="btn-edit-kas" onclick="window.bukaModalKas()" class="w-8 h-8 flex items-center justify-center bg-surface-container-low border border-outline-variant text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-full shadow-sm transition-colors" style="display: none;" title="Edit Saldo Kas">
-        <span class="material-symbols-outlined text-[16px]">edit</span>
-    </button>
-</div>
+                    <div class="flex items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-full border border-outline-variant shadow-sm">
+                        <span class="material-symbols-outlined text-[18px] text-secondary">payments</span>
+                        <span class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold opacity-70">Keuangan:</span>
+                        <span id="teks-kas-keuangan" class="font-mono text-xs font-bold text-secondary">Rp 0</span>
+                    </div>
+
+                    <div id="box-kas-owner" class="hidden items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-full border border-outline-variant shadow-sm">
+                        <span class="material-symbols-outlined text-[18px] text-purple-600">account_balance_wallet</span>
+                        <span class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold opacity-70">Owner:</span>
+                        <span id="teks-kas-owner" class="font-mono text-xs font-bold text-purple-600">Rp 0</span>
+                    </div>
+
+                    <button id="btn-edit-kas" onclick="window.bukaModalKas()" class="w-8 h-8 flex items-center justify-center bg-surface-container-low border border-outline-variant text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-full shadow-sm transition-colors" style="display: none;" title="Edit Saldo Kas">
+                        <span class="material-symbols-outlined text-[16px]">edit</span>
+                    </button>
+                </div>
                 <div id="mobile-sticky-kas" class="hidden fixed bottom-4 left-4 right-4 z-50 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-2xl p-3 items-center justify-between">
-    <div class="flex items-center gap-2 w-full justify-around">
-        <div class="flex items-center gap-2 flex-1 justify-center">
-            <span class="material-symbols-outlined text-[20px] text-primary">warehouse</span>
-            <div class="flex flex-col">
-                <span class="text-[9px] uppercase tracking-wider text-on-surface-variant font-bold opacity-60 leading-none mb-0.5">Gudang</span>
-                <span id="teks-kas-gudang-mobile" class="font-mono text-xs font-bold text-primary">Rp 0</span>
-            </div>
-        </div>
-        
-        <div class="w-[1px] h-6 bg-outline-variant"></div>
-        
-        <div class="flex items-center gap-2 flex-1 justify-center">
-            <span class="material-symbols-outlined text-[20px] text-secondary">payments</span>
-            <div class="flex flex-col">
-                <span class="text-[9px] uppercase tracking-wider text-on-surface-variant font-bold opacity-60 leading-none mb-0.5">Keuangan</span>
-                <span id="teks-kas-keuangan-mobile" class="font-mono text-xs font-bold text-secondary">Rp 0</span>
-            </div>
-        </div>
-    </div>
+                    <div class="flex items-center gap-2 w-full justify-around">
+                        <div class="flex items-center gap-2 flex-1 justify-center">
+                            <span class="material-symbols-outlined text-[20px] text-primary">warehouse</span>
+                            <div class="flex flex-col">
+                                <span class="text-[9px] uppercase tracking-wider text-on-surface-variant font-bold opacity-60 leading-none mb-0.5">Gudang</span>
+                                <span id="teks-kas-gudang-mobile" class="font-mono text-xs font-bold text-primary">Rp 0</span>
+                            </div>
+                        </div>
+                        
+                        <div class="w-[1px] h-6 bg-outline-variant"></div>
+                        
+                        <div class="flex items-center gap-2 flex-1 justify-center">
+                            <span class="material-symbols-outlined text-[20px] text-secondary">payments</span>
+                            <div class="flex flex-col">
+                                <span class="text-[9px] uppercase tracking-wider text-on-surface-variant font-bold opacity-60 leading-none mb-0.5">Keuangan</span>
+                                <span id="teks-kas-keuangan-mobile" class="font-mono text-xs font-bold text-secondary">Rp 0</span>
+                            </div>
+                        </div>
+
+                        <div id="divider-kas-owner-mobile" class="hidden w-[1px] h-6 bg-outline-variant"></div>
+                        
+                        <div id="box-kas-owner-mobile" class="hidden items-center gap-2 flex-1 justify-center">
+                            <span class="material-symbols-outlined text-[20px] text-purple-600">account_balance_wallet</span>
+                            <div class="flex flex-col">
+                                <span class="text-[9px] uppercase tracking-wider text-on-surface-variant font-bold opacity-60 leading-none mb-0.5">Owner</span>
+                                <span id="teks-kas-owner-mobile" class="font-mono text-xs font-bold text-purple-600">Rp 0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="btn-edit-kas-mobile" onclick="window.bukaModalKas()" class="w-8 h-8 flex items-center justify-center bg-primary text-on-primary rounded-full shadow-md ml-2 transition-transform active:scale-95" style="display: none;">
+                        <span class="material-symbols-outlined text-[16px]">edit</span>
+                    </button>
+                </div>
     
     <button id="btn-edit-kas-mobile" onclick="window.bukaModalKas()" class="w-8 h-8 flex items-center justify-center bg-primary text-on-primary rounded-full shadow-md ml-2 transition-transform active:scale-95" style="display: none;">
         <span class="material-symbols-outlined text-[16px]">edit</span>
@@ -387,148 +409,148 @@ const { title, requireAuth = true } = Astro.props;
         import { supabase } from '../lib/supabase.js';
 
         // ==========================================
-// 🔥 LOGIKA REALTIME NOTIFICATIONS (BARU)
-// ==========================================
-function initRealtimeNotifications() {
-    if (!window.supabase) {
-        console.warn('⏳ Waiting for Supabase...');
-        setTimeout(() => initRealtimeNotifications(), 500);
-        return;
-    }
-
-    console.log('🚀 Initializing Realtime Notifications...');
-
-    let retryCount = 0;
-    const MAX_RETRIES = 3;
-    let channel = null;
-
-    function setupChannel() {
-        try {
-            if (channel) {
-                console.log('🧹 Cleaning old channel...');
-                channel.unsubscribe();
-                channel = null;
+        // 🔥 LOGIKA REALTIME NOTIFICATIONS (BARU)
+        // ==========================================
+        function initRealtimeNotifications() {
+            if (!window.supabase) {
+                console.warn('⏳ Waiting for Supabase...');
+                setTimeout(() => initRealtimeNotifications(), 500);
+                return;
             }
-
-            console.log('🔌 Setting up WebSocket channel...');
-            channel = window.supabase.channel('dashboard-notifications', {
-                config: {
-                    broadcast: { self: true },
-                    presence: { key: 'notifications' }
-                }
-            });
         
-            // ✅ TAMBAH SEMUA LISTENERS DULU (SEBELUM SUBSCRIBE!)
-
-            // 1️⃣ TRANSAKSI
-            channel.on('postgres_changes', 
-                { event: 'UPDATE', schema: 'public', table: 'transaksi' }, 
-                async (payload) => {
-                    try {
-                        console.log('📡 [TRANSAKSI] Update:', payload);
-                        const newData = payload.new;
-                        const oldData = payload.old || {};
-
-                        if (newData.status === 'Selesai' && oldData.status !== 'Selesai') {
-                            const { data: relasi } = await window.supabase
-                                .from('transaksi')
-                                .select('metode_bayar, penjemputan(mitra(nama_mitra))')
-                                .eq('id', newData.id)
-                                .single();
-
-                            const namaMitra = relasi?.penjemputan?.mitra?.nama_mitra || 'Mitra';
-                            const metode = relasi?.metode_bayar || 'Kas/Transfer';
-
-                            window.addNotifToList('✅ Pembayaran Selesai!', `Setoran dari ${namaMitra} - ${metode}`);
-                        }
-                    } catch (error) {
-                        console.error('❌ Error EVENT 1:', error);
+            console.log('🚀 Initializing Realtime Notifications...');
+        
+            let retryCount = 0;
+            const MAX_RETRIES = 3;
+            let channel = null;
+        
+            function setupChannel() {
+                try {
+                    if (channel) {
+                        console.log('🧹 Cleaning old channel...');
+                        channel.unsubscribe();
+                        channel = null;
                     }
-                }
-            );
-            
-            // 2️⃣ PRESENSI
-            channel.on('postgres_changes', 
-                { event: 'UPDATE', schema: 'public', table: 'presensi' }, 
-                async (payload) => {
-                    try {
-                        const newData = payload.new;
-                        const oldData = payload.old || {};
-
-                        const isWaktuPulangDiisi = newData.waktu_pulang && !oldData.waktu_pulang;
-                        const statusAlerts = ['Pulang', 'Izin', 'Izin Pulang Cepat', 'Sakit'];
-                        const isStatusTibaTrigger = statusAlerts.includes(newData.status_tiba) && newData.status_tiba !== oldData.status_tiba;
-                        const isStatusPulangTrigger = statusAlerts.includes(newData.status_pulang) && newData.status_pulang !== oldData.status_pulang;
-                    
-                        if (isWaktuPulangDiisi || isStatusTibaTrigger || isStatusPulangTrigger) {
-                            const { data: user } = await window.supabase.from('profiles').select('nama').eq('id', newData.user_id).single();
-                            const namaKaryawan = user?.nama || 'Karyawan';
-                            let title = '', pesan = '';
-                        
-                            if (newData.status_tiba === 'Sakit') {
-                                title = '⚠️ Sakit'; pesan = `${namaKaryawan} sakit`;
-                            } else if (newData.status_pulang === 'Pulang') {
-                                title = '👋 Pulang'; pesan = `${namaKaryawan} pulang`;
+                
+                    console.log('🔌 Setting up WebSocket channel...');
+                    channel = window.supabase.channel('dashboard-notifications', {
+                        config: {
+                            broadcast: { self: true },
+                            presence: { key: 'notifications' }
+                        }
+                    });
+                
+                    // ✅ TAMBAH SEMUA LISTENERS DULU (SEBELUM SUBSCRIBE!)
+                
+                    // 1️⃣ TRANSAKSI
+                    channel.on('postgres_changes', 
+                        { event: 'UPDATE', schema: 'public', table: 'transaksi' }, 
+                        async (payload) => {
+                            try {
+                                console.log('📡 [TRANSAKSI] Update:', payload);
+                                const newData = payload.new;
+                                const oldData = payload.old || {};
+                            
+                                if (newData.status === 'Selesai' && oldData.status !== 'Selesai') {
+                                    const { data: relasi } = await window.supabase
+                                        .from('transaksi')
+                                        .select('metode_bayar, penjemputan(mitra(nama_mitra))')
+                                        .eq('id', newData.id)
+                                        .single();
+                                
+                                    const namaMitra = relasi?.penjemputan?.mitra?.nama_mitra || 'Mitra';
+                                    const metode = relasi?.metode_bayar || 'Kas/Transfer';
+                                
+                                    window.addNotifToList('✅ Pembayaran Selesai!', `Setoran dari ${namaMitra} - ${metode}`);
+                                }
+                            } catch (error) {
+                                console.error('❌ Error EVENT 1:', error);
                             }
-                        
-                            if(pesan) window.addNotifToList(title, pesan);
                         }
-                    } catch (error) {
-                        console.error('❌ Error EVENT 2:', error);
-                    }
-                }
-            );
-            
-            // 3️⃣ PENGELUARAN
-            channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pengeluaran' }, (payload) => {
-                window.addNotifToList('💸 Pengeluaran', `Rp ${Number(payload.new.total_harian).toLocaleString('id-ID')}`);
-            });
-
-            // 4️⃣ PENJUALAN OLAHAN
-            channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'penjualan_olahan' }, (payload) => {
-                const pembeli = payload.new.pembeli || 'Distributor';
-                window.addNotifToList('📦 Penjualan', `Ke ${pembeli}`);
-            });
-
-            // 5️⃣ GUDANG MASUK
-            channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'gudang_mutasi' }, (payload) => {
-                if (payload.new.jenis_mutasi === 'Masuk') {
-                    const komoditas = payload.new.komoditas_id?.replace(/_/g, ' ') || 'Barang';
-                    window.addNotifToList('🚛 Gudang Masuk', `${komoditas} +${payload.new.jumlah}kg`);
-                }
-            });
-
-            // ✅ BARU SUBSCRIBE SETELAH SEMUA LISTENER DITAMBAH!
-            channel.subscribe((status) => {
-                if (status === 'SUBSCRIBED') {
-                    console.log('✅ WebSocket Connected!');
-                    retryCount = 0;
-                } else if (status === 'CHANNEL_ERROR') {
-                    console.warn(`⚠️ Error, retry ${retryCount}/${MAX_RETRIES}`);
+                    );
+                    
+                    // 2️⃣ PRESENSI
+                    channel.on('postgres_changes', 
+                        { event: 'UPDATE', schema: 'public', table: 'presensi' }, 
+                        async (payload) => {
+                            try {
+                                const newData = payload.new;
+                                const oldData = payload.old || {};
+                            
+                                const isWaktuPulangDiisi = newData.waktu_pulang && !oldData.waktu_pulang;
+                                const statusAlerts = ['Pulang', 'Izin', 'Izin Pulang Cepat', 'Sakit'];
+                                const isStatusTibaTrigger = statusAlerts.includes(newData.status_tiba) && newData.status_tiba !== oldData.status_tiba;
+                                const isStatusPulangTrigger = statusAlerts.includes(newData.status_pulang) && newData.status_pulang !== oldData.status_pulang;
+                            
+                                if (isWaktuPulangDiisi || isStatusTibaTrigger || isStatusPulangTrigger) {
+                                    const { data: user } = await window.supabase.from('profiles').select('nama').eq('id', newData.user_id).single();
+                                    const namaKaryawan = user?.nama || 'Karyawan';
+                                    let title = '', pesan = '';
+                                
+                                    if (newData.status_tiba === 'Sakit') {
+                                        title = '⚠️ Sakit'; pesan = `${namaKaryawan} sakit`;
+                                    } else if (newData.status_pulang === 'Pulang') {
+                                        title = '👋 Pulang'; pesan = `${namaKaryawan} pulang`;
+                                    }
+                                
+                                    if(pesan) window.addNotifToList(title, pesan);
+                                }
+                            } catch (error) {
+                                console.error('❌ Error EVENT 2:', error);
+                            }
+                        }
+                    );
+                    
+                    // 3️⃣ PENGELUARAN
+                    channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pengeluaran' }, (payload) => {
+                        window.addNotifToList('💸 Pengeluaran', `Rp ${Number(payload.new.total_harian).toLocaleString('id-ID')}`);
+                    });
+                
+                    // 4️⃣ PENJUALAN OLAHAN
+                    channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'penjualan_olahan' }, (payload) => {
+                        const pembeli = payload.new.pembeli || 'Distributor';
+                        window.addNotifToList('📦 Penjualan', `Ke ${pembeli}`);
+                    });
+                
+                    // 5️⃣ GUDANG MASUK
+                    channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'gudang_mutasi' }, (payload) => {
+                        if (payload.new.jenis_mutasi === 'Masuk') {
+                            const komoditas = payload.new.komoditas_id?.replace(/_/g, ' ') || 'Barang';
+                            window.addNotifToList('🚛 Gudang Masuk', `${komoditas} +${payload.new.jumlah}kg`);
+                        }
+                    });
+                
+                    // ✅ BARU SUBSCRIBE SETELAH SEMUA LISTENER DITAMBAH!
+                    channel.subscribe((status) => {
+                        if (status === 'SUBSCRIBED') {
+                            console.log('✅ WebSocket Connected!');
+                            retryCount = 0;
+                        } else if (status === 'CHANNEL_ERROR') {
+                            console.warn(`⚠️ Error, retry ${retryCount}/${MAX_RETRIES}`);
+                            if (retryCount < MAX_RETRIES) {
+                                retryCount++;
+                                setTimeout(() => setupChannel(), 5000);
+                            }
+                        }
+                    });
+                
+                } catch (error) {
+                    console.error('❌ Fatal error:', error);
                     if (retryCount < MAX_RETRIES) {
                         retryCount++;
                         setTimeout(() => setupChannel(), 5000);
                     }
                 }
-            });
-        
-        } catch (error) {
-            console.error('❌ Fatal error:', error);
-            if (retryCount < MAX_RETRIES) {
-                retryCount++;
-                setTimeout(() => setupChannel(), 5000);
             }
+        
+            // Setup saat session ready
+            window.supabase.auth.getSession().then(({ data: { session } }) => {
+                if (session) {
+                    console.log('✅ Session ready, starting WebSocket');
+                    setTimeout(() => setupChannel(), 1000);
+                }
+            });
         }
-    }
-
-    // Setup saat session ready
-    window.supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-            console.log('✅ Session ready, starting WebSocket');
-            setTimeout(() => setupChannel(), 1000);
-        }
-    });
-}
 
         function runWhenReady(callback) {
             if (document.readyState === 'loading') {
@@ -1060,20 +1082,29 @@ window.addNotifToList = function(title, body) {
                     minimumFractionDigits: 0 
                 });
 
-                // 🏢 Sinkronisasi ke UI Desktop
+                // 🏢 Sinkronisasi ke UI Desktop (UMUM)
                 if (document.getElementById('teks-kas-gudang')) document.getElementById('teks-kas-gudang').innerText = formatter.format(uangGudang);
                 if (document.getElementById('teks-kas-keuangan')) document.getElementById('teks-kas-keuangan').innerText = formatter.format(uangKeuangan);
-                if (document.getElementById('teks-kas-owner')) document.getElementById('teks-kas-owner').innerText = formatter.format(uangOwner);
                 
-                // 📱 Sinkronisasi ke UI Mobile
+                // 📱 Sinkronisasi ke UI Mobile (UMUM)
                 if (document.getElementById('teks-kas-gudang-mobile')) document.getElementById('teks-kas-gudang-mobile').innerText = formatter.format(uangGudang);
                 if (document.getElementById('teks-kas-keuangan-mobile')) document.getElementById('teks-kas-keuangan-mobile').innerText = formatter.format(uangKeuangan);
-                if (document.getElementById('teks-kas-owner-mobile')) document.getElementById('teks-kas-owner-mobile').innerText = formatter.format(uangOwner);
                 
-                // Set Nilai Default ke dalam Form Input Modal
+                // Set Nilai Default ke dalam Form Input Modal (UMUM)
                 if (document.getElementById('input_uang_gudang')) document.getElementById('input_uang_gudang').value = uangGudang;
                 if (document.getElementById('input_uang_keuangan')) document.getElementById('input_uang_keuangan').value = uangKeuangan;
-                if (document.getElementById('input_uang_owner')) document.getElementById('input_uang_owner').value = uangOwner;
+
+                // 🔥 PROTEKSI KHUSUS OWNER 🔥
+                if (window.userRole === 'owner') {
+                    if (document.getElementById('teks-kas-owner')) document.getElementById('teks-kas-owner').innerText = formatter.format(uangOwner);
+                    if (document.getElementById('teks-kas-owner-mobile')) document.getElementById('teks-kas-owner-mobile').innerText = formatter.format(uangOwner);
+                    if (document.getElementById('input_uang_owner')) document.getElementById('input_uang_owner').value = uangOwner;
+                } else {
+                    // Paksa sembunyikan kotak dan input Uang Owner jika bukan owner yang login
+                    document.getElementById('box-kas-owner')?.classList.add('hidden');
+                    document.getElementById('box-kas-owner-mobile')?.classList.add('hidden');
+                    document.getElementById('input-container-owner')?.classList.add('hidden');
+                }
             } catch (err) {
                 console.error("Gagal load data kas:", err);
             }
@@ -1088,6 +1119,7 @@ window.addNotifToList = function(title, body) {
                 try {
                     const { data: prof } = await window.supabase.from('profiles').select('role').eq('id', session.user.id).single();
                     const userRole = prof?.role; 
+                    window.userRole = userRole; // 🔥 SIMPAN ROLE SECARA GLOBAL BIAR BISA DIBACA FUNGSI LAIN
                     const allowedKasRoles = ['owner', 'keuangan', 'admin'];
                     
                     if (allowedKasRoles.includes(userRole)) {
@@ -1112,8 +1144,16 @@ window.addNotifToList = function(title, body) {
                         
                         // Proteksi khusus kas owner di desktop
                         if (userRole === 'owner') {
+                            // Munculkan di Desktop
                             document.getElementById('box-kas-owner')?.classList.remove('hidden');
                             document.getElementById('box-kas-owner')?.classList.add('flex');
+                            
+                            // Munculkan di Mobile
+                            document.getElementById('box-kas-owner-mobile')?.classList.remove('hidden');
+                            document.getElementById('box-kas-owner-mobile')?.classList.add('flex');
+                            document.getElementById('divider-kas-owner-mobile')?.classList.remove('hidden');
+                            
+                            // Munculkan input modal
                             document.getElementById('input-container-owner')?.classList.remove('hidden');
                         }
 

@@ -186,9 +186,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     <div>
                         <label class="block text-xs font-bold text-gray-700 mb-1">Tujuan Kas Masuk</label>
                         <select id="pj_tujuan_kas" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-green-600 bg-green-50 font-bold text-green-800" required>
-                            <option value="uang_keuangan">Uang Keuangan</option>
-                            <option value="uang_gudang">Uang Gudang</option>
-                            <option value="uang_owner">Uang Owner</option>
+                            <option value="Uang Keuangan">Uang Keuangan</option>
+                            <option value="Uang Gudang">Uang Gudang</option>
+                            <option value="Uang Owner" selected>Uang Owner</option>
                         </select>
                     </div>
                     <div>
@@ -239,6 +239,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 <input type="hidden" id="edit_pj_old_vol">
                 <input type="hidden" id="edit_pj_old_total">
                 <input type="hidden" id="edit_pj_old_kas">
+                <input type="hidden" id="edit_pj_pemasukan_id">
                 
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">Tanggal Transaksi</label>
@@ -251,9 +252,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">Tujuan Kas Masuk</label>
                     <select id="edit_pj_tujuan_kas" class="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-yellow-600 bg-white" required>
-                        <option value="uang_keuangan">Kas Keuangan</option>
-                        <option value="uang_gudang">Kas Gudang</option>
-                        <option value="uang_owner">Kas Owner</option>
+                        <option value="Uang Keuangan">Kas Keuangan</option>
+                        <option value="Uang Gudang">Kas Gudang</option>
+                        <option value="Uang Owner" selected>Kas Owner</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
@@ -363,17 +364,38 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         };
 
         window.bukaModalPenjualan = function() {
+            // 🔥 Ambil tanggal hari ini (Zona Waktu Lokal / WIB)
+            const wkt = new Date();
+            const offset = wkt.getTimezoneOffset() * 60000;
+            const hariIni = new Date(wkt - offset).toISOString().split('T')[0];
+
+            // 🔥 Terapkan ke Input Form
+            const inputTgl = document.getElementById('pj_tgl');
+            inputTgl.value = hariIni; // Default langsung terisi hari ini
+            inputTgl.max = hariIni;   // Dibatasi mentok sampai hari ini
+
+            // Reset form lainnya
             document.getElementById('pj-items-container').innerHTML = '';
-            window.tambahBarisBarang(); 
+            window.tambahBarisBarang();
             document.getElementById('pj_keterangan').value = '';
             window.navigasiStepPj(1);
             window.openModal('modal-tambah-penjualan');
-        }
+        };
 
         // Fungsi untuk membuka modal Edit Penjualan
-        window.bukaModalEditPenjualan = function(id, tgl, distId, komId, vol, hrg, ket, oldTotal, oldKas) {
+        window.bukaModalEditPenjualan = function(id, tgl, distId, komId, vol, hrg, ket, oldTotal, oldKas, pemasukanId) {
+            // 🔥 Ambil tanggal hari ini (Zona Waktu Lokal / WIB)
+            const wkt = new Date();
+            const offset = wkt.getTimezoneOffset() * 60000;
+            const hariIni = new Date(wkt - offset).toISOString().split('T')[0];
+
             document.getElementById('edit_pj_id').value = id;
-            document.getElementById('edit_pj_tgl').value = tgl;
+            
+            // 🔥 Terapkan Batas Maksimal Tanggal
+            const inputTglEdit = document.getElementById('edit_pj_tgl');
+            inputTglEdit.value = tgl;
+            inputTglEdit.max = hariIni; // Mentok nggak bisa pilih besok
+
             document.getElementById('edit_pj_komoditas_id').value = komId;
             document.getElementById('edit_pj_old_vol').value = vol;
             document.getElementById('edit_pj_vol').value = vol;
@@ -381,11 +403,12 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             document.getElementById('edit_pj_keterangan').value = ket === 'null' ? '' : ket;
             document.getElementById('edit_pj_distributor').innerHTML = document.getElementById('pj_distributor').innerHTML;
             document.getElementById('edit_pj_distributor').value = distId;
-            
-            // 🔥 Isi value kas dan total uang lama
             document.getElementById('edit_pj_old_total').value = oldTotal;
             document.getElementById('edit_pj_old_kas').value = oldKas;
             document.getElementById('edit_pj_tujuan_kas').value = oldKas;
+            
+            // Tangkap ID PEMASUKAN
+            document.getElementById('edit_pj_pemasukan_id').value = pemasukanId;
 
             window.openModal('modal-edit-penjualan');
         };
@@ -397,6 +420,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             btn.innerText = "Menyimpan..."; btn.disabled = true;
 
             const id = document.getElementById('edit_pj_id').value;
+            const pemasukanId = document.getElementById('edit_pj_pemasukan_id').value; // Ini ID Rincian
             const komId = document.getElementById('edit_pj_komoditas_id').value;
             const oldVol = parseFloat(document.getElementById('edit_pj_old_vol').value) || 0;
             const newVol = parseFloat(document.getElementById('edit_pj_vol').value) || 0;
@@ -404,100 +428,99 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             const distId = document.getElementById('edit_pj_distributor').value;
             const hrg = parseFloat(document.getElementById('edit_pj_hrg').value) || 0;
             const ket = document.getElementById('edit_pj_keterangan').value || null;
-            
             const newTotal = newVol * hrg;
             const oldTotal = parseFloat(document.getElementById('edit_pj_old_total').value) || 0;
             const oldKas = document.getElementById('edit_pj_old_kas').value;
             const newKas = document.getElementById('edit_pj_tujuan_kas').value;
 
             try {
-                // 1. Update data pokok transaksi (Termasuk tujuan_kas baru)
+                // A. Update Penjualan Olahan
                 const { error: errPj } = await client.from('penjualan_olahan').update({
-                    tanggal: tgl,
-                    distributor_id: distId,
-                    volume: newVol,
-                    harga_satuan: hrg,
-                    total_harga: newTotal,
-                    keterangan: ket,
-                    tujuan_kas: newKas // 🔥 Menyimpan brankas kas baru ke DB
+                    tanggal: tgl, distributor_id: distId, volume: newVol, harga_satuan: hrg, 
+                    total_harga: newTotal, keterangan: ket, tujuan_kas: newKas 
                 }).eq('id', id);
-
                 if (errPj) throw errPj;
 
-                // 2. Kalkulasi cerdas untuk selisih gudang
-                const selisihVol = newVol - oldVol; 
+                // B. 🔥 SINKRONISASI KE TABEL RINCIAN PEMASUKAN 🔥
+                if (pemasukanId) {
+                    if (oldKas !== newKas) {
+                        // Kalau brankas dipindah, cari/buat Induk Baru untuk Kas Baru
+                        const { data: existParent } = await client.from('pemasukan').select('id').eq('tanggal', tgl).eq('sumber_dana', newKas).limit(1).maybeSingle();
+                        let newParentId;
+                        if(existParent) { newParentId = existParent.id; } 
+                        else {
+                            const { data: ins } = await client.from('pemasukan').insert([{user_id: (await client.auth.getSession()).data.session.user.id, tanggal: tgl, total_harian: 0, status_approval: 'Disetujui', sumber_dana: newKas}]).select('id').single();
+                            newParentId = ins.id;
+                        }
+                        await client.from('rincian_pemasukan').update({ nominal: newTotal, pemasukan_id: newParentId }).eq('id', pemasukanId);
+                    } else {
+                        // Kas tetap sama, update nominal aja
+                        await client.from('rincian_pemasukan').update({ nominal: newTotal }).eq('id', pemasukanId);
+                    }
+                }
+
+                // C. Kalkulasi selisih stok gudang
+                const selisihVol = newVol - oldVol;
                 if (selisihVol !== 0) {
                     const { data: g } = await client.from('gudang_komoditas').select('stok').eq('id', komId).single();
                     await client.from('gudang_komoditas').update({ stok: g.stok - selisihVol }).eq('id', komId);
-                    
                     const jenisMutasi = selisihVol > 0 ? 'Keluar' : 'Masuk';
-                    await client.from('gudang_mutasi').insert([{
-                        jenis_mutasi: jenisMutasi,
-                        komoditas_id: komId,
-                        jumlah: -selisihVol, 
-                        keterangan: 'Revisi Transaksi Penjualan'
-                    }]);
+                    await client.from('gudang_mutasi').insert([{ jenis_mutasi: jenisMutasi, komoditas_id: komId, jumlah: -selisihVol, keterangan: 'Revisi Transaksi Penjualan' }]);
                 }
 
-                // 🔥 3. PENYESUAIAN SALDO KAS (ANTI SALDO GAIB) 🔥
-                const { data: dbKas, error: errFetchKas } = await client.from('kas_perusahaan').select('*').eq('id', 1).single();
-                if (errFetchKas) throw errFetchKas;
+                // D. Penyesuaian Saldo Kas
+                const mapKasDb = { 'Uang Keuangan': 'uang_keuangan', 'Uang Gudang': 'uang_gudang', 'Uang Owner': 'uang_owner' };
+                const dbOld = mapKasDb[oldKas];
+                const dbNew = mapKasDb[newKas];
 
+                const { data: dbKas } = await client.from('kas_perusahaan').select('*').eq('id', 1).single();
                 let payloadUang = {};
                 
                 if (oldKas === newKas) {
-                    // Skenario A: Jika brankas kas tidak diubah (tetap keuangan/gudang/owner)
-                    // Rumus: Saldo saat ini dikurangi total uang lama, lalu ditambah total uang baru
-                    payloadUang[newKas] = (Number(dbKas[newKas]) || 0) - oldTotal + newTotal;
+                    payloadUang[dbNew] = (Number(dbKas[dbNew]) || 0) - oldTotal + newTotal;
                 } else {
-                    // Skenario B: Jika brankas kas dipindahkan (misal dari Keuangan pindah ke Owner)
-                    payloadUang[oldKas] = (Number(dbKas[oldKas]) || 0) - oldTotal; // Tarik/kurangi nominal dari laci lama
-                    payloadUang[newKas] = (Number(dbKas[newKas]) || 0) + newTotal; // Masukkan nominal penuh ke laci baru
+                    payloadUang[dbOld] = (Number(dbKas[dbOld]) || 0) - oldTotal;
+                    payloadUang[dbNew] = (Number(dbKas[dbNew]) || 0) + newTotal;
                 }
-                payloadUang['updated_at'] = new Date().toISOString();
+                await client.from('kas_perusahaan').update(payloadUang).eq('id', 1);
 
-                // Tembak pembaharuan saldo kas ke Supabase
-                const { error: errUpdateKas } = await client.from('kas_perusahaan').update(payloadUang).eq('id', 1);
-                if (errUpdateKas) throw errUpdateKas;
-
-                alert('✅ Transaksi berhasil diubah, stok gudang & saldo brankas kas telah disesuaikan!');
+                alert('✅ Transaksi & Nota Pemasukan berhasil disesuaikan!');
                 window.location.reload();
-
             } catch (err) {
                 alert("🚨 Gagal menyimpan perubahan: " + err.message);
                 btn.innerText = "Simpan Perubahan"; btn.disabled = false;
             }
         });
-
-        window.hapusPenjualan = async function(idPenjualan, komId, vol) {
-            if(!confirm('Yakin ingin membatalkan transaksi ini?\n\nStok barang akan otomatis dikembalikan ke gudang dan dicatat sebagai Mutasi Masuk.')) return;
+        
+       // FUNGSI HAPUS (Hapus Riwayat Jual + Hapus Pemasukan)
+        window.hapusPenjualan = async function(idPenjualan, komId, vol, totalHarga, tujuanKas, pemasukanId) {
+            if(!confirm('Yakin ingin membatalkan transaksi ini?\n\nStok barang akan dikembalikan, uang ditarik dari kas, dan nota pemasukan dibatalkan otomatis.')) return;
 
             try {
-                // 1. Tarik stok gudang saat ini
+                // A. Kembalikan Stok Gudang
                 const { data: g } = await client.from('gudang_komoditas').select('stok').eq('id', komId).single();
-                
-                // 2. Kembalikan / Tambahkan volumenya
                 await client.from('gudang_komoditas').update({ stok: g.stok + vol }).eq('id', komId);
-                
-                // 3. Catat di log mutasi sebagai Batal Jual / Masuk
-                await client.from('gudang_mutasi').insert([{ 
-                    jenis_mutasi: 'Masuk', 
-                    komoditas_id: komId, 
-                    jumlah: vol, 
-                    keterangan: 'Pembatalan Penjualan (Hapus Riwayat)' 
-                }]);
-                
-                // 4. Hapus riwayat penjualannya
+                await client.from('gudang_mutasi').insert([{ jenis_mutasi: 'Masuk', komoditas_id: komId, jumlah: vol, keterangan: 'Pembatalan Penjualan' }]);
+
+                // B. Hapus Penjualan Olahan
                 const { error } = await client.from('penjualan_olahan').delete().eq('id', idPenjualan);
                 if (error) throw error;
+
+                // C. 🔥 HAPUS RINCIAN NOTA PEMASUKAN 🔥
+                if (pemasukanId) {
+                    await client.from('rincian_pemasukan').delete().eq('id', pemasukanId);
+                }
                 
-                // 🔥 5. TARIK KEMBALI UANG DARI KAS 🔥
-                const { data: kasSisa } = await client.from('kas_perusahaan').select(tujuanKas).eq('id', 1).single();
+                // D. Tarik Uang dari Kas
+                const mapKasDb = { 'Uang Keuangan': 'uang_keuangan', 'Uang Gudang': 'uang_gudang', 'Uang Owner': 'uang_owner' };
+                const colKas = mapKasDb[tujuanKas];
+
+                const { data: kasSisa } = await client.from('kas_perusahaan').select(colKas).eq('id', 1).single();
                 let pullKas = {};
-                pullKas[tujuanKas] = (Number(kasSisa[tujuanKas]) || 0) - totalHarga;
+                pullKas[colKas] = (Number(kasSisa[colKas]) || 0) - totalHarga;
                 await client.from('kas_perusahaan').update(pullKas).eq('id', 1);
-                
-                alert('Transaksi dibatalkan! Stok dan Saldo Kas sudah dikembalikan.');
+
+                alert('Transaksi dibatalkan! Nota Pemasukan dihapus, Stok & Saldo Kas dikembalikan.');
                 window.location.reload();
             } catch(err) {
                 alert("Gagal membatalkan transaksi: " + err.message);
@@ -604,6 +627,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             } catch(err) { alert(err.message); btn.innerText = "Daftarkan Buyer"; btn.disabled = false; }
         });
 
+        // =======================================================
+        // 1. FUNGSI SIMPAN JUAL BARU (Generate Nota Pemasukan Dulu)
+        // =======================================================
         document.getElementById('form-penjualan')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-save-pj');
@@ -611,13 +637,15 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
             try {
                 const tgl = document.getElementById('pj_tgl').value;
-                const distId = document.getElementById('pj_distributor').value;
+                const distSelect = document.getElementById('pj_distributor');
+                const distId = distSelect.value;
+                const namaBuyer = distSelect.options[distSelect.selectedIndex].text;
                 const ket = document.getElementById('pj_keterangan').value || null;
-                const tujuanKas = document.getElementById('pj_tujuan_kas').value; // 🔥 Tangkap pilihan kas
+                const tujuanKas = document.getElementById('pj_tujuan_kas').value; 
 
                 const itemsToInsert = [];
                 const mutasiLog = [];
-                let totalPendapatanSemua = 0; // 🔥 Tampung grand total penjualan
+                let totalPendapatanSemua = 0; 
 
                 document.querySelectorAll('.pj-item-row').forEach(row => {
                     const komId = row.querySelector('.pj-input-komoditas').value;
@@ -626,17 +654,12 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                  
                     if(komId && vol > 0) {
                         const totHrg = vol * hrg;
-                        totalPendapatanSemua += totHrg; // Akumulasi uang masuk
+                        totalPendapatanSemua += totHrg; 
                         
                         itemsToInsert.push({ 
-                            tanggal: tgl, 
-                            distributor_id: distId, 
-                            keterangan: ket,
-                            komoditas_id: komId, 
-                            volume: vol, 
-                            harga_satuan: hrg, 
-                            total_harga: totHrg,
-                            tujuan_kas: tujuanKas // 🔥 Simpan ke database
+                            tanggal: tgl, distributor_id: distId, keterangan: ket,
+                            komoditas_id: komId, volume: vol, harga_satuan: hrg, 
+                            total_harga: totHrg, tujuan_kas: tujuanKas
                         });
                         mutasiLog.push({ komId, vol });
                     }
@@ -644,25 +667,63 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
                 if(itemsToInsert.length === 0) throw new Error("Minimal masukkan 1 rincian barang!");
 
+                const { data: userData } = await client.auth.getSession();
+                const userId = userData.session.user.id;
+
+                // 🔥 A. CARI / BUAT TABEL INDUK PEMASUKAN DULU
+                const { data: parentExist } = await client.from('pemasukan')
+                    .select('id').eq('user_id', userId).eq('tanggal', tgl).eq('sumber_dana', tujuanKas).maybeSingle();
+                
+                let parentId;
+                if (parentExist) {
+                    parentId = parentExist.id;
+                } else {
+                    const { data: newParent, error: errParent } = await client.from('pemasukan')
+                        .insert([{ user_id: userId, tanggal: tgl, total_harian: 0, status_approval: 'Disetujui', sumber_dana: tujuanKas }])
+                        .select('id').single();
+                    if(errParent) throw new Error("Gagal buat Induk Pemasukan: " + errParent.message);
+                    parentId = newParent.id;
+                }
+
+                // 🔥 B. BUAT NOTA RINCIAN ANAK & AMBIL ID-NYA
+                const payloadRincian = {
+                    pemasukan_id: parentId, // Sambungin ke induk
+                    nama_item: 'Penjualan Olahan',
+                    nominal: totalPendapatanSemua,
+                    keterangan: `Penjualan ke ${namaBuyer} ${ket ? '- ' + ket : ''}`,
+                    status_approval: 'Disetujui'
+                };
+                const { data: notaRincian, error: errRincian } = await client.from('rincian_pemasukan').insert([payloadRincian]).select('id').single();
+                if(errRincian) throw new Error("Gagal buat Rincian Pemasukan: " + errRincian.message);
+
+                // 🔥 C. SUNTIKKAN ID RINCIAN KE SETIAP ITEM PENJUALAN
+                itemsToInsert.forEach(item => { item.pemasukan_id = notaRincian.id; });
+
+                // D. SIMPAN RIWAYAT PENJUALAN & UPDATE KAS/STOK
                 const { error: errTrx } = await client.from('penjualan_olahan').insert(itemsToInsert);
                 if(errTrx) throw errTrx;
 
-                // 🔥 TAMBAH UANG MASUK KE KAS YANG DIPILIH 🔥
-                const { data: kasData } = await client.from('kas_perusahaan').select(tujuanKas).eq('id', 1).single();
+                // D. TAMBAH UANG MASUK KE BRANKAS KAS (Penerjemah Nama Kolom)
+                const mapKasDb = { 'Uang Keuangan': 'uang_keuangan', 'Uang Gudang': 'uang_gudang', 'Uang Owner': 'uang_owner' };
+                const colKas = mapKasDb[tujuanKas]; // Translate "Uang Owner" jadi "uang_owner"
+
+                const { data: kasData } = await client.from('kas_perusahaan').select(colKas).eq('id', 1).single();
                 let payloadKas = {};
-                payloadKas[tujuanKas] = (Number(kasData[tujuanKas]) || 0) + totalPendapatanSemua;
+                payloadKas[colKas] = (Number(kasData[colKas]) || 0) + totalPendapatanSemua;
                 await client.from('kas_perusahaan').update(payloadKas).eq('id', 1);
 
-                // Potong Stok Gudang & Catat Mutasi
                 for (let log of mutasiLog) {
                     const { data: g } = await client.from('gudang_komoditas').select('stok').eq('id', log.komId).single();
                     await client.from('gudang_komoditas').update({ stok: g.stok - log.vol }).eq('id', log.komId);
                     await client.from('gudang_mutasi').insert([{ jenis_mutasi: 'Keluar', komoditas_id: log.komId, jumlah: -log.vol, keterangan: 'Penjualan ke Distributor' }]);
                 }
 
-                alert('Transaksi Sukses Disimpan ke Riwayat!');
+                alert('Transaksi Penjualan Sukses! Nota Pemasukan otomatis diterbitkan.');
                 window.location.reload();
-            } catch(err) { alert(err.message); btn.innerHTML = `<i class="bi bi-floppy-fill"></i>`; btn.disabled = false; }
+            } catch(err) { 
+                alert(err.message); 
+                btn.innerHTML = `<i class="bi bi-floppy-fill"></i>`; btn.disabled = false;
+            }
         });
 
         document.getElementById('form-edit-distributor')?.addEventListener('submit', async (e) => {
@@ -728,12 +789,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 const { data: jual, error: errJual } = await window.supabase.from('penjualan_olahan')
                     .select(`*, distributor:distributor_id(nama), gudang_komoditas:komoditas_id(nama_komoditas)`)
                     .order('created_at', { ascending: false });
-                
                 if (errJual) console.error("Error ambil data penjualan:", errJual);
 
                 const tbodyJual = document.getElementById('penjualan-tbody');
                 let htmlJual = '';
-                
                 jual?.forEach(p => {
                     const buyer = p.distributor?.nama || 'Distributor Dihapus';
                     const namaKomoditas = p.gudang_komoditas?.nama_komoditas || '-';
@@ -749,10 +808,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         <td class="px-4 py-3 align-top">${ketHtml}</td>
                         <td class="px-4 py-3 align-top text-sm font-bold text-green-700 text-right whitespace-nowrap">Rp ${Number(p.total_harga).toLocaleString('id-ID')}</td>
                         <td class="px-4 py-3 align-top text-center space-x-1 whitespace-nowrap">
-                            <button onclick="window.bukaModalEditPenjualan('${p.id}', '${p.tanggal}', '${p.distributor_id}', '${p.komoditas_id}', ${p.volume}, ${p.harga_satuan}, '${(p.keterangan || '').replace(/'/g, "\\'")}', ${p.total_harga}, '${p.tujuan_kas || 'uang_keuangan'}')" class="text-yellow-600 hover:text-yellow-800 bg-yellow-50 px-2 py-1 rounded border border-yellow-200 text-xs font-bold shadow-sm active:scale-95" title="Edit Transaksi">
+                            <button onclick="window.bukaModalEditPenjualan('${p.id}', '${p.tanggal}', '${p.distributor_id}', '${p.komoditas_id}', ${p.volume}, ${p.harga_satuan}, '${(p.keterangan || '').replace(/'/g, "\\'")}', ${p.total_harga}, '${p.tujuan_kas || 'uang_keuangan'}', '${p.pemasukan_id || ''}')" class="text-yellow-600 hover:text-yellow-800 bg-yellow-50 px-2 py-1 rounded border border-yellow-200 text-xs font-bold shadow-sm active:scale-95" title="Edit Transaksi">
                                 <i class="bi bi-pencil-square"></i> Edit
                             </button>
-                            <button onclick="window.hapusPenjualan('${p.id}', '${p.komoditas_id}', ${p.volume}, ${p.total_harga}, '${p.tujuan_kas || 'uang_keuangan'}')" class="text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded border border-red-100 text-xs font-bold shadow-sm active:scale-95" title="Batalkan Transaksi">
+                            <button onclick="window.hapusPenjualan('${p.id}', '${p.komoditas_id}', ${p.volume}, ${p.total_harga}, '${p.tujuan_kas || 'uang_keuangan'}', '${p.pemasukan_id || ''}')" class="text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded border border-red-100 text-xs font-bold shadow-sm active:scale-95" title="Batalkan Transaksi">
                                 <i class="bi bi-trash"></i> Batal
                             </button>
                         </td>
@@ -760,7 +819,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 });
                 
                 if(tbodyJual) tbodyJual.innerHTML = htmlJual || '<tr><td colspan="7" class="text-center py-4 text-gray-500">Belum ada riwayat transaksi.</td></tr>';
-
             } catch (err) { console.error(err); }
         }
 

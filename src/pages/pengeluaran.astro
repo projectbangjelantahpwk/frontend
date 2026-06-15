@@ -921,6 +921,64 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 pengeluaranId = inserted.id;
             }
 
+            // =================================================================
+            // 🔥 OTAK AUTO-DEBIT UANG JALAN DRIVER (SISTEM PINTAR) 🔥
+            // =================================================================
+            let totalBiayaLain = 0;
+            // 1. Hitung total Bensin, Parkir, dll (Abaikan item Deposit / Uang Jalan)
+            rincianItems.forEach(item => {
+                if (!item.nama_item.toLowerCase().includes('uang jalan') && !item.nama_item.toLowerCase().includes('deposit')) {
+                    totalBiayaLain += item.nominal;
+                }
+            });
+
+            // 2. Jika ada pengeluaran Bensin/Parkir, suruh sistem ngecek Uang Jalan driver ini
+            if (totalBiayaLain > 0) {
+                const { data: listInduk } = await window.supabase.from('pengeluaran')
+                    .select('id').eq('user_id', userId).eq('tanggal', tanggalStr);
+                
+                if (listInduk && listInduk.length > 0) {
+                    const arrIndukIds = listInduk.map(x => x.id);
+                    
+                    // Lacak Uang Jalan yang SALDONYA MASIH ADA (> 0)
+                    const { data: dataUangJalan } = await window.supabase.from('rincian_pengeluaran')
+                        .select('id, nominal')
+                        .in('pengeluaran_id', arrIndukIds)
+                        .ilike('nama_item', '%uang jalan%')
+                        .gt('nominal', 0)
+                        .order('nominal', { ascending: false });
+
+                    let sisaTagihanDebit = totalBiayaLain;
+
+                    // 3. Eksekusi Sedot Saldo (Auto-Debit)
+                    if (dataUangJalan && dataUangJalan.length > 0) {
+                        for (let uj of dataUangJalan) {
+                            if (sisaTagihanDebit <= 0) break; // Kalau tagihan udah lunas, stop nyedot
+
+                            let nominalTersedia = parseFloat(uj.nominal);
+                            let jumlahYgDisedot = 0;
+
+                            // Tentukan berapa yang bisa disedot dari baris ini
+                            if (nominalTersedia >= sisaTagihanDebit) {
+                                jumlahYgDisedot = sisaTagihanDebit;
+                                sisaTagihanDebit = 0;
+                            } else {
+                                jumlahYgDisedot = nominalTersedia;
+                                sisaTagihanDebit -= nominalTersedia;
+                            }
+
+                            // UPDATE KE DATABASE: Kurangi nominal Uang Jalan
+                            // (Ajaibnya: Begitu ini di-update, SQL Trigger lu otomatis nge-Refund Saldo Kas Perusahaan untuk nyegah dobel potong!)
+                            await window.supabase.from('rincian_pengeluaran')
+                                .update({ nominal: nominalTersedia - jumlahYgDisedot })
+                                .eq('id', uj.id);
+                        }
+                        console.log("🤖 Auto-Debit Berjalan Mulus!");
+                    }
+                }
+            }
+            // =================================================================
+
             // LANGKAH B: Masukkan semua array pecahan rincian ke DB
             const rincianFinalToInsert = rincianItems.map(item => ({
                 pengeluaran_id: pengeluaranId,

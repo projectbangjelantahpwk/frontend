@@ -104,9 +104,11 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             </div>
             <button type="button" onclick="closeModal('modal-edit-transaksi')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button> </div>
         
-        <form id="form-edit-transaksi" onsubmit="window.simpanEditTransaksi(event)" class="p-6 overflow-y-auto flex-1 flex flex-col justify-between"> <input type="hidden" id="edit_trx_id">
-            <input type="hidden" id="edit_penjemputan_id"> <input type="hidden" id="edit_mitra_id">
-            <input type="hidden" id="edit_metode_bayar">
+        <form id="form-edit-transaksi" novalidate onsubmit="window.simpanEditTransaksi(event)" class="p-6 overflow-y-auto flex-1 flex flex-col justify-between">
+    
+            <input type="hidden" id="edit_trx_id">
+            <input type="hidden" id="edit_penjemputan_id">
+            <input type="hidden" id="edit_mitra_id">
 
             <div id="edit-step-1" class="flex flex-col gap-4">
                 <div class="w-full">
@@ -292,11 +294,16 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 
                 let infoBayarHtml = ''; 
                 // Cek apakah ada metode 2 untuk dimunculkan di UI
-                const m1 = trx.metode_bayar;
-                const m2 = trx.metode_bayar_2;
-                const textMetode = m2 ? `${m1} + ${m2}` : m1;
+                const m1 = trx.metode_bayar || '';
+                const m2 = trx.metode_bayar_2 || '';
+                
+                // Lampirkan metode_bayar_2 jika ada
+                const textMetode = m2 ? `${m1} & ${m2}` : m1;
+                
+                const m1Low = m1.toLowerCase();
+                const m2Low = m2.toLowerCase();
 
-                if (m1 === 'Transfer' || m2 === 'Transfer') { 
+                if (m1Low.includes('transfer') || m2Low.includes('transfer') || m1Low.includes('bank') || m2Low.includes('bank')) { 
                     infoBayarHtml = `
                         <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 mb-4 mt-3">
                             <p class="text-xs font-bold text-blue-800 mb-2"><i class="bi bi-bank2 mr-1"></i> Informasi Transfer Bank/E-wallet (${textMetode})</p> 
@@ -307,25 +314,22 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                     <button onclick="window.salinTeks('${trx.atas_nama || ''}', 'Atas Nama')" class="text-blue-600 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Copy Atas Nama"><i class="bi bi-clipboard"></i></button>
                                 </div>
                                 <div class="w-full h-px bg-blue-50"></div>
-                                
                                 <div class="flex justify-between items-center">
                                     <div><span class="text-gray-500 text-[10px] uppercase font-bold block">Nama Bank / E-Wallet</span><span class="font-bold text-gray-900">${trx.nama_bank || '-'}</span></div>
                                     <button onclick="window.salinTeks('${trx.nama_bank || ''}', 'Nama Bank')" class="text-blue-600 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Copy Bank"><i class="bi bi-clipboard"></i></button>
                                 </div>
                                 <div class="w-full h-px bg-blue-50"></div>
-                                
                                 <div class="flex justify-between items-center">
                                     <div><span class="text-gray-500 text-[10px] uppercase font-bold block">No. Rekening / No. HP</span><span class="font-mono font-bold text-lg text-blue-700">${trx.no_rek || '-'}</span></div>
                                     <button onclick="window.salinTeks('${trx.no_rek || ''}', 'No. Rekening')" class="text-blue-600 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Copy No Rekening"><i class="bi bi-clipboard"></i></button>
                                 </div>
                             </div>
                         </div>`;
-                } else if (m1 === 'QRIS' || m2 === 'QRIS') { 
+                } else if (m1Low.includes('qris') || m2Low.includes('qris')) { 
                     infoBayarHtml = `
                         <div class="bg-purple-50 p-4 rounded-xl border border-purple-200 mb-4 mt-3">
                             <p class="text-xs font-bold text-purple-800 mb-2"><i class="bi bi-qr-code-scan mr-1"></i> Bukti Pembayaran QRIS (${textMetode})</p> 
-                            ${trx.photo_qris  ?
-                            `<a href="${trx.photo_qris}" target="_blank" class="block w-full h-36 bg-white rounded-lg border border-purple-200 overflow-hidden hover:opacity-90 transition shadow-sm"> 
+                            ${trx.photo_qris  ? `<a href="${trx.photo_qris}" target="_blank" class="block w-full h-36 bg-white rounded-lg border border-purple-200 overflow-hidden hover:opacity-90 transition shadow-sm"> 
                                 <img src="${trx.photo_qris}" alt="QRIS" class="w-full h-full object-contain">
                              </a>
                              <p class="text-[11px] text-center text-purple-600 mt-2 font-medium italic">Klik gambar untuk memperbesar</p>` : 
@@ -340,7 +344,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                  <p class="text-xs text-amber-800 leading-relaxed mt-1">Cek silang tabel <b>Pengeluaran (Dana Talang)</b> untuk kesesuaian nilai transaksi ini.</p> 
                             </div>
                         </div>`;
-                } 
+                }
                 
                 htmlVal += `
                 <div class="bg-white rounded-xl border border-red-200 p-6 shadow-sm"> 
@@ -563,16 +567,16 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             html += `
                 <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-3 shadow-sm">
                     <p class="text-xs font-bold text-gray-700 uppercase"><i class="bi bi-bank2"></i> Detail Transfer Bank/E-Wallet</p>
-                    <input type="text" id="edit_bank_an" placeholder="Atas Nama" value="${trxData?.atas_nama || ''}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
-                    <input type="text" id="edit_bank_nama" placeholder="Nama Bank" value="${trxData?.nama_bank || ''}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
-                    <input type="text" id="edit_bank_rek" placeholder="No Rek" value="${trxData?.no_rek || ''}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
+                    <input type="text" id="edit_atas_nama" placeholder="Atas Nama" value="${trxData?.atas_nama || ''}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
+                    <input type="text" id="edit_nama_bank" placeholder="Nama Bank" value="${trxData?.nama_bank || ''}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
+                    <input type="text" id="edit_no_rek" placeholder="No Rek" value="${trxData?.no_rek || ''}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
                 </div>`;
         }
         if (hasQris) {
             html += `
                 <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-3 shadow-sm">
                     <p class="text-xs font-bold text-gray-700 uppercase"><i class="bi bi-qr-code"></i> Tautan QRIS</p>
-                    <textarea id="edit_qris_url" rows="2" placeholder="Link gambar QRIS" class="w-full border border-gray-300 p-2.5 rounded-lg text-xs outline-none">${trxData?.photo_qris || ''}</textarea> 
+                    <textarea id="edit_photo_qris_url" rows="2" placeholder="Link gambar QRIS" class="w-full border border-gray-300 p-2.5 rounded-lg text-xs outline-none">${trxData?.photo_qris || ''}</textarea> 
                 </div>`;
         }
 
@@ -633,15 +637,23 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
     };
 
     window.bukaModalEditTrx = function(trxId) { 
-        window.goToEditStep(1); 
+        window.goToEditStep(1);
         const trx = window.dataTransaksiGlobal.find(t => String(t.id) === String(trxId)); 
         if(!trx) return alert("Data transaksi tidak ditemukan!");
         
-        document.getElementById('edit_trx_id').value = trx.id; 
-        document.getElementById('edit_penjemputan_id').value = trx.penjemputan_id || ''; 
-        document.getElementById('edit_trx_tgl').value = trx.penjemputan?.tanggal || trx.tanggal_transaksi || '';
-        document.getElementById('edit_trx_dp').value = trx.potongan_dp || 0;
-
+        // Pengecekan aman (Defensif) sebelum isi value
+        const elTrxId = document.getElementById('edit_trx_id');
+        if (elTrxId) elTrxId.value = trx.id;
+        
+        const elPenjemputanId = document.getElementById('edit_penjemputan_id');
+        if (elPenjemputanId) elPenjemputanId.value = trx.penjemputan_id || ''; 
+        
+        const elTrxTgl = document.getElementById('edit_trx_tgl');
+        if (elTrxTgl) elTrxTgl.value = trx.penjemputan?.tanggal || trx.tanggal_transaksi || '';
+        
+        const elTrxDp = document.getElementById('edit_trx_dp');
+        if (elTrxDp) elTrxDp.value = trx.potongan_dp || 0;
+        
         let optMitra = ''; 
         const currentMitraId = trx.penjemputan?.mitra?.id || trx.mitra_id || null;
         const fallbackName = trx.nama_mitra_tidak_terdaftar || 'Timbang Mandiri / Tidak Terdaftar';
@@ -652,15 +664,19 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 optMitra += `<option value="${m.id}" ${selected}>${m.nama_mitra}</option>`;
             });
         } 
-        document.getElementById('edit_trx_mitra_select').innerHTML = optMitra;
         
-        // Tambahkan 6 baris ini untuk mendeteksi data awal mitra tidak terdaftar
+        const elMitraSelect = document.getElementById('edit_trx_mitra_select');
+        if (elMitraSelect) elMitraSelect.innerHTML = optMitra;
+        
         const inputManual = document.getElementById('edit_nama_mitra_manual');
-        if (currentMitraId === null) {
-            inputManual.value = trx.nama_mitra_tidak_terdaftar || '';
-        } else {
-            inputManual.value = '';
+        if (inputManual) {
+            if (currentMitraId === null) {
+                inputManual.value = trx.nama_mitra_tidak_terdaftar || '';
+            } else {
+                inputManual.value = '';
+            }
         }
+        
         window.toggleMitraManual();
         
         let itemsHtml = '';
@@ -679,22 +695,21 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         <label class="block text-[10px] font-bold text-gray-500 uppercase">Harga / Kg (Rp)</label> 
                         <input type="number" class="item_harga w-full border border-gray-300 rounded-lg p-2 text-sm outline-none bg-white font-semibold" value="${item.harga_unit}" oninput="window.hitungTotalEdit()" required>
                     </div>
-                 </div>`; 
+                 </div>`;
             });
         } else {
             itemsHtml = `<p class="text-sm text-red-500 italic">Transaksi ini tidak memiliki rincian komoditas.</p>`;
         }
-        document.getElementById('edit_items_container').innerHTML = itemsHtml;
-        document.getElementById('edit_trx_grand_total').value = trx.grand_total || 0; 
-
-        // ==========================================
-        // LOGIKA PECAH METODE BAYAR (SUPPORT 3 METODE)
-        // ==========================================
+        
+        const elItemsContainer = document.getElementById('edit_items_container');
+        if (elItemsContainer) elItemsContainer.innerHTML = itemsHtml;
+        
+        const elGrandTotal = document.getElementById('edit_trx_grand_total');
+        if (elGrandTotal) elGrandTotal.value = trx.grand_total || 0;
+        
         let rawM1 = trx.metode_bayar || '';
         let rawM2 = trx.metode_bayar_2 || '';
         let rawM3 = trx.metode_bayar_3 || '';
-
-        // Kalau ada simbol '&', belah sampai 3 bagian (jika ada)
         if (rawM1.includes('&')) {
             const splitData = rawM1.split('&').map(s => s.trim());
             rawM1 = splitData[0] || '';
@@ -709,7 +724,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             if (val.includes('transfer') || val.includes('bank')) return 'Transfer';
             if (val.includes('qris')) return 'QRIS';
             if (val.includes('deposit')) return 'Full Deposit';
-            if (val.includes('cash') || val.includes('tunai') || val.includes('umkm')) return 'Cash (Dana UMKM)';
             return 'Cash (Dana UMKM)'; 
         };
 
@@ -717,30 +731,38 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         const finalM2 = mappingMetode(rawM2);
         const finalM3 = mappingMetode(rawM3);
 
-        document.getElementById('edit_metode_bayar').value = finalM1;
+        const elMetodeBayar = document.getElementById('edit_metode_bayar');
+        if (elMetodeBayar) elMetodeBayar.value = finalM1;
         
-        // Aktifkan Checkbox 2
+        const cbSplit = document.getElementById('cb_split_payment');
+        const containerMetode2 = document.getElementById('container_metode_2');
+        const elMetodeBayar2 = document.getElementById('edit_metode_bayar_2');
+        const containerToggle3 = document.getElementById('container_toggle_3');
+        
         if (finalM2) {
-            document.getElementById('cb_split_payment').checked = true;
-            document.getElementById('container_metode_2').style.display = 'block';
-            document.getElementById('edit_metode_bayar_2').value = finalM2;
-            document.getElementById('container_toggle_3').style.display = 'block';
+            if (cbSplit) cbSplit.checked = true;
+            if (containerMetode2) containerMetode2.style.display = 'block';
+            if (elMetodeBayar2) elMetodeBayar2.value = finalM2;
+            if (containerToggle3) containerToggle3.style.display = 'block';
         } else {
-            document.getElementById('cb_split_payment').checked = false;
-            document.getElementById('container_metode_2').style.display = 'none';
-            document.getElementById('edit_metode_bayar_2').value = 'Cash (Dana UMKM)';
-            document.getElementById('container_toggle_3').style.display = 'none';
+            if (cbSplit) cbSplit.checked = false;
+            if (containerMetode2) containerMetode2.style.display = 'none';
+            if (elMetodeBayar2) elMetodeBayar2.value = 'Cash (Dana UMKM)';
+            if (containerToggle3) containerToggle3.style.display = 'none';
         }
 
-        // Aktifkan Checkbox 3
+        const cbSplit3 = document.getElementById('cb_split_payment_3');
+        const containerMetode3 = document.getElementById('container_metode_3');
+        const elMetodeBayar3 = document.getElementById('edit_metode_bayar_3');
+        
         if (finalM3) {
-            document.getElementById('cb_split_payment_3').checked = true;
-            document.getElementById('container_metode_3').style.display = 'block';
-            document.getElementById('edit_metode_bayar_3').value = finalM3;
+            if (cbSplit3) cbSplit3.checked = true;
+            if (containerMetode3) containerMetode3.style.display = 'block';
+            if (elMetodeBayar3) elMetodeBayar3.value = finalM3;
         } else {
-            document.getElementById('cb_split_payment_3').checked = false;
-            document.getElementById('container_metode_3').style.display = 'none';
-            document.getElementById('edit_metode_bayar_3').value = 'Cash (Dana UMKM)';
+            if (cbSplit3) cbSplit3.checked = false;
+            if (containerMetode3) containerMetode3.style.display = 'none';
+            if (elMetodeBayar3) elMetodeBayar3.value = 'Cash (Dana UMKM)';
         }
 
         window.renderMetodeDetails(trx);
@@ -751,46 +773,65 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         e.preventDefault();
         if(!window.supabase) return; 
         
+        // 1. Ambil Tanggal (Wajib) secara aman
+        const elTgl = document.getElementById('edit_trx_tgl');
+        const tglBaru = elTgl ? elTgl.value : '';
+        if (!tglBaru) {
+            if(typeof window.goToEditStep === 'function') window.goToEditStep(1);
+            return alert("Tanggal transaksi wajib diisi!");
+        }
+
+        // 🔍 JARING PENGAMAN: Ambil ID Transaksi (Cek id 'edit_trx_id' atau 'edit_id')
+        // Kita paksa diconvert ke Integer (Angka) biar dibaca BigInt oleh Supabase
+        const rawTrxId = document.getElementById('edit_trx_id')?.value || document.getElementById('edit_id')?.value;
+        const trxId = rawTrxId ? parseInt(rawTrxId) : null;
+
+        // Jika ID Utama ini tidak ketemu, kita batalkan proses daripada bikin database crash
+        if (!trxId) {
+            return alert("❌ Gagal menyimpan: ID Transaksi tidak ditemukan atau kosong!");
+        }
+
         const btn = document.getElementById('btn-save-trx');
-        btn.innerText = "Menyimpan..."; 
-        btn.disabled = true;
+        if(btn) { btn.innerText = "Menyimpan..."; btn.disabled = true; }
 
-        const trxId = document.getElementById('edit_trx_id').value;
-        const penjemputanId = document.getElementById('edit_penjemputan_id').value;
-        const mitraIdRaw = document.getElementById('edit_trx_mitra_select').value; 
-        const mitraIdTerpilih = mitraIdRaw === "0" ? null : parseInt(mitraIdRaw); 
-        const tglBaru = document.getElementById('edit_trx_tgl').value;
-        const dpBaru = parseFloat(document.getElementById('edit_trx_dp').value) || 0; 
-        const totalManual = parseFloat(document.getElementById('edit_trx_grand_total').value) || 0; 
-        const namaMitraManualText = document.getElementById('edit_nama_mitra_manual').value || null;
-        
-        // Cek Logika Metode & Auto-Wipe
-        const m1 = document.getElementById('edit_metode_bayar').value;
-        const isSplit = document.getElementById('cb_split_payment').checked;
-        const m2 = isSplit ? document.getElementById('edit_metode_bayar_2').value : null;
+        try {
+            // 2. TANGKAP DATA LAINNYA
+            const penjemputanIdRaw = document.getElementById('edit_penjemputan_id')?.value;
+            const penjemputanId = penjemputanIdRaw ? parseInt(penjemputanIdRaw) : null;
+            
+            const mitraIdRaw = document.getElementById('edit_trx_mitra_select')?.value;
+            const mitraIdTerpilih = (mitraIdRaw === "0" || !mitraIdRaw) ? null : parseInt(mitraIdRaw); 
+            
+            const namaMitraManualText = document.getElementById('edit_nama_mitra_manual')?.value || null;
+            
+            const dpBaru = parseFloat(document.getElementById('edit_trx_dp')?.value) || 0;
+            const totalManual = parseFloat(document.getElementById('edit_trx_grand_total')?.value) || 0;
+            
+            // 3. AMBIL METODE BAYAR
+            const m1 = document.getElementById('edit_metode_bayar')?.value || '';
+            const isSplit = document.getElementById('cb_split_payment')?.checked;
+            const m2 = isSplit ? (document.getElementById('edit_metode_bayar_2')?.value || '') : '';
+            
+            // 4. AMBIL INFO BANK
+            const namaBank = document.getElementById('edit_nama_bank')?.value || null;
+            const noRek = document.getElementById('edit_no_rek')?.value || null;
+            const atasNama = document.getElementById('edit_atas_nama')?.value || null;
+            const photoQris = document.getElementById('edit_photo_qris_url')?.value || null;
 
-        const hasBank = (m1 === 'Transfer' || m2 === 'Transfer');
-        const hasQris = (m1 === 'QRIS' || m2 === 'QRIS');
+            // 5. LOOPING ITEMS
+            const itemsPayload = [];
+            const itemRows = document.querySelectorAll('.edit-item-row');
+            itemRows.forEach(row => {
+                const itemId = row.querySelector('.item_id')?.value;
+                const volBaru = parseFloat(row.querySelector('.item_volume')?.value) || 0;
+                const hargaBaru = parseFloat(row.querySelector('.item_harga')?.value) || 0; 
+                if(itemId) itemsPayload.push({ id: parseInt(itemId), volume: volBaru, harga_unit: hargaBaru });
+            });
 
-        const namaBank = hasBank ? (document.getElementById('edit_bank_nama')?.value || '') : '';
-        const noRek = hasBank ? (document.getElementById('edit_bank_rek')?.value || '') : '';
-        const atasNama = hasBank ? (document.getElementById('edit_bank_an')?.value || '') : '';
-        const photoQris = hasQris ? (document.getElementById('edit_qris_url')?.value || '') : '';
-
-        const itemRows = document.querySelectorAll('.edit-item-row');
-        const itemsPayload = [];
-        
-        itemRows.forEach(row => {
-            const itemId = row.querySelector('.item_id').value;
-            const volBaru = parseFloat(row.querySelector('.item_volume').value) || 0;
-            const hargaBaru = parseFloat(row.querySelector('.item_harga').value) || 0; 
-            if(itemId) itemsPayload.push({ id: itemId, volume: volBaru, harga_unit: hargaBaru });
-        });
-
-        try { 
+            // 6. TEMBAK DATABASE (Pastikan p_trx_id tertembak dengan angka valid)
             const { error } = await window.supabase.rpc('edit_transaksi_mitra', {
-                p_trx_id: trxId,
-                p_penjemputan_id: penjemputanId || null,
+                p_trx_id: trxId, // 🔥 Diisi dengan angka Integer hasil convert di atas
+                p_penjemputan_id: penjemputanId,
                 p_mitra_id: mitraIdTerpilih,
                 p_nama_mitra_tidak_terdaftar: namaMitraManualText,
                 p_tanggal: tglBaru,
@@ -807,11 +848,12 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
             if (error) throw error;
             alert('Mantap! Seluruh data transaksi & pembayaran berhasil di-update!');
-            window.location.reload(); 
-        } catch (err) {
-            alert('Gagal menyimpan perubahan transaksi: ' + err.message);
-            btn.innerText = "Simpan Perubahan"; 
-            btn.disabled = false; 
+            window.location.reload();
+            
+        } catch(err) {
+            console.error(err);
+            alert("Gagal menyimpan transaksi: " + err.message);
+            if(btn) { btn.innerText = "SIMPAN PERUBAHAN"; btn.disabled = false; }
         }
     };
   });

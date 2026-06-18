@@ -1,9 +1,9 @@
 ---
 import { supabase } from '../../lib/supabase'; // Pastikan path Supabase lu bener
 
-// 1. Tentukan periode bulan ini (Format YYYY-MM)
+// 1. Tentukan periode bulan ini (Format MM YYYY menyesuaikan update database terbaru)
 const now = new Date();
-const currentPeriode = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+const currentPeriode = `${String(now.getMonth() + 1).padStart(2, '0')} ${now.getFullYear()}`;
 
 // 2. Fetch data Server-Side HANYA untuk bulan berjalan
 const { data: dbData, error } = await supabase

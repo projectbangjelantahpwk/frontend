@@ -4,81 +4,84 @@
 
 <div class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md flex flex-col h-full hover:shadow-lg transition-shadow duration-300">
     
-    <div class="mb-sm flex justify-between items-start">
+    <div class="mb-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
             <h3 class="font-headline-md text-on-surface font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-                Rekap Transaksi per Sumber
+                Rincian Transaksi Harian
             </h3>
-            <p class="text-label-sm text-on-surface-variant font-medium">Berdasarkan Platform & Komoditas</p>
-        </div>
-        <div class="text-right">
-            <span class="text-label-xs text-on-surface-variant uppercase tracking-wider block mb-1">Total Filtered</span>
-            <span id="total-rp-sumber" class="text-title-lg font-bold text-primary">Rp 0</span>
-        </div>
-    </div>
-
-    <div class="w-full mb-md">
-        <div id="filter-harian-sumber" class="flex items-center gap-2 bg-surface-variant/20 p-2 rounded-xl border border-surface-variant/50 w-full focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
-            <input type="date" id="start-date-sumber" class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium" />
-            <span class="text-label-sm text-primary font-bold bg-primary/10 px-2 py-0.5 rounded-md">-</span>
-            <input type="date" id="end-date-sumber" class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium" />
-        </div>
-
-        <div id="filter-mingguan-sumber" class="hidden items-center bg-surface-variant/20 p-2 rounded-xl border border-surface-variant/50 w-full focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
-            <input type="month" id="month-sumber" class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium" />
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-md flex-grow content-start">
-        <div class="bg-[#1877F2]/10 border border-[#1877F2]/30 rounded-xl p-4 flex flex-col justify-center items-center text-center">
-            <p class="text-xs font-bold text-[#1877F2] uppercase tracking-wider mb-2"><i class="bi bi-facebook mr-1"></i> Facebook</p>
-            <p id="total-facebook" class="text-xl font-black text-[#1877F2]">Rp 0</p>
+            <p class="text-label-sm text-on-surface-variant font-medium" id="teks-ringkasan">Bulan Ini</p>
         </div>
         
-        <div class="bg-gray-100 border border-gray-300 rounded-xl p-4 flex flex-col justify-center items-center text-center">
-            <p class="text-xs font-bold text-gray-800 uppercase tracking-wider mb-2"><i class="bi bi-tiktok mr-1"></i> TikTok</p>
-            <p id="total-tiktok" class="text-xl font-black text-gray-900">Rp 0</p>
-        </div>
-        
-        <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 flex flex-col justify-center items-center text-center">
-            <p class="text-xs font-bold text-purple-700 uppercase tracking-wider mb-2"><i class="bi bi-share mr-1"></i> Lainnya</p>
-            <p id="total-lainnya" class="text-xl font-black text-purple-900">Rp 0</p>
+        <div class="flex flex-col sm:flex-row items-end sm:items-center gap-3 w-full sm:w-auto">
+            <div class="text-right w-full sm:w-auto flex sm:block justify-between items-center bg-primary/5 sm:bg-transparent p-2 sm:p-0 rounded-lg">
+                <span class="text-label-xs text-primary/80 uppercase tracking-wider block mb-0 sm:mb-1 font-bold">Total Rupiah</span>
+                <span id="total-rp-sumber" class="text-title-md font-black text-primary">Rp 0</span>
+            </div>
+            
+            <div class="bg-surface-variant/20 p-2 rounded-xl border border-surface-variant/50 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all shadow-inner w-full sm:w-auto">
+                <input type="month" id="month-sumber" class="w-full text-label-md bg-transparent border-none outline-none text-on-surface font-bold cursor-pointer focus:ring-0" />
+            </div>
         </div>
     </div>
 
-    <div class="mt-auto border-t border-outline-variant/60 pt-md flex flex-col gap-4">
+    <div class="w-full border border-gray-100 rounded-xl overflow-hidden mb-md flex-grow shadow-sm">
+        <div class="max-h-[350px] overflow-y-auto hide-scrollbar bg-gray-50/30">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-surface-variant/40 text-[10px] uppercase text-on-surface-variant sticky top-0 font-bold tracking-wider z-10 backdrop-blur-sm">
+                    <tr>
+                        <th class="p-3 border-b whitespace-nowrap">Tanggal</th>
+                        <th class="p-3 border-b text-right whitespace-nowrap">Volume (Kg)</th>
+                        <th class="p-3 border-b text-right whitespace-nowrap hidden sm:table-cell">Harga/Kg</th>
+                        <th class="p-3 border-b text-right whitespace-nowrap">Rupiah (Rp)</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-harian" class="text-sm bg-white">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-auto border-t border-outline-variant/60 pt-md flex flex-col gap-5">
         
         <div class="flex flex-col gap-1.5">
+            <span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest text-center">Pilih Sumber</span>
+            <div class="flex flex-wrap justify-center gap-2">
+                <button data-sumber="Semua" class="btn-sumber px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-primary text-white shadow-sm scale-105">
+                    Semua
+                </button>
+                <button data-sumber="Facebook" class="btn-sumber px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-[#1877F2]/20 hover:text-[#1877F2]">
+                    Facebook
+                </button>
+                <button data-sumber="TikTok" class="btn-sumber px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-gray-200 hover:text-black">
+                    TikTok
+                </button>
+                <button data-sumber="Lainnya" class="btn-sumber px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-purple-100 hover:text-purple-700">
+                    Lainnya
+                </button>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
             <span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest text-center">Pilih Komoditas</span>
-            <div class="flex flex-wrap justify-center gap-2" id="commodity-filters-sumber">
-                <button data-komoditas="Minyak Jelantah" class="komo-sumber-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-surface-variant/80 text-on-surface shadow-sm scale-105">
+            <div class="flex flex-wrap justify-center gap-2">
+                <button data-komoditas="Minyak Jelantah" class="btn-komoditas px-3 py-1.5 rounded-full text-[11px] font-bold transition-all duration-300 bg-surface-variant/80 text-on-surface shadow-sm scale-105">
                     Minyak Jelantah
                 </button>
-                <button data-komoditas="Ampas" class="komo-sumber-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
+                <button data-komoditas="Ampas" class="btn-komoditas px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
                     Ampas
                 </button>
-                <button data-komoditas="Keriuk" class="komo-sumber-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
+                <button data-komoditas="Keriuk" class="btn-komoditas px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
                     Keriuk
                 </button>
-                <button data-komoditas="Tepung" class="komo-sumber-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
+                <button data-komoditas="Tepung" class="btn-komoditas px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
                     Tepung
                 </button>
-                <button data-komoditas="Spinner" class="komo-sumber-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
+                <button data-komoditas="Spinner" class="btn-komoditas px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
                     Spinner
                 </button>
             </div>
         </div>
 
-        <div class="flex justify-center mt-2">
-            <div class="bg-surface-variant/20 p-1 rounded-xl inline-flex w-full sm:w-auto border border-surface-variant/40 shadow-inner">
-                <button id="btn-harian-sumber" class="flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold transition-all duration-300">
-                    Harian
-                </button>
-                <button id="btn-mingguan-sumber" class="flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold transition-all duration-300">
-                    Mingguan
-                </button>
-            </div>
-        </div>
     </div>
 
 </div>
@@ -86,136 +89,160 @@
 <script>
     import { supabase } from '../../lib/supabase';
     
-    // Format Rupiah rapi
-    const formatRp = (number) => {
-        if (!number) return 'Rp 0';
-        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
-    };
+    const formatRp = (number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number || 0);
+    const formatVol = (number) => new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(number || 0);
 
-    async function initSumberTotals() {
-        let currentMode = 'harian';
+    async function initTabelBulanan() {
+        let currentSumber = 'Semua';
         let currentCommodity = 'Minyak Jelantah';
+        let dataGlobal = []; 
 
-        // Mapping Kolom Database Komoditas
         const kolomDatabase = {
-            'Minyak Jelantah': 'minyak_jelantah_rp',
-            'Ampas': 'ampas_rp',
-            'Keriuk': 'keriuk_rp',
-            'Tepung': 'tepung_rp',
-            'Spinner': 'spinner_rp'
+            'Minyak Jelantah': { rp: 'minyak_jelantah_rp', vol: 'minyak_jelantah_vol' },
+            'Ampas': { rp: 'ampas_rp', vol: 'ampas_vol' },
+            'Keriuk': { rp: 'kriuk_rp', vol: 'kriuk_vol' }, // Sesuai ejaan SQL kriuk
+            'Tepung': { rp: 'tepung_rp', vol: 'tepung_vol' },
+            'Spinner': { rp: 'spinner_rp', vol: 'spinner_vol' }
         };
 
-        const btnHarian = document.getElementById('btn-harian-sumber');
-        const btnMingguan = document.getElementById('btn-mingguan-sumber');
-        const filterHarianContainer = document.getElementById('filter-harian-sumber');
-        const filterMingguanContainer = document.getElementById('filter-mingguan-sumber');
-        const startDateInput = document.getElementById('start-date-sumber');
-        const endDateInput = document.getElementById('end-date-sumber');
         const monthInput = document.getElementById('month-sumber');
-        const komoditasBtns = document.querySelectorAll('.komo-sumber-btn');
-        
-        const elTotalFacebook = document.getElementById('total-facebook');
-        const elTotalTiktok = document.getElementById('total-tiktok');
-        const elTotalLainnya = document.getElementById('total-lainnya');
-        const elTotalSemua = document.getElementById('total-rp-sumber');
+        const btnsSumber = document.querySelectorAll('.btn-sumber');
+        const btnsKomoditas = document.querySelectorAll('.btn-komoditas');
+        const tbody = document.getElementById('tbody-harian');
+        const elTotalRp = document.getElementById('total-rp-sumber');
+        const teksRingkasan = document.getElementById('teks-ringkasan');
 
-        async function fetchHarian() {
+        // Set default bulan ke saat ini
+        const now = new Date();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const yyyy = now.getFullYear();
+        monthInput.value = `${yyyy}-${mm}`;
+
+        async function fetchDataSebulan() {
+            const val = monthInput.value;
+            if(!val) return;
+
+            const [y, m] = val.split('-');
+            const lastDay = new Date(y, m, 0).getDate(); // Cari tau bulan ini 30 atau 31 hari
+            const startDate = `${y}-${m}-01`;
+            const endDate = `${y}-${m}-${lastDay}`;
+
             const kolomAktif = kolomDatabase[currentCommodity];
             
-            // Tarik SEMUA sumber sekaligus berdasarkan rentang tanggal
-            let query = supabase.from('sumber_transaksi_harian').select(`sumber, ${kolomAktif}`);
-            if (startDateInput.value) query = query.gte('tanggal', startDateInput.value);
-            if (endDateInput.value) query = query.lte('tanggal', endDateInput.value);
-            
-            const { data, error } = await query;
-            if (!error && data) kalkulasiDanRender(data, kolomAktif);
-        }
-
-        async function fetchMingguan() {
-            const kolomAktif = kolomDatabase[currentCommodity];
-            
-            let query = supabase.from('sumber_transaksi_mingguan').select(`sumber, ${kolomAktif}`);
-            if (monthInput.value) {
-                query = query.ilike('periode', `%${monthInput.value}%`);
+            // Tarik seluruh data di bulan tersebut
+            const { data, error } = await supabase.from('sumber_transaksi_harian')
+                .select(`tanggal, sumber, ${kolomAktif.rp}, ${kolomAktif.vol}`)
+                .gte('tanggal', startDate)
+                .lte('tanggal', endDate);
+                
+            if (!error && data) {
+                dataGlobal = data;
+                renderTabel(lastDay, y, m);
             }
-            
-            const { data, error } = await query;
-            if (!error && data) kalkulasiDanRender(data, kolomAktif);
         }
 
-        function kalkulasiDanRender(data, kolom) {
-            let totalFb = 0, totalTk = 0, totalLn = 0;
-            
-            // Mengelompokkan dan menjumlahkan data berdasarkan sumbernya
-            data.forEach(item => {
-                const val = Number(item[kolom] || 0);
-                if (item.sumber === 'Facebook') totalFb += val;
-                else if (item.sumber === 'TikTok') totalTk += val;
-                else totalLn += val;
+        function renderTabel(lastDay, year, month) {
+            tbody.innerHTML = '';
+            const kolomAktif = kolomDatabase[currentCommodity];
+            let grandTotalRp = 0;
+            let grandTotalVol = 0;
+
+            // Wadah untuk nampung hitungan per tanggal (1 sampai 31)
+            let rekapHarian = Array.from({ length: lastDay }, () => ({ rp: 0, vol: 0 }));
+
+            // Kelompokkan data dari database ke array rekapHarian
+            dataGlobal.forEach(item => {
+                // Filter Sumber
+                const isMatchSumber = currentSumber === 'Semua' || 
+                                      (currentSumber === 'Lainnya' ? (item.sumber !== 'Facebook' && item.sumber !== 'TikTok') : item.sumber === currentSumber);
+                
+                if (isMatchSumber) {
+                    const rp = Number(item[kolomAktif.rp] || 0);
+                    const vol = Number(item[kolomAktif.vol] || 0);
+                    const dayIdx = parseInt(item.tanggal.split('-')[2]) - 1; // Index 0 untuk Tgl 1
+
+                    rekapHarian[dayIdx].rp += rp;
+                    rekapHarian[dayIdx].vol += vol;
+                    grandTotalRp += rp;
+                    grandTotalVol += vol;
+                }
             });
 
-            // Tembak angkanya ke HTML
-            elTotalFacebook.textContent = formatRp(totalFb);
-            elTotalTiktok.textContent = formatRp(totalTk);
-            elTotalLainnya.textContent = formatRp(totalLn);
-            elTotalSemua.textContent = formatRp(totalFb + totalTk + totalLn);
-
-            // Styling tombol Harian/Mingguan
-            if (currentMode === 'harian') {
-                btnHarian.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
-                btnMingguan.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
-            } else {
-                btnMingguan.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
-                btnHarian.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
-            }
-        }
-
-        function switchMode(mode) {
-            currentMode = mode;
-            if (mode === 'harian') {
-                filterHarianContainer.classList.remove('hidden');
-                filterHarianContainer.classList.add('flex');
-                filterMingguanContainer.classList.add('hidden');
-                filterMingguanContainer.classList.remove('flex');
-                fetchHarian();
-            } else {
-                filterHarianContainer.classList.add('hidden');
-                filterHarianContainer.classList.remove('flex');
-                filterMingguanContainer.classList.remove('hidden');
-                filterMingguanContainer.classList.add('flex');
-                fetchMingguan();
-            }
-        }
-
-        // Events Dasar
-        btnHarian.addEventListener('click', () => switchMode('harian'));
-        btnMingguan.addEventListener('click', () => switchMode('mingguan'));
-        startDateInput.addEventListener('change', () => currentMode === 'harian' && fetchHarian());
-        endDateInput.addEventListener('change', () => currentMode === 'harian' && fetchHarian());
-        monthInput.addEventListener('change', () => currentMode === 'mingguan' && fetchMingguan());
-
-        // Event Klik Filter Komoditas
-        komoditasBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                currentCommodity = e.target.getAttribute('data-komoditas');
+            // Cetak Baris HTML dari tanggal 1 sampai akhir bulan
+            for (let i = 0; i < lastDay; i++) {
+                const tglNum = i + 1;
+                const dataHariIni = rekapHarian[i];
+                const hrg = dataHariIni.vol > 0 ? (dataHariIni.rp / dataHariIni.vol) : 0;
                 
-                // Reset warna semua tombol komoditas
-                komoditasBtns.forEach(b => {
-                    b.className = "komo-sumber-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface";
+                // Highlight baris jika ada transaksi
+                const bgClass = dataHariIni.vol > 0 ? 'bg-green-50/50' : '';
+                const textClass = dataHariIni.vol > 0 ? 'text-gray-900 font-bold' : 'text-gray-400';
+
+                tbody.innerHTML += `
+                    <tr class="border-b border-gray-100 transition-colors hover:bg-surface-variant/20 ${bgClass}">
+                        <td class="p-3 whitespace-nowrap">
+                            <span class="inline-block w-6 text-center bg-gray-100 rounded text-xs font-bold mr-2">${tglNum}</span>
+                        </td>
+                        <td class="p-3 text-right font-medium ${textClass}">${formatVol(dataHariIni.vol)} <span class="text-[10px]">Kg</span></td>
+                        <td class="p-3 text-right text-xs text-gray-500 hidden sm:table-cell">${formatRp(hrg)}</td>
+                        <td class="p-3 text-right font-medium ${dataHariIni.rp > 0 ? 'text-primary font-bold' : 'text-gray-400'}">${formatRp(dataHariIni.rp)}</td>
+                    </tr>
+                `;
+            }
+
+            // Tembak Total Keseluruhan ke UI Atas
+            elTotalRp.textContent = formatRp(grandTotalRp);
+            teksRingkasan.innerHTML = `Total <b>${formatVol(grandTotalVol)} Kg</b> (${currentCommodity} - ${currentSumber})`;
+        }
+
+        // --- EVENT LISTENERS ---
+        
+        // 1. Ganti Bulan
+        monthInput.addEventListener('change', fetchDataSebulan);
+
+        // 2. Klik Filter Sumber (Facebook, TikTok, dll)
+        btnsSumber.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                currentSumber = e.target.getAttribute('data-sumber');
+                
+                // Ubah Warna Tombol Sumber Aktif
+                btnsSumber.forEach(b => {
+                    b.className = "btn-sumber px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface";
                 });
                 
-                // Beri warna gelap pada tombol komoditas yang aktif
-                e.target.className = "komo-sumber-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-surface-variant/80 text-on-surface shadow-sm scale-105";
+                // Custom warna aktif berdasarkan platform
+                let activeColor = "bg-primary text-white"; // Semua
+                if(currentSumber === 'Facebook') activeColor = "bg-[#1877F2] text-white";
+                if(currentSumber === 'TikTok') activeColor = "bg-gray-900 text-white";
+                if(currentSumber === 'Lainnya') activeColor = "bg-purple-600 text-white";
                 
-                // Hitung ulang data
-                if (currentMode === 'harian') fetchHarian();
-                else fetchMingguan();
+                e.target.className = `btn-sumber px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-300 shadow-sm scale-105 ${activeColor}`;
+                
+                // Langsung render ulang tabel tanpa harus loading database lagi
+                const val = monthInput.value;
+                const [y, m] = val.split('-');
+                renderTabel(new Date(y, m, 0).getDate(), y, m);
             });
         });
 
-        // Load data pertama kali
-        switchMode('harian');
+        // 3. Klik Filter Komoditas (Minyak, Ampas, dll)
+        btnsKomoditas.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                currentCommodity = e.target.getAttribute('data-komoditas');
+                
+                btnsKomoditas.forEach(b => {
+                    b.className = "btn-komoditas px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface";
+                });
+                e.target.className = "btn-komoditas px-3 py-1.5 rounded-full text-[11px] font-bold transition-all duration-300 bg-surface-variant/80 text-on-surface shadow-sm scale-105";
+                
+                // Harus fetch ulang karena kolom yang ditarik beda
+                fetchDataSebulan();
+            });
+        });
+
+        // Tembak data pas pertama kali buka
+        fetchDataSebulan();
     }
 
-    document.addEventListener('DOMContentLoaded', initSumberTotals);
+    document.addEventListener('DOMContentLoaded', initTabelBulanan);
 </script>

@@ -984,7 +984,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 pengeluaran_id: pengeluaranId,
                 nama_item: item.nama_item,
                 nominal: item.nominal,
-                keterangan: item.keterangan
+                keterangan: item.keterangan,
+                // 🔥 TAMBAHAN TAHAP 1: Kasih Tanda Pengenal Web Admin 🔥
+                status_approval: 'Disetujui',
+                keterangan_bayar: true
             }));
             
             const { error: errRincian } = await window.supabase.from('rincian_pengeluaran').insert(rincianFinalToInsert);

@@ -18,6 +18,23 @@ import Layout from '../layouts/Layout.astro';
                 <span class="material-symbols-outlined text-on-surface-variant ml-sm">search</span>
                 <input class="bg-transparent border-none focus:ring-0 text-on-surface w-full md:w-64 font-body-md text-body-md h-full placeholder:text-on-surface-variant outline-none px-2" placeholder="Cari nama, posisi..." type="text"/>
             </div>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-md mb-lg">
+            <div>
+                <h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg font-bold text-primary">Karyawan</h1>
+                <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Pantau absensi dan informasi tim operasional lapangan.</p>
+            </div>
+            
+            <div class="w-full md:w-auto flex items-center gap-3">
+                <button onclick="window.bukaModalLibur()" class="bg-red-50 text-red-600 border border-red-200 px-4 py-2.5 rounded-full text-sm font-bold hover:bg-red-100 transition shadow-sm flex items-center gap-2 whitespace-nowrap">
+                    <span class="material-symbols-outlined text-[18px]">calendar_month</span> Set Libur
+                </button>
+
+                <div class="w-full md:w-auto flex items-center bg-surface-container-lowest rounded-full px-sm h-12 md:h-10 border border-outline-variant focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-on-surface-variant ml-sm">search</span>
+                    <input class="bg-transparent border-none focus:ring-0 text-on-surface w-full md:w-64 font-body-md text-body-md h-full placeholder:text-on-surface-variant outline-none px-2" placeholder="Cari nama, posisi..." type="text"/>
+                </div>
+            </div>
+        </div>
         </div>
 
         <div id="karyawan-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-md">
@@ -188,7 +205,32 @@ import Layout from '../layouts/Layout.astro';
             </div>
         </div>
     </div>
+    <div id="modal-hari-libur" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
+        <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 shadow-xl flex flex-col max-h-[90vh]">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-red-50 shrink-0">
+                <div>
+                    <h3 class="font-bold text-lg text-red-700 flex items-center gap-2"><span class="material-symbols-outlined">event_busy</span> Setup Hari Libur</h3>
+                    <p class="text-xs text-red-600 font-medium mt-1">Karyawan mendapat absen gratis / gaji utuh</p>
+                </div>
+                <button type="button" onclick="closeModal('modal-hari-libur')" class="text-gray-400 hover:text-red-700"><span class="material-symbols-outlined">close</span></button>
+            </div>
 
+            <form onsubmit="window.simpanHariLibur(event)" class="p-5 overflow-y-auto flex-1 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Pilih Tanggal Merah</label>
+                    <input type="date" id="input_tgl_libur" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-red-600 font-medium" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Keterangan / Nama Libur</label>
+                    <input type="text" id="input_ket_libur" placeholder="Cth: Libur Idul Fitri / 17 Agustus" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-red-600 font-medium" required>
+                </div>
+
+                <button type="submit" id="btn-save-libur" class="w-full bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition shadow-sm mt-2">
+                    Simpan Tanggal Libur
+                </button>
+            </form>
+        </div>
+    </div>
     <script>
         import { supabase } from '../lib/supabase';
 
@@ -409,6 +451,50 @@ import Layout from '../layouts/Layout.astro';
                 modal.classList.remove('opacity-0');
                 modal.querySelector('div').classList.remove('scale-95');
             }, 10);
+        };
+
+        // Buka Pop up Libur
+        window.bukaModalLibur = function() {
+            // Set tanggal hari ini sebagai default
+            const wkt = new Date();
+            const offset = wkt.getTimezoneOffset() * 60000;
+            document.getElementById('input_tgl_libur').value = new Date(wkt - offset).toISOString().split('T')[0];
+            document.getElementById('input_ket_libur').value = '';
+            
+            const m = document.getElementById('modal-hari-libur');
+            m.classList.remove('hidden'); m.classList.add('flex');
+            setTimeout(() => { m.classList.remove('opacity-0'); m.querySelector('div').classList.remove('scale-95'); }, 10);
+        };
+
+        // Simpan ke Database
+        window.simpanHariLibur = async function(e) {
+            e.preventDefault();
+            const tgl = document.getElementById('input_tgl_libur').value;
+            const ket = document.getElementById('input_ket_libur').value;
+            const btn = document.getElementById('btn-save-libur');
+            
+            btn.innerText = "Menyimpan..."; btn.disabled = true;
+
+            try {
+                // Tembak ke tabel hari_libur
+                const { error } = await window.supabase.from('hari_libur').insert([{
+                    tanggal: tgl,
+                    keterangan: ket
+                }]);
+
+                if (error) {
+                    // Kalau error duplikat (tanggal udah pernah diinput)
+                    if (error.code === '23505') throw new Error("Tanggal ini sudah terdaftar sebagai hari libur!");
+                    throw error;
+                }
+
+                alert("Mantap! Hari libur berhasil ditambahkan. Sistem gaji akan otomatis memberi absen gratis di tanggal tersebut.");
+                window.closeModal('modal-hari-libur');
+            } catch (err) {
+                alert("Gagal menyimpan: " + err.message);
+            } finally {
+                btn.innerText = "Simpan Tanggal Libur"; btn.disabled = false;
+            }
         };
 
         // Open Employee Detail

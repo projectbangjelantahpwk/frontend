@@ -369,38 +369,137 @@ const { title, requireAuth = true } = Astro.props;
             </div>
         </nav>
     </div>
-    <div class="fixed inset-0 z-[100] bg-on-background/50 hidden items-center justify-center p-container-margin opacity-0 transition-opacity duration-300" id="modal-kas-perusahaan">
-        <div class="bg-surface-container-lowest rounded-xl shadow-lg w-full max-w-sm p-lg transform scale-95 transition-transform duration-300 relative">
-            <button class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors" onclick="window.tutupModalKas()">
+    <div class="fixed inset-0 z-[70] bg-black/50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300" id="modal-transfer-kas">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 transform scale-95 transition-transform duration-300 relative flex flex-col max-h-[85vh]">
+
+            <button class="absolute top-4 right-4 text-gray-400 hover:text-red-600 transition" onclick="window.tutupModalTransfer()">
                 <span class="material-symbols-outlined">close</span>
             </button>
-            <h3 class="font-headline-md text-headline-md text-on-surface mb-xs flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary">savings</span> Edit Saldo Kas
-            </h3>
-            <p class="font-body-sm text-on-surface-variant mb-md border-b border-outline-variant pb-3">Perbarui rincian uang fisik perusahaan.</p>
 
-            <form id="form-kas-perusahaan" class="flex flex-col gap-md mt-2">
-                <div>
-                    <label class="block font-label-sm text-on-surface-variant mb-xs">Uang di Gudang (Rp)</label>
-                    <input type="number" id="input_uang_gudang" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none font-bold font-mono" value="0">
-                </div>
-                <div>
-                    <label class="block font-label-sm text-on-surface-variant mb-xs">Uang di Keuangan (Rp)</label>
-                    <input type="number" id="input_uang_keuangan" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none font-bold font-mono" value="0">
-                </div>
-                <div id="input-container-owner" class="hidden">
-                    <label class="block font-label-sm text-on-surface-variant mb-xs">Uang di Tangan Owner (Rp)</label>
-                    <input type="number" id="input_uang_owner" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none font-bold font-mono" value="0">
-                </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-1"><i class="bi bi-arrow-left-right text-blue-600 mr-2"></i>Transfer Saldo Kas</h3>
+            <p class="text-xs text-gray-500 mb-4">Pindahkan dana antar dompet kas perusahaan.</p>
 
-                <div class="mt-sm flex justify-end gap-sm pt-2">
-                    <button class="px-md h-touch-target rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="window.tutupModalKas()" type="button">Batal</button>
-                    <button class="px-md h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors" type="submit" id="btn-submit-kas">Simpan Saldo</button>
+            <form id="form-transfer-kas" onsubmit="window.eksekusiTransferKas(event)" class="space-y-4 shrink-0 bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-sm">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Dari</label>
+                        <select id="tf_sumber" class="w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-semibold">
+                            <option value="uang_keuangan">Uang Keuangan</option>
+                            <option value="uang_gudang">Uang Gudang</option>
+                            <option value="uang_owner">Uang Owner</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Ke Tujuan</label>
+                        <select id="tf_tujuan" class="w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-semibold">
+                            <option value="uang_gudang" selected>Uang Gudang</option>
+                            <option value="uang_keuangan">Uang Keuangan</option>
+                            <option value="uang_owner">Uang Owner</option>
+                        </select>
+                    </div>
                 </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Nominal (Rp)</label>
+                    <input type="number" id="tf_nominal" class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none font-mono font-bold text-blue-700" placeholder="0" required>
+                </div>
+                <button type="submit" id="btn-submit-tf" class="w-full py-2 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 text-xs transition font-mono shadow-sm">
+                    <i class="bi bi-send-check-fill mr-1"></i> PROSES TRANSFER
+                </button>
             </form>
+
+            <div class="mt-4 flex-1 overflow-hidden flex flex-col border-t border-gray-200 pt-3">
+                <h4 class="text-[11px] font-bold text-gray-700 uppercase mb-2 flex justify-between">
+                    <span><i class="bi bi-clock-history"></i> Riwayat 5 Transfer Terakhir</span>
+                    <button onclick="window.loadRiwayatTransfer()" class="text-blue-600 hover:underline text-[10px]"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                </h4>
+                <div id="list-riwayat-transfer" class="overflow-y-auto space-y-2 pr-1 flex-1 text-xs">
+                    <p class="text-gray-400 italic text-center py-4 text-[11px]">Memuat riwayat mutasi...</p>
+                </div>
+            </div>
+
         </div>
     </div>
+    <div class="fixed inset-0 z-[100] bg-black/50 hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300" id="modal-kas-perusahaan">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 transform scale-95 transition-transform duration-300 relative flex flex-col max-h-[90vh]">
+        
+        <button type="button" class="absolute top-4 right-4 text-gray-400 hover:text-red-600 transition" onclick="window.tutupModalKas()">
+            <span class="material-symbols-outlined">close</span>
+        </button>
 
+        <h3 class="text-lg font-bold text-gray-900 mb-1"><i class="bi bi-wallet2 text-blue-600 mr-2"></i>Manajemen Kas</h3>
+        <p class="text-xs text-gray-500 mb-4 border-b border-gray-100 pb-3">Pindahkan saldo antar dompet atau sesuaikan fisik uang.</p>
+
+        <div class="overflow-y-auto pr-2 custom-scrollbar space-y-5">
+            
+            <div class="bg-blue-50/50 border border-blue-200 p-4 rounded-xl shadow-sm">
+                <h4 class="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2"><i class="bi bi-arrow-left-right"></i> Transfer Saldo Instan</h4>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Dari (Sumber Asal)</label>
+                        <select id="tf_sumber" class="w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-semibold focus:border-blue-500">
+                            <option value="uang_keuangan">Uang Keuangan</option>
+                            <option value="uang_gudang">Uang Gudang</option>
+                            <option value="uang_owner">Uang Owner</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Ke (Tujuan)</label>
+                        <select id="tf_tujuan" class="w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-semibold focus:border-blue-500">
+                            <option value="uang_gudang" selected>Uang Gudang</option>
+                            <option value="uang_keuangan">Uang Keuangan</option>
+                            <option value="uang_owner">Uang Owner</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Nominal Dipindahkan (Rp)</label>
+                    <input type="number" id="tf_nominal" class="w-full border border-blue-300 rounded-lg p-2.5 text-sm outline-none font-mono font-bold text-blue-800 focus:border-blue-500" placeholder="Contoh: 500000" required>
+                </div>
+                <button type="button" id="btn-submit-tf" onclick="window.eksekusiTransferKas(event)" class="w-full mt-3 py-2.5 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 text-xs transition font-mono shadow-md">
+                    <i class="bi bi-send-check-fill mr-1"></i> EKSEKUSI TRANSFER
+                </button>
+            </div>
+
+            <div>
+                <h4 class="text-[11px] font-bold text-gray-700 uppercase mb-2 flex justify-between items-center">
+                    <span><i class="bi bi-clock-history"></i> Riwayat Transfer</span>
+                    <button type="button" onclick="window.loadRiwayatTransfer()" class="text-blue-600 hover:underline text-[10px]"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                </h4>
+                <div id="list-riwayat-transfer" class="space-y-2 text-xs max-h-32 overflow-y-auto pr-1">
+                    <p class="text-gray-400 italic text-center py-4 text-[11px]">Memuat riwayat...</p>
+                </div>
+            </div>
+
+            <hr class="border-gray-200">
+
+            <details class="group bg-gray-50 border border-gray-200 rounded-xl p-3">
+                <summary class="text-xs font-bold text-gray-700 cursor-pointer flex items-center justify-between outline-none">
+                    <span class="flex items-center gap-2"><i class="bi bi-pencil-square"></i> Koreksi Manual Saldo Fisik</span>
+                    <i class="bi bi-chevron-down group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="mt-4 pt-3 border-t border-gray-200">
+                    <p class="text-[10px] text-gray-500 mb-3 leading-relaxed">Gunakan fitur ini <b>hanya</b> jika terdapat selisih uang fisik yang mengharuskan Anda mengetik ulang total saldo dompet.</p>
+                    <form id="form-kas-perusahaan" class="flex flex-col gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Total Fisik Uang Gudang (Rp)</label>
+                            <input type="number" id="input_uang_gudang" class="w-full h-10 px-3 rounded-lg border border-gray-300 bg-white text-gray-900 focus:border-green-500 outline-none font-bold font-mono text-sm" value="0">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Total Fisik Uang Keuangan (Rp)</label>
+                            <input type="number" id="input_uang_keuangan" class="w-full h-10 px-3 rounded-lg border border-gray-300 bg-white text-gray-900 focus:border-green-500 outline-none font-bold font-mono text-sm" value="0">
+                        </div>
+                        <div id="input-container-owner" class="hidden">
+                            <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Total Uang Owner (Rp)</label>
+                            <input type="number" id="input_uang_owner" class="w-full h-10 px-3 rounded-lg border border-gray-300 bg-white text-gray-900 focus:border-green-500 outline-none font-bold font-mono text-sm" value="0">
+                        </div>
+                        <button class="w-full py-2.5 mt-2 bg-gray-800 text-white rounded-lg font-bold text-xs hover:bg-gray-900 transition shadow-sm" type="submit" id="btn-submit-kas">SIMPAN KOREKSI</button>
+                    </form>
+                </div>
+            </details>
+            
+        </div>
+    </div>
+</div>
     <main id="app-content" class="w-full min-h-screen pt-20 pb-8 px-4 md:px-lg overflow-x-hidden">
         <slot />
     </main>
@@ -468,6 +567,91 @@ const { title, requireAuth = true } = Astro.props;
                             }
                         }
                     );
+
+                    window.eksekusiTransferKas = async function(e) {
+                        e.preventDefault();
+                        if(!window.supabase) return;
+
+                        // 🛡️ ANTI-CRASH & ANTI-DUPLIKAT ID
+                        // Sistem akan mencari kotak isian yang benar-benar diketik angkanya
+                        let inputNominal = null;
+                        let selSumber = null;
+                        let selTujuan = null;
+
+                        document.querySelectorAll('#tf_nominal').forEach(el => { if(el.value) inputNominal = el; });
+                        document.querySelectorAll('#tf_sumber').forEach(el => { if(el.offsetWidth > 0) selSumber = el; });
+                        document.querySelectorAll('#tf_tujuan').forEach(el => { if(el.offsetWidth > 0) selTujuan = el; });
+
+                        // Fallback kalau cuma ada 1 di layar
+                        if (!inputNominal) inputNominal = document.getElementById('tf_nominal');
+                        if (!selSumber) selSumber = document.getElementById('tf_sumber');
+                        if (!selTujuan) selTujuan = document.getElementById('tf_tujuan');
+
+                        const nominal = parseFloat(inputNominal.value) || 0;
+                        const sumber = selSumber.value;
+                        const tujuan = selTujuan.value;
+
+                        const labelSumber = selSumber.options[selSumber.selectedIndex].text;
+                        const labelTujuan = selTujuan.options[selTujuan.selectedIndex].text;
+
+                        if (sumber === tujuan) return alert("❌ Dompet asal dan tujuan tidak boleh sama!");
+                        if (nominal <= 0) return alert("❌ Nominal transfer harus lebih dari Rp 0!\n(Pastikan ketik angka tanpa titik, contoh: 500000)");
+
+                        if(!confirm(`Yakin ingin memindahkan dana sebesar Rp ${nominal.toLocaleString('id-ID')} dari ${labelSumber} ke ${labelTujuan}?`)) return;
+
+                        const btn = e.target.querySelector('button[type="submit"]') || document.getElementById('btn-submit-tf');
+                        const textLama = btn.innerHTML;
+                        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> MEMPROSES...';
+                        btn.disabled = true;
+
+                        try {
+                            // 1. Tarik saldo terkini dari database
+                            const { data: kasLama, error: errCek } = await window.supabase.from('kas_perusahaan').select('*').eq('id', 1).single();
+                            if (errCek) throw errCek;
+                        
+                            const saldoSumber = parseFloat(kasLama[sumber]) || 0;
+                            const saldoTujuan = parseFloat(kasLama[tujuan]) || 0;
+                        
+                            // 2. Sensor Anti-Minus
+                            if (saldoSumber < nominal) {
+                                throw new Error(`Saldo [${labelSumber}] tidak mencukupi!\nSisa Saldo: Rp ${saldoSumber.toLocaleString('id-ID')}`);
+                            }
+                        
+                            // 3. Kalkulasi Otomatis Saldo Kas
+                            const payloadKas = {};
+                            payloadKas[sumber] = saldoSumber - nominal;
+                            payloadKas[tujuan] = saldoTujuan + nominal;
+                            payloadKas.updated_at = new Date().toISOString();
+                        
+                            // 4. Eksekusi Update Kas Perusahaan
+                            const { error: errUpdate } = await window.supabase.from('kas_perusahaan').update(payloadKas).eq('id', 1);
+                            if (errUpdate) throw errUpdate;
+                        
+                            // 5. Catat ke Tabel Riwayat
+                            const { data: { user } } = await window.supabase.auth.getUser();
+                            await window.supabase.from('riwayat_transfer_kas').insert({
+                                user_id: user?.id,
+                                sumber: labelSumber,
+                                tujuan: labelTujuan,
+                                nominal: nominal
+                            });
+                        
+                            alert(`✅ BERHASIL!\n\nDana Rp ${nominal.toLocaleString('id-ID')} telah sukses dipindahkan.`);
+
+                            // 🔥 Reset isian agar bisa transfer lagi
+                            inputNominal.value = '';
+
+                            // 🔥 Refresh tampilan dan riwayat live
+                            if(typeof window.loadRiwayatTransfer === 'function') await window.loadRiwayatTransfer(); 
+                            if(typeof window.loadDataKas === 'function') window.loadDataKas(); 
+                        
+                        } catch (err) {
+                            alert("❌ GAGAL TRANSFER: " + err.message);
+                        } finally {
+                            btn.innerHTML = textLama;
+                            btn.disabled = false;
+                        }
+                    };
                     
                     // 2️⃣ PRESENSI
                     channel.on('postgres_changes', 
@@ -832,6 +1016,65 @@ window.addNotifToList = function(title, body) {
             }
         }
 
+        window.loadRiwayatTransfer = async function() {
+        console.log("🔍 [DEBUG] Memulai penarikan riwayat transfer...");
+        
+        // 🔥 ANTI-CRASH: Cari SEMUA kontainer, jaga-jaga kalau ada HTML duplikat!
+        const containers = document.querySelectorAll('#list-riwayat-transfer');
+        console.log("🔍 [DEBUG] Jumlah kotak riwayat yang ditemukan di HTML:", containers.length);
+
+        if(containers.length === 0) {
+            return console.error("❌ [DEBUG] Elemen dengan ID 'list-riwayat-transfer' TIDAK DITEMUKAN!");
+        }
+
+        try {
+            const client = window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+            if (!client) throw new Error("Koneksi Supabase belum siap!");
+
+            const { data, error } = await client
+                .from('riwayat_transfer_kas')
+                .select('*') 
+                .order('created_at', { ascending: false })
+                .limit(5);
+            
+            if (error) throw error;
+            console.log("🔍 [DEBUG] Data riwayat dari database:", data);
+
+            let htmlToInject = '';
+            if (!data || data.length === 0) {
+                htmlToInject = '<p class="text-gray-400 italic text-center py-4 text-[11px]">Belum ada riwayat mutasi.</p>';
+            } else {
+                data.forEach(r => {
+                    const tgl = new Date(r.created_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
+                    const strSumber = r.sumber || '';
+                    const strTujuan = r.tujuan || '';
+                    const formatNama = (col) => col.replace('uang_', 'Uang ').replace(/\b\w/g, c => c.toUpperCase());
+                    
+                    htmlToInject += `
+                    <div class="bg-gray-50 border border-gray-200 p-2 rounded-lg flex justify-between items-center shadow-sm mb-2">
+                        <div>
+                            <p class="font-bold text-gray-800 text-[11px]">${formatNama(strSumber)} <i class="bi bi-arrow-right text-blue-600 font-black"></i> ${formatNama(strTujuan)}</p>
+                            <p class="text-[9px] text-gray-400 mt-0.5">Admin • ${tgl}</p>
+                        </div>
+                        <span class="font-mono text-[11px] font-black text-green-700">+ Rp ${Number(r.nominal).toLocaleString('id-ID')}</span>
+                    </div>`;
+                });
+            }
+
+            // 🔥 SUNTIK KE SEMUA KOTAK RIWAYAT YANG DITEMUKAN
+            containers.forEach((container, index) => {
+                container.innerHTML = htmlToInject;
+                console.log(`✅ [DEBUG] Kotak riwayat ke-${index + 1} berhasil di-update ke layar!`);
+            });
+
+        } catch (err) {
+            console.error("❌ [DEBUG] Error saat eksekusi:", err);
+            containers.forEach(container => {
+                container.innerHTML = `<p class="text-red-500 text-center py-4 text-[11px] font-bold">Gagal memuat: ${err.message}</p>`;
+            });
+        }
+    };
+
         // Auto-Kalkulasi format Rupiah setiap kali diketik
         window.kalkulasiTotalKas = function() {
             const elGudang = document.getElementById('input_uang_gudang');
@@ -1172,21 +1415,38 @@ window.addNotifToList = function(title, body) {
     });
 
     // ==========================================
-    // LOGIKA MODAL EDIT KAS
+    // LOGIKA MODAL EDIT KAS & TRANSFER (GABUNGAN)
     // ==========================================
-    window.bukaModalKas = function() {
+    window.bukaModalKas = async function() {
         const modal = document.getElementById('modal-kas-perusahaan');
+        if (!modal) return;
+        
         modal.classList.remove('hidden'); 
+        modal.classList.add('flex');
         void modal.offsetWidth;
         modal.classList.remove('opacity-0'); 
-        modal.querySelector('div').classList.remove('scale-95');
+        
+        const isiModal = modal.querySelector('div');
+        if (isiModal) isiModal.classList.remove('scale-95');
+
+        // 🔥 TARIK DATA OTOMATIS SAAT MODAL DIBUKA
+        if(typeof window.loadRiwayatTransfer === 'function') {
+            await window.loadRiwayatTransfer();
+        }
     };
 
     window.tutupModalKas = function() {
         const modal = document.getElementById('modal-kas-perusahaan');
+        if (!modal) return; // 🛡️ Abaikan jika tidak ada modal
+        
         modal.classList.add('opacity-0'); 
-        modal.querySelector('div').classList.add('scale-95');
-        setTimeout(() => modal.classList.add('hidden'), 300);
+        const isiModal = modal.querySelector('div');
+        if (isiModal) isiModal.classList.add('scale-95');
+        
+        setTimeout(() => { 
+            modal.classList.add('hidden'); 
+            modal.classList.remove('flex');
+        }, 300);
     };
 
     // ==========================================

@@ -145,7 +145,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // -> Push Pengeluaran Keluar
             dataPengeluaranItem?.forEach(item => {
-                if (String(item.keterangan_bayar) !== 'true') return; 
+                
+                // 🔥 Logika Baru: Ambil jika status_approval 'Disetujui' ATAU keterangan_bayar 'true'
+                const isDisetujui = item.pengeluaran?.status_approval === 'Disetujui';
+                const isKeteranganBayarTrue = String(item.keterangan_bayar) === 'true';
+
+                // Jika dua-duanya BUKAN, berarti datanya gak valid/ditolak, jadi kita lewati (return)
+                if (!isDisetujui && !isKeteranganBayarTrue) return; 
 
                 const nominal = parseFloat(item.nominal) || 0; totalKeluar += nominal;
                 let jam = item.jam_input ? item.jam_input.substring(0,5) : extractJam(item.updated_at);

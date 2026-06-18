@@ -150,7 +150,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                 <h3 class="font-headline-md text-headline-md text-on-surface font-bold flex items-center gap-2">
                                     <i class="bi bi-trophy-fill text-yellow-500"></i> Papan Peringkat Mitra
                                 </h3>
-                                <p class="text-xs text-on-surface-variant mt-0.5">Peringkat 5 Besar penyetor tertinggi berdasarkan kategori komoditas.</p>
+                                <p class="text-xs text-on-surface-variant mt-0.5">Peringkat seluruh penyetor berdasarkan kategori komoditas.</p>
                             </div>
 
                             <div class="flex flex-nowrap items-center overflow-x-auto hide-scrollbar bg-surface-container-low p-1 rounded-xl border border-outline-variant gap-1 shadow-inner w-full lg:w-auto max-w-full">
@@ -1343,16 +1343,20 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             window.leaderboardCache = { "Juara Umum": [], "Minyak Jelantah": [], "Ampas": [], "Kriuk": [], "Tepung": [], "Spinner": [] };
             
             window.generateLeaderboard = async function() {
-                const periode = document.getElementById('input-periode-leaderboard').value;
-                if (!periode || !window.supabase) return;
+                const rawPeriode = document.getElementById('input-periode-leaderboard').value;
+                if (!rawPeriode || !window.supabase) return;
                         
+                // 🔥 UBAH FORMAT DARI YYYY-MM (Bawaan Kalender) JADI MM YYYY (Kebutuhan Database)
+                const [y, m] = rawPeriode.split('-');
+                const periodeDB = `${m} ${y}`;
+
                 try {
-                    // 1. Tarik semua data dari tabel leaderboard baru berdasarkan periode (YYYY-MM)
+                    // 1. Tarik semua data dari tabel leaderboard berdasarkan periodeDB
                     const { data: rekapData, error } = await window.supabase
                         .from('leaderboard_mingguan')
                         .select('*')
-                        .eq('periode', periode);
-                    
+                        .eq('periode', periodeDB); // Pakai variabel periodeDB yang udah dikonversi
+                        
                     if(error) throw error;
                 
                     // 2. Reset Cache Wadah Leaderboard
@@ -1425,7 +1429,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 if (!container) return;
 
                 // Sortir kargo terbesar, ambil Top 5
-                const data = (window.leaderboardCache[kategori] || []).sort((a, b) => b.kg - a.kg).slice(0, 5);
+                const data = (window.leaderboardCache[kategori] || []).sort((a, b) => b.kg - a.kg);
                 
                 if (data.length === 0) {
                     container.innerHTML = `<p class="text-xs text-on-surface-variant italic text-center py-10 col-span-full border-2 border-dashed border-outline-variant rounded-xl">Belum ada penyetor di kategori ${kategori} pada bulan ini.</p>`;

@@ -435,11 +435,16 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             }
             
             window.closeModal('modal-paket');
-            window.loadDaftarPaket();
+            window.loadDaftarPaket(); // Ini cuma refresh kotak-kotak paket
+
+            // 🔥 TAMBAHKAN BARIS INI: Biar Dropdown 'Pilih Paket' ikut narik data terbaru!
+            await window.loadDropdownRiwayat();
+            
         } catch(err) { 
-            alert("Gagal menyimpan: " + err.message); 
+            alert("Gagal menyimpan: " + err.message);
         } finally { 
-            btn.innerText = "Simpan Paket Ke Database"; btn.disabled = false; 
+            btn.innerText = "Simpan Paket Ke Database";
+            btn.disabled = false; 
         }
     };
 

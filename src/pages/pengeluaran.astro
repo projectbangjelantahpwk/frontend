@@ -791,34 +791,32 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         try {
             const rincianItems = [];
             let countUangJalan = 0;
-            let totalNominalPengajuan = 0; // 🔥 Variabel baru untuk menghitung total uang yang mau diminta
-            const depositPromises = []; // 🔥 TAMBAHAN: Untuk menampung eksekusi nambah deposit
+            let totalNominalPengajuan = 0;
+            const depositPromises = [];
 
+            // 1. Tarik semua inputan dari form
             itemRows.forEach(row => {
                 const kategori = row.querySelector('.add_item_select').value;
                 const nominal = parseFloat(row.querySelector('.add_item_nominal').value) || 0;
                 let keterangan = row.querySelector('.add_item_keterangan').value.trim();
 
                 if(kategori === 'Uang Jalan') countUangJalan++;
-                totalNominalPengajuan += nominal; // Tambahkan ke total
+                totalNominalPengajuan += nominal;
 
-                // 🔥 LOGIKA JIKA ITEM ADALAH DEPOSIT MITRA 🔥
+                // Logika khusus jika nambah Deposit Mitra
                 if (kategori === 'Deposit Mitra') {
                     const namaDiketik = row.querySelector('.add_item_mitra_input').value.trim();
-                    
-                    // Cari ID mitra berdasarkan nama yang diketik
                     const mitraMatch = window.allMitraPengeluaran.find(m => m.nama_mitra.toLowerCase() === namaDiketik.toLowerCase());
                     
-                    // Validasi ketat jika admin ngetik ngasal / typo
                     if (!mitraMatch) {
-                        btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER"; btnSubmit.disabled = false;
-                        throw new Error(`Mitra dengan nama "${namaDiketik}" tidak ditemukan! Silakan pilih dari daftar dropdown yang muncul.`);
+                        btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER";
+                        btnSubmit.disabled = false;
+                        throw new Error(`Mitra dengan nama "${namaDiketik}" tidak ditemukan! Silakan pilih dari daftar dropdown.`);
                     }
 
                     const mitraId = mitraMatch.id;
-                    keterangan = `Deposit - ${mitraMatch.nama_mitra}`; // Teks otomatis sesuai request lu
+                    keterangan = `Deposit - ${mitraMatch.nama_mitra}`; 
 
-                    // Task update saldo mitra
                     const taskDeposit = async () => {
                         const { data: dbMitra } = await window.supabase.from('mitra').select('deposit').eq('id', mitraId).single();
                         const currentDeposit = Number(dbMitra?.deposit) || 0;
@@ -835,48 +833,48 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             });
 
             // =================================================================
-            // 🔥 SENSOR CEK SALDO KAS PERUSAHAAN (ANTI MINUS & ANTI NOL) 🔥
+            // 🔥 SENSOR ANTI-MINUS (Sekadar validasi awal sebelum ditembak ke Server)
             // =================================================================
             const { data: dataKas, error: errKas } = await window.supabase
                 .from('kas_perusahaan')
                 .select('*')
                 .eq('id', 1)
                 .single();
-
+                
             if (dataKas) {
                 let saldoAktif = 0;
                 if (sumberDana === 'Uang Keuangan') saldoAktif = dataKas.uang_keuangan || 0;
                 else if (sumberDana === 'Uang Gudang') saldoAktif = dataKas.uang_gudang || 0;
                 else if (sumberDana === 'Uang Owner') saldoAktif = dataKas.uang_owner || 0;
 
-                // 1. Blokir jika kas benar-benar kosong (0)
                 if (saldoAktif <= 0 && totalNominalPengajuan > 0) {
-                    btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER"; btnSubmit.disabled = false;
+                    btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER";
+                    btnSubmit.disabled = false;
                     return alert(`❌ DITOLAK! Saldo dompet [${sumberDana}] saat ini kosong (Rp 0). Tidak bisa melakukan pengeluaran!`);
                 }
 
-                // 2. Blokir jika kas ada, tapi TIDAK CUKUP (mencegah minus)
                 if (saldoAktif < totalNominalPengajuan) {
-                    btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER"; btnSubmit.disabled = false;
+                    btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER";
+                    btnSubmit.disabled = false;
                     return alert(`❌ DITOLAK! Saldo dompet [${sumberDana}] tidak mencukupi untuk tagihan ini!\n\nSisa Saldo Kas: Rp ${saldoAktif.toLocaleString('id-ID')}\nTotal Pengajuan: Rp ${totalNominalPengajuan.toLocaleString('id-ID')}\n\nSilakan kurangi nominal atau pilih dompet kas lain.`);
                 }
             }
-            // =================================================================
 
-            // 🛡️ 1. CEGAH DOBEL DI DALAM 1 FORM
+            // 2. Cegah dobel Uang Jalan di form yang sama
             if(countUangJalan > 1) {
-                btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER"; btnSubmit.disabled = false;
+                btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER";
+                btnSubmit.disabled = false;
                 return alert("ERROR: Jangan memasukkan item 'Uang Jalan' lebih dari 1 kali dalam sekali pengajuan!");
             }
 
-            // 🛡️ 2. CEGAH DOBEL LINTAS DOMPET (Cek riwayat di database)
+            // 3. Cegah dobel Uang Jalan dari riwayat database
             if (countUangJalan > 0) {
                 const { data: pengInduk } = await window.supabase
                     .from('pengeluaran')
                     .select('id')
                     .eq('user_id', userId)
                     .eq('tanggal', tanggalStr);
-
+                    
                 if (pengInduk && pengInduk.length > 0) {
                     const pengIds = pengInduk.map(p => p.id);
                     const { data: cekUj } = await window.supabase
@@ -885,15 +883,16 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         .in('pengeluaran_id', pengIds)
                         .eq('nama_item', 'Uang Jalan')
                         .limit(1);
-
+                        
                     if (cekUj && cekUj.length > 0) {
-                        btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER"; btnSubmit.disabled = false;
+                        btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER";
+                        btnSubmit.disabled = false;
                         return alert("DITOLAK! Karyawan ini sudah menerima 'Uang Jalan' hari ini. Jika ada biaya tambahan (seperti Bensin/Tol), silakan input TANPA menyertakan item 'Uang Jalan' agar langsung memotong dompet yang dipilih.");
                     }
                 }
             }
 
-            // LANGKAH A: Cek ketersediaan induk (Berdasarkan User + Tanggal + Sumber Dana)
+            // 4. Buat atau cari Induk Pengeluaran
             const { data: existing, error: errCheck } = await window.supabase
                 .from('pengeluaran')
                 .select('id')
@@ -901,7 +900,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 .eq('tanggal', tanggalStr)
                 .eq('sumber_dana', sumberDana)
                 .maybeSingle();
-            
+                
             if(errCheck) throw errCheck;
 
             let pengeluaranId;
@@ -917,94 +916,45 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         sumber_dana: sumberDana 
                     }) 
                     .select('id').single();
+                    
                 if(errInsert) throw errInsert;
                 pengeluaranId = inserted.id;
             }
 
             // =================================================================
-            // 🔥 OTAK AUTO-DEBIT UANG JALAN DRIVER (SISTEM PINTAR) 🔥
+            // 🔥 5. KIRIM DATA KE DATABASE (SQL TRIGGER YANG AKAN BEKERJA)
             // =================================================================
-            let totalBiayaLain = 0;
-            // 1. Hitung total Bensin, Parkir, dll (Abaikan item Deposit / Uang Jalan)
-            rincianItems.forEach(item => {
-                if (!item.nama_item.toLowerCase().includes('uang jalan') && !item.nama_item.toLowerCase().includes('deposit')) {
-                    totalBiayaLain += item.nominal;
-                }
-            });
-
-            // 2. Jika ada pengeluaran Bensin/Parkir, suruh sistem ngecek Uang Jalan driver ini
-            if (totalBiayaLain > 0) {
-                const { data: listInduk } = await window.supabase.from('pengeluaran')
-                    .select('id').eq('user_id', userId).eq('tanggal', tanggalStr);
-                
-                if (listInduk && listInduk.length > 0) {
-                    const arrIndukIds = listInduk.map(x => x.id);
-                    
-                    // Lacak Uang Jalan yang SALDONYA MASIH ADA (> 0)
-                    const { data: dataUangJalan } = await window.supabase.from('rincian_pengeluaran')
-                        .select('id, nominal')
-                        .in('pengeluaran_id', arrIndukIds)
-                        .ilike('nama_item', '%uang jalan%')
-                        .gt('nominal', 0)
-                        .order('nominal', { ascending: false });
-
-                    let sisaTagihanDebit = totalBiayaLain;
-
-                    // 3. Eksekusi Sedot Saldo (Auto-Debit)
-                    if (dataUangJalan && dataUangJalan.length > 0) {
-                        for (let uj of dataUangJalan) {
-                            if (sisaTagihanDebit <= 0) break; // Kalau tagihan udah lunas, stop nyedot
-
-                            let nominalTersedia = parseFloat(uj.nominal);
-                            let jumlahYgDisedot = 0;
-
-                            // Tentukan berapa yang bisa disedot dari baris ini
-                            if (nominalTersedia >= sisaTagihanDebit) {
-                                jumlahYgDisedot = sisaTagihanDebit;
-                                sisaTagihanDebit = 0;
-                            } else {
-                                jumlahYgDisedot = nominalTersedia;
-                                sisaTagihanDebit -= nominalTersedia;
-                            }
-
-                            // UPDATE KE DATABASE: Kurangi nominal Uang Jalan
-                            // (Ajaibnya: Begitu ini di-update, SQL Trigger lu otomatis nge-Refund Saldo Kas Perusahaan untuk nyegah dobel potong!)
-                            await window.supabase.from('rincian_pengeluaran')
-                                .update({ nominal: nominalTersedia - jumlahYgDisedot })
-                                .eq('id', uj.id);
-                        }
-                        console.log("🤖 Auto-Debit Berjalan Mulus!");
-                    }
-                }
-            }
-            // =================================================================
-
-            // LANGKAH B: Masukkan semua array pecahan rincian ke DB
             const rincianFinalToInsert = rincianItems.map(item => ({
                 pengeluaran_id: pengeluaranId,
                 nama_item: item.nama_item,
                 nominal: item.nominal,
                 keterangan: item.keterangan,
-                // 🔥 TAMBAHAN TAHAP 1: Kasih Tanda Pengenal Web Admin 🔥
                 status_approval: 'Disetujui',
-                keterangan_bayar: true
+                
+                // ⚠️ KUNCI UTAMANYA DI SINI: Set 'false' agar Trigger SQL langsung memotong Kas Perusahaan
+                keterangan_bayar: false 
             }));
-            
+
+            // Tembak ke Database!
             const { error: errRincian } = await window.supabase.from('rincian_pengeluaran').insert(rincianFinalToInsert);
             if(errRincian) throw errRincian;
 
+            // Eksekusi janji penambahan saldo deposit mitra (jika ada)
             if (depositPromises.length > 0) {
                 await Promise.all(depositPromises);
             }
             
-            alert("Mantap! Seluruh data sukses dicatat dan divalidasi.");
+            alert("✅ Mantap! Seluruh data sukses dicatat. Kas Perusahaan dan Uang Jalan otomatis diatur oleh Sistem Database.");
             window.location.reload();
+
         } catch (err) {
             console.error(err);
             alert("Gagal menambahkan pengeluaran: " + err.message);
-            btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER"; btnSubmit.disabled = false;
+            btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER"; 
+            btnSubmit.disabled = false;
         }
     };
+    
     // ==========================================
     // 🔥 FUNGSI KEMBALIKAN SISA UANG JALAN KE GUDANG 🔥
     // ==========================================

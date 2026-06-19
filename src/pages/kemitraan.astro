@@ -406,6 +406,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         </select>
                     </div>
                     <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Saldo Deposit (Rp)</label>
+                        <input id="edit_mitra_deposit" type="number" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none font-mono font-bold text-green-700" placeholder="0" required>
+                    </div>
+                    <div>
                         <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Alamat Lengkap</label>
                         <textarea id="edit_mitra_alamat" class="w-full p-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none" rows="2" required></textarea>
                     </div>
@@ -1295,7 +1299,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 document.getElementById('edit_mitra_rute').value = mitra.rute_jemput || '';
                 document.getElementById('edit_mitra_sumber').value = mitra.sumber_mitra || 'Lainnya';
                 document.getElementById('edit_mitra_jenis').value = mitra.jenis_pelanggan || 'Lainnya'; // 🔥 SUNTIKAN BARU
-                
+                document.getElementById('edit_mitra_deposit').value = mitra.deposit || 0;
                 document.getElementById('edit_mitra_alamat').value = mitra.alamat || '';
                 document.getElementById('edit_mitra_gmaps').value = mitra.link_gmaps || '';
                 window.openModal('modal-edit-mitra');
@@ -1312,7 +1316,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         rute_jemput: document.getElementById('edit_mitra_rute').value,
                         sumber_mitra: document.getElementById('edit_mitra_sumber').value,
                         jenis_pelanggan: document.getElementById('edit_mitra_jenis').value, // 🔥 SUNTIKAN BARU
-                        //deposit: parseFloat(document.getElementById('edit_mitra_deposit').value),
+                        deposit: parseFloat(document.getElementById('edit_mitra_deposit').value),
                         alamat: document.getElementById('edit_mitra_alamat').value,
                         link_gmaps: document.getElementById('edit_mitra_gmaps').value,
                     };

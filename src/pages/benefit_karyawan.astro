@@ -155,12 +155,12 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
 <script>
     import { supabase } from '../lib/supabase';
-    import { uploadImageToImgbb } from '../lib/imgbb.js';
+    import { uploadImageToCloudinary } from '../lib/cloudinary.js';
     
     // Taruh di window biar bisa dipakai oleh script inline
     if (typeof window !== 'undefined') {
         window.supabase = supabase;
-        window.uploadImageToImgbb = uploadImageToImgbb;
+        window.uploadImageToCloudinary = uploadImageToCloudinary;
     }
 </script>
 
@@ -405,11 +405,13 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             if (file) {
                 btn.innerText = "Mengkompresi Foto...";
                 try {
-                    const compressedFile = await window.kompresGambar(file, 800, 0.7); 
+                    const compressedFile = await window.kompresGambar(file, 800, 0.7);
                     btn.innerText = "Mengunggah ke Server...";
-                    finalImageUrl = await window.uploadImageToImgbb(compressedFile);
+                    // 🔥 GANTI BARIS INI:
+                    finalImageUrl = await window.uploadImageToCloudinary(compressedFile);
                 } catch(err) {
-                    finalImageUrl = await window.uploadImageToImgbb(file); 
+                    // 🔥 GANTI BARIS INI JUGA (Jika kompresi gagal, upload file asli):
+                    finalImageUrl = await window.uploadImageToCloudinary(file);
                 }
             }
 

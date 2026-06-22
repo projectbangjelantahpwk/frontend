@@ -154,7 +154,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 </div>
 
 <script is:inline>
-  const masterKategoriOps = ['Bensin', 'Parkir', 'Uang Jalan', 'Deposit Mitra', 'E-Toll', 'Admin', 'Bongkar', 'Satpam', 'Service', 'Listrik', 'Karung', 'Plastik', 'Jasa Spinner', 'Lain-lain'];
+  const masterKategoriOps = ['Bensin', 'Parkir', 'Uang Jalan', 'Deposit Mitra', 'E-Toll', 'Admin', 'Bongkar', 'Satpam', 'Service', 'Listrik', 'Karung', 'Plastik', 'Lain-lain'];
   
   document.addEventListener('DOMContentLoaded', async () => {
       // === 🛡️ GATEKEEPER KEUANGAN ===
@@ -792,9 +792,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             const rincianItems = [];
             let countUangJalan = 0;
             let totalNominalPengajuan = 0;
-            const depositPromises = [];
+            let mitraIdUntukInduk = null; // ✅ Tambahkan penampung Mitra ID
 
-            // 1. Tarik semua inputan dari form
             itemRows.forEach(row => {
                 const kategori = row.querySelector('.add_item_select').value;
                 const nominal = parseFloat(row.querySelector('.add_item_nominal').value) || 0;
@@ -803,7 +802,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 if(kategori === 'Uang Jalan') countUangJalan++;
                 totalNominalPengajuan += nominal;
 
-                // Logika khusus jika nambah Deposit Mitra
                 if (kategori === 'Deposit Mitra') {
                     const namaDiketik = row.querySelector('.add_item_mitra_input').value.trim();
                     const mitraMatch = window.allMitraPengeluaran.find(m => m.nama_mitra.toLowerCase() === namaDiketik.toLowerCase());
@@ -814,15 +812,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         throw new Error(`Mitra dengan nama "${namaDiketik}" tidak ditemukan! Silakan pilih dari daftar dropdown.`);
                     }
 
-                    const mitraId = mitraMatch.id;
+                    mitraIdUntukInduk = mitraMatch.id; // ✅ Simpan ID-nya untuk tabel Induk
                     keterangan = `Deposit - ${mitraMatch.nama_mitra}`; 
-
-                    const taskDeposit = async () => {
-                        const { data: dbMitra } = await window.supabase.from('mitra').select('deposit').eq('id', mitraId).single();
-                        const currentDeposit = Number(dbMitra?.deposit) || 0;
-                        await window.supabase.from('mitra').update({ deposit: currentDeposit + nominal }).eq('id', mitraId);
-                    };
-                    depositPromises.push(taskDeposit());
+                    // ❌ depositPromises dihapus karena Edge Function yang akan memproses ini
                 }
 
                 rincianItems.push({ 
@@ -913,7 +905,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         tanggal: tanggalStr, 
                         total_harian: 0, 
                         status_approval: 'Menunggu',
-                        sumber_dana: sumberDana 
+                        sumber_dana: sumberDana,
+                        mitra_id: mitraIdUntukInduk // ✅ Sisipkan di sini!
                     }) 
                     .select('id').single();
                     
@@ -922,26 +915,32 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             }
 
             // =================================================================
-            // 🔥 5. KIRIM DATA KE DATABASE (SQL TRIGGER YANG AKAN BEKERJA)
+            // 🔥 5. KIRIM DATA KE EDGE FUNCTION (API OPSI A)
             // =================================================================
-            const rincianFinalToInsert = rincianItems.map(item => ({
-                pengeluaran_id: pengeluaranId,
-                nama_item: item.nama_item,
-                nominal: item.nominal,
-                keterangan: item.keterangan,
-                status_approval: 'Disetujui',
+            
+            // Urutkan array: Pastikan "Uang Jalan" diproses paling pertama agar saldonya siap dipotong item lain
+            rincianItems.sort((a, b) => (a.nama_item === 'Uang Jalan' ? -1 : 1));
+
+            // Gunakan loop berurutan (for...of) agar Edge Function punya jeda mikir untuk potong kas
+            for (const item of rincianItems) {
+                // Gunakan fitur native supabase.functions.invoke
+                const { data, error } = await window.supabase.functions.invoke('pengeluaran-trick', {
+                    body: { 
+                        pengeluaran_id: pengeluaranId,
+                        nama_item: item.nama_item,
+                        nominal: item.nominal,
+                        keterangan: item.keterangan 
+                    }
+                });
+
+                if (error) {
+                    throw new Error(`Gagal memproses [${item.nama_item}]: ${error.message}`);
+                }
                 
-                // ⚠️ KUNCI UTAMANYA DI SINI: Set 'false' agar Trigger SQL langsung memotong Kas Perusahaan
-                keterangan_bayar: false 
-            }));
-
-            // Tembak ke Database!
-            const { error: errRincian } = await window.supabase.from('rincian_pengeluaran').insert(rincianFinalToInsert);
-            if(errRincian) throw errRincian;
-
-            // Eksekusi janji penambahan saldo deposit mitra (jika ada)
-            if (depositPromises.length > 0) {
-                await Promise.all(depositPromises);
+                // Jika logic Deno me-return success: false dari dalam try-catch nya
+                if (data && data.success === false) {
+                    throw new Error(`Ditolak server: ${data.error}`);
+                }
             }
             
             alert("✅ Mantap! Seluruh data sukses dicatat. Kas Perusahaan dan Uang Jalan otomatis diatur oleh Sistem Database.");

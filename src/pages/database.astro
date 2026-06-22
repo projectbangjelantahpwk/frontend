@@ -5,6 +5,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 // Data untuk tabs menu
 const menuTabs = [
   { id: 'mitra', label: 'Mitra', icon: 'bi-person-lines-fill' },
+  { id: 'rekening', label: 'Rekening Mitra', icon: 'bi-credit-card' },
   { id: 'gudang', label: 'Gudang Komoditas', icon: 'bi-box-seam' },
   { id: 'stock_harian', label: 'Stok Gudang Harian', icon: 'bi-clipboard-data' },
   { id: 'pembelian', label: 'Pembelian Barang', icon: 'bi-cart-plus' },
@@ -94,6 +95,30 @@ const statusBadgeColors = {
           </thead>
           <tbody id="tabelMitra">
             <tr><td colspan="7" class="text-center py-4 text-gray-500">Memuat data mitra...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+       TABEL REKENING MITRA
+       ======================================== -->
+  <div id="rekening-tab" class="tab-content hidden">
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-200">
+              <th class="px-6 py-4 text-left font-bold text-gray-900">Nama Mitra</th>
+              <th class="px-6 py-4 text-left font-bold text-gray-900">Atas Nama</th>
+              <th class="px-6 py-4 text-left font-bold text-gray-900">Nama Bank</th>
+              <th class="px-6 py-4 text-left font-bold text-gray-900">No. Rekening</th>
+              <th class="px-6 py-4 text-left font-bold text-gray-900">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tabelRekening">
+            <tr><td colspan="4" class="text-center py-4 text-gray-500">Memuat data rekening...</td></tr>
           </tbody>
         </table>
       </div>
@@ -347,6 +372,7 @@ const statusBadgeColors = {
 
         // Load data untuk tab yang dipilih
         if(tabId === 'mitra') loadMitra();
+        else if(tabId === 'rekening') loadRekening();
         else if(tabId === 'gudang') loadGudang();
         else if(tabId === 'stock_harian') loadStockHarian();
         else if(tabId === 'pembelian') loadPembelian();
@@ -405,6 +431,52 @@ const statusBadgeColors = {
         btn.addEventListener('click', function() {
           const id = this.getAttribute('data-id');
           editMitra(id);
+        });
+      });
+    }
+
+    // ===== LOAD DATA REKENING =====
+    async function loadRekening() {
+      // Sama persis kayak di kemitraan.astro: nge-join tabel rek_mitra dengan mitra
+      const { data, error } = await supabase
+        .from('rek_mitra')
+        .select('id, atas_nama, nama_bank, no_rek, mitra!mitra_id(nama_mitra)')
+        .order('nama_bank', { ascending: true });
+
+      if(error) {
+        console.error(error);
+        document.getElementById('tabelRekening').innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-500 font-bold">Gagal memuat data!</td></tr>';
+        return;
+      }
+
+      let html = '';
+      data.forEach(item => {
+        const namaMitra = item.mitra?.nama_mitra || 'Mitra Tidak Ditemukan';
+        
+        html += `
+          <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+            <td class="px-6 py-4 font-bold text-gray-900">${namaMitra}</td>
+            <td class="px-6 py-4 font-medium text-gray-800">${item.atas_nama}</td>
+            <td class="px-6 py-4 text-sm"><span class="px-2 py-1 bg-blue-100 text-blue-800 rounded font-bold">${item.nama_bank}</span></td>
+            <td class="px-6 py-4 font-mono font-bold text-gray-900">${item.no_rek}</td>
+            <td class="px-6 py-4">
+              <div class="flex gap-2">
+                <button class="edit-rekening-btn px-3 py-1 text-blue-600 hover:bg-blue-50 border border-blue-200 rounded text-sm font-medium" data-id="${item.id}">
+                  <i class="bi bi-pencil mr-1"></i>Edit
+                </button>
+                <button onclick="window.hapusData('rek_mitra', ${item.id}, 'Rekening ${item.atas_nama}')" class="px-3 py-1 text-red-600 hover:bg-red-50 border border-red-200 rounded text-sm font-medium">
+                  <i class="bi bi-trash mr-1"></i>Hapus
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('tabelRekening').innerHTML = html || '<tr><td colspan="4" class="text-center py-4 text-gray-500">Tidak ada data rekening</td></tr>';
+      document.querySelectorAll('.edit-rekening-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          editRekening(this.getAttribute('data-id'));
         });
       });
     }
@@ -706,6 +778,42 @@ const statusBadgeColors = {
 
       renderMitraForm(data);
       openModal();
+    }
+
+    // ===== EDIT REKENING =====
+    async function editRekening(id) {
+      const { data, error } = await supabase.from('rek_mitra').select('*').eq('id', id).single();
+      if(error) return alert('Gagal memuat data');
+
+      document.getElementById('currentTab').value = 'rekening';
+      document.getElementById('editId').value = id;
+      document.getElementById('modalTitle').textContent = 'Edit Rekening Mitra';
+
+      renderRekeningForm(data);
+      openModal();
+    }
+
+    // ===== RENDER FORM REKENING =====
+    function renderRekeningForm(data = null) {
+      const container = document.getElementById('formFieldsContainer');
+      let html = `
+        <div class="space-y-4">
+          <h3 class="text-sm font-bold text-gray-900 border-b pb-2">Edit Data Rekening</h3>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Nama Bank</label>
+            <input type="text" name="nama_bank" value="${data?.nama_bank || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">No. Rekening</label>
+            <input type="number" name="no_rek" value="${data?.no_rek || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Atas Nama</label>
+            <input type="text" name="atas_nama" value="${data?.atas_nama || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
+          </div>
+        </div>
+      `;
+      container.innerHTML = html;
     }
 
     // ===== EDIT GUDANG =====
@@ -1126,6 +1234,7 @@ const statusBadgeColors = {
         }
 
         let targetTable = currentTab === 'mitra' ? 'mitra' :
+                          currentTab === 'rekening' ? 'rek_mitra' : '';
                           currentTab === 'gudang' ? 'gudang_komoditas' :
                           currentTab === 'stock_harian' ? 'stock_gudang_harian' :
                           currentTab === 'pembelian' ? 'pembelian_barang_harian' :
@@ -1160,25 +1269,26 @@ const statusBadgeColors = {
     });
 
     // ===== HAPUS DATA FUNCTION =====
-    window.hapusData = async function(table, id, nama) {
+   window.hapusData = async function(table, id, nama) {
       if(!confirm(`Yakin ingin menghapus "${nama}"?`)) return;
-
+    
       try {
-        const { error } = await supabase.from(table).delete().eq('id', id);
-        if(error) throw error;
-
-        alert('Data berhasil dihapus!');
-        
-        if(table === 'mitra') loadMitra();
-        else if(table === 'stock_gudang_harian') loadStockHarian();
-        else if(table === 'pembelian_barang_harian') loadPembelian();
-        else if(table === 'penjualan_barang_harian') loadPenjualan();
-        else if(table === 'pengeluaran_harian') loadPengeluaran();
-
+          const { error } = await supabase.from(table).delete().eq('id', id);
+          if(error) throw error;
+      
+          alert('Data berhasil dihapus!');
+          
+          if(table === 'mitra') loadMitra();
+          else if(table === 'stock_gudang_harian') loadStockHarian();
+          else if(table === 'pembelian_barang_harian') loadPembelian();
+          else if(table === 'penjualan_barang_harian') loadPenjualan();
+          else if(table === 'pengeluaran_harian') loadPengeluaran();
+          else if(table === 'rek_mitra') loadRekening(); // <--- TARUH DI SINI BRO
+      
       } catch(err) {
-        alert('Gagal: ' + err.message);
+          alert('Gagal: ' + err.message);
       }
-    };
+  };
 
 
     // ==========================================

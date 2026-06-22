@@ -556,7 +556,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                 </div>
                                 ${j.mitra?.link_gmaps ? `<a href="${j.mitra.link_gmaps}" target="_blank" class="text-blue-600 text-[11px] hover:underline flex items-center mt-1 font-semibold"><i class="bi bi-geo-alt-fill mr-1 text-red-500"></i> Google Maps</a>` : ''}
                             </td>
-                            <td class="px-md py-md font-bold text-emerald-600" data-label="Deposit">Rp ${(j.deposit || 0).toLocaleString('id-ID')}</td>
+                            <td class="px-md py-md font-bold text-emerald-600" data-label="Deposit">Rp ${(j.mitra?.deposit || 0).toLocaleString('id-ID')}</td>
                             <td class="px-md py-md" data-label="Kurir">${j.driver?.nama || ''} ${j.helper?.nama ? '& ' + j.helper.nama : ''}</td>
                             <td class="px-md py-md capitalize font-bold text-gray-700" data-label="Kendaraan">${j.kendaraan === 'mobil' ? (j.mobil ? `<span class="font-bold text-primary">${j.mobil.nama_kendaraan}</span><br><span class="text-[10px] bg-gray-200 px-1 rounded">${j.mobil.plat_nomor}</span>` : 'Mobil (Belum Diset)') : '<span class="font-bold text-gray-700">Motor</span>'}</td>
                             <td class="px-md py-md" data-label="Status">

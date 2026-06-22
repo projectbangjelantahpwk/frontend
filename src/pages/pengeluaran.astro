@@ -1010,21 +1010,19 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         .eq('id', 1);
                 }
             }
-
-            // LANGKAH C: Eksekusi Kasbon (Jika ada selisih uang hilang)
+                        // LANGKAH C: Eksekusi Kasbon (Biar Edge Function yang ngurus masuk ke setup_gaji)
             if (selisihKasbon > 0) {
-                const { error: errKasbon } = await window.supabase
-                    .from('rincian_pengeluaran')
-                    .insert({
+                const { error, data } = await window.supabase.functions.invoke('NAMA_EDGE_FUNCTION_LU', {
+                    body: { 
                         pengeluaran_id: pengeluaranId,
                         nama_item: 'Kasbon - Kurang Setor Uang Jalan',
                         nominal: selisihKasbon,
-                        keterangan: 'Otomatis dari sistem karena fisik yang disetor kurang',
-                        keterangan_bayar: true,
-                        status_approval: 'Disetujui' // 🔥 Langsung di-ACC supaya Trigger Gaji bekerja!
-                    });
-                    
-                if (errKasbon) throw errKasbon;
+                        keterangan: 'Otomatis dari sistem karena fisik yang disetor kurang'
+                    }
+                });
+
+                if (error) throw new Error(`Gagal mencatat kasbon: ${error.message}`);
+                if (data && data.success === false) throw new Error(`Ditolak server: ${data.error}`);
             }
 
             alert("Mantap! Buku harian driver sukses ditutup dan disinkronisasi ke Kas & Gaji.");

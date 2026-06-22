@@ -921,7 +921,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             rincianItems.sort((a, b) => (a.nama_item === 'Uang Jalan' ? -1 : 1));
 
             for (const item of rincianItems) {
-                const { data, error } = await window.supabase.functions.invoke('NAMA_EDGE_FUNCTION_LU', {
+                const { data, error } = await window.supabase.functions.invoke('pengeluaran-trick', {
                     body: { 
                         pengeluaran_id: pengeluaranId,
                         nama_item: item.nama_item,

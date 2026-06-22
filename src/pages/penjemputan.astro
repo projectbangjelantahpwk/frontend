@@ -106,14 +106,15 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             <tr class="bg-surface-container-low border-b border-outline-variant">
                                 <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Nama Mitra</th>
                                 <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Alamat Pengambilan</th>
-                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Kendaraan</th>
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Deposit</th>
                                 <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Kurir Ditugaskan</th>
+                                <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Kendaraan</th>
                                 <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Status</th>
                                 <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-outline-variant font-body-md text-body-md text-on-surface bg-surface-container-lowest" id="tbody-pending">
-                            <tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Memuat data...</td></tr>
+                            <tr><td colspan="7" class="p-4 text-center text-on-surface-variant">Memuat data...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -517,7 +518,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         id, status, tanggal, rute_penjemputan, kendaraan,
                         estimasi_minyak, estimasi_tepung, estimasi_kriuk, estimasi_spinner, estimasi_ampas, total_estimasi,
                         satuan_minyak, satuan_tepung, satuan_kriuk, satuan_spinner, satuan_ampas,
-                        mitra ( id, nama_mitra, alamat, link_gmaps, nomor_hp ),
+                        mitra ( id, nama_mitra, alamat, link_gmaps, nomor_hp, deposit ),
                         mobil ( id, nama_kendaraan, plat_nomor ),
                         driver:driver_id ( id, nama ),
                         helper:helper_id ( id, nama ),
@@ -555,8 +556,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                 </div>
                                 ${j.mitra?.link_gmaps ? `<a href="${j.mitra.link_gmaps}" target="_blank" class="text-blue-600 text-[11px] hover:underline flex items-center mt-1 font-semibold"><i class="bi bi-geo-alt-fill mr-1 text-red-500"></i> Google Maps</a>` : ''}
                             </td>
-                            <td class="px-md py-md capitalize font-bold text-gray-700" data-label="Kendaraan">${j.kendaraan === 'mobil' ? (j.mobil ? `<span class="font-bold text-primary">${j.mobil.nama_kendaraan}</span><br><span class="text-[10px] bg-gray-200 px-1 rounded">${j.mobil.plat_nomor}</span>` : 'Mobil (Belum Diset)') : '<span class="font-bold text-gray-700">Motor</span>'}</td>
+                            <td class="px-md py-md font-bold text-emerald-600" data-label="Deposit">Rp ${(j.deposit || 0).toLocaleString('id-ID')}</td>
                             <td class="px-md py-md" data-label="Kurir">${j.driver?.nama || ''} ${j.helper?.nama ? '& ' + j.helper.nama : ''}</td>
+                            <td class="px-md py-md capitalize font-bold text-gray-700" data-label="Kendaraan">${j.kendaraan === 'mobil' ? (j.mobil ? `<span class="font-bold text-primary">${j.mobil.nama_kendaraan}</span><br><span class="text-[10px] bg-gray-200 px-1 rounded">${j.mobil.plat_nomor}</span>` : 'Mobil (Belum Diset)') : '<span class="font-bold text-gray-700">Motor</span>'}</td>
                             <td class="px-md py-md" data-label="Status">
                                 <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 font-label-sm text-[11px]"><span class="w-2 h-2 rounded-full bg-amber-500"></span> ${j.status}</span>
                             </td>
@@ -571,7 +573,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             </td>
                         </tr>`;
                     });
-                } else { htmlPending = '<tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Tidak ada jadwal penjemputan baru.</td></tr>'; }
+                } else { htmlPending = '<tr><td colspan="7" class="p-4 text-center text-on-surface-variant">Tidak ada jadwal penjemputan baru.</td></tr>'; }
                 document.getElementById('tbody-pending').innerHTML = htmlPending;
 
                 // Render Tab Progress

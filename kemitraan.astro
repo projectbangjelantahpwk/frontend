@@ -1,0 +1,1904 @@
+---
+import Layout from '../layouts/Layout.astro';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+---
+
+<Layout title="Kemitraan - Manajemen Bang Jelantah">
+    <style is:global>
+    /* Mengunci layar menjadi blank (putih) sampai skrip memberi izin masuk */
+        body { display: none; }
+    </style>
+    <div class="max-w-7xl mx-auto flex flex-col h-full gap-lg">
+        
+        <div class="content-view flex flex-col gap-lg" id="view-kemitraan">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-md mb-2">
+                <header>
+                    <h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary">Kemitraan</h2>
+                    <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Manajemen relasi dan pendaftaran mitra pengumpul.</p>
+                </header>
+                <div class="w-full md:w-72 relative shrink-0">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+                    <input type="text" id="input-search-mitra" oninput="window.applySearchMitra()" class="w-full h-11 pl-10 pr-4 rounded-full border border-outline-variant bg-surface-container-lowest text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm" placeholder="Cari nama, rute, no hp...">
+                </div>
+            </div>
+
+            <div class="flex flex-col flex-1 gap-md">
+                <div class="flex overflow-x-auto border-b border-outline-variant scrollbar-hide">
+                    <button class="tab-btn px-md py-sm font-label-lg text-label-lg border-b-2 border-primary text-primary whitespace-nowrap active" data-tab="mitra-baru">Mitra Baru</button>
+                    <button class="tab-btn px-md py-sm font-label-lg text-label-lg border-b-2 border-transparent text-on-surface-variant hover:text-primary whitespace-nowrap" data-tab="mitra-langganan">Mitra Langganan</button>
+                    <button class="tab-btn px-md py-sm font-label-lg text-label-lg border-b-2 border-transparent text-on-surface-variant hover:text-primary whitespace-nowrap" data-tab="mitra-tidak-aktif">Mitra Tidak Aktif</button>
+                    <button class="tab-btn px-md py-sm font-label-lg text-label-lg border-b-2 border-transparent text-on-surface-variant hover:text-primary whitespace-nowrap" data-tab="top_leaderboard">Top Leaderboard</button>
+                    <button class="tab-btn px-md py-sm font-label-lg text-label-lg border-b-2 border-transparent text-on-surface-variant hover:text-primary whitespace-nowrap" data-tab="rekening-mitra">Rekening Mitra</button>
+                </div>
+
+                <div class="tab-content block" id="tab-mitra-baru">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-headline-md text-on-surface">Daftar Prospek</h3>
+                        <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="relative inline-block text-left z-20">
+                                <button onclick="window.toggleDropdownFilter()" class="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest border border-outline-variant text-on-surface-variant rounded-full font-label-sm font-bold hover:bg-surface-container transition-colors shadow-sm">
+                                    <i class="bi bi-funnel-fill"></i> Filter Prospek
+                                </button>
+
+                                <div id="dropdown-filter-prospek" class="hidden absolute right-0 mt-2 w-64 origin-top-right rounded-xl bg-surface-container-lowest border border-outline-variant shadow-lg p-4 flex flex-col gap-3 transition-all">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Pilih Tanggal</label>
+                                        <input type="date" id="filter-tgl-prospek" class="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container text-sm outline-none focus:border-primary">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Follow Up Ke-</label>
+                                        <select id="filter-fu-prospek" class="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container text-sm outline-none focus:border-primary">
+                                            <option value="">-- Semua --</option>
+                                            <option value="1">Follow Up Ke- 1</option>
+                                            <option value="2">Follow Up Ke- 2</option>
+                                            <option value="3">Follow Up Ke- 3</option>
+                                            <option value="4">Follow Up Ke- 4</option>
+                                            <option value="5">Follow Up Ke- 5+</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex justify-between gap-2 mt-1">
+                                        <button onclick="window.resetFilterProspek(event)" class="flex-1 h-9 border border-outline-variant text-on-surface-variant font-bold text-xs rounded-lg hover:bg-surface-container-low transition-colors">
+                                            Reset
+                                        </button>
+                                        <button onclick="window.applyFilterProspek(event)" class="flex-1 h-9 bg-primary text-on-primary font-bold text-xs rounded-lg hover:bg-surface-tint transition-colors shadow-sm">
+                                            Terapkan
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="window.openModal('modal-tambah-prospek')" class="bg-primary text-on-primary px-4 py-2 rounded-full font-label-lg flex items-center gap-2 shadow-sm hover:bg-surface-tint transition-colors shrink-0">
+                                <span class="material-symbols-outlined text-[20px]">add</span> Prospek Baru
+                            </button>
+                            
+                        </div>
+                    </div>
+                    </div>
+                    <div class="md:hidden flex flex-col gap-md" id="mitra-baru-mobile">
+                        <p class="text-on-surface-variant text-center py-4">Memuat data...</p>
+                    </div>
+                    <div class="hidden md:block overflow-x-auto bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm">
+                        <table class="w-full text-left border-collapse min-w-[600px]">
+                            <thead>
+                                <tr class="border-b border-outline-variant bg-surface-container-low">
+                                    <th class="px-md py-sm w-12 text-center font-label-sm text-label-sm text-on-surface-variant uppercase">No</th>
+                                    <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Tanggal Input</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">No HP</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Sumber Mitra</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold text-center">Follow Up Ke-</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-outline-variant" id="mitra-baru-tbody">
+                                <tr><td colspan="4" class="p-md text-center text-on-surface-variant">Memuat...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-content hidden" id="tab-mitra-langganan">
+                    <div class="md:hidden flex flex-col gap-md" id="mitra-langganan-mobile"></div>
+                    <div class="hidden md:block overflow-x-auto bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm">
+                        <table class="w-full text-left border-collapse min-w-[800px]">
+                            <thead>
+                                <tr class="border-b border-outline-variant bg-surface-container-low">
+                                    <th class="p-md w-12 text-center font-label-lg text-on-surface-variant font-semibold">No</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Nama</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Rute</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">No HP</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Sumber Mitra</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Jenis Pelanggan</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold text-center">Alamat</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold text-center">Deposit</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold text-center">Jml Transaksi</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-outline-variant" id="mitra-langganan-tbody">
+                                <tr><td colspan="5" class="p-md text-center text-on-surface-variant">Memuat...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-content hidden" id="tab-mitra-tidak-aktif">
+                    <div class="md:hidden flex flex-col gap-md" id="mitra-tidak-aktif-mobile"></div>
+                    <div class="hidden md:block overflow-x-auto bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm">
+                        <table class="w-full text-left border-collapse min-w-[800px]">
+                            <thead>
+                                <tr class="border-b border-outline-variant bg-surface-container-low">
+                                    <th class="p-md w-12 text-center font-label-lg text-on-surface-variant font-semibold">No</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Nama</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">No HP</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold text-center">Jml Transaksi</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Tgl Nonaktif</th>
+                                    <th class="p-md font-label-lg text-on-surface-variant font-semibold text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-outline-variant opacity-75" id="mitra-tidak-aktif-tbody">
+                                <tr><td colspan="5" class="p-md text-center text-on-surface-variant">Memuat...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-content hidden" id="tab-top_leaderboard">
+                    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-md md:p-lg flex flex-col shadow-sm">
+                        
+                        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-md mb-5 border-b border-outline-variant pb-4 shrink-0">
+                            
+                            <div class="max-w-md">
+                                <h3 class="font-headline-md text-headline-md text-on-surface font-bold flex items-center gap-2">
+                                    <i class="bi bi-trophy-fill text-yellow-500"></i> Papan Peringkat Mitra
+                                </h3>
+                                <p class="text-xs text-on-surface-variant mt-0.5">Peringkat seluruh penyetor berdasarkan kategori komoditas.</p>
+                            </div>
+
+                            <div class="flex flex-nowrap items-center overflow-x-auto hide-scrollbar bg-surface-container-low p-1 rounded-xl border border-outline-variant gap-1 shadow-inner w-full lg:w-auto max-w-full">
+                                <button onclick="window.changeLeaderboardTab(this, 'Juara Umum')" class="leaderboard-tab-btn px-3 py-2 text-xs font-bold rounded-lg bg-white shadow-sm text-primary transition-all whitespace-nowrap">Umum</button>
+                                <button onclick="window.changeLeaderboardTab(this, 'Minyak Jelantah')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Minyak</button>
+                                <button onclick="window.changeLeaderboardTab(this, 'Ampas')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Ampas</button>
+                                <button onclick="window.changeLeaderboardTab(this, 'Kriuk')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Kriuk</button>
+                                <button onclick="window.changeLeaderboardTab(this, 'Tepung')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Tepung</button>
+                                <button onclick="window.changeLeaderboardTab(this, 'Spinner')" class="leaderboard-tab-btn px-3 py-2 text-xs font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-all whitespace-nowrap">Spinner</button>
+                                
+                                <div class="w-px h-5 bg-outline-variant mx-1 shrink-0"></div>
+
+                                <div class="relative min-w-[125px] shrink-0">
+                                    <input type="month" id="input-periode-leaderboard" class="w-full px-2 py-1.5 text-xs font-bold rounded-lg bg-primary-container text-on-primary-container border border-primary/20 outline-none cursor-pointer text-center block shadow-sm transition-all hover:brightness-95 font-mono" title="Ubah Periode">
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div id="leaderboard-live-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md overflow-y-auto p-1 min-h-[160px] flex-1">
+                            <p class="text-sm text-on-surface-variant italic text-center py-8 col-span-full">Menghitung peringkat live...</p>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="tab-content hidden" id="tab-rekening-mitra">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="font-headline-md text-on-surface">Data Rekening Mitra</h3>
+        <div class="flex items-center gap-2">
+            <select id="filter-bank" onchange="window.applySearchMitra()" class="h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-sm outline-none focus:border-primary">
+                <option value="">Semua Bank</option>
+            </select>
+            <!-- Sebelumnya: onclick="window.openModal('modal-tambah-rekening')" -->
+            <button onclick="window.bukaModalTambahRekening()" class="bg-primary text-on-primary px-4 py-2 rounded-full font-label-lg flex items-center gap-2 shadow-sm hover:bg-surface-tint hover:shadow-md hover:-translate-y-0.5 transition-all active:translate-y-0">
+                <span class="material-symbols-outlined text-[20px]">add</span> Tambah
+            </button>
+        </div>
+    </div>
+
+    <div class="md:hidden flex flex-col gap-md" id="rekening-mitra-mobile"></div>
+
+    <div class="hidden md:block overflow-x-auto bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm">
+        <table class="w-full text-left border-collapse min-w-[800px]">
+            <thead>
+                <tr class="border-b border-outline-variant bg-surface-container-low">
+                    <th class="p-md w-12 text-center font-label-lg text-on-surface-variant font-semibold">No</th>
+                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Nama Mitra</th>
+                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Atas Nama</th>
+                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">Nama Bank</th>
+                    <th class="p-md font-label-lg text-on-surface-variant font-semibold">No. Rekening</th>
+                    <th class="p-md font-label-lg text-on-surface-variant font-semibold text-right">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant" id="rekening-mitra-tbody">
+                <tr><td colspan="5" class="p-md text-center text-on-surface-variant">Memuat...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-container-margin opacity-0 transition-opacity duration-300" id="modal-tambah-prospek">
+        <div class="bg-surface-container-lowest rounded-xl shadow-lg w-full max-w-md p-lg transform scale-95 transition-transform duration-300 relative">
+            <button class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors" onclick="closeModal('modal-tambah-prospek')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Tambah Prospek Baru</h3>
+            <p class="font-body-md text-body-md text-on-surface-variant mb-md">Masukkan data calon mitra yang baru dihubungi.</p>
+            <form class="flex flex-col gap-md" id="form-tambah-prospek">
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">No HP / WhatsApp</label>
+                    <input id="input_hp_baru" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="0812..." type="text" required>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Sumber Mendapatkan Kontak</label>
+                    <select id="input_sumber_baru" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none">
+                        <option value="Instagram">Instagram</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="Tiktok">Tiktok</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+                <div class="mt-sm flex justify-end gap-sm">
+                    <button class="px-md h-touch-target rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="closeModal('modal-tambah-prospek')" type="button">Batal</button>
+                    <button class="px-md h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors" type="submit" id="btn-submit-prospek">Simpan Prospek</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300" id="conversionModal">
+        
+        <div class="relative w-full max-w-md transform scale-95 transition-transform duration-300 mt-8 md:mt-0">
+            
+            <button class="absolute -top-12 right-0 md:-right-14 md:top-0 w-10 h-10 flex items-center justify-center bg-white text-gray-700 hover:text-red-600 hover:bg-gray-50 rounded-full shadow-lg border border-gray-200 transition-all z-10" onclick="closeModal('conversionModal')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            
+            <div class="bg-surface-container-lowest rounded-xl shadow-xl p-5 md:p-6 max-h-[80vh] overflow-y-auto scrollbar-hide relative flex flex-col">
+                
+                <h3 class="font-headline-md text-headline-md text-on-surface mb-1">Jadikan Langganan</h3>
+                <p class="font-body-md text-body-md text-on-surface-variant mb-4">Prospek ini akan dipindahkan ke daftar Mitra Langganan.</p>
+                
+                <form class="flex flex-col gap-4 pb-2" id="formKonversiLangganan">
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">No HP Prospek</label>
+                        <input class="w-full h-12 px-3 rounded-lg border border-outline-variant bg-surface-container text-on-surface outline-none font-bold" id="konversi_hp" type="text" readonly>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">Nama Lengkap Toko/Mitra</label>
+                        <input id="konversi_nama" class="w-full h-12 px-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="Masukkan nama mitra" type="text" required>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">Rute Penjemputan</label>
+                        <select id="konversi_rute" class="w-full h-12 px-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                            <option value="">-- Memuat Rute... --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">Jenis Pelanggan</label>
+                        <select id="konversi_jenis" class="w-full h-12 px-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                            <option value="Rumah Tangga">Rumah Tangga / Perorangan</option>
+                            <option value="Restoran/Rumah Makan">Restoran / Rumah Makan</option>
+                            <option value="MBG">MBG</option>
+                            <option value="Pengepul Kecil">Pengepul Kecil</option>
+                            <option value="Pabrik/Industri">Pabrik / Industri</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">Alamat Lengkap Domisili</label>
+                        <textarea id="konversi_alamat" class="w-full p-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none" placeholder="Contoh: Jl. Raya Purwakarta No. 123, Mulyamekar" rows="2" required></textarea>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">Link Google Maps (G-Maps)</label>
+                        <input id="konversi_gmaps" class="w-full h-12 px-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="https://maps.google.com/..." type="url" required>
+                    </div>
+                    
+                    <div class="mt-2 flex justify-end gap-3 pt-4 border-t border-gray-100">
+                        <button class="px-5 py-2.5 rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="closeModal('conversionModal')" type="button">Batal</button>
+                        <button class="px-5 py-2.5 bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors" type="submit" id="btn-submit-konversi">Simpan & Pindahkan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-container-margin opacity-0 transition-opacity duration-300" id="modal-tambah-langganan">
+        
+        <div class="relative w-full max-w-md transform scale-95 transition-transform duration-300">
+            
+            <button class="absolute -top-12 right-0 md:-right-14 md:top-0 w-10 h-10 flex items-center justify-center bg-white text-gray-700 hover:text-red-600 hover:bg-gray-50 rounded-full shadow-lg border border-gray-200 transition-all z-10" onclick="closeModal('modal-tambah-langganan')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            
+            <div class="bg-surface-container-lowest rounded-xl shadow-xl p-lg max-h-[85vh] overflow-y-auto scrollbar-hide relative">
+                <h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Tambah Langganan Baru</h3>
+                <p class="font-body-md text-body-md text-on-surface-variant mb-md">Pilih prospek untuk dikonversi menjadi Mitra Langganan.</p>
+                
+                <form class="flex flex-col gap-md" id="form-tambah-langganan">
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Pilih Prospek (No HP)</label>
+                        <select id="tambah_langganan_hp" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none cursor-pointer" required>
+                            <option value="">-- Memuat Data Prospek... --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Nama Lengkap Toko/Mitra</label>
+                        <input id="tambah_langganan_nama" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="Masukkan nama mitra" type="text" required>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Alamat Lengkap Domisili</label>
+                        <textarea id="tambah_langganan_alamat" class="w-full p-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none" placeholder="Contoh: Jl. Raya Purwakarta No. 123, Mulyamekar" rows="2" required></textarea>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Rute Penjemputan</label>
+                        <select id="tambah_langganan_rute" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                            <option value="">-- Memuat Rute... --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Jenis Pelanggan</label>
+                        <select id="tambah_langganan_jenis" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                            <option value="Rumah Tangga">Rumah Tangga / Perorangan</option>
+                            <option value="Restoran/Rumah Makan">Restoran / Rumah Makan</option>
+                            <option value="MBG">MBG</option>
+                            <option value="Pengepul Kecil">Pengepul Kecil</option>
+                            <option value="Pabrik/Industri">Pabrik / Industri</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Link Google Maps (G-Maps)</label>
+                        <input id="tambah_langganan_gmaps" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" placeholder="https://maps.google.com/..." type="url" required>
+                    </div>
+                    <div class="mt-sm flex justify-end gap-sm pt-2">
+                        <button class="px-md h-touch-target rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="closeModal('modal-tambah-langganan')" type="button">Batal</button>
+                        <button class="px-md h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors" type="submit" id="btn-submit-tambah-langganan">Simpan & Konversi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-container-margin opacity-0 transition-opacity duration-300" id="modal-edit-mitra">
+    
+        <div class="relative w-full max-w-md transform scale-95 transition-transform duration-300">
+            
+            <button class="absolute -top-12 right-0 md:-right-14 md:top-0 w-10 h-10 flex items-center justify-center bg-white text-gray-700 hover:text-red-600 hover:bg-gray-50 rounded-full shadow-lg border border-gray-200 transition-all z-10" onclick="closeModal('modal-edit-mitra')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        
+            <div class="bg-surface-container-lowest rounded-xl shadow-xl p-lg max-h-[85vh] overflow-y-auto scrollbar-hide relative">
+                
+                <h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Edit Mitra Langganan</h3>
+                
+                <form class="flex flex-col gap-md" id="form-edit-mitra">
+                    <input type="hidden" id="edit_mitra_id">
+                    
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Nama Lengkap Toko/Mitra</label>
+                        <input id="edit_mitra_nama" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">No HP</label>
+                        <input id="edit_mitra_hp" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container text-on-surface outline-none font-bold" readonly>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Rute Penjemputan</label>
+                        <select id="edit_mitra_rute" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                            <option value="">-- Memuat Rute... --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Sumber Mitra</label>
+                        <select id="edit_mitra_sumber" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                            <option value="Instagram">Instagram</option>
+                            <option value="Facebook">Facebook</option>
+                            <option value="Tiktok">Tiktok</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Jenis Pelanggan</label>
+                        <select id="edit_mitra_jenis" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                            <option value="Rumah Tangga">Rumah Tangga / Perorangan</option>
+                            <option value="Restoran/Rumah Makan">Restoran / Rumah Makan</option>
+                            <option value="MBG">MBG</option>
+                            <option value="Pengepul Kecil">Pengepul Kecil</option>
+                            <option value="Pabrik/Industri">Pabrik / Industri</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Saldo Deposit (Rp)</label>
+                        <input id="edit_mitra_deposit" type="number" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none font-mono font-bold text-green-700" placeholder="0" required>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Alamat Lengkap</label>
+                        <textarea id="edit_mitra_alamat" class="w-full p-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none" rows="2" required></textarea>
+                    </div>
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Link Google Maps</label>
+                        <input id="edit_mitra_gmaps" type="url" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none" required>
+                    </div>
+                    <div class="mt-sm flex justify-end gap-sm pt-2">
+                        <button class="px-md h-touch-target rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="closeModal('modal-edit-mitra')" type="button">Batal</button>
+                        <button class="px-md h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors" type="submit" id="btn-submit-edit-mitra">Simpan Perubahan</button>
+                    </div>
+                </form>
+            
+            </div>
+        </div>
+    </div>
+    <div class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-container-margin opacity-0 transition-opacity duration-300" id="modal-tambah-rekening">
+        <div class="bg-surface-container-lowest rounded-xl shadow-lg w-full max-w-md p-lg transform scale-95 transition-transform duration-300 relative">
+            <button class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors" onclick="closeModal('modal-tambah-rekening')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Tambah Rekening</h3>
+            <form class="flex flex-col gap-md mt-4" id="form-tambah-rekening">
+                <div class="relative">
+                    <label class="block font-label-sm text-on-surface-variant mb-xs">Pilih Mitra</label>
+                    <input type="text" id="input_search_mitra_rekening" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none cursor-text" placeholder="Ketik nama mitra..." autocomplete="off">
+                    <input type="hidden" id="input_mitra_id_rekening" required>
+
+                    <div id="dropdown_mitra_rekening" class="hidden absolute z-[70] left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg scrollbar-hide"></div>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-on-surface-variant mb-xs">Nama Bank</label>
+                    <input id="input_bank_rekening" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface outline-none focus:ring-2 focus:ring-primary" placeholder="Contoh: BCA, Mandiri" required>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-on-surface-variant mb-xs">No. Rekening</label>
+                    <input id="input_norek_rekening" type="number" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface outline-none focus:ring-2 focus:ring-primary" placeholder="Masukkan angka rekening" required>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-on-surface-variant mb-xs">Atas Nama</label>
+                    <input id="input_an_rekening" class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface outline-none focus:ring-2 focus:ring-primary" placeholder="Sesuai buku tabungan" required>
+                </div>
+                <div class="mt-sm flex justify-end gap-sm">
+                    <button class="px-md py-2 rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors" onclick="closeModal('modal-tambah-rekening')" type="button">Batal</button>
+                    <button class="px-md py-2 bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors" type="submit" id="btn-submit-rekening">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-container-margin opacity-0 transition-opacity duration-300" id="modal-edit-rekening">
+        <div class="bg-surface-container-lowest rounded-xl shadow-lg w-full max-w-md p-lg transform scale-95 transition-transform duration-300 relative">
+            <button class="absolute top-4 right-4 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors" onclick="closeModal('modal-edit-rekening')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h3 class="font-headline-md text-on-surface mb-sm">Edit Rekening</h3>
+            <form class="flex flex-col gap-md mt-4" id="form-edit-rekening">
+                <input type="hidden" id="edit_rekening_id">
+                <div>
+                    <label class="block font-label-sm text-on-surface-variant mb-xs">Nama Mitra</label>
+                    <input id="edit_mitra_nama_rekening" class="w-full h-12 px-sm rounded-lg bg-surface-container text-on-surface outline-none font-bold" readonly>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-on-surface-variant mb-xs">Nama Bank</label>
+                    <input id="edit_bank_rekening" class="w-full h-12 px-sm rounded-lg border border-outline-variant outline-none focus:ring-primary" required>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-on-surface-variant mb-xs">No. Rekening</label>
+                    <input id="edit_norek_rekening" type="number" class="w-full h-12 px-sm rounded-lg border border-outline-variant outline-none focus:ring-primary" required>
+                </div>
+                <div>
+                    <label class="block font-label-sm text-on-surface-variant mb-xs">Atas Nama</label>
+                    <input id="edit_an_rekening" class="w-full h-12 px-sm rounded-lg border border-outline-variant outline-none focus:ring-primary" required>
+                </div>
+                <div class="mt-sm flex justify-end gap-sm">
+                    <button class="px-md py-2 rounded-full text-primary hover:bg-surface-container-low" onclick="closeModal('modal-edit-rekening')" type="button">Batal</button>
+                    <button class="px-md py-2 bg-primary text-on-primary rounded-full hover:bg-surface-tint" type="submit" id="btn-submit-edit-rekening">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="overlay-aside" class="fixed inset-0 z-[65] bg-on-background/50 hidden opacity-0 transition-opacity duration-300" onclick="window.tutupDetailProspek()"></div>
+    <div id="aside-prospek" class="fixed inset-y-0 right-0 z-[70] w-full max-w-sm bg-surface-container-lowest shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="p-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+            <h3 class="font-headline-sm font-bold text-on-surface">Detail Follow Up</h3>
+            <button onclick="window.tutupDetailProspek()" class="text-on-surface-variant hover:text-error transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        
+        <div class="p-md flex-1 overflow-y-auto">
+            <p class="font-label-sm text-on-surface-variant mb-1">No WhatsApp Prospek</p>
+            <p id="aside-hp-text" class="text-xl font-bold text-on-surface mb-6">-</p>
+
+            <a id="btn-wa-prospek" href="#" target="_blank" class="w-full flex items-center justify-center gap-2 bg-[#25D366] text-white py-3 rounded-xl font-bold mb-4 shadow-sm hover:bg-[#1ebd5a] transition">
+                <i class="bi bi-whatsapp text-lg"></i> Chat & Follow Up
+            </a>
+
+            <!-- TAMBAHAN: INPUT KETERANGAN -->
+            <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">Catatan / Keterangan</label>
+            <textarea id="input-keterangan-followup" class="w-full p-3 mb-3 rounded-xl border border-outline-variant bg-surface-container-lowest text-sm text-on-surface focus:ring-1 focus:ring-primary outline-none resize-none shadow-sm" rows="2" placeholder="Contoh: Belum direspon / Masih mikir-mikir..."></textarea>
+
+            <!-- TOMBOL TAMBAH HITUNGAN -->
+            <button id="btn-tambah-followup-aside" class="w-full flex items-center justify-center gap-2 bg-secondary-container text-on-secondary-container py-3 rounded-xl font-bold mb-6 hover:bg-secondary hover:text-white transition shadow-sm">
+                <span class="material-symbols-outlined text-[20px]">add_call</span> Simpan Follow Up (+1)
+            </button>
+
+            <p class="font-bold text-on-surface mb-3 border-b border-outline-variant pb-2 text-sm">Riwayat Tanggal Follow Up</p>
+            <div id="list-riwayat-followup" class="flex flex-col gap-3">
+                <p class="text-sm text-on-surface-variant italic">Memuat riwayat...</p>
+            </div>
+        </div>
+    </div>
+    <script is:inline>
+        // ==========================================
+            // FITUR PENCARIAN GLOBAL SAKTI (BULLETPROOF)
+            // ==========================================
+            window.applySearchMitra = function() {
+                const searchInput = document.getElementById('input-search-mitra');
+                if(!searchInput) return;
+                
+                // Hapus spasi berlebih di awal/akhir kata
+                const keyword = searchInput.value.toLowerCase().trim();
+                
+                // Sapu bersih semua baris dan kartu di SEMUA TAB
+                const items = document.querySelectorAll(`
+                    #mitra-baru-tbody tr, #mitra-baru-mobile > div,
+                    #mitra-langganan-tbody tr, #mitra-langganan-mobile > div,
+                    #mitra-tidak-aktif-tbody tr, #mitra-tidak-aktif-mobile > div,
+                    #leaderboard-live-list > div
+                `);
+
+                items.forEach(item => {
+                    // Abaikan baris "Memuat data..." biar sistem nggak error
+                    if (item.querySelector('td[colspan]')) return;
+                    if (item.classList.contains('col-span-full')) return; 
+
+                    const text = item.textContent.toLowerCase();
+                    
+                    // Kalau kotak pencarian kosong, kembalikan semua data
+                    if (keyword === '') {
+                        item.style.display = ''; 
+                    } else {
+                        // Sembunyikan yang tidak cocok, munculkan yang cocok
+                        item.style.display = text.includes(keyword) ? '' : 'none';
+                    }
+                });
+            };
+        document.addEventListener('DOMContentLoaded', async () => {
+            if(!window.supabase) return console.error('Supabase tidak terhubung!');
+
+            // === TAMBAHAN: CEK ROLE USER YANG LOGIN ===
+            // === 🛡️ GATEKEEPER KEUANGAN ===
+            const allowedRoles = ['owner', 'hrd', 'admin','keuangan','it'];
+            const client = window.supabase || supabase;
+
+            const { data: { session } } = await client.auth.getSession();
+            if (!session) return window.location.replace('/'); // Tendang kalau belum login
+
+            const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+            if (!allowedRoles.includes(prof?.role)) {
+                alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk ke Keuangan.`);
+                return window.location.replace('/');
+            }
+            document.body.style.display = 'block'; // Buka gembok CSS, tampilkan layar!
+
+            // ==========================================
+            // 1. TAB LOGIC
+            // ==========================================
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Reset semua warna tombol tab
+                    tabBtns.forEach(b => {
+                        b.classList.remove('border-primary', 'text-primary', 'active');
+                        b.classList.add('border-transparent', 'text-on-surface-variant');
+                    });
+                    // Aktifkan warna tombol tab yang diklik
+                    btn.classList.remove('border-transparent', 'text-on-surface-variant');
+                    btn.classList.add('border-primary', 'text-primary', 'active');
+                    
+                    // Sembunyikan semua isi tab
+                    tabContents.forEach(content => {
+                        content.classList.add('hidden');
+                        content.classList.remove('block'); // Pastikan class block dihapus
+                    });
+                    
+                    // Tampilkan isi tab yang sesuai dengan data-tab
+                    const targetId = btn.getAttribute('data-tab');
+                    const targetElement = document.getElementById(`tab-${targetId}`);
+                    
+                    if(targetElement) {
+                        targetElement.classList.remove('hidden');
+                        targetElement.classList.add('block');
+                    }
+
+                    // 🌟 KHUSUS LEADERBOARD: Render ulang data live setiap tabnya dibuka 🌟
+                    if (targetId === 'top_leaderboard' && typeof window.generateLeaderboard === 'function') {
+                        window.generateLeaderboard();
+                    }
+
+                    // Terapkan ulang filter pencarian secara otomatis saat pindah tab
+                    if (typeof window.applySearchMitra === 'function') {
+                        setTimeout(window.applySearchMitra, 50);
+                    }
+                });
+            });
+
+            // ==========================================
+            // 2. FETCH DATA & RENDER CSR
+            // ==========================================
+            async function loadDataKemitraan() {
+                // 0. Ambil Data Rute Sekali di Awal
+                const { data: ruteData } = await window.supabase.from('rute_jemput').select('id, nama_rute').eq('status', 'Aktif');
+                let optRute = '<option value="">-- Pilih Rute / Wilayah --</option>';
+                if (ruteData) ruteData.forEach(r => optRute += `<option value="${r.nama_rute}">${r.nama_rute}</option>`);
+                
+                // Tempelkan ke semua dropdown form
+                document.getElementById('konversi_rute').innerHTML = optRute;
+                document.getElementById('tambah_langganan_rute').innerHTML = optRute;
+                document.getElementById('edit_mitra_rute').innerHTML = optRute;
+
+                // A. Mitra Baru (Prospek)
+                const { data: prospek } = await window.supabase
+                    .from('mitra_baru')
+                    .select('*, riwayat_follow_up(created_at)') // 🔥 SUNTIKKAN JOIN TABEL RIWAYAT
+                    .order('created_at', { ascending: false });
+                            
+                let htmlProspekMobile = '';
+                let htmlProspekTable = '';
+
+                // ==========================================
+                // FITUR AUTO BROADCAST WA MITRA LANGGANAN
+                // ==========================================
+                window.broadcastWA = function(hp, nama) {
+                    // ✅ BENAR (Pakai spasi)
+                    if (!hp || hp === '-') return alert(`Nomor HP untuk mitra ${nama} tidak ditemukan!`);
+
+                    // Sapu bersih karakter non-angka
+                    let waNumber = hp.replace(/\D/g, '');
+
+                    // Jika nomor diawali angka '0', ubah paksa jadi kode Indonesia '62'
+                    if (waNumber.startsWith('0')) {
+                        waNumber = '62' + waNumber.substring(1);
+                    }
+
+                    // Template pesan broadcast otomatis (bisa kamu ganti teksnya sesuka hati)
+                    const textPesan = `Halo Kak ${nama},\n\nKami dari *BANG JELANTAH PURWAKARTA* ingin menginformasikan jadwal penjemputan komoditas.\n\nApakah ada stok minyak jelantah atau kargo lainnya yang siap kami angkut hari ini? Mohon infonya ya Kak, terima kasih! 😊🙏`;
+
+                    // Satukan link API WhatsApp resmi
+                    const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(textPesan)}`;
+
+                    // Buka chat otomatis di tab baru browser
+                    window.open(waLink, '_blank');
+                };
+                            
+                if(prospek && prospek.length > 0) {
+                    prospek.forEach((p,index) => {
+                        const sumber = p.sumber_customer || 'Lainnya';
+                        const currentFollowUp = p.follow_up_ke || 1; 
+                        
+                        let tanggalInput = '-';
+                        let rawDate = ''; 
+
+                        // 🔥 AMBIL TANGGAL DARI RIWAYAT FOLLOW UP TERAKHIR 🔥
+                        if (p.riwayat_follow_up && p.riwayat_follow_up.length > 0) {
+                            // Sortir dari yang paling baru (descending) lalu ambil urutan ke-[0]
+                            const sortedRiwayat = p.riwayat_follow_up.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                            const lastRiwayat = sortedRiwayat[0];
+                            
+                            const dateObj = new Date(lastRiwayat.created_at);
+                            const day = String(dateObj.getDate()).padStart(2, '0');
+                            const month = String(dateObj.getMonth() + 1).padStart(2, '0'); 
+                            const year = dateObj.getFullYear();
+                            
+                            tanggalInput = `${day}-${month}-${year}`; // Format DD-MM-YYYY (Untuk Tampilan)
+                            rawDate = `${year}-${month}-${day}`;      // Format YYYY-MM-DD (Untuk Mesin Filter)
+                        } 
+                        // Fallback jika belum punya riwayat (ambil dari tanggal prospek dibuat)
+                        else if (p.created_at) {
+                            const dateObj = new Date(p.created_at);
+                            const day = String(dateObj.getDate()).padStart(2, '0');
+                            const month = String(dateObj.getMonth() + 1).padStart(2, '0'); 
+                            const year = dateObj.getFullYear();
+                            
+                            tanggalInput = `${day}-${month}-${year}`;
+                            rawDate = `${year}-${month}-${day}`;
+                        }
+                        
+                        // Tampilan Card untuk Mobile
+                        htmlProspekMobile += `
+                        <div class="prospek-item bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm" data-tgl="${rawDate}" data-fu="${currentFollowUp}">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-xs text-on-surface-variant mt-1 font-medium">Tgl Follow Up: <span class="font-bold text-primary">${tanggalInput}</span></p>
+                                    <p class="font-label-sm text-label-sm text-on-surface-variant">No HP</p>
+                                    <p class="font-body-md text-on-surface font-semibold">${p.nomor_hp}</p>
+                                    <p class="text-xs text-on-surface-variant mt-1 font-medium">Follow up ke: <span class="font-bold text-secondary">${currentFollowUp}</span></p>
+                                </div>
+                                <span class="px-xs py-xs bg-primary-container text-on-primary-container rounded font-label-sm text-xs">${sumber}</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 mt-xs">
+                                <button class="group h-touch-target bg-secondary-container text-on-secondary-container rounded-full font-label-lg hover:bg-secondary hover:text-white transition-colors flex items-center justify-center gap-xs" onclick="window.bukaDetailProspek('${p.nomor_hp}')">
+                                    <span class="material-symbols-outlined text-[18px] transition-colors group-hover:text-white">history</span> Detail
+                                </button>
+                                <button class="h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint transition-colors flex items-center justify-center gap-xs" onclick="window.openModalKonversi('${p.nomor_hp}')">
+                                    <span class="material-symbols-outlined text-[18px]">person_add</span> Langganan
+                                </button>
+                            </div>
+                        </div>`;
+
+                        // Tampilan Baris untuk Tabel Desktop
+                        htmlProspekTable += `
+                        <tr class="prospek-item hover:bg-surface-container-low transition-colors" data-tgl="${rawDate}" data-fu="${currentFollowUp}">
+                            <td class="p-md text-center text-sm font-bold text-on-surface-variant">${index + 1}</td>
+                            <td class="p-md text-sm font-medium text-on-surface-variant whitespace-nowrap">
+                                <span class="material-symbols-outlined text-[14px] align-middle mr-1">calendar_today</span>${tanggalInput}
+                            </td>
+                            <td class="p-md font-body-md text-on-surface font-semibold">${p.nomor_hp}</td>
+                            <td class="p-md"><span class="px-2 py-1 bg-primary-container text-on-primary-container rounded font-label-sm text-xs">${sumber}</span></td>
+                            <td class="p-md text-center"><span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-secondary text-on-secondary font-label-sm text-xs font-bold">${currentFollowUp}</span></td>
+                            <td class="p-md text-right">
+                                <div class="flex justify-end gap-2 items-center">
+                                    <button class="group px-3 py-1.5 bg-secondary-container text-on-secondary-container rounded-full font-label-sm hover:bg-secondary hover:text-white transition-colors inline-flex items-center gap-1 h-10 shadow-sm" onclick="window.bukaDetailProspek('${p.nomor_hp}')" title="Lihat Riwayat & WA">
+                                        <span class="material-symbols-outlined text-[18px] transition-colors group-hover:text-white">history</span> Detail
+                                    </button>
+                                    <button class="px-md py-sm bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint transition-colors inline-flex items-center gap-xs h-10 shadow-sm" onclick="window.openModalKonversi('${p.nomor_hp}')">
+                                        <span class="material-symbols-outlined text-[18px]">person_add</span> Langganan
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>`;
+                    });
+                } else {
+                    const empty = '<p class="text-on-surface-variant text-center p-md">Tidak ada prospek baru.</p>';
+                    htmlProspekMobile = empty; 
+                    // 👇 Ubah colspan jadi 5 karena ketambahan 1 kolom baru 👇
+                    htmlProspekTable = `<tr><td colspan="5">${empty}</td></tr>`;
+                }
+                
+                document.getElementById('mitra-baru-mobile').innerHTML = htmlProspekMobile;
+                document.getElementById('mitra-baru-tbody').innerHTML = htmlProspekTable;
+                
+                const selectProspek = document.getElementById('tambah_langganan_hp');
+                if(selectProspek) {
+                    let optHtml = '<option value="">-- Pilih Prospek --</option>';
+                    if(prospek && prospek.length > 0) {
+                        prospek.forEach(p => {
+                            optHtml += `<option value="${p.nomor_hp}">${p.nomor_hp} (${p.sumber_customer || 'Lainnya'})</option>`;
+                        });
+                    } else {
+                        optHtml = '<option value="">-- Tidak ada prospek baru --</option>';
+                    }
+                    selectProspek.innerHTML = optHtml;
+                }
+
+                // B. Mitra Langganan
+                const { data: langganan, error: errLang } = await window.supabase.from('mitra')
+                    .select('id, nama_mitra, rute_jemput, nomor_hp, alamat, link_gmaps, total_order, total_transaksi, activated, sumber_mitra, created_at, deposit, jenis_pelanggan, tgl_transaksi_pertama')
+                    .eq('activated', true)
+                    .order('created_at', { ascending: false });
+
+                if (errLang) {
+                    alert("Gagal ambil data Langganan: " + errLang.message);
+                    console.error("Detail Error Langganan:", errLang);
+                }
+                
+                window.allMitraLangganan = langganan || [];
+                let htmlLangMobile = '';
+                let htmlLangTable = '';
+                let chartDataByMonth = { 'Jan':0, 'Feb':0, 'Mar':0, 'Apr':0, 'May':0, 'Jun':0, 'Jul':0, 'Aug':0, 'Sep':0, 'Oct':0, 'Nov':0, 'Dec':0 };
+
+                if(langganan && langganan.length > 0) {
+                    langganan.forEach((l, index) => {
+                        // Data untuk Grafik (Hitung per bulan)
+                        if(l.created_at) {
+                            const date = new Date(l.created_at);
+                            const monthIndex = date.getMonth(); // 0-11
+                            const monthKeys = Object.keys(chartDataByMonth);
+                            chartDataByMonth[monthKeys[monthIndex]] += 1;
+                        }
+
+                        // 📱 TAMPILAN MOBILE CARD (Kini ada tombol Chat WA & Edit di bawahnya)
+                        htmlLangMobile += `
+                        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm relative">
+                            <button onclick="window.nonaktifkanMitra('${l.id}', '${l.nama_mitra.replace(/'/g, "\\'")}')" class="absolute top-4 right-4 text-error hover:bg-error-container rounded-full p-1 transition-colors" title="Nonaktifkan Mitra">
+                                <span class="material-symbols-outlined text-[20px]">person_off</span>
+                            </button>
+                            <div class="border-b border-outline-variant pb-sm">
+                                <p class="font-headline-md text-on-surface font-semibold pr-8">${l.nama_mitra}</p>
+                            </div>
+                            <div><span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded uppercase mt-1 inline-block">${l.rute_jemput || 'Tanpa Rute'}</span></div>
+                            <div class="grid grid-cols-2 gap-sm pt-xs">
+                                <div><p class="font-label-sm text-on-surface-variant">No HP</p><p class="font-body-md text-on-surface">${l.nomor_hp || '-'}</p></div>
+                                <div><p class="font-label-sm text-on-surface-variant">Sumber</p><p class="font-body-md text-on-surface font-semibold">${l.sumber_mitra || 'Lainnya'}</p></div>
+                                <div><p class="font-label-sm text-on-surface-variant">Jenis Mitra</p><p class="font-body-md text-on-surface">${l.jenis_pelanggan || 'Lainnya'}</p></div>
+                                <div><p class="font-label-sm text-on-surface-variant">Transaksi</p><p class="font-body-md text-on-surface">${l.total_order || 0}x</p></div>
+                                <div><p class="font-label-sm text-on-surface-variant">Deposit</p><p class="font-body-md text-green-700 font-bold">Rp ${Number(l.deposit || 0).toLocaleString('id-ID')}</p></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 mt-xs pt-2 border-t border-outline-variant/40">
+                                <button onclick="window.broadcastWA('${l.nomor_hp}', '${l.nama_mitra.replace(/'/g, "\\'")}')" class="h-10 bg-[#25D366] text-white rounded-full font-label-lg flex items-center justify-center gap-1 shadow-xs hover:bg-[#1ebd5a] transition-colors">
+                                    <i class="bi bi-whatsapp"></i> Chat WA
+                                </button>
+                                <button onclick="window.bukaEditMitra('${l.id}')" class="h-10 bg-surface-container text-primary rounded-full font-label-lg flex items-center justify-center gap-1 hover:bg-primary-container transition-colors">
+                                    <span class="material-symbols-outlined text-[16px]">edit</span> Edit
+                                </button>
+                            </div>
+                        </div>`;
+
+                        // 🏢 TAMPILAN TABEL DESKTOP (Sudah termasuk Kolom Nomor "No" & Ikon Hijau WA)
+                        htmlLangTable += `
+                        <tr class="hover:bg-surface-container-low transition-colors group">
+                            <td class="p-md text-center text-sm font-bold text-on-surface-variant">${index + 1}</td>
+                            <td class="p-md font-body-md text-on-surface font-semibold">${l.nama_mitra}</td>
+                            <td><span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded uppercase mt-1 inline-block">${l.rute_jemput || 'Tanpa Rute'}</span></td>
+                            <td class="p-md font-body-md text-on-surface">${l.nomor_hp || '-'}</td>
+                            <td class="p-md"><span class="text-[10px] bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded uppercase inline-block font-medium">${l.sumber_mitra || 'Lainnya'}</span></td>
+                            
+                            <td class="p-md font-body-md text-on-surface">${l.jenis_pelanggan || 'Lainnya'}</td>
+
+                            <td class="p-md text-center"><a class="text-primary inline-block p-1 rounded-full hover:bg-primary-container" href="${l.link_gmaps || '#'}" target="_blank"><span class="material-symbols-outlined text-[20px]">location_on</span></a></td>
+                            <td class="p-md text-center font-mono font-bold text-green-700">Rp ${Number(l.deposit || 0).toLocaleString('id-ID')}</td>
+                            <td class="p-md text-center font-body-md">${l.total_order || 0}x</td>
+                            <td class="p-md text-right flex justify-end gap-2 items-center">
+                                <button onclick="window.broadcastWA('${l.nomor_hp}', '${l.nama_mitra.replace(/'/g, "\\'")}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-[#25D366] rounded-full hover:bg-[#25D366]/15 opacity-0 group-hover:opacity-100 transition-opacity" title="Kirim WA Broadcast">
+                                    <i class="bi bi-whatsapp text-[18px]"></i>
+                                </button>
+                                
+                                <button onclick="window.bukaEditMitra('${l.id}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-primary rounded-full hover:bg-primary-container opacity-0 group-hover:opacity-100 transition-opacity" title="Edit Mitra">
+                                    <span class="material-symbols-outlined text-[18px]">edit</span>
+                                </button>
+                                <button onclick="window.nonaktifkanMitra('${l.id}', '${l.nama_mitra.replace(/'/g, "\\'")}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-error rounded-full hover:bg-error-container opacity-0 group-hover:opacity-100 transition-opacity" title="Pindah ke Tidak Aktif">
+                                    <span class="material-symbols-outlined text-[18px]">person_off</span>
+                                </button>
+                            </td>
+                        </tr>`;
+                    });
+                } else {
+                    const empty = '<p class="text-on-surface-variant text-center p-md">Tidak ada mitra langganan.</p>';
+                    htmlLangMobile = empty; htmlLangTable = `<tr><td colspan="5">${empty}</td></tr>`;
+                    htmlLangTable = `<tr><td colspan="10">${empty}</td></tr>`;
+                }
+                document.getElementById('mitra-langganan-mobile').innerHTML = htmlLangMobile;
+                document.getElementById('mitra-langganan-tbody').innerHTML = htmlLangTable;
+                if (typeof renderChart === 'function') {
+                    renderChart(chartDataByMonth); 
+                } // Update Chart realtime!
+
+                // C. Mitra Tidak Aktif
+                const { data: nonaktif } = await window.supabase.from('mitra')
+                    .select('*')
+                    .eq('activated', false)
+                    .order('created_at', { ascending: false });
+                
+                let htmlNonMobile = '';
+                let htmlNonTable = '';
+                if(nonaktif && nonaktif.length > 0) {
+                    nonaktif.forEach((n, index) => {
+                        const dateOnly = n.created_at ? new Date(n.created_at).toLocaleDateString('id-ID') : '-';
+                        htmlNonMobile += `
+                        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm opacity-75">
+                            <div class="border-b border-outline-variant pb-sm"><p class="font-headline-md text-on-surface-variant font-semibold">${n.nama_mitra}</p></div>
+                            <div class="grid grid-cols-2 gap-sm pt-xs">
+                                <div><p class="font-label-sm text-on-surface-variant">No HP</p><p class="font-body-md text-on-surface-variant">${n.nomor_hp || '-'}</p></div>
+                               
+                                <div><p class="font-label-sm text-on-surface-variant">Tgl Nonaktif</p><p class="font-body-md text-on-surface-variant">${dateOnly}</p></div>
+                            </div>
+                            <button class="mt-sm w-full h-touch-target bg-surface-container text-primary rounded-full font-label-lg border border-primary hover:bg-primary-container transition-colors flex items-center justify-center gap-xs" onclick="window.aktifkanMitra('${n.id}', '${n.nama_mitra}')">
+                                <span class="material-symbols-outlined text-[20px]">person_check</span> Aktifkan Kembali
+                            </button>
+                        </div>`;
+                        
+                        htmlNonTable += `
+                        <tr class="hover:bg-surface-container-low transition-colors">
+                            <td class="p-md text-center text-sm font-bold text-on-surface-variant">${index + 1}</td>
+                            <td class="p-md font-body-md text-on-surface-variant font-semibold">${n.nama_mitra}</td>
+                            <td class="p-md font-body-md text-on-surface-variant">${n.nomor_hp || '-'}</td>
+                            <td class="p-md text-center font-body-md text-on-surface-variant">${n.total_order || 0}x</td>
+                            <td class="p-md font-body-md text-on-surface-variant">${dateOnly}</td>
+                            <td class="p-md text-right">
+                                <button class="px-md py-sm bg-surface-container text-primary rounded-full font-label-lg border border-primary hover:bg-primary-container transition-colors inline-flex items-center gap-xs h-10" onclick="window.aktifkanMitra('${n.id}', '${n.nama_mitra}')">
+                                    Aktifkan Kembali
+                                </button>
+                            </td>
+                        </tr>`;
+                    });
+                } else {
+                    const empty = '<p class="text-on-surface-variant text-center p-md">Tidak ada mitra tidak aktif.</p>';
+                    htmlNonMobile = empty; htmlNonTable = `<tr><td colspan="5">${empty}</td></tr>`;
+                }
+                document.getElementById('mitra-tidak-aktif-mobile').innerHTML = htmlNonMobile;
+                document.getElementById('mitra-tidak-aktif-tbody').innerHTML = htmlNonTable;
+            }
+
+            // Jalankan Render CSR
+            await loadDataKemitraan();
+
+            // ==========================================
+            // 4. LOGIKA MODAL & AKSI DATABASE
+            // ==========================================
+            window.openModal = function(id) {
+                const modal = document.getElementById(id);
+                if(!modal) return;
+                
+                modal.classList.remove('hidden'); void modal.offsetWidth;
+                modal.classList.remove('opacity-0'); 
+                const isi = modal.querySelector('div');
+                if(isi) isi.classList.remove('scale-95');
+                
+                // 🔥 Kunci body layar belakang biar gak bocor scroll-nya
+                document.body.style.overflow = 'hidden'; 
+            };
+
+            window.closeModal = function(id) {
+                const modal = document.getElementById(id);
+                if(!modal) return;
+                
+                modal.classList.add('opacity-0'); 
+                const isi = modal.querySelector('div');
+                if(isi) isi.classList.add('scale-95');
+                
+                setTimeout(() => { 
+                    modal.classList.add('hidden'); 
+                    // 🔥 Lepas gembok scroll saat modal ditutup
+                    document.body.style.overflow = ''; 
+                }, 300);
+            };
+
+            // A. TAMBAH PROSPEK BARU
+            // TAMBAHAN: TAMBAH LANGGANAN LANGSUNG (INPUT MANUAL)
+            document.getElementById('form-tambah-langganan').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btn-submit-tambah-langganan');
+                btn.innerText = "Menyimpan..."; btn.disabled = true;
+
+                const hp = document.getElementById('tambah_langganan_hp').value;
+
+                try {
+                    // 1. Simpan ke tabel Mitra (Langganan)
+                    await window.supabase.from('mitra').insert([{
+                        nama_mitra: document.getElementById('tambah_langganan_nama').value,
+                        rute_jemput: document.getElementById('tambah_langganan_rute').value,
+                        nomor_hp: hp,
+                        alamat: document.getElementById('tambah_langganan_alamat').value,
+                        link_gmaps: document.getElementById('tambah_langganan_gmaps').value,
+                        jenis_pelanggan: document.getElementById('tambah_langganan_jenis').value, // 🔥 SUNTIKAN BARU
+                        total_order: 0,
+                        total_transaksi: 0,
+                        activated: true
+                    }]);
+                    
+                    // 2. HAPUS otomatis dari prospek (mitra_baru) biar nyambung alurnya!
+                    await window.supabase.from('mitra_baru').delete().eq('nomor_hp', hp);
+
+                    alert('Prospek berhasil dikonversi menjadi Mitra Langganan!');
+                    window.location.reload();
+                } catch(err) { 
+                    alert(err.message); 
+                    btn.innerText = "Simpan & Konversi"; 
+                    btn.disabled = false; 
+                }
+            });
+
+            document.getElementById('form-tambah-prospek').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btn-submit-prospek');
+                btn.innerText = "Menyimpan..."; btn.disabled = true;
+
+                const hp = document.getElementById('input_hp_baru').value;
+                const sumber = document.getElementById('input_sumber_baru').value;
+
+                try {
+                    // 1️⃣ INSERT ke mitra_baru
+                    const { data: newProspek, error: prospekError } = await window.supabase
+                        .from('mitra_baru')
+                        .insert([{
+                            nomor_hp: hp,
+                            sumber_customer: sumber,
+                            follow_up_ke: 1
+                        }])
+                        .select('id'); // PENTING: ambil ID yang baru dibuat
+                    
+                    if (prospekError) throw prospekError;
+                    const prospekId = newProspek[0].id;
+                    
+                    // 2️⃣ INSERT ke riwayat_follow_up OTOMATIS dengan keterangan awal
+                    const { error: riwayatError } = await window.supabase
+                        .from('riwayat_follow_up')
+                        .insert([{
+                            id_nomor_hp: prospekId,           // ← FK ke mitra_baru
+                            follow_up_ke: 1,                  // Follow-up pertama
+                            keterangan: `Minat dari ${sumber}`, // ← Isi otomatis keterangan awal
+                            created_at: new Date().toISOString()
+                        }]);
+                    
+                    if (riwayatError) throw riwayatError;
+                    
+                    alert('✅ Prospek baru berhasil disimpan!\nRiwayat follow-up pertama sudah tercatat.');
+                    window.location.reload();
+                } catch(err) { 
+                    alert('❌ Gagal: ' + err.message); 
+                    btn.innerText = "Simpan Prospek"; 
+                    btn.disabled = false; 
+                }
+            });
+
+            // B. KONVERSI (PROSPEK -> LANGGANAN)
+            window.openModalKonversi = function(hp) {
+                document.getElementById('konversi_hp').value = hp;
+                window.openModal('conversionModal');
+            };
+
+            // FUNGSI TAMBAH FOLLOW UP PROSPEK
+            // FUNGSI BUKA / TUTUP ASIDE DETAIL PROSPEK
+            window.tutupDetailProspek = function() {
+                const aside = document.getElementById('aside-prospek');
+                const overlay = document.getElementById('overlay-aside');
+                aside.classList.add('translate-x-full');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            };
+
+            window.bukaDetailProspek = async function(hp) {
+                // 1. Tampilkan Aside
+                const aside = document.getElementById('aside-prospek');
+                const overlay = document.getElementById('overlay-aside');
+                document.getElementById('aside-hp-text').innerText = hp;
+                
+                overlay.classList.remove('hidden');
+                void overlay.offsetWidth; 
+                overlay.classList.remove('opacity-0');
+                aside.classList.remove('translate-x-full');
+
+                // 2. Format Link WhatsApp
+                let waNumber = hp.replace(/\D/g, ''); 
+                if (waNumber.startsWith('0')) waNumber = '62' + waNumber.substring(1);
+                
+                const textPesan = `Halo Kak, semoga harinya menyenangkan.\nKami dari BANG JELANTAH PURWAKARTA ingin melakukan follow up terkait penjualan minyak jelantah. Apakah Kakak masih berminat?\nKami tunggu informasinya, terima kasih. 😊🙏\n\n*Bang Jelantah Purwakarta*\nwww.bangjelantahpurwakarta.com`;
+                const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(textPesan)}`;
+                document.getElementById('btn-wa-prospek').href = waLink;
+
+                // 3. Fetch Riwayat Tanggal & Follow Up Ke-
+                const listContainer = document.getElementById('list-riwayat-followup');
+                listContainer.innerHTML = '<p class="text-sm text-on-surface-variant italic">Memuat riwayat...</p>';
+                
+                // ✅ BARU - Cari pake ID dulu
+                const { data: prospekCari } = await window.supabase
+                    .from('mitra_baru')
+                    .select('id')
+                    .eq('nomor_hp', hp)
+                    .single();
+
+                if (!prospekCari) {
+                    listContainer.innerHTML = '<p class="text-sm text-error">Prospek tidak ditemukan!</p>';
+                    return;
+                }
+
+                const idProspek = prospekCari.id;
+
+                const { data: riwayat } = await window.supabase
+                    .from('riwayat_follow_up')
+                    .select('created_at, follow_up_ke, keterangan')
+                    .eq('id_nomor_hp', idProspek)  // ✅ Query pake ID
+                    .order('created_at', { ascending: false });
+
+                // KALKULASI OTOMATIS: 
+                // Cari angka follow up tertinggi di riwayat, kalau kosong berarti akan jadi follow up ke-2
+                let nextFollowUpKe = 2;
+                if (riwayat && riwayat.length > 0) {
+                    let htmlList = '';
+                    riwayat.forEach((r) => {
+                        const tgl = new Date(r.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+                        const urutanKe = r.follow_up_ke || '-'; 
+                        
+                        htmlList += `
+                        <div class="flex items-start gap-3 p-3 bg-surface-container-lowest border border-outline-variant rounded-lg">
+                            <span class="w-8 h-8 flex items-center justify-center rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold shrink-0">#${urutanKe}</span>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold text-on-surface mb-0.5">Follow Up Ke-${urutanKe}</p>
+                                <p class="text-[11px] font-medium text-on-surface-variant mb-1">${tgl}</p>
+                                <p class="text-xs text-on-surface bg-surface-container rounded px-2 py-1">${r.keterangan || '(tidak ada catatan)'}</p>
+                            </div>
+                        </div>`;
+                    });
+                    listContainer.innerHTML = htmlList;
+                }
+
+                // 4. Atur event listener tombol "+1" menggunakan hasil kalkulasi terbaru
+                const btnTambah = document.getElementById('btn-tambah-followup-aside');
+                btnTambah.onclick = () => window.prosesTambahFollowUp(hp, nextFollowUpKe);
+
+                // 5. Tampilkan Riwayat dengan Detail
+                if (riwayat && riwayat.length > 0) {
+                    let htmlList = '';
+                    riwayat.forEach((r) => {
+                        const tgl = new Date(r.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+                        const urutanKe = r.follow_up_ke || '-'; 
+                        
+                        htmlList += `
+                        <div class="flex items-center gap-3 p-3 bg-surface-container-lowest border border-outline-variant rounded-lg">
+                            <span class="w-8 h-8 flex items-center justify-center rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold shrink-0">#${urutanKe}</span>
+                            <div>
+                                <p class="text-sm font-bold text-on-surface mb-0.5">Follow Up Ke-${urutanKe}</p>
+                                <p class="text-[11px] font-medium text-on-surface-variant">${tgl} WIB</p>
+                            </div>
+                        </div>`;
+                    });
+                    listContainer.innerHTML = htmlList;
+                } else {
+                    listContainer.innerHTML = '<p class="text-sm text-on-surface-variant italic p-3 bg-surface-container rounded-lg border border-dashed border-outline-variant">Belum ada riwayat tercatat. Input prospek awal dihitung sebagai Follow Up Ke-1.</p>';
+                }
+            };
+
+            // LOGIKA INSERT FOLLOW UP BARU (BESERTA URUTAN KE BERAPA)
+            window.prosesTambahFollowUp = async function(hp, targetFollowUpKe) {
+                const keterangan = document.getElementById('input-keterangan-followup').value.trim();
+
+                if (!keterangan) {
+                    alert('⚠️ Silakan isi keterangan follow-up terlebih dahulu!');
+                    return;
+                }
+            
+                if(!confirm(`Catat riwayat telah mem-follow up kontak ${hp} hari ini? (Catatan sebagai Follow Up ke-${targetFollowUpKe})`)) return;
+
+                const btnTambah = document.getElementById('btn-tambah-followup-aside');
+                btnTambah.innerText = "Menyimpan..."; 
+                btnTambah.disabled = true;
+            
+                try {
+                    // 1️⃣ CARI DULU ID PROSPEK BERDASARKAN NOMOR HP
+                    const { data: prospekData, error: findError } = await window.supabase
+                        .from('mitra_baru')
+                        .select('id')
+                        .eq('nomor_hp', hp)
+                        .single(); // Ambil 1 record saja
+
+                    if (findError) throw new Error('Prospek tidak ditemukan: ' + findError.message);
+                    const idProspek = prospekData.id; // ✅ DAPET ID INTEGER
+
+                    // 2️⃣ INSERT RIWAYAT DENGAN ID INTEGER (BUKAN STRING HP)
+                    const { error: insertError } = await window.supabase
+                        .from('riwayat_follow_up')
+                        .insert([{ 
+                            id_nomor_hp: idProspek,        // ✅ ID INTEGER
+                            follow_up_ke: targetFollowUpKe,
+                            keterangan: keterangan,         // ✅ KETERANGAN DARI TEXTAREA
+                            created_at: new Date().toISOString()
+                        }]);
+                    
+                    if (insertError) throw insertError;
+                    
+                    // 3️⃣ UPDATE COUNTER FOLLOW UP DI MITRA_BARU
+                    const { error: updateError } = await window.supabase
+                        .from('mitra_baru')
+                        .update({ follow_up_ke: targetFollowUpKe })
+                        .eq('id', idProspek);
+                    
+                    if (updateError) throw updateError;
+                    
+                    alert('✅ Follow-up ke-' + targetFollowUpKe + ' berhasil disimpan!');
+                    window.location.reload(); 
+                } catch(err) {
+                    alert("❌ Gagal menambah riwayat: " + err.message);
+                    btnTambah.innerHTML = `<span class="material-symbols-outlined text-[20px]">add_call</span> Simpan Follow Up (+1)`; 
+                    btnTambah.disabled = false;
+                }
+            };
+
+            // CARI DAN PASTIKAN BAGIAN INI DI SCRIPT LU SUDAH SEPERTI INI:
+            document.getElementById('formKonversiLangganan').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btn-submit-konversi');
+                btn.innerText = "Memproses..."; btn.disabled = true;
+                const hp = document.getElementById('konversi_hp').value;
+            
+                try {
+                    // 0️⃣ AMBIL DATA SUMBER_CUSTOMER DARI MITRA_BARU DULU
+                    const { data: prospekData, error: findError } = await window.supabase
+                        .from('mitra_baru')
+                        .select('sumber_customer')
+                        .eq('nomor_hp', hp)
+                        .single();
+
+                    if (findError) throw new Error('Prospek tidak ditemukan: ' + findError.message);
+                    const sumberCustomer = prospekData?.sumber_customer || 'Lainnya'; // Default ke 'Lainnya' jika kosong
+                
+                    // 1️⃣ SIMPAN KE TABEL MITRA (DENGAN SUMBER_MITRA DARI SUMBER_CUSTOMER)
+                    const { error: insertError } = await window.supabase.from('mitra').insert([{
+                        nama_mitra: document.getElementById('konversi_nama').value,
+                        rute_jemput: document.getElementById('konversi_rute').value,
+                        nomor_hp: hp,
+                        alamat: document.getElementById('konversi_alamat').value,
+                        link_gmaps: document.getElementById('konversi_gmaps').value,
+                        sumber_mitra: sumberCustomer,  
+                        jenis_pelanggan: document.getElementById('konversi_jenis').value, // 🔥 SUNTIKAN BARU
+                        total_order: 0,
+                        total_transaksi: 0,
+                        activated: true
+                    }]);
+
+                    if (insertError) throw insertError;
+                
+                    // 2️⃣ HAPUS DARI PROSPEK (SETELAH INSERT BERHASIL)
+                    const { error: deleteError } = await window.supabase.from('mitra_baru').delete().eq('nomor_hp', hp);
+
+                    if (deleteError) throw deleteError;
+
+                    alert('✅ Berhasil! Prospek dikonversi menjadi Mitra Langganan.\n(Sumber Customer: ' + sumberCustomer + ')');
+                    window.location.reload();
+                } catch(err) { 
+                    alert('❌ Gagal Konversi: ' + err.message); 
+                    btn.innerText = "Simpan & Pindahkan"; 
+                    btn.disabled = false; 
+                }
+            });
+
+            // C. NONAKTIFKAN MITRA (LANGGANAN -> TIDAK AKTIF)
+            window.nonaktifkanMitra = async function(id, nama) {
+                if(!confirm(`Yakin ingin menonaktifkan ${nama}? Data akan dipindah ke tab Tidak Aktif.`)) return;
+                try {
+                    const { error } = await window.supabase.from('mitra')
+                        .update({ activated: false })
+                        .eq('id', id);
+                        
+                    if(error) throw error;
+                    alert(`${nama} berhasil dinonaktifkan.`);
+                    window.location.reload();
+                } catch(err) { alert(err.message); }
+            };
+
+            // D. AKTIFKAN MITRA (TIDAK AKTIF -> LANGGANAN)
+            window.aktifkanMitra = async function(id, nama) {
+                if(!confirm(`Aktifkan kembali ${nama} menjadi Langganan?`)) return;
+                try {
+                    const { error } = await window.supabase.from('mitra')
+                        .update({ activated: true })
+                        .eq('id', id);
+
+                    if(error) throw error;
+                    alert(`${nama} kembali menjadi Mitra Langganan.`);
+                    window.location.reload();
+                } catch(err) { alert(err.message); }
+            };
+        });
+
+        // ==========================================
+            // FITUR PINDAH STATUS MITRA (AKTIF <-> NONAKTIF)
+            // ==========================================
+            window.nonaktifkanMitra = async function(id, nama) {
+                if(!confirm(`Yakin ingin menonaktifkan ${nama}? Data akan dipindah ke tab Tidak Aktif.`)) return;
+                try {
+                    const { error } = await window.supabase.from('mitra')
+                        .update({ activated: false })
+                        .eq('id', id);
+                    if(error) throw error;
+                    alert(`${nama} berhasil dinonaktifkan.`);
+                    window.location.reload();
+                } catch(err) { 
+                    alert('Gagal memproses: ' + err.message); 
+                }
+            };
+
+            window.aktifkanMitra = async function(id, nama) {
+                if(!confirm(`Aktifkan kembali ${nama} menjadi Langganan?`)) return;
+                try {
+                    const { error } = await window.supabase.from('mitra')
+                        .update({ activated: true })
+                        .eq('id', id);
+                    if(error) throw error;
+                    alert(`${nama} kembali menjadi Mitra Langganan.`);
+                    window.location.reload();
+                } catch(err) { 
+                    alert('Gagal memproses: ' + err.message); 
+                }
+            };
+
+        // FUNGSI BUKA MODAL EDIT MITRA & SIMPAN EDIT
+            window.bukaEditMitra = function(id) {
+                const mitra = window.allMitraLangganan.find(m => m.id == id);
+                if(!mitra) return;
+                document.getElementById('edit_mitra_id').value = mitra.id;
+                document.getElementById('edit_mitra_nama').value = mitra.nama_mitra;
+                document.getElementById('edit_mitra_hp').value = mitra.nomor_hp || '';
+                // Ubah dari mitra.id_rutejemput menjadi mitra.rute_jemput
+                document.getElementById('edit_mitra_rute').value = mitra.rute_jemput || '';
+                document.getElementById('edit_mitra_sumber').value = mitra.sumber_mitra || 'Lainnya';
+                document.getElementById('edit_mitra_jenis').value = mitra.jenis_pelanggan || 'Lainnya'; // 🔥 SUNTIKAN BARU
+                document.getElementById('edit_mitra_deposit').value = mitra.deposit || 0;
+                document.getElementById('edit_mitra_alamat').value = mitra.alamat || '';
+                document.getElementById('edit_mitra_gmaps').value = mitra.link_gmaps || '';
+                window.openModal('modal-edit-mitra');
+            };
+
+            document.getElementById('form-edit-mitra')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btn-submit-edit-mitra');
+                btn.innerText = 'Menyimpan...'; btn.disabled = true;
+                try {
+                    const id = document.getElementById('edit_mitra_id').value;
+                    const payload = {
+                        nama_mitra: document.getElementById('edit_mitra_nama').value,
+                        rute_jemput: document.getElementById('edit_mitra_rute').value,
+                        sumber_mitra: document.getElementById('edit_mitra_sumber').value,
+                        jenis_pelanggan: document.getElementById('edit_mitra_jenis').value, // 🔥 SUNTIKAN BARU
+                        deposit: parseFloat(document.getElementById('edit_mitra_deposit').value),
+                        alamat: document.getElementById('edit_mitra_alamat').value,
+                        link_gmaps: document.getElementById('edit_mitra_gmaps').value,
+                    };
+                    const { error } = await window.supabase.from('mitra').update(payload).eq('id', id);
+                    if(error) throw error;
+                    
+                    alert('Data Mitra berhasil diupdate!');
+                    window.location.reload();
+                } catch(err) {
+                    alert('Gagal update: ' + err.message);
+                    btn.innerText = 'Simpan Perubahan'; btn.disabled = false;
+                }
+            });
+            // ==========================================
+            // LOGIKA LIVE TOP 5 LEADERBOARD (KOTAK UTAMA)
+            // ==========================================
+            const tglSkrg = new Date();
+            const bulanSkrg = `${tglSkrg.getFullYear()}-${String(tglSkrg.getMonth() + 1).padStart(2, '0')}`;
+            const inputPeriode = document.getElementById('input-periode-leaderboard');
+            
+            if(inputPeriode) {
+                inputPeriode.value = bulanSkrg;
+                // Begitu input bulan diganti oleh user, sistem langsung menghitung ulang secara otomatis dan real-time
+                inputPeriode.addEventListener('change', () => window.generateLeaderboard());
+            }
+
+            // Wadah penyimpanan sementara hasil kalkulasi biar pindah tab/filter jadi kilat
+            window.leaderboardCache = { "Juara Umum": [], "Minyak Jelantah": [], "Ampas": [], "Kriuk": [], "Tepung": [], "Spinner": [] };
+            
+            window.generateLeaderboard = async function() {
+                const rawPeriode = document.getElementById('input-periode-leaderboard').value;
+                if (!rawPeriode || !window.supabase) return;
+                        
+                // 🔥 UBAH FORMAT DARI YYYY-MM (Bawaan Kalender) JADI MM YYYY (Kebutuhan Database)
+                const [y, m] = rawPeriode.split('-');
+                const periodeDB = `${m} ${y}`;
+
+                try {
+                    // 1. Tarik semua data dari tabel leaderboard berdasarkan periodeDB
+                    const { data: rekapData, error } = await window.supabase
+                        .from('leaderboard_mingguan')
+                        .select('*')
+                        .eq('periode', periodeDB); // Pakai variabel periodeDB yang udah dikonversi
+                        
+                    if(error) throw error;
+                
+                    // 2. Reset Cache Wadah Leaderboard
+                    window.leaderboardCache = { "Juara Umum": [], "Minyak Jelantah": [], "Ampas": [], "Kriuk": [], "Tepung": [], "Spinner": [] };
+                
+                    // 3. Agregasi (Kalkulasi) Kumulatif per Mitra selama 1 Bulan
+                    const aggregatedData = {};
+                
+                    rekapData.forEach(row => {
+                        // Kalau mitra belum ada di object, bikin kerangkanya
+                        if (!aggregatedData[row.mitra_id]) {
+                            aggregatedData[row.mitra_id] = {
+                                id: row.mitra_id,
+                                nama: row.nama_mitra || 'Mitra Lapangan',
+                                minyak: 0, ampas: 0, kriuk: 0, tepung: 0, spinner: 0
+                            };
+                        }
+                        // Tambahkan nilai dari tiap minggu (W1, W2, dst) ke total bulanan
+                        aggregatedData[row.mitra_id].minyak += Number(row.minyak_jelantah_kg || 0);
+                        aggregatedData[row.mitra_id].ampas += Number(row.ampas_kg || 0);
+                        aggregatedData[row.mitra_id].kriuk += Number(row.kriuk_kg || 0);
+                        aggregatedData[row.mitra_id].tepung += Number(row.tepung_kg || 0);
+                        aggregatedData[row.mitra_id].spinner += Number(row.spinner_kg || 0);
+                    });
+                
+                    // 4. Masukkan hasil agregasi ke dalam Cache Leaderboard
+                    Object.values(aggregatedData).forEach(r => {
+                        // Hitung grand total (Juara Umum) secara on-the-fly
+                        const totalUmum = r.minyak + r.ampas + r.kriuk + r.tepung + r.spinner;
+                    
+                        if (totalUmum > 0) window.leaderboardCache["Juara Umum"].push({ nama: r.nama, kg: totalUmum, id: r.id });
+                        if (r.minyak > 0) window.leaderboardCache["Minyak Jelantah"].push({ nama: r.nama, kg: r.minyak, id: r.id });
+                        if (r.ampas > 0) window.leaderboardCache["Ampas"].push({ nama: r.nama, kg: r.ampas, id: r.id });
+                        if (r.kriuk > 0) window.leaderboardCache["Kriuk"].push({ nama: r.nama, kg: r.kriuk, id: r.id });
+                        if (r.tepung > 0) window.leaderboardCache["Tepung"].push({ nama: r.nama, kg: r.tepung, id: r.id });
+                        if (r.spinner > 0) window.leaderboardCache["Spinner"].push({ nama: r.nama, kg: r.spinner, id: r.id });
+                    });
+                
+                    // 5. Tampilkan data sesuai tab kategori yang sedang aktif
+                    window.renderLeaderboardSesuaiFilter();
+                
+                } catch (e) { 
+                    console.error("Gagal Generate Leaderboard:", e); 
+                }
+            };
+
+            // Variabel Pencatat Tab Aktif Saat Ini
+            window.activeLeaderboardKat = 'Juara Umum';
+            
+            // Fungsi Mengubah Tampilan Tab & Trigger Data
+            window.changeLeaderboardTab = function(btn, kategori) {
+                window.activeLeaderboardKat = kategori;
+                // Reset semua warna tab kembali ke pasif
+                document.querySelectorAll('.leaderboard-tab-btn').forEach(b => {
+                    b.classList.remove('bg-white', 'shadow-sm', 'text-primary', 'font-bold');
+                    b.classList.add('text-on-surface-variant', 'font-medium');
+                });
+                // Beri highlight putih menyala di tab yang diklik
+                btn.classList.add('bg-white', 'shadow-sm', 'text-primary', 'font-bold');
+                btn.classList.remove('text-on-surface-variant', 'font-medium');
+                
+                // Render ulang kartunya sesuai kategori baru
+                window.renderLeaderboardSesuaiFilter();
+            };
+
+            // Fungsi Merender Kartu Grid ke Layar
+            window.renderLeaderboardSesuaiFilter = function() {
+                const kategori = window.activeLeaderboardKat;
+                const container = document.getElementById('leaderboard-live-list');
+                if (!container) return;
+
+                // Sortir kargo terbesar, ambil Top 5
+                const data = (window.leaderboardCache[kategori] || []).sort((a, b) => b.kg - a.kg);
+                
+                if (data.length === 0) {
+                    container.innerHTML = `<p class="text-xs text-on-surface-variant italic text-center py-10 col-span-full border-2 border-dashed border-outline-variant rounded-xl">Belum ada penyetor di kategori ${kategori} pada bulan ini.</p>`;
+                    return;
+                }
+
+                container.innerHTML = data.map((m, i) => {
+                    let bgMedali = 'bg-surface-variant text-on-surface-variant border-outline-variant';
+                    let iconMedali = '';
+                    if(i === 0) { bgMedali = 'bg-yellow-500 text-white font-bold border-yellow-600'; iconMedali = '🥇 '; }
+                    else if(i === 1) { bgMedali = 'bg-slate-400 text-white font-bold border-slate-500'; iconMedali = '🥈 '; }
+                    else if(i === 2) { bgMedali = 'bg-amber-700 text-white font-bold border-amber-800'; iconMedali = '🥉 '; }
+
+                    return `
+                    <div class="flex items-center justify-between bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant shadow-xs hover:border-primary/50 transition-all duration-200 animate-in fade-in slide-in-from-bottom-2">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs ${bgMedali} shrink-0 shadow-xs">#${i + 1}</span>
+                            <div class="truncate">
+                                <p class="text-sm font-bold text-on-surface truncate leading-tight">${iconMedali}${m.nama}</p>
+                                <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mt-0.5">${kategori}</p>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0 ml-2">
+                            <span class="font-mono text-xs font-bold text-green-700 bg-green-50 border border-green-100 px-3 py-1.5 rounded-xl shadow-sm block">${m.kg.toFixed(1)} Kg</span>
+                        </div>
+                    </div>`;
+                }).join('');
+                
+                // Filter ulang kartu-kartu juara jika kotak pencarian sedang terisi
+                if (typeof window.applySearchMitra === 'function') {
+                    setTimeout(window.applySearchMitra, 50);
+                }
+            };
+
+            // Pemicu Render Otomatis Saat Pertama Kali Halaman Terbuka
+            if(inputPeriode) window.generateLeaderboard();
+            // ==========================================
+            // FITUR FILTER PROSPEK (TANGGAL & FOLLOW UP)
+            // ==========================================
+            // Logika Buka/Tutup Dropdown
+            window.toggleDropdownFilter = function() {
+                const dropdown = document.getElementById('dropdown-filter-prospek');
+                dropdown.classList.toggle('hidden');
+            };
+
+            // Menutup dropdown jika user klik area kosong di luar kotak
+            document.addEventListener('click', function(event) {
+                const dropdown = document.getElementById('dropdown-filter-prospek');
+                const button = event.target.closest('button[onclick="window.toggleDropdownFilter()"]');
+                if (!button && dropdown && !dropdown.contains(event.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+
+            window.applyFilterProspek = function() {
+                const filterTgl = document.getElementById('filter-tgl-prospek').value;
+                const filterFu = document.getElementById('filter-fu-prospek').value;
+                const items = document.querySelectorAll('.prospek-item');
+
+                items.forEach(item => {
+                    const itemTgl = item.getAttribute('data-tgl');
+                    const itemFu = parseInt(item.getAttribute('data-fu')) || 1;
+
+                    let matchTgl = true;
+                    let matchFu = true;
+
+                    if (filterTgl && itemTgl !== filterTgl) matchTgl = false;
+                    
+                    if (filterFu) {
+                        if (filterFu === '5') {
+                            if (itemFu < 5) matchFu = false;
+                        } else {
+                            if (itemFu !== parseInt(filterFu)) matchFu = false;
+                        }
+                    }
+
+                    if (matchTgl && matchFu) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+
+                // Otomatis tutup dropdown setelah filter diterapkan
+                document.getElementById('dropdown-filter-prospek').classList.add('hidden');
+            };
+
+            window.resetFilterProspek = function() {
+                document.getElementById('filter-tgl-prospek').value = '';
+                document.getElementById('filter-fu-prospek').value = '';
+                window.applyFilterProspek(); 
+                
+                // Otomatis tutup dropdown setelah direset
+                document.getElementById('dropdown-filter-prospek').classList.add('hidden');
+            };
+            // =========================================================
+            // FITUR PENCARIAN & FILTER PROSPEK SINKRON (ANTI-BENTROK)
+            // =========================================================
+            
+            // 1. Logika Buka/Tutup Dropdown
+            window.toggleDropdownFilter = function(e) {
+                if(e) e.preventDefault();
+                document.getElementById('dropdown-filter-prospek')?.classList.toggle('hidden');
+            };
+
+            // Menutup dropdown otomatis jika user klik area kosong di luar kotak
+            document.addEventListener('click', function(event) {
+                const dropdown = document.getElementById('dropdown-filter-prospek');
+                // Cek apakah yang diklik BUKAN tombol filter dan BUKAN isi dalam dropdown
+                const isClickInsideBtn = event.target.closest('button[onclick*="toggleDropdownFilter"]');
+                if (!isClickInsideBtn && dropdown && !dropdown.contains(event.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+
+            // 2. Mesin Utama: Menyatukan Filter Dropdown + Kolom Search Teks
+            window.applyFilterProspek = function(e) {
+                if(e) e.preventDefault();
+                
+                const filterTgl = document.getElementById('filter-tgl-prospek')?.value || '';
+                const filterFu = document.getElementById('filter-fu-prospek')?.value || '';
+                const keyword = (document.getElementById('input-search-mitra')?.value || '').toLowerCase().trim();
+                
+                const items = document.querySelectorAll('.prospek-item');
+
+                items.forEach(item => {
+                    const itemTgl = item.getAttribute('data-tgl') || '';
+                    const itemFu = parseInt(item.getAttribute('data-fu')) || 1;
+                    const text = item.textContent.toLowerCase();
+
+                    let match = true;
+
+                    // Syarat A: Kecocokan Tanggal
+                    if (filterTgl && itemTgl !== filterTgl) match = false;
+                    
+                    // Syarat B: Kecocokan Angka Follow Up
+                    if (filterFu) {
+                        if (filterFu === '5' && itemFu < 5) match = false;
+                        else if (filterFu !== '5' && itemFu !== parseInt(filterFu)) match = false;
+                    }
+
+                    // Syarat C: Kecocokan Kata Kunci di Kolom Search
+                    if (keyword && !text.includes(keyword)) match = false;
+
+                    // Eksekusi: Tampilkan jika lulus semua syarat!
+                    item.style.display = match ? '' : 'none';
+                });
+
+                // Tutup kotak dropdown setelah sukses filter
+                document.getElementById('dropdown-filter-prospek')?.classList.add('hidden');
+            };
+
+            // 3. Tombol Reset Filter Dropdown
+            window.resetFilterProspek = function(e) {
+                if(e) e.preventDefault();
+                if(document.getElementById('filter-tgl-prospek')) document.getElementById('filter-tgl-prospek').value = '';
+                if(document.getElementById('filter-fu-prospek')) document.getElementById('filter-fu-prospek').value = '';
+                
+                // Panggil ulang mesin utama
+                window.applyFilterProspek(); 
+            };
+
+            // 4. Overwrite Search Global Bawaan (Agar sinkron dengan tab lain)
+            window.applySearchMitra = function() {
+                // Jika sedang buka Tab Mitra Baru, serahkan tugas ke mesin gabungan!
+                const isTabProspekAktif = document.getElementById('tab-mitra-baru')?.classList.contains('block');
+                
+                if (isTabProspekAktif) {
+                    window.applyFilterProspek();
+                } else {
+                    // Jika di Tab lain, jalankan pencarian teks normal
+                    const keyword = (document.getElementById('input-search-mitra')?.value || '').toLowerCase().trim();
+                    const items = document.querySelectorAll(`
+                        #mitra-langganan-tbody tr, #mitra-langganan-mobile > div,
+                        #mitra-tidak-aktif-tbody tr, #mitra-tidak-aktif-mobile > div,
+                        #leaderboard-live-list > div
+                    `);
+                    
+                    items.forEach(item => {
+                        if (item.querySelector('td[colspan]') || item.classList.contains('col-span-full')) return; 
+                        item.style.display = keyword === '' || item.textContent.toLowerCase().includes(keyword) ? '' : 'none';
+                    });
+                }
+            };
+            // ==========================================
+// FITUR TAB REKENING MITRA
+// ==========================================
+window.allRekening = [];
+
+// 1. Fungsi Render Rekening (Utama)
+async function loadDataRekening() {
+    const { data: rekData, error } = await window.supabase
+        .from('rek_mitra')
+        .select(`id, mitra_id, atas_nama, nama_bank, no_rek, mitra!mitra_id(id, nama_mitra)`);
+    
+    if (error) {
+        alert("Error Supabase: " + error.message);
+        return console.error("Detail Error:", error.message, error.hint, error.details);
+    }
+    window.allRekening = rekData || [];
+
+    let htmlMob = '', htmlTab = '';
+    
+    if (window.allRekening.length > 0) {
+        window.allRekening.forEach((r,index) => {
+            const namaMitra = r.mitra?.nama_mitra || 'Mitra Tidak Ditemukan';
+            
+            // Render Mobile
+            htmlMob += `
+            <div class="rekening-item bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm" data-bank="${(r.nama_bank || '').toLowerCase()}">
+                <div class="border-b border-outline-variant pb-sm flex justify-between">
+                    <p class="font-headline-md text-on-surface font-semibold">${namaMitra}</p>
+                    <span class="px-2 py-1 bg-primary-container text-on-primary-container rounded text-xs font-bold">${r.nama_bank}</span>
+                </div>
+                <div class="grid grid-cols-2 gap-sm pt-xs">
+                    <div><p class="text-xs text-on-surface-variant">No. Rek</p><p class="font-body-md font-mono font-bold">${r.no_rek}</p></div>
+                    <div><p class="text-xs text-on-surface-variant">Atas Nama</p><p class="font-body-md text-on-surface truncate">${r.atas_nama}</p></div>
+                </div>
+                <div class="flex gap-2 mt-2">
+                    <button onclick="window.bukaEditRekening('${r.id}')" class="flex-1 bg-surface-container text-primary rounded-full py-2 text-sm font-bold">Edit</button>
+                    <button onclick="window.hapusRekening('${r.id}', '${namaMitra}')" class="flex-1 bg-error-container text-error rounded-full py-2 text-sm font-bold">Hapus</button>
+                </div>
+            </div>`;
+            
+            // Render Desktop
+            htmlTab += `
+            <tr class="rekening-item hover:bg-surface-container-low transition-colors group" data-bank="${r.nama_bank.toLowerCase()}">
+                <td class="p-md text-center text-sm font-bold text-on-surface-variant">${index + 1}</td>
+                <td class="p-md font-body-md font-semibold">${namaMitra}</td>
+                <td class="p-md font-body-md">${r.atas_nama}</td>
+                <td class="p-md"><span class="px-2 py-1 bg-primary-container text-on-primary-container rounded font-bold text-xs">${r.nama_bank}</span></td>
+                <td class="p-md font-mono font-bold">${r.no_rek}</td>
+                <td class="p-md text-right flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onclick="window.bukaEditRekening('${r.id}')" class="w-10 h-10 bg-surface-container text-primary rounded-full hover:bg-primary-container"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+                    <button onclick="window.hapusRekening('${r.id}', '${namaMitra}')" class="w-10 h-10 bg-surface-container text-error rounded-full hover:bg-error-container"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                </td>
+            </tr>`;
+        });
+    } else {
+        const empty = '<p class="text-center p-md text-on-surface-variant">Belum ada data rekening.</p>';
+        htmlMob = empty; htmlTab = `<tr><td colspan="5">${empty}</td></tr>`;
+    }
+
+    document.getElementById('rekening-mitra-mobile').innerHTML = htmlMob;
+    document.getElementById('rekening-mitra-tbody').innerHTML = htmlTab;
+
+    // Trigger render filter bank setelah data beres dimuat
+    window.renderFilterBank(); 
+}
+
+// 2. Logika Dinamis Filter Bank
+window.renderFilterBank = function() {
+    const filterSelect = document.getElementById('filter-bank');
+    if (!filterSelect || window.allRekening.length === 0) return;
+
+    const uniqueBanks = [...new Set(window.allRekening.map(r => r.nama_bank))].filter(Boolean);
+    let htmlOptions = '<option value="">Semua Bank</option>';
+    uniqueBanks.forEach(bank => {
+        htmlOptions += `<option value="${bank}">${bank}</option>`;
+    });
+    
+    const previousSelection = filterSelect.value;
+    filterSelect.innerHTML = htmlOptions;
+    if (uniqueBanks.includes(previousSelection)) {
+        filterSelect.value = previousSelection;
+    }
+};
+
+// ==========================================
+// LOGIC SEARCHABLE DROPDOWN MITRA
+// ==========================================
+const inputSearchMitra = document.getElementById('input_search_mitra_rekening');
+const dropdownMitra = document.getElementById('dropdown_mitra_rekening');
+const inputMitraId = document.getElementById('input_mitra_id_rekening');
+
+window.renderDropdownMitra = function(keyword = '') {
+    if (!dropdownMitra || !window.allMitraLangganan) return;
+    
+    const filtered = window.allMitraLangganan.filter(m => 
+        (m.nama_mitra || '').toLowerCase().includes(keyword.toLowerCase())
+    );
+    
+    if (filtered.length === 0) {
+        dropdownMitra.innerHTML = '<div class="p-3 text-sm text-on-surface-variant text-center">Mitra tidak ditemukan</div>';
+        return;
+    }
+
+    dropdownMitra.innerHTML = filtered.map(m => `
+        <div class="p-3 text-sm text-on-surface hover:bg-surface-container cursor-pointer transition-colors border-b border-outline-variant last:border-b-0" 
+             onclick="window.pilihMitraRekening('${m.id}', '${m.nama_mitra.replace(/'/g, "\\'")}')">
+            ${m.nama_mitra}
+        </div>
+    `).join('');
+};
+
+window.pilihMitraRekening = function(id, nama) {
+    if(inputMitraId) inputMitraId.value = id;
+    if(inputSearchMitra) inputSearchMitra.value = nama;
+    dropdownMitra?.classList.add('hidden');
+};
+
+if (inputSearchMitra) {
+    inputSearchMitra.addEventListener('focus', () => {
+        window.renderDropdownMitra(inputSearchMitra.value);
+        dropdownMitra.classList.remove('hidden');
+    });
+
+    inputSearchMitra.addEventListener('input', (e) => {
+        window.renderDropdownMitra(e.target.value);
+        dropdownMitra.classList.remove('hidden');
+        inputMitraId.value = ''; 
+    });
+}
+
+document.addEventListener('click', (e) => {
+    if (inputSearchMitra && dropdownMitra) {
+        if (!inputSearchMitra.contains(e.target) && !dropdownMitra.contains(e.target)) {
+            dropdownMitra.classList.add('hidden');
+        }
+    }
+});
+
+// Update reset form di fungsi openModal lama lu biar input pencarian ikut bersih
+window.bukaModalTambahRekening = function() {
+    // 1. Reset Form & State
+    document.getElementById('form-tambah-rekening').reset();
+    const inputMitraId = document.getElementById('input_mitra_id_rekening');
+    const dropdownMitra = document.getElementById('dropdown_mitra_rekening');
+    
+    if (inputMitraId) inputMitraId.value = '';
+    if (dropdownMitra) dropdownMitra.classList.add('hidden');
+    
+    // 2. Panggil fungsi modal bawaan
+    window.openModal('modal-tambah-rekening');
+};
+
+// ==========================================
+// CRUD REKENING
+// ==========================================
+// Insert Form
+document.getElementById('form-tambah-rekening')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-submit-rekening');
+    const mitraId = document.getElementById('input_mitra_id_rekening').value;
+    
+    if(!mitraId) return alert('Mitra tidak valid! Pastikan pilih dari daftar Dropdown.');
+
+    btn.innerText = "Menyimpan..."; btn.disabled = true;
+    try {
+        const payload = {
+            mitra_id: mitraId,
+            nama_bank: document.getElementById('input_bank_rekening').value,
+            no_rek: document.getElementById('input_norek_rekening').value,
+            atas_nama: document.getElementById('input_an_rekening').value
+        };
+        
+        console.log("🔍 [DETEKTIF] Payload yang mau dikirim:", payload);
+
+        // Tambahkan .select() di akhir agar Supabase WAJIB mengembalikan respon
+        const { data, error } = await window.supabase
+            .from('rek_mitra')
+            .insert([payload])
+            .select();
+
+        // 1. Tangkap error bawaan Supabase
+        if (error) {
+            console.error("🚨 [DETEKTIF] Error dari Supabase:", error);
+            throw error;
+        }
+
+        // 2. Tangkap silent fail (Biasanya karena RLS memblokir insert)
+        if (!data || data.length === 0) {
+            console.error("🚨 [DETEKTIF] Data ditolak secara diam-diam oleh RLS!");
+            throw new Error("Data ditolak oleh database (Silent Fail). Cek kebijakan RLS (Row Level Security) di tabel rek_mitra!");
+        }
+
+        console.log("✅ [DETEKTIF] Sukses! Data berhasil masuk:", data);
+        alert('Rekening berhasil ditambah!');
+        window.location.reload();
+    } catch (err) {
+        console.error("🛑 [DETEKTIF] ERROR TERTANGKAP:", err);
+        // Tampilkan pesan error sejelas-jelasnya di popup
+        alert('Gagal: ' + (err.message || JSON.stringify(err)));
+        
+        btn.innerText = "Simpan";
+        btn.disabled = false;
+    }
+});
+
+// Buka Edit
+window.bukaEditRekening = function(id) {
+    const rek = window.allRekening.find(r => r.id == id);
+    if(!rek) return;
+    
+    document.getElementById('edit_rekening_id').value = rek.id;
+    document.getElementById('edit_mitra_nama_rekening').value = rek.mitra?.nama_mitra || '';
+    document.getElementById('edit_bank_rekening').value = rek.nama_bank;
+    document.getElementById('edit_norek_rekening').value = rek.no_rek;
+    document.getElementById('edit_an_rekening').value = rek.atas_nama;
+    
+    window.openModal('modal-edit-rekening');
+};
+
+// Update Form
+document.getElementById('form-edit-rekening')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-submit-edit-rekening');
+    btn.innerText = 'Updating...'; btn.disabled = true;
+    
+    try {
+        const id = document.getElementById('edit_rekening_id').value;
+        const payload = {
+            nama_bank: document.getElementById('edit_bank_rekening').value,
+            no_rek: document.getElementById('edit_norek_rekening').value,
+            atas_nama: document.getElementById('edit_an_rekening').value
+        };
+        const { error } = await window.supabase.from('rek_mitra').update(payload).eq('id', id);
+        if (error) throw error;
+        
+        alert('Berhasil diupdate!');
+        window.location.reload();
+    } catch(err) {
+        alert('Gagal: ' + err.message);
+        btn.innerText = 'Update'; btn.disabled = false;
+    }
+});
+
+// Delete Logic
+window.hapusRekening = async function(id, nama) {
+    if(!confirm(`Hapus rekening untuk mitra ${nama}?`)) return;
+    try {
+        const { error } = await window.supabase.from('rek_mitra').delete().eq('id', id);
+        if(error) throw error;
+        alert('Terhapus!');
+        window.location.reload();
+    } catch(err) { alert(err.message); }
+};
+
+// Sinkronin Search Global dengan Dropdown Filter Bank
+const oldApplySearchMitra = window.applySearchMitra;
+window.applySearchMitra = function() {
+    oldApplySearchMitra(); // Jalankan search lama
+    
+    const isTabRekening = document.getElementById('tab-rekening-mitra')?.classList.contains('block');
+    if (isTabRekening) {
+        const keyword = (document.getElementById('input-search-mitra')?.value || '').toLowerCase().trim();
+        const filterBank = document.getElementById('filter-bank')?.value.toLowerCase() || '';
+        const items = document.querySelectorAll('.rekening-item');
+
+        items.forEach(item => {
+            const itemBank = item.getAttribute('data-bank') || '';
+            const text = item.textContent.toLowerCase();
+            
+            let match = true;
+            if (filterBank && itemBank !== filterBank) match = false;
+            if (keyword && !text.includes(keyword)) match = false;
+            
+            item.style.display = match ? '' : 'none';
+        });
+    }
+};
+
+// Trigger fetch rekening
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(loadDataRekening, 1000); 
+});
+    </script>
+</Layout>

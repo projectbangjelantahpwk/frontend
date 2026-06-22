@@ -1,0 +1,1046 @@
+---
+import GeneralLayout from '../layouts/Layout.astro';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+---
+
+<GeneralLayout title="Pengeluaran Ops - Manajemen Bang Jelantah">
+    <style is:global>
+        /* Mengunci layar menjadi blank (putih) sampai skrip memberi izin masuk */
+        body { display: none; }
+    </style>
+
+  <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Pengeluaran Operasional</h1>
+      <p class="text-gray-600">Kelola dan catat dana talang operasional karyawan serta driver lapangan.</p>
+    </div>
+  </div>
+
+  <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex flex-wrap gap-4 items-center relative z-20">
+    <div>
+        <label class="block text-xs font-bold text-gray-600 mb-1">Mulai Tanggal</label>
+        <input type="date" id="filter-start-pengeluaran" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600">
+    </div>
+    <div>
+        <label class="block text-xs font-bold text-gray-600 mb-1">Sampai Tanggal</label>
+        <input type="date" id="filter-end-pengeluaran" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600">
+    </div>
+    <div class="flex gap-2 items-center">
+        <button onclick="filterTabelPengeluaran()" class="bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-800">Filter Data</button>
+        
+        <div class="group relative cursor-help">
+            <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-200 hover:bg-blue-100 transition shadow-sm">
+                <i class="bi bi-info-circle-fill text-lg"></i>
+            </div>
+            <div class="absolute left-0 md:left-auto md:right-0 top-full mt-2 w-64 bg-white border border-gray-200 shadow-xl rounded-xl p-4 hidden group-hover:block transition-all z-50">
+                <h4 class="text-xs font-bold text-gray-800 mb-3 border-b border-gray-100 pb-2"><i class="bi bi-palette mr-1 text-blue-500"></i> Panduan Warna Item</h4>
+                <ul class="text-[11px] space-y-2.5 font-medium text-gray-600">
+                    <li class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-gray-800 shadow-sm"></span> <b>Hitam / Gelap:</b> Item sudah di-ACC (Selesai).</li>
+                    <li class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-600 shadow-sm"></span> <b class="text-red-600">Merah:</b> Nombok / Kasbon (Belum ACC).</li>
+                    <li class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500 shadow-sm"></span> <b class="text-blue-600">Biru:</b> Dana Uang Jalan otomatis.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex justify-end w-full md:w-auto md:ml-auto">
+        <button onclick="window.bukaModalTambahPengeluaran()" class="bg-green-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-green-800 transition shadow-sm flex items-center gap-2 w-full md:w-auto justify-center">
+            <i class="bi bi-plus-circle-fill"></i> Input Pengeluaran
+        </button>
+    </div>
+</div>
+
+  <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+      <div class="overflow-x-auto max-h-[600px]">
+          <table class="w-full text-left" id="tabel-pengeluaran">
+              <thead class="bg-gray-50 sticky top-0">
+                  <tr>
+                      <th class="px-6 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">Jam</th>
+                      <th class="px-6 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">Pengaju</th>
+                      <th class="px-6 py-4 text-sm font-bold text-gray-900">Rincian</th>
+                      <th class="px-6 py-4 text-sm font-bold text-gray-900 text-center">Aksi</th>
+                  </tr>
+              </thead>
+              <tbody id="pengeluaran-tbody" class="divide-y divide-gray-200">
+                  <tr><td colspan="4" class="text-center py-4 text-gray-500">Memuat...</td></tr>
+              </tbody>
+          </table>
+      </div>
+  </div>
+</GeneralLayout>
+
+<div id="modal-edit-pengeluaran" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
+    <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-green-50 shrink-0">
+            <div>
+                <h3 class="font-bold text-lg text-gray-900">Edit Pengeluaran Ops</h3>
+                <p class="text-xs text-green-700 font-medium">Koreksi kesalahan input kategori & nominal karyawan</p>
+            </div>
+            <button type="button" onclick="closeModal('modal-edit-pengeluaran')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
+        </div>
+        
+        <form id="form-edit-pengeluaran" onsubmit="window.simpanEditPengeluaran(event)" class="p-5 overflow-y-auto flex-1 space-y-4">
+            <input type="hidden" id="edit_peng_id">
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Tanggal Operasional</label>
+                <input type="date" id="edit_peng_tgl" class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-none focus:border-green-600 font-medium" required>
+            </div>
+            
+            <div class="border-t pt-3">
+                <label class="block text-xs font-bold text-gray-900 uppercase mb-2">Daftar Item Rincian</label>
+                <div id="edit_peng_items_container" class="space-y-3"></div>
+            </div>
+
+            <div class="bg-gray-100 p-3 rounded-xl border border-gray-200 font-bold text-xs flex justify-between items-center mt-2">
+                <span>TOTAL KAS HARIAN:</span>
+                <span id="edit_peng_total_text" class="text-green-700 text-base font-mono">Rp 0</span>
+            </div>
+
+            <button type="submit" id="btn-save-peng" class="w-full bg-green-700 text-white font-bold py-3 rounded-xl hover:bg-green-800 transition shadow-sm font-mono">
+                SIMPAN PERUBAHAN DATA
+            </button>
+        </form>
+    </div>
+</div>
+
+<div id="modal-tambah-pengeluaran" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
+    <div class="bg-white rounded-2xl w-full max-w-xl overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-green-700 shrink-0 text-white">
+            <div>
+                <h3 class="font-bold text-lg">Input Pengeluaran Mandiri (Admin)</h3>
+                <p class="text-xs text-green-100 font-medium">Catat pengeluaran operasional langsung ke akun karyawan</p>
+            </div>
+            <button type="button" onclick="closeModal('modal-tambah-pengeluaran')" class="text-white/70 hover:text-white"><i class="bi bi-x-lg"></i></button>
+        </div>
+        
+        <form id="form-tambah-pengeluaran" onsubmit="window.eksekusiTambahPengeluaran(event)" class="p-5 overflow-y-auto flex-1 space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Pilih Karyawan / Driver</label>
+                    <select id="add_peng_user_id" class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-none focus:border-green-600 bg-white font-medium" required></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Tanggal Nota</label>
+                    <input type="date" id="add_peng_tgl" class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-none focus:border-green-600 font-medium" required>
+                </div>
+            </div>
+            
+            <div class="border-t pt-3">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-xs font-bold text-gray-900 uppercase">Item Rincian Barang</label>
+                    <button type="button" onclick="window.tambahBarisItemBaru()" class="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg border border-blue-200 font-bold hover:bg-blue-100"><i class="bi bi-plus"></i> Tambah Item</button>
+                </div>
+                <div id="add_peng_items_container" class="space-y-3"></div>
+            </div>
+
+            <div class="bg-gray-100 p-3 rounded-xl border border-gray-200 font-bold text-xs flex justify-between items-center mt-2">
+                <span>TOTAL AKUMULASI PENGELUARAN:</span>
+                <span id="add_peng_total_text" class="text-green-700 text-base font-mono">Rp 0</span>
+            </div>
+
+            <div class="mt-3 mb-1">
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Sumber Dana (Diambil Dari Kas Mana?)</label>
+                <select id="add_sumber_dana" class="w-full border border-gray-300 rounded-xl p-2.5 text-sm outline-none focus:border-green-600 bg-white font-medium shadow-sm" required>
+                    <option value="Uang Keuangan">Uang Keuangan</option>
+                    <option value="Uang Gudang">Uang Gudang</option>
+                </select>
+            </div>
+
+            <button type="submit" id="btn-submit-tambah-peng" class="w-full bg-green-700 text-white font-bold py-3 rounded-xl hover:bg-green-800 transition shadow-sm font-mono">
+                SIMPAN SEMUA DATA KE SERVER
+            </button>
+        </form>
+    </div>
+</div>
+
+<script is:inline>
+  const masterKategoriOps = ['Bensin', 'Parkir', 'Uang Jalan', 'Deposit Mitra', 'E-Toll', 'Admin', 'Bongkar', 'Satpam', 'Service', 'Listrik', 'Karung', 'Plastik', 'Jasa Spinner', 'Lain-lain'];
+  
+  document.addEventListener('DOMContentLoaded', async () => {
+      // === 🛡️ GATEKEEPER KEUANGAN ===
+      const allowedRoles = ['owner', 'hrd', 'keuangan', 'admin','it'];
+      const client = window.supabase || supabase;
+      
+      const { data: { session } } = await client.auth.getSession();
+      if (!session) return window.location.replace('/'); 
+      
+      const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+
+      // 🔥 TAMBAHAN: Tarik data mitra untuk dropdown Deposit
+      const { data: dataMitraDeposit } = await client.from('mitra').select('id, nama_mitra').eq('activated', true);
+      window.allMitraPengeluaran = dataMitraDeposit || [];
+      
+      if (!allowedRoles.includes(prof?.role)) {
+          alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk ke Keuangan.`);
+          return window.location.replace('/');
+      }
+      document.body.style.display = 'block'; 
+
+    // ==========================================
+    // 1. FETCH DATA PENGELUARAN
+    // ==========================================
+    async function loadDataPengeluaran() {
+        if(!window.supabase) return;
+        try {
+            const { data: pengeluaran } = await window.supabase.from('pengeluaran')
+                .select('*, profiles(nama), rincian_pengeluaran(*)')
+                .order('tanggal', { ascending: false })
+                .order('updated_at', { ascending: false });
+
+            const tbodyPengeluaran = document.getElementById('pengeluaran-tbody');
+            let htmlPeng = '';
+            let currentDate = ''; 
+
+            pengeluaran?.forEach(p => {
+                // 1. HEADER TANGGAL SEBAGAI PEMBATAS
+                if (p.tanggal !== currentDate) {
+                    currentDate = p.tanggal;
+                    const dateObj = new Date(currentDate);
+                    const tglFormat = dateObj.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Jakarta' });
+                    
+                    htmlPeng += `
+                    <tr class="bg-gray-100/80 border-y border-gray-200 shadow-[inset_0_1px_0_rgba(255,255,255,1)]">
+                        <td colspan="4" class="px-6 py-3 text-xs font-black text-gray-800 uppercase tracking-widest">
+                            <i class="bi bi-calendar-day-fill mr-1 text-green-700 text-sm"></i> ${tglFormat}
+                        </td>
+                    </tr>`;
+                }
+
+                // 2. JAM UPDATE
+                const timestamp = p.updated_at || p.created_at || null;
+                const jamStr = timestamp ? new Date(timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) : '-';
+
+                // 3. LOOPING PER ITEM DENGAN LOGIKA WARNA BARU
+                p.rincian_pengeluaran?.forEach(r => {
+                    const ketHtml = r.keterangan ? `<div class="text-[10px] text-gray-400 mt-0.5 line-clamp-1">${r.keterangan}</div>` : '';
+                    
+                    // Prioritas Status: Ambil dari rincian (jika ada), kalau kosong baru dari induk (p)
+                    const itemStatus = r.status_approval || p.status_approval || 'Menunggu';
+
+                    let textColor, nominalColor, badgeStatus;
+
+                    // 🔥 1. LOGIKA WARNA TEKS & BADGE (HITAM JIKA ACC, MERAH JIKA BELUM) 🔥
+                    if (itemStatus === 'Disetujui') {
+                        textColor = 'text-gray-800 font-bold';
+                        nominalColor = 'text-gray-900 font-mono font-bold';
+                        badgeStatus = `<span class="text-[9px] font-bold text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-300 ml-2 uppercase">✔ DISETUJUI</span>`;
+                    } else {
+                        // BELUM DI-ACC / NOMBOK -> MERAH (Kecuali Uang Jalan = Biru)
+                        if (r.nama_item === 'Uang Jalan') {
+                            textColor = 'text-blue-600 font-bold';
+                            nominalColor = 'text-blue-700 font-mono font-bold';
+                            badgeStatus = `<span class="text-[9px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 ml-2 uppercase">Uang Jalan</span>`;
+                        } else {
+                            textColor = 'text-red-600 font-bold';
+                            nominalColor = 'text-red-600 font-mono font-bold';
+                            badgeStatus = `<span class="text-[9px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-200 ml-2 uppercase">Pending</span>`;
+                        }
+                    }
+
+                    // 🔥 2. DEKLARASI VARIABEL TOMBOL AKSI (HARUS DI SINI) 🔥
+                    let statusBtn = '';
+                    
+                    // 🔥 3. PENGISIAN TOMBOL AKSI SESUAI STATUS 🔥
+                    if (itemStatus === 'Menunggu') {
+                        statusBtn = `
+                        <div class="flex flex-col gap-1.5">
+                            <button onclick="window.approveItemDirect('${r.id}', 'Disetujui', '${p.sumber_dana || ''}', '${p.id}')" class="bg-green-50 text-green-700 px-2.5 py-1.5 rounded text-[11px] font-bold hover:bg-green-100 border border-green-200 text-left transition"><i class="bi bi-check2-circle mr-1"></i> ACC Item</button>
+                            <div class="grid grid-cols-2 gap-1.5">
+                                <button onclick="window.bukaModalEditItemDirect('${r.id}', '${r.nama_item}', ${r.nominal}, '${r.keterangan || ''}', '${p.sumber_dana || 'Uang Keuangan'}', '${p.id}')" class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-[10px] font-bold hover:bg-blue-100 border border-blue-200 transition" title="Edit"><i class="bi bi-pencil-square"></i></button>
+                                <button onclick="window.hapusItemPengeluaran('${r.id}')" class="bg-red-50 text-red-600 px-2 py-1 rounded text-[10px] font-bold hover:bg-red-100 border border-red-200 transition" title="Hapus"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </div>`;
+                    } else {
+                        const color = itemStatus === 'Disetujui' ? 'bg-gray-100 text-gray-700 border-gray-300' : 'bg-red-100 text-red-700 border-red-200';
+                        statusBtn = `
+                        <div class="flex flex-col gap-1 items-center justify-center">
+                            <span class="inline-flex px-3 py-1 rounded text-[11px] font-bold border ${color}">${itemStatus}</span>
+                            ${itemStatus === 'Ditolak' ? `<button onclick="window.hapusItemPengeluaran('${r.id}')" class="text-red-500 text-[10px] hover:text-red-700 mt-1 font-bold"><i class="bi bi-trash"></i> Hapus</button>` : ''}
+                        </div>`;
+
+                        // 🔥 TAMBAHAN TOMBOL SIMPAN SISA UANG JALAN 🔥
+                        // Syarat muncul: Sudah di-ACC, namanya 'Uang Jalan', dan saldonya masih > 0
+                        if (itemStatus === 'Disetujui' && r.nama_item === 'Uang Jalan' && Number(r.nominal) > 0) {
+                            statusBtn += `
+                            <div class="mt-2 pt-2 border-t border-gray-200 w-full">
+                                <button onclick="window.simpanSisaUangJalan('${r.id}', ${r.nominal}, '${p.sumber_dana || 'Uang Keuangan'}', '${p.id}')" class="bg-purple-50 text-purple-700 px-2 py-1.5 rounded text-[10px] font-bold hover:bg-purple-100 border border-purple-200 transition w-full shadow-sm flex items-center justify-center gap-1" title="Setor sisa uang ke laci Gudang">
+                                    <i class="bi bi-safe2"></i> Simpan Uang
+                                </button>
+                            </div>`;
+                        }
+                    }
+
+                    // 🔥 4. CETAK KE DALAM TABEL 🔥
+                    htmlPeng += `
+                    <tr class="hover:bg-white transition-colors border-b border-gray-100" data-date="${p.tanggal}">
+                        <td class="px-6 py-4 text-sm align-middle whitespace-nowrap font-mono text-gray-400 font-semibold">${jamStr}</td>
+                        <td class="px-6 py-4 text-sm align-middle whitespace-nowrap">
+                            <div class="text-gray-700 font-semibold"><i class="bi bi-person-fill text-gray-300 mr-1"></i> ${p.profiles?.nama || 'Unknown'}</div>
+                            ${p.sumber_dana ? `<div class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200"><i class="bi bi-wallet2"></i> ${p.sumber_dana}</div>` : ''}
+                        </td>
+                        <td class="px-6 py-4 text-sm align-middle">
+                            <div class="flex justify-between items-start gap-4">
+                                <div class="${textColor}">
+                                    <div class="flex items-center">
+                                        <span class="text-sm tracking-tight">${r.nama_item}</span>
+                                        ${badgeStatus}
+                                    </div>
+                                    ${ketHtml}
+                                </div>
+                                <div class="text-right whitespace-nowrap">
+                                    <span class="${nominalColor} text-sm">Rp ${Number(r.nominal).toLocaleString('id-ID')}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-xs align-middle w-32">${statusBtn}</td>
+                    </tr>`;
+                });
+            });
+
+            tbodyPengeluaran.innerHTML = htmlPeng || '<tr><td colspan=\"4\" class=\"text-center py-6 text-gray-400 font-medium italic\">Data mutasi pengeluaran kosong</td></tr>';
+        } catch (error) {
+            console.error("Gagal load data pengeluaran:", error);
+        }
+    }
+
+    await loadDataPengeluaran();
+
+    // ==========================================
+    // MODAL UTILS & FILTER
+    // ==========================================
+    window.openModal = function(id) {
+        const m = document.getElementById(id);
+        m.classList.remove('hidden'); m.classList.add('flex');
+        setTimeout(() => { m.classList.remove('opacity-0'); m.querySelector('div').classList.remove('scale-95'); }, 10);
+    }
+    
+    window.closeModal = function(id) {
+        const m = document.getElementById(id);
+        m.classList.add('opacity-0'); m.querySelector('div').classList.add('scale-95');
+        setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
+    }
+
+    window.filterTabelPengeluaran = function() {
+        const start = document.getElementById('filter-start-pengeluaran').value;
+        const end = document.getElementById('filter-end-pengeluaran').value;
+        if(!start || !end) return alert("Pilih tanggal awal dan akhir!");
+        document.querySelectorAll('#tabel-pengeluaran tbody tr').forEach(tr => {
+            const date = tr.getAttribute('data-date');
+            if(date) tr.style.display = (date >= start && date <= end) ? '' : 'none';
+        });
+    };
+
+    // ==========================================
+    // APPROVAL & HAPUS (Refactored)
+    // ==========================================
+    window.approvePengeluaran = async function(id, statusText) {
+        if(!confirm(`Yakin ingin mengubah status menjadi ${statusText}?`)) return;
+        if(!window.supabase) return;
+        try {
+            await window.supabase.from('pengeluaran').update({ status_approval: statusText }).eq('id', id);
+            window.location.reload();
+        } catch (err) { alert(err.message); }
+    };
+
+    // ==========================================
+    // 🔥 AKSI OPERASIONAL LANGSUNG PER-ITEM TUNGGAL 🔥
+    // ==========================================
+    
+    // 1. Fungsi Setujui / Tolak Per Item
+    window.approveItemDirect = async function(rincianId, statusText, currentSumberDana, pengeluaranId) {
+        if(!window.supabase) return;
+        
+        let finalSumberDana = currentSumberDana;
+        
+        // 🔎 DETEKSI: Jika admin klik SETUJUI dan ternyata data lama / sumber dana masih kosong
+        if (statusText === 'Disetujui' && (!finalSumberDana || finalSumberDana === 'null' || finalSumberDana.trim() === '')) {
+            
+            // Suguhkan pop-up pilihan dompet kas langsung ke admin
+            const pilihan = prompt(
+                "⚠️ DATA LAMA TERDETEKSI: Sumber Dana pengeluaran ini masih kosong!\n\n" +
+                "Silakan ketik angka pilihan kas di bawah ini untuk memotong saldo:\n" +
+                "1. Uang Keuangan\n" +
+                "2. Uang Gudang\n" +
+                "3. Uang Owner\n\n" +
+                "Ketik angka (1 / 2 / 3) lalu klik OK:"
+            );
+            
+            if (pilihan === '1') finalSumberDana = 'Uang Keuangan';
+            else if (pilihan === '2') finalSumberDana = 'Uang Gudang';
+            else if (pilihan === '3') finalSumberDana = 'Uang Owner';
+            else {
+                alert("Proses Dibatalkan! Item lama tidak bisa di-ACC sebelum menentukan asal Sumber Dananya.");
+                return;
+            }
+            
+            // Update terlebih dahulu tabel induk (pengeluaran) agar trigger tahu kas mana yang dipotong
+            const { error: errInduk } = await window.supabase
+                .from('pengeluaran')
+                .update({ sumber_dana: finalSumberDana })
+                .eq('id', pengeluaranId);
+                
+            if (errInduk) {
+                alert("Gagal menyuntikkan data sumber dana baru ke server: " + errInduk.message);
+                return;
+            }
+        }
+        
+        // Konfirmasi akhir sebelum eksekusi pemotongan saldo kas perusahaan
+        if(!confirm(`Yakin ingin menyetujui item rincian ini? Saldo [${finalSumberDana}] akan otomatis terpotong.`)) return;
+        
+        try {
+            const { error } = await window.supabase
+                .from('rincian_pengeluaran')
+                .update({ status_approval: statusText })
+                .eq('id', rincianId);
+                
+            if(error) throw error;
+            
+            alert(`Sukses! Status berhasil diubah dan saldo ${finalSumberDana} otomatis terpotong.`);
+            window.location.reload();
+        } catch (err) { 
+            alert("Gagal memproses persetujuan item: " + err.message); 
+        }
+    };
+
+    // 2. Fungsi Buka Modal Edit Khusus Item Ini Saja
+    window.bukaModalEditItemDirect = function(rincianId, namaItem, nominal, keterangan, sumberDana, pengeluaranId) {
+        document.getElementById('edit_peng_id').value = rincianId; 
+        document.querySelector('#modal-edit-pengeluaran h3').innerText = "Koreksi Item Rincian";
+        
+        // Simpan ID Induk ke form agar bisa diambil saat save
+        document.getElementById('form-edit-pengeluaran').dataset.pengId = pengeluaranId;
+        
+        const isKategoriDasar = masterKategoriOps.includes(namaItem);
+        const selectValue = isKategoriDasar ? namaItem : 'Lain-lain';
+        const customValue = isKategoriDasar ? '' : namaItem;
+
+        let dropdownOptions = masterKategoriOps.map(kat => 
+            `<option value="${kat}" ${kat === selectValue ? 'selected' : ''}>${kat}</option>`
+        ).join('');
+
+        let htmlItems = `
+        <div class="peng-item-row p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2.5 relative" data-id="${rincianId}">
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">Kategori</label>
+                    <select class="peng_item_select w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-semibold" onchange="window.togglePengLainLain(this)">
+                        ${dropdownOptions}
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">Nominal (Rp)</label>
+                    <input type="number" class="peng_item_nominal w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-mono font-bold text-green-800" value="${nominal}" oninput="window.hitungTotalEditPeng()" required>
+                </div>
+            </div>
+            <div class="peng_custom_box ${selectValue === 'Lain-lain' ? '' : 'hidden'}">
+                <label class="text-[10px] font-bold text-blue-700 uppercase">Keterangan Spesifik / Custom</label>
+                <input type="text" class="peng_item_custom w-full border border-blue-200 bg-blue-50/50 rounded-lg p-2 text-xs outline-none font-medium focus:border-blue-500" value="${customValue}">
+            </div>
+            <div class="mt-1">
+                <label class="text-[10px] font-bold text-gray-500 uppercase">Catatan / Detail (Opsional)</label>
+                <input type="text" class="edit_item_keterangan w-full border border-gray-300 rounded-lg p-2 text-xs outline-none font-medium" value="${keterangan}">
+            </div>
+            
+            <div class="mt-2 pt-2 border-t border-gray-200">
+                <label class="text-[10px] font-bold text-purple-700 uppercase">Sumber Dana (Koreksi Kas)</label>
+                <select class="edit_sumber_dana w-full border border-purple-200 bg-purple-50/50 rounded-lg p-2 text-xs outline-none font-semibold focus:border-purple-500 text-purple-800">
+                    <option value="Uang Keuangan" ${sumberDana === 'Uang Keuangan' ? 'selected' : ''}>Uang Keuangan</option>
+                    <option value="Uang Gudang" ${sumberDana === 'Uang Gudang' ? 'selected' : ''}>Uang Gudang</option>
+                    <option value="Uang Owner" ${sumberDana === 'Uang Owner' ? 'selected' : ''}>Uang Owner</option>
+                </select>
+                <p class="text-[8.5px] text-gray-400 mt-1 italic">*Ubah jika admin salah pilih kas saat pertama kali input nota.</p>
+            </div>
+        </div>`;
+
+        document.getElementById('edit_peng_items_container').innerHTML = htmlItems;
+        window.hitungTotalEditPeng();
+        
+        // Alihkan form submit agar mengeksekusi update single item
+        const form = document.getElementById('form-edit-pengeluaran');
+        form.onsubmit = window.simpanEditItemSingle;
+        
+        window.openModal('modal-edit-pengeluaran');
+    };
+
+    // 3. Fungsi Eksekusi Simpan Perubahan Single Item ke Server
+    window.simpanEditItemSingle = async function(e) {
+        e.preventDefault();
+        if(!window.supabase) return;
+
+        const btnSave = document.getElementById('btn-save-peng');
+        btnSave.innerText = "Menyimpan...";
+        btnSave.disabled = true;
+
+        try {
+            const form = document.getElementById('form-edit-pengeluaran');
+            const pengeluaranId = form.dataset.pengId; // Tarik ID Induk
+
+            const row = document.querySelector('.peng-item-row');
+            const rincianId = row.getAttribute('data-id');
+            const kategoriTerpilih = row.querySelector('.peng_item_select').value;
+            const nominalBaru = parseFloat(row.querySelector('.peng_item_nominal').value) || 0;
+            const teksCustom = row.querySelector('.peng_item_custom').value.trim();
+            const keteranganBaru = row.querySelector('.edit_item_keterangan').value.trim();
+            
+            // 🔥 Tangkap nilai sumber dana yang baru dipilih
+            const sumberDanaBaru = row.querySelector('.edit_sumber_dana').value; 
+
+            let finalNamaItem = kategoriTerpilih === 'Lain-lain' ? (teksCustom || 'Lain-lain') : kategoriTerpilih;
+
+            // Update data rinciannya
+            const { error: errRincian } = await window.supabase
+                .from('rincian_pengeluaran')
+                .update({
+                    nama_item: finalNamaItem,
+                    nominal: nominalBaru,
+                    keterangan: keteranganBaru || null
+                })
+                .eq('id', rincianId);
+
+            if(errRincian) throw errRincian;
+
+            // Update sumber dananya di tabel induk (pengeluaran)
+            if(pengeluaranId) {
+                const { error: errInduk } = await window.supabase
+                    .from('pengeluaran')
+                    .update({ sumber_dana: sumberDanaBaru })
+                    .eq('id', pengeluaranId);
+                    
+                if(errInduk) throw errInduk;
+            }
+
+            alert("Koreksi Rincian dan Sumber Dana berhasil diperbarui!");
+            window.location.reload();
+        } catch(err) {
+            alert("Gagal memperbarui item: " + err.message);
+            btnSave.innerText = "SIMPAN PERUBAHAN DATA"; btnSave.disabled = false;
+        }
+    };
+
+    // Cukup tembak id rincian, sisanya Trigger DB yang hitung dan hapus induknya!
+    window.hapusItemPengeluaran = async function(rincianId) {
+        if(!confirm('Hapus rincian ini?\n\nSistem akan menghitung ulang saldo dan tagihan otomatis.')) return;
+        if(!window.supabase) return;
+        try {
+            const { error: errHapus } = await window.supabase.from('rincian_pengeluaran').delete().eq('id', rincianId);
+            if(errHapus) throw errHapus;
+            
+            alert('Mantap! Item dihapus & sistem berhasil menghitung ulang.');
+            window.location.reload();
+        } catch(err) { alert('Gagal menghapus item: ' + err.message); }
+    };
+
+    // ==========================================
+    // EDIT PENGELUARAN (Refactored)
+    // ==========================================
+    window.bukaModalEditPengeluaran = async function(id) {
+        if(!window.supabase) return;
+        const { data: p, error } = await window.supabase.from('pengeluaran').select('*, rincian_pengeluaran(*)').eq('id', id).single();
+        if(error || !p) return alert("Waduh, data pengeluaran gagal diambil!");
+        
+        document.getElementById('edit_peng_id').value = p.id;
+        document.getElementById('edit_peng_tgl').value = p.tanggal;
+
+        let htmlItems = '';
+        p.rincian_pengeluaran?.forEach((item, idx) => {
+            const isKategoriDasar = masterKategoriOps.includes(item.nama_item);
+            const selectValue = isKategoriDasar ? item.nama_item : 'Lain-lain';
+            const customValue = isKategoriDasar ? '' : item.nama_item;
+
+            let dropdownOptions = masterKategoriOps.map(kat => 
+                `<option value="${kat}" ${kat === selectValue ? 'selected' : ''}>${kat}</option>`
+            ).join('');
+
+            htmlItems += `
+            <div class="peng-item-row p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2.5 relative" data-id="${item.id}">
+                <span class="absolute top-1 right-2 text-[9px] font-mono font-bold text-gray-400">Item #${idx+1}</span>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Kategori</label>
+                        <select class="peng_item_select w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-semibold" onchange="window.togglePengLainLain(this)">
+                            ${dropdownOptions}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Nominal (Rp)</label>
+                        <input type="number" class="peng_item_nominal w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-mono font-bold text-green-800" value="${item.nominal}" oninput="window.hitungTotalEditPeng()" required>
+                    </div>
+                </div>
+                <div class="peng_custom_box ${selectValue === 'Lain-lain' ? '' : 'hidden'}">
+                    <label class="text-[10px] font-bold text-blue-700 uppercase">Keterangan Spesifik / Custom</label>
+                    <input type="text" class="peng_item_custom w-full border border-blue-200 bg-blue-50/50 rounded-lg p-2 text-xs outline-none font-medium focus:border-blue-500" value="${customValue}" placeholder="Cth: Pertalite 5 Liter atau Nama Barang...">
+                </div>
+                <div class="mt-1">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">Catatan / Detail (Opsional)</label>
+                    <input type="text" class="edit_item_keterangan w-full border border-gray-300 rounded-lg p-2 text-xs outline-none font-medium" value="${item.keterangan || ''}" placeholder="Cth: Pembelian karung 50 pcs...">
+                </div>
+            </div>`;
+        });
+
+        document.getElementById('edit_peng_items_container').innerHTML = htmlItems || '<p class="text-xs text-gray-500 italic">Tidak ada rincian item.</p>';
+        window.hitungTotalEditPeng();
+        window.openModal('modal-edit-pengeluaran');
+    };
+
+    window.togglePengLainLain = function(selectElement) {
+        const row = selectElement.closest('.peng-item-row');
+        const customBox = row.querySelector('.peng_custom_box');
+        if(selectElement.value === 'Lain-lain') {
+            customBox.classList.remove('hidden');
+        } else {
+            customBox.classList.add('hidden');
+            customBox.querySelector('input').value = ''; 
+        }
+    };
+
+    // Ini cuma buat visual UI doang biar user liat angkanya (tidak dikirim ke DB)
+    window.hitungTotalEditPeng = function() {
+        let grandTotal = 0;
+        document.querySelectorAll('.peng_item_nominal').forEach(input => {
+            grandTotal += parseFloat(input.value) || 0;
+        });
+        document.getElementById('edit_peng_total_text').innerText = 'Rp ' + grandTotal.toLocaleString('id-ID');
+    };
+
+    window.simpanEditPengeluaran = async function(e) {
+        e.preventDefault();
+        if(!window.supabase) return;
+
+        const idInduk = document.getElementById('edit_peng_id').value;
+        const tanggalBaru = document.getElementById('edit_peng_tgl').value;
+        const btnSave = document.getElementById('btn-save-peng');
+
+        btnSave.innerText = "Menyimpan Data...";
+        btnSave.disabled = true;
+
+        try {
+            const itemRows = document.querySelectorAll('.peng-item-row');
+            const batchPromises = [];
+
+            itemRows.forEach(row => {
+                const rincianId = row.getAttribute('data-id');
+                const kategoriTerpilih = row.querySelector('.peng_item_select').value;
+                const nominalBaru = parseFloat(row.querySelector('.peng_item_nominal').value) || 0;
+                const teksCustom = row.querySelector('.peng_item_custom').value.trim();
+                const keteranganBaru = row.querySelector('.edit_item_keterangan').value.trim();
+
+                let finalNamaItem = kategoriTerpilih === 'Lain-lain' ? (teksCustom || 'Lain-lain') : kategoriTerpilih;
+                
+                // Update rinciannya saja, sisanya Trigger DB yang atur totalnya
+                const task = window.supabase.from('rincian_pengeluaran').update({
+                    nama_item: finalNamaItem,
+                    nominal: nominalBaru,
+                    keterangan: keteranganBaru || null
+                }).eq('id', rincianId);
+                batchPromises.push(task);
+            });
+
+            // Hanya update tanggal di tabel induk
+            const { error: errInduk } = await window.supabase.from('pengeluaran').update({
+                tanggal: tanggalBaru
+            }).eq('id', idInduk);
+            
+            if(errInduk) throw errInduk;
+
+            if(batchPromises.length > 0) {
+                await Promise.all(batchPromises);
+            }
+
+            alert("Mantap! Data rincian dikoreksi dan total disesuaikan server.");
+            window.location.reload();
+        } catch(err) {
+            console.error(err);
+            alert("Gagal memperbarui pengeluaran: " + err.message);
+            btnSave.innerText = "SIMPAN PERUBAHAN DATA"; btnSave.disabled = false;
+        }
+    };
+
+    // ==========================================
+    // TAMBAH PENGELUARAN (Refactored)
+    // ==========================================
+    window.bukaModalTambahPengeluaran = async function() {
+        if(!window.supabase) return;
+        const waktuLokal = new Date();
+        const offset = waktuLokal.getTimezoneOffset() * 60000;
+        document.getElementById('add_peng_tgl').value = new Date(waktuLokal - offset).toISOString().split('T')[0];
+        document.getElementById('add_peng_items_container').innerHTML = '';
+        
+        try {
+            const { data: { user } } = await window.supabase.auth.getUser();
+            const currentUserId = user ? user.id : '';
+
+            const { data: users, error } = await window.supabase
+                .from('profiles')
+                .select('id, nama')
+                .order('nama', { ascending: true });
+                
+            if(error) throw error;
+
+            let optHtml = '<option value="">-- Pilih Akun Karyawan --</option>';
+            users?.forEach(u => {
+                optHtml += `<option value="${u.id}">${u.nama}</option>`;
+            });
+            document.getElementById('add_peng_user_id').innerHTML = optHtml;
+
+            window.tambahBarisItemBaru();
+            window.openModal('modal-tambah-pengeluaran');
+        } catch (err) { alert("Gagal memuat data profiles karyawan: " + err.message); }
+    };
+
+    window.tambahBarisItemBaru = function() {
+        const container = document.getElementById('add_peng_items_container');
+        let selectOptions = masterKategoriOps.map(kat => `<option value="${kat}">${kat}</option>`).join('');
+
+        // 🔥 UBAH BAGIAN INI: Bikin list untuk Datalist (hanya value nama)
+        let optMitra = '';
+        window.allMitraPengeluaran.forEach(m => optMitra += `<option value="${m.nama_mitra}">`);
+
+        const rowHtml = document.createElement('div');
+        rowHtml.className = "add-item-row p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2 relative";
+        
+        // Perhatikan bagian <input list="..."> dan <datalist> di bawah ini:
+        rowHtml.innerHTML = `
+            <button type="button" onclick="this.closest('.add-item-row').remove(); window.hitungTotalTambahPeng();" class="absolute top-1 right-2 text-gray-400 hover:text-red-600 text-sm"><i class="bi bi-trash"></i></button>
+            <div class="grid grid-cols-2 gap-2 pr-4">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">Kategori</label>
+                    <select class="add_item_select w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-semibold" onchange="window.cekValidasiLainLain(this)" required>
+                        ${selectOptions}
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">Nominal (Rp)</label>
+                    <input type="number" class="add_item_nominal w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-mono font-bold text-green-800" placeholder="0" oninput="window.hitungTotalTambahPeng()" required>
+                </div>
+            </div>
+            
+            <div class="add_mitra_box hidden mt-2">
+                <label class="text-[10px] font-bold text-teal-700 uppercase">Cari / Ketik Nama Mitra</label>
+                <input list="list-mitra-ops" class="add_item_mitra_input w-full border border-teal-200 bg-teal-50/50 rounded-lg p-2 text-xs outline-none focus:border-teal-500 text-teal-800 font-bold" placeholder="🔍 Ketik untuk mencari mitra...">
+                <datalist id="list-mitra-ops">
+                    ${optMitra}
+                </datalist>
+            </div>
+
+            <div class="mt-2">
+                <label class="text-[10px] font-bold text-gray-500 uppercase dynamic-label-ket">Keterangan / Detail (Opsional)</label>
+                <input type="text" class="add_item_keterangan w-full border border-gray-300 rounded-lg p-2 text-xs outline-none font-medium" placeholder="Cth: Pembelian karung 50 pcs / Bensin Pertalite...">
+            </div>
+        `;
+        container.appendChild(rowHtml);
+        window.hitungTotalTambahPeng();
+    };
+
+    window.cekValidasiLainLain = function(selectElement) {
+        const row = selectElement.closest('.add-item-row');
+        const inputKet = row.querySelector('.add_item_keterangan');
+        const labelKet = row.querySelector('.dynamic-label-ket');
+        const mitraBox = row.querySelector('.add_mitra_box');
+        const inputMitra = row.querySelector('.add_item_mitra_input');
+
+        if(selectElement.value === 'Lain-lain') {
+            inputKet.required = true;
+            inputKet.placeholder = "WAJIB DIISI! Sebutkan rincian pengeluarannya...";
+            labelKet.innerHTML = 'Keterangan / Detail <span class="text-red-600 font-bold">*Wajib Diisi</span>';
+            inputKet.classList.add('border-blue-400', 'bg-blue-50/30');
+        } else if (selectElement.value === 'Deposit Mitra') {
+            inputKet.required = false;
+            inputKet.readOnly = true; 
+            inputKet.value = '';
+            inputKet.placeholder = "Otomatis: Deposit - [Nama Mitra]";
+            labelKet.innerHTML = 'Keterangan (Otomatis dari Sistem)';
+            inputKet.classList.remove('border-blue-400', 'bg-blue-50/30');
+            
+            mitraBox.classList.remove('hidden'); 
+            inputMitra.value = ''; // 🔥 Kosongkan pencarian saat baru dipilih
+            inputMitra.required = true;
+        } else {
+            inputKet.required = false;
+            inputKet.placeholder = "Cth: Pembelian karung 50 pcs / Bensin Pertalite...";
+            labelKet.innerHTML = 'Keterangan / Detail (Opsional)';
+            inputKet.classList.remove('border-blue-400', 'bg-blue-50/30');
+        }
+    };
+
+    // Tetap ada untuk UI aja (user lihat total sebelum submit)
+    window.hitungTotalTambahPeng = function() {
+        let total = 0;
+        document.querySelectorAll('.add_item_nominal').forEach(input => {
+            total += parseFloat(input.value) || 0;
+        });
+        document.getElementById('add_peng_total_text').innerText = 'Rp ' + total.toLocaleString('id-ID');
+    };
+
+    window.eksekusiTambahPengeluaran = async function(e) {
+        e.preventDefault();
+        if(!window.supabase) return;
+
+        const userId = document.getElementById('add_peng_user_id').value;
+        const tanggalStr = document.getElementById('add_peng_tgl').value;
+        const sumberDana = document.getElementById('add_sumber_dana').value; 
+        
+        const btnSubmit = document.getElementById('btn-submit-tambah-peng');
+        const itemRows = document.querySelectorAll('.add-item-row');
+        if(!userId) return alert('Pilih nama karyawannya dulu!');
+        if(itemRows.length === 0) return alert('Tambahkan rincian item-nya minimal satu baris!');
+        
+        btnSubmit.innerText = "Memproses Pengeluaran...";
+        btnSubmit.disabled = true;
+
+        try {
+            const rincianItems = [];
+            let countUangJalan = 0;
+            let totalNominalPengajuan = 0;
+            const depositPromises = [];
+
+            // 1. Tarik semua inputan dari form
+            itemRows.forEach(row => {
+                const kategori = row.querySelector('.add_item_select').value;
+                const nominal = parseFloat(row.querySelector('.add_item_nominal').value) || 0;
+                let keterangan = row.querySelector('.add_item_keterangan').value.trim();
+
+                if(kategori === 'Uang Jalan') countUangJalan++;
+                totalNominalPengajuan += nominal;
+
+                // Logika khusus jika nambah Deposit Mitra
+                if (kategori === 'Deposit Mitra') {
+                    const namaDiketik = row.querySelector('.add_item_mitra_input').value.trim();
+                    const mitraMatch = window.allMitraPengeluaran.find(m => m.nama_mitra.toLowerCase() === namaDiketik.toLowerCase());
+                    
+                    if (!mitraMatch) {
+                        btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER";
+                        btnSubmit.disabled = false;
+                        throw new Error(`Mitra dengan nama "${namaDiketik}" tidak ditemukan! Silakan pilih dari daftar dropdown.`);
+                    }
+
+                    const mitraId = mitraMatch.id;
+                    keterangan = `Deposit - ${mitraMatch.nama_mitra}`; 
+
+                    const taskDeposit = async () => {
+                        const { data: dbMitra } = await window.supabase.from('mitra').select('deposit').eq('id', mitraId).single();
+                        const currentDeposit = Number(dbMitra?.deposit) || 0;
+                        await window.supabase.from('mitra').update({ deposit: currentDeposit + nominal }).eq('id', mitraId);
+                    };
+                    depositPromises.push(taskDeposit());
+                }
+
+                rincianItems.push({ 
+                    nama_item: kategori, 
+                    nominal: nominal, 
+                    keterangan: keterangan || null 
+                });
+            });
+
+            // =================================================================
+            // 🔥 SENSOR ANTI-MINUS (Sekadar validasi awal sebelum ditembak ke Server)
+            // =================================================================
+            const { data: dataKas, error: errKas } = await window.supabase
+                .from('kas_perusahaan')
+                .select('*')
+                .eq('id', 1)
+                .single();
+                
+            if (dataKas) {
+                let saldoAktif = 0;
+                if (sumberDana === 'Uang Keuangan') saldoAktif = dataKas.uang_keuangan || 0;
+                else if (sumberDana === 'Uang Gudang') saldoAktif = dataKas.uang_gudang || 0;
+                else if (sumberDana === 'Uang Owner') saldoAktif = dataKas.uang_owner || 0;
+
+                if (saldoAktif <= 0 && totalNominalPengajuan > 0) {
+                    btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER";
+                    btnSubmit.disabled = false;
+                    return alert(`❌ DITOLAK! Saldo dompet [${sumberDana}] saat ini kosong (Rp 0). Tidak bisa melakukan pengeluaran!`);
+                }
+
+                if (saldoAktif < totalNominalPengajuan) {
+                    btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER";
+                    btnSubmit.disabled = false;
+                    return alert(`❌ DITOLAK! Saldo dompet [${sumberDana}] tidak mencukupi untuk tagihan ini!\n\nSisa Saldo Kas: Rp ${saldoAktif.toLocaleString('id-ID')}\nTotal Pengajuan: Rp ${totalNominalPengajuan.toLocaleString('id-ID')}\n\nSilakan kurangi nominal atau pilih dompet kas lain.`);
+                }
+            }
+
+            // 2. Cegah dobel Uang Jalan di form yang sama
+            if(countUangJalan > 1) {
+                btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER";
+                btnSubmit.disabled = false;
+                return alert("ERROR: Jangan memasukkan item 'Uang Jalan' lebih dari 1 kali dalam sekali pengajuan!");
+            }
+
+            // 3. Cegah dobel Uang Jalan dari riwayat database
+            if (countUangJalan > 0) {
+                const { data: pengInduk } = await window.supabase
+                    .from('pengeluaran')
+                    .select('id')
+                    .eq('user_id', userId)
+                    .eq('tanggal', tanggalStr);
+                    
+                if (pengInduk && pengInduk.length > 0) {
+                    const pengIds = pengInduk.map(p => p.id);
+                    const { data: cekUj } = await window.supabase
+                        .from('rincian_pengeluaran')
+                        .select('id')
+                        .in('pengeluaran_id', pengIds)
+                        .eq('nama_item', 'Uang Jalan')
+                        .limit(1);
+                        
+                    if (cekUj && cekUj.length > 0) {
+                        btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER";
+                        btnSubmit.disabled = false;
+                        return alert("DITOLAK! Karyawan ini sudah menerima 'Uang Jalan' hari ini. Jika ada biaya tambahan (seperti Bensin/Tol), silakan input TANPA menyertakan item 'Uang Jalan' agar langsung memotong dompet yang dipilih.");
+                    }
+                }
+            }
+
+            // 4. Buat atau cari Induk Pengeluaran
+            const { data: existing, error: errCheck } = await window.supabase
+                .from('pengeluaran')
+                .select('id')
+                .eq('user_id', userId)
+                .eq('tanggal', tanggalStr)
+                .eq('sumber_dana', sumberDana)
+                .maybeSingle();
+                
+            if(errCheck) throw errCheck;
+
+            let pengeluaranId;
+            if (existing) {
+                pengeluaranId = existing.id;
+            } else {
+                const { data: inserted, error: errInsert } = await window.supabase.from('pengeluaran')
+                    .insert({ 
+                        user_id: userId, 
+                        tanggal: tanggalStr, 
+                        total_harian: 0, 
+                        status_approval: 'Menunggu',
+                        sumber_dana: sumberDana 
+                    }) 
+                    .select('id').single();
+                    
+                if(errInsert) throw errInsert;
+                pengeluaranId = inserted.id;
+            }
+
+            // =================================================================
+            // 🔥 5. KIRIM DATA KE DATABASE (SQL TRIGGER YANG AKAN BEKERJA)
+            // =================================================================
+            const rincianFinalToInsert = rincianItems.map(item => ({
+                pengeluaran_id: pengeluaranId,
+                nama_item: item.nama_item,
+                nominal: item.nominal,
+                keterangan: item.keterangan,
+                status_approval: 'Disetujui',
+                
+                // ⚠️ KUNCI UTAMANYA DI SINI: Set 'false' agar Trigger SQL langsung memotong Kas Perusahaan
+                keterangan_bayar: false 
+            }));
+
+            // Tembak ke Database!
+            const { error: errRincian } = await window.supabase.from('rincian_pengeluaran').insert(rincianFinalToInsert);
+            if(errRincian) throw errRincian;
+
+            // Eksekusi janji penambahan saldo deposit mitra (jika ada)
+            if (depositPromises.length > 0) {
+                await Promise.all(depositPromises);
+            }
+            
+            alert("✅ Mantap! Seluruh data sukses dicatat. Kas Perusahaan dan Uang Jalan otomatis diatur oleh Sistem Database.");
+            window.location.reload();
+
+        } catch (err) {
+            console.error(err);
+            alert("Gagal menambahkan pengeluaran: " + err.message);
+            btnSubmit.innerText = "SIMPAN SEMUA DATA KE SERVER"; 
+            btnSubmit.disabled = false;
+        }
+    };
+    
+    // ==========================================
+    // 🔥 FUNGSI KEMBALIKAN SISA UANG JALAN KE GUDANG 🔥
+    // ==========================================
+    window.simpanSisaUangJalan = async function(rincianId, sisaNominalSistem, sumberDanaAsli, pengeluaranId) {
+        // 1. Munculkan Pop-Up Interaktif nanya uang fisik yang ada di tangan
+        const inputNominal = prompt(
+            `Sisa Uang Jalan di sistem adalah: Rp ${sisaNominalSistem.toLocaleString('id-ID')}\n\n` +
+            `Berapa jumlah uang fisik yang BENAR-BENAR DISETOR oleh driver ke Laci Gudang? (Ketik angkanya saja):`,
+            sisaNominalSistem
+        );
+
+        if (inputNominal === null) return; // Dibatalkan oleh admin
+        
+        // Bersihkan inputan dari titik/koma dan jadikan angka
+        const setorFisik = parseInt(inputNominal.replace(/[^0-9]/g, '')) || 0;
+
+        if (setorFisik > sisaNominalSistem) {
+            return alert("❌ Gagal! Nominal setor tidak boleh lebih besar dari sisa uang jalan di sistem.");
+        }
+
+        const selisihKasbon = sisaNominalSistem - setorFisik;
+
+        let msgConfirm = `Rincian Penutupan:\n- Setor uang fisik: Rp ${setorFisik.toLocaleString('id-ID')} (Masuk Uang Gudang)`;
+        if (selisihKasbon > 0) {
+            msgConfirm += `\n- Kurang setor: Rp ${selisihKasbon.toLocaleString('id-ID')} ⚠️\n\nSistem akan OTOMATIS mencatat selisih ini sebagai KASBON dan memotong gaji driver!`;
+        }
+        msgConfirm += `\n\nLanjutkan proses?`;
+
+        if (!confirm(msgConfirm)) return;
+
+        try {
+            // LANGKAH A: Nol-kan sisa Uang Jalan.
+            // (Trigger database akan otomatis me-refund seluruh uang ini ke dompet asalnya terlebih dahulu)
+            const { error: errUpdate } = await window.supabase
+                .from('rincian_pengeluaran')
+                .update({
+                    nominal: 0,
+                    nama_item: 'Uang Jalan (Masuk Gudang)',
+                    keterangan: `Ditutup. Fisik: Rp ${setorFisik.toLocaleString('id-ID')} | Kasbon: Rp ${selisihKasbon.toLocaleString('id-ID')}`
+                })
+                .eq('id', rincianId);
+
+            if (errUpdate) throw errUpdate;
+
+            // LANGKAH B: Pindahkan Uang FISIK-nya saja ke Uang Gudang
+            if (sumberDanaAsli !== 'Uang Gudang' && setorFisik > 0) {
+                const { data: kas } = await window.supabase.from('kas_perusahaan').select('*').eq('id', 1).single();
+                if(kas) {
+                    let uk = Number(kas.uang_keuangan) || 0;
+                    let uo = Number(kas.uang_owner) || 0;
+                    let ug = Number(kas.uang_gudang) || 0;
+
+                    // Tarik uang fisiknya dari dompet asal
+                    if (sumberDanaAsli === 'Uang Keuangan') uk -= setorFisik;
+                    else if (sumberDanaAsli === 'Uang Owner') uo -= setorFisik;
+                    
+                    // Masukkan ke dompet gudang
+                    ug += setorFisik;
+
+                    await window.supabase.from('kas_perusahaan')
+                        .update({ uang_keuangan: uk, uang_owner: uo, uang_gudang: ug })
+                        .eq('id', 1);
+                }
+            }
+
+            // LANGKAH C: Eksekusi Kasbon (Jika ada selisih uang hilang)
+            if (selisihKasbon > 0) {
+                const { error: errKasbon } = await window.supabase
+                    .from('rincian_pengeluaran')
+                    .insert({
+                        pengeluaran_id: pengeluaranId,
+                        nama_item: 'Kasbon - Kurang Setor Uang Jalan',
+                        nominal: selisihKasbon,
+                        keterangan: 'Otomatis dari sistem karena fisik yang disetor kurang',
+                        keterangan_bayar: true,
+                        status_approval: 'Disetujui' // 🔥 Langsung di-ACC supaya Trigger Gaji bekerja!
+                    });
+                    
+                if (errKasbon) throw errKasbon;
+            }
+
+            alert("Mantap! Buku harian driver sukses ditutup dan disinkronisasi ke Kas & Gaji.");
+            window.location.reload();
+        } catch(e) {
+            alert("Gagal memproses penyetoran sisa uang: " + e.message);
+        }
+    };
+  });
+</script>

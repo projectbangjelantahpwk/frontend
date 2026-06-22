@@ -1,0 +1,947 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Manajemen Karyawan - Bang Jelantah">
+    <style is:global>
+        body { display: none; }
+    </style>
+    <div class="max-w-7xl mx-auto flex flex-col h-full relative">
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-md mb-lg">
+            <div>
+                <h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg font-bold text-primary">Karyawan</h1>
+                <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Pantau absensi dan informasi tim operasional lapangan.</p>
+            </div>
+            
+            <div class="w-full md:w-auto flex items-center bg-surface-container-lowest rounded-full px-sm h-12 md:h-10 border border-outline-variant focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all shadow-sm">
+                <span class="material-symbols-outlined text-on-surface-variant ml-sm">search</span>
+                <input class="bg-transparent border-none focus:ring-0 text-on-surface w-full md:w-64 font-body-md text-body-md h-full placeholder:text-on-surface-variant outline-none px-2" placeholder="Cari nama, posisi..." type="text"/>
+            </div>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-md mb-lg">
+            <div>
+                <h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg font-bold text-primary">Karyawan</h1>
+                <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Pantau absensi dan informasi tim operasional lapangan.</p>
+            </div>
+            
+            <div class="w-full md:w-auto flex items-center gap-3">
+                <button onclick="window.bukaModalLibur()" class="bg-red-50 text-red-600 border border-red-200 px-4 py-2.5 rounded-full text-sm font-bold hover:bg-red-100 transition shadow-sm flex items-center gap-2 whitespace-nowrap">
+                    <span class="material-symbols-outlined text-[18px]">calendar_month</span> Set Libur
+                </button>
+
+                <div class="w-full md:w-auto flex items-center bg-surface-container-lowest rounded-full px-sm h-12 md:h-10 border border-outline-variant focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-on-surface-variant ml-sm">search</span>
+                    <input class="bg-transparent border-none focus:ring-0 text-on-surface w-full md:w-64 font-body-md text-body-md h-full placeholder:text-on-surface-variant outline-none px-2" placeholder="Cari nama, posisi..." type="text"/>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <div id="karyawan-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-md">
+            <div class="p-md text-on-surface-variant font-body-md">
+                Memuat data karyawan...
+            </div>
+        </div>
+    </div>
+
+    <div id="employee-detail-backdrop" class="fixed inset-0 bg-on-background/50 z-[60] hidden transition-opacity opacity-0" onclick="closeEmployeeDetail()"></div>
+
+    <div id="employee-detail-panel" class="fixed inset-y-0 right-0 w-full md:w-[480px] bg-surface shadow-[0_0_24px_rgba(0,0,0,0.1)] border-l border-outline-variant z-[70] flex flex-col transform transition-transform duration-300 translate-x-full">
+        
+        <div class="flex items-center justify-between px-lg py-md border-b border-outline-variant bg-surface-container-lowest">
+            <h2 class="font-headline-md text-headline-md font-bold text-on-surface">Detail Karyawan</h2>
+            <button class="w-10 h-10 rounded-full hover:bg-surface-container-low flex items-center justify-center text-on-surface-variant transition-colors" onclick="closeEmployeeDetail()">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto bg-surface-container-lowest">
+            <div id="detail-content" class="p-lg flex flex-col">
+                <p class="text-on-surface-variant font-body-md">Pilih salah satu karyawan untuk melihat detail.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL APPROVAL PRESENSI (HADIR/TELAT) -->
+    <div id="modal-detail-absen" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[80] p-4 transition-opacity opacity-0">
+        <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 shadow-2xl flex flex-col">
+            
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-blue-50 shrink-0">
+                <div>
+                    <h3 class="font-bold text-lg text-gray-900">Detail Kehadiran</h3>
+                    <p class="text-xs text-blue-800 font-medium">Rincian absensi reguler harian</p>
+                </div>
+                <button onclick="closeModal('modal-detail-absen')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
+            </div>
+            
+            <div class="p-6 space-y-4 max-h-[65vh] overflow-y-auto hide-scrollbar">
+                <input type="hidden" id="det_abs_id">
+                
+                <div class="text-center pb-3 border-b border-gray-100">
+                    <p class="text-xs text-gray-500 uppercase tracking-wider font-bold">Tanggal Absen</p>
+                    <p id="det_abs_tgl" class="font-bold text-gray-900 text-lg mt-0.5"></p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 text-center shadow-sm">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase mb-1">Jam Masuk</p>
+                        <p id="det_abs_masuk" class="text-2xl font-bold text-gray-900">-</p>
+                        <span id="det_abs_status_masuk" class="inline-block mt-2 text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold uppercase tracking-wider">-</span>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 text-center shadow-sm">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase mb-1">Jam Pulang</p>
+                        <p id="det_abs_pulang" class="text-2xl font-bold text-gray-900">-</p>
+                        <span id="det_abs_status_pulang" class="inline-block mt-2 text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold uppercase tracking-wider">-</span>
+                    </div>
+                </div>
+                
+                <div id="det_abs_info_lembur" class="mt-3 mb-2 text-center bg-indigo-50 border border-indigo-100 p-2.5 rounded-xl hidden transition-all">
+                    <p class="text-[11px] font-bold text-indigo-800 uppercase tracking-wider">Kalkulasi Lembur Sistem (Dibulatkan)</p>
+                    <p id="det_abs_jam_lembur" class="text-xl font-black text-indigo-900 mt-0.5">0 Jam</p>
+                </div>
+                
+                <div class="border-t border-gray-100 pt-4">
+                    <h4 class="text-sm font-bold text-gray-700 mb-3">⏰ Edit Jam & Info Tambahan</h4>
+                    
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div>
+                            <label class="text-xs text-gray-500 font-bold block mb-1">Jam Masuk Baru</label>
+                            <input type="time" id="det_abs_edit_masuk" class="w-full p-2 bg-gray-100 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm font-bold">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500 font-bold block mb-1">Jam Pulang Baru</label>
+                            <input type="time" id="det_abs_edit_pulang" class="w-full p-2 bg-gray-100 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm font-bold">
+                        </div>
+                    </div>
+                </div>
+                <div id="det_abs_foto_container" class="mt-4"></div>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl bg-blue-50/50 cursor-pointer active:bg-blue-100 transition shadow-sm select-none">
+                        <input type="checkbox" id="det_abs_edit_rapat" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 cursor-pointer shrink-0">
+                        <div class="flex flex-col">
+                            <span class="text-[11px] font-bold text-blue-900 uppercase">Ikut Rapat</span>
+                        </div>
+                    </label>
+                    
+                    <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl bg-purple-50/50 cursor-pointer active:bg-purple-100 transition shadow-sm select-none">
+                        <input type="checkbox" id="det_abs_edit_nginep" class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 cursor-pointer shrink-0">
+                        <div class="flex flex-col">
+                            <span class="text-[11px] font-bold text-purple-900 uppercase">Tugas Nginep</span>
+                        </div>
+                    </label>
+                </div>
+
+                <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl bg-emerald-50/50 cursor-pointer active:bg-emerald-100 transition shadow-sm select-none">
+                    <input type="checkbox" id="det_abs_edit_tadarus" class="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer shrink-0">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-bold text-emerald-900 uppercase tracking-wide">Karyawan Sudah Setor Tadarus</span>
+                    </div>
+                </label>
+            </div>
+
+            <div class="p-4 bg-white border-t border-gray-100 shrink-0">
+                <div class="flex gap-2">
+                    <button onclick="approvePresensi('Ditolak')" class="flex-1 bg-red-100 text-red-700 font-bold py-2.5 rounded-xl hover:bg-red-200 transition text-sm">
+                        ❌ Tolak
+                    </button>
+                    <button onclick="approvePresensi('Disetujui')" class="flex-1 bg-green-600 text-white font-bold py-2.5 rounded-xl hover:bg-green-700 transition text-sm shadow-md">
+                        ✅ Setujui
+                    </button>
+                </div>
+                <button onclick="closeModal('modal-detail-absen')" class="w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-200 transition text-sm border border-gray-200 mt-2">
+                    Kembali / Tutup
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL DETAIL IZIN / SAKIT / PULANG CEPAT -->
+    <div id="modal-detail-izin" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[80] p-4 transition-opacity opacity-0">
+        <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 shadow-2xl">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-amber-50">
+                <div>
+                    <h3 class="font-bold text-lg text-gray-900">Lembar Bukti Pengajuan</h3>
+                    <p class="text-xs text-amber-800 font-medium">Verifikasi berkas izin lapangan</p>
+                </div>
+                <button onclick="closeModal('modal-detail-izin')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="detail_izin_id">
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Alasan / Keterangan Karyawan:</label>
+                    <textarea id="detail_izin_alasan" rows="3" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none resize-none text-sm"></textarea>
+                </div>
+
+                <div id="wrapper_jam_keluar" class="hidden">
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Rencana Jam Keluar (Pulang Cepat):</label>
+                    <div class="text-sm font-bold text-red-700 bg-red-50 px-3 py-2 rounded-lg border border-red-100 inline-flex items-center gap-1.5">
+                        <i class="bi bi-clock-history"></i> <span id="detail_izin_jam_keluar">00:00</span> WIB
+                    </div>
+                </div>
+
+                <!-- 🔥 SECTION EDIT FOTO BUKTI -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Berkas Lampiran Foto / SKD:</label>
+                    <input type="text" id="detail_izin_foto_edit" class="w-full p-2 bg-gray-100 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm mb-2" placeholder="URL foto baru (opsional)">
+                    <small class="text-xs text-gray-500">* Kosongkan jika tidak ingin mengubah foto</small>
+                    <div id="detail_izin_foto_container" class="mt-3"></div>
+                </div>
+
+                <!-- 🔥 TOMBOL APPROVAL IZIN -->
+                <div id="detail_izin_aksi_container" class="pt-3 border-t border-gray-100 flex gap-3">
+                    <button onclick="approveIzin('Ditolak')" class="flex-1 bg-red-100 text-red-700 font-bold py-3 rounded-xl hover:bg-red-200 transition text-sm active:scale-95">
+                        ❌ Tolak Izin
+                    </button>
+                    <button onclick="approveIzin('Disetujui')" class="flex-1 bg-green-700 text-white font-bold py-3 rounded-xl hover:bg-green-800 transition text-sm shadow-sm active:scale-95">
+                        ✅ ACC / Setujui
+                    </button>
+                </div>
+
+                <button onclick="closeModal('modal-detail-izin')" class="w-full bg-gray-100 text-gray-700 font-bold py-2.5 rounded-xl hover:bg-gray-200 transition text-sm border border-gray-200">
+                    Kembali / Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="modal-hari-libur" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
+        <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 shadow-xl flex flex-col max-h-[90vh]">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-red-50 shrink-0">
+                <div>
+                    <h3 class="font-bold text-lg text-red-700 flex items-center gap-2"><span class="material-symbols-outlined">event_busy</span> Setup Hari Libur</h3>
+                    <p class="text-xs text-red-600 font-medium mt-1">Karyawan mendapat absen gratis / gaji utuh</p>
+                </div>
+                <button type="button" onclick="closeModal('modal-hari-libur')" class="text-gray-400 hover:text-red-700"><span class="material-symbols-outlined">close</span></button>
+            </div>
+
+            <form onsubmit="window.simpanHariLibur(event)" class="p-5 overflow-y-auto flex-1 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Pilih Tanggal Merah</label>
+                    <input type="date" id="input_tgl_libur" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-red-600 font-medium" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Keterangan / Nama Libur</label>
+                    <input type="text" id="input_ket_libur" placeholder="Cth: Libur Idul Fitri / 17 Agustus" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-red-600 font-medium" required>
+                </div>
+
+                <button type="submit" id="btn-save-libur" class="w-full bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition shadow-sm mt-2">
+                    Simpan Tanggal Libur
+                </button>
+            </form>
+        </div>
+    </div>
+    <script>
+        import { supabase } from '../lib/supabase';
+
+        const container = document.getElementById('karyawan-container');
+        const waktuLokal = new Date();
+        const offset = waktuLokal.getTimezoneOffset() * 60000;
+        const today = new Date(waktuLokal - offset).toISOString().split('T')[0];
+
+        window.daftarKaryawan = [];
+        window.currentEmployee = null;
+
+        // Ambil data dari Supabase
+        // Ambil data dari Supabase
+        async function fetchKaryawan() {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select(`
+                    id,
+                    id_lapangan,
+                    nama,
+                    nomor_hp,
+                    foto_profil,
+                    role,
+                    presensi (
+                        id,
+                        tanggal,
+                        waktu_tiba,
+                        waktu_pulang,
+                        status_tiba,
+                        status_pulang,
+                        status_approval,
+                        foto_tiba,
+                        foto_pulang,
+                        is_tadarus,
+                        is_rapat,    
+                        is_nginep    
+                    ),
+                    izin_karyawan (
+                        id,
+                        tanggal,
+                        tipe_izin,
+                        status_pengajuan,
+                        alasan,
+                        foto_bukti,
+                        jam_rencana_keluar
+                    )
+                `)
+                .order('nama', { ascending: true });
+
+            if (error) {
+                alert(`DATABASE ERROR!\nPesan: ${error.message}`);
+                return;
+            }
+
+            window.daftarKaryawan = data || [];
+            renderKaryawan(window.daftarKaryawan);
+        }
+
+        // Render kartu karyawan
+        function renderKaryawan(dataKaryawan) {
+            if (dataKaryawan.length === 0) {
+                container.innerHTML = '<p class="text-on-surface-variant p-md">Belum ada data karyawan.</p>';
+                return;
+            }
+
+            const html = dataKaryawan.map((karyawan) => {
+                const absenHariIni = karyawan.presensi?.find(p => p.tanggal === today);
+                const izinHariIni = karyawan.izin_karyawan?.find(i => i.tanggal === today);
+                
+                let statusBadgeBg = 'bg-surface-variant text-on-surface-variant';
+                let statusBadgeText = 'Belum Absen';
+
+                const jamTiba = absenHariIni?.waktu_tiba ? absenHariIni.waktu_tiba.substring(0,5) : '-';
+                const jamPulang = absenHariIni?.waktu_pulang ? absenHariIni.waktu_pulang.substring(0,5) : '-';
+
+                if (izinHariIni) {
+                    const statusApp = izinHariIni.status_pengajuan || 'Menunggu Verifikasi';
+                    const tipe = String(izinHariIni.tipe_izin || '').toLowerCase().trim();
+                    
+                    let teksTipe = 'Izin';
+                    if (tipe === 'izin pulang cepat') teksTipe = 'Izin Pulang Cepat';
+                    if (tipe === 'sakit') teksTipe = 'Sakit';
+
+                    statusBadgeText = `${teksTipe} (${statusApp})`;
+                    
+                    if (statusApp === 'Disetujui') statusBadgeBg = 'bg-green-100 text-green-700 border border-green-200';
+                    else if (statusApp === 'Ditolak') statusBadgeBg = 'bg-red-100 text-red-700 border border-red-200';
+                    else statusBadgeBg = 'bg-amber-100 text-amber-700 border border-amber-200';
+                } 
+                else if (absenHariIni) {
+                    const statusTiba = absenHariIni.status_tiba || '';
+                    const statusPulang = absenHariIni.status_pulang || '';
+                    const statusApproval = absenHariIni.status_approval || 'Menunggu';
+                    
+                    if (statusTiba === 'Izin' || statusTiba === 'Sakit' || statusPulang === 'Izin Pulang Cepat') {
+                        const labelIzin = statusPulang === 'Izin Pulang Cepat' ? 'Izin P. Cepat' : statusTiba;
+                        statusBadgeText = `${labelIzin} (Berkas Belum Ada)`;
+                        statusBadgeBg = 'bg-amber-100 text-amber-700 border border-amber-200';
+                    } 
+                    else if (statusTiba === 'Telat') {
+                        statusBadgeText = `Telat (${statusApproval})`;
+                        statusBadgeBg = 'bg-red-100 text-red-700 border border-red-200';
+                    } 
+                    else {
+                        statusBadgeText = `Hadir (${statusApproval})`;
+                        statusBadgeBg = 'bg-primary-container text-on-primary-container';
+                    }
+                }
+
+                const inisial = karyawan.nama ? karyawan.nama.substring(0, 2).toUpperCase() : 'KY';
+
+                return `
+                    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col hover:shadow-md transition-shadow relative">
+                        ${absenHariIni || izinHariIni ? '<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>' : ''}
+                        
+                        <div class="p-md flex items-center gap-md cursor-pointer hover:bg-surface-container transition" onclick="openEmployeeDetail('${karyawan.id}')">
+                            ${karyawan.foto_profil 
+                                ? `<img src="${karyawan.foto_profil}" class="w-12 h-12 rounded-full object-cover border border-outline-variant shrink-0" />`
+                                : `<div class="w-12 h-12 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-md shrink-0">${inisial}</div>`
+                            }
+                            
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-label-lg text-label-lg text-on-surface truncate font-bold">${karyawan.nama}</h3>
+                                <p class="font-body-md text-body-md text-on-surface-variant truncate capitalize text-xs mt-0.5">${karyawan.role}</p>
+                            </div>
+                            <div class="${statusBadgeBg} font-label-sm text-label-sm px-2.5 py-1 rounded-full shrink-0 font-bold text-xs">
+                                ${statusBadgeText}
+                            </div>
+                        </div>
+
+                        <div class="px-md pb-md border-t border-outline-variant">
+                            <div class="grid grid-cols-2 gap-2 mb-3">
+                                <div class="bg-surface-container rounded-lg p-2.5 text-center">
+                                    <p class="text-[10px] text-on-surface-variant font-bold mb-1 uppercase tracking-wide">⏰ Tiba</p>
+                                    <p class="text-sm font-bold text-on-surface">${jamTiba}</p>
+                                </div>
+                                <div class="bg-surface-container rounded-lg p-2.5 text-center">
+                                    <p class="text-[10px] text-on-surface-variant font-bold mb-1 uppercase tracking-wide">⏰ Pulang</p>
+                                    <p class="text-sm font-bold text-on-surface">${jamPulang}</p>
+                                </div>
+                            </div>
+                            
+                            ${absenHariIni ? `
+                                <div class="flex gap-2">
+                                    ${absenHariIni.foto_tiba 
+                                        ? `<button onclick="window.lihatFotoAbsen('${absenHariIni.id}', 'tiba')" class="flex-1 bg-blue-50 text-blue-700 text-xs font-bold py-2 rounded-lg hover:bg-blue-100 transition border border-blue-200 active:scale-95">
+                                            📸 Foto Tiba
+                                        </button>`
+                                        : `<button class="flex-1 bg-gray-50 text-gray-400 text-xs font-bold py-2 rounded-lg border border-gray-200 cursor-not-allowed">
+                                            📸 Foto Tiba
+                                        </button>`
+                                    }
+                                    ${absenHariIni.foto_pulang 
+                                        ? `<button onclick="window.lihatFotoAbsen('${absenHariIni.id}', 'pulang')" class="flex-1 bg-green-50 text-green-700 text-xs font-bold py-2 rounded-lg hover:bg-green-100 transition border border-green-200 active:scale-95">
+                                            📸 Foto Pulang
+                                        </button>`
+                                        : `<button class="flex-1 bg-gray-50 text-gray-400 text-xs font-bold py-2 rounded-lg border border-gray-200 cursor-not-allowed">
+                                            📸 Foto Pulang
+                                        </button>`
+                                    }
+                                </div>
+                            ` : '<p class="text-xs text-on-surface-variant text-center italic">Belum ada absensi hari ini</p>'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        // Lihat Foto Absen
+        window.lihatFotoAbsen = function(absenId, tipe) {
+            const p = window.daftarKaryawan
+                .flatMap(k => k.presensi || [])
+                .find(x => String(x.id) === String(absenId));
+            
+            if(!p) {
+                alert("Data absensi tidak ditemukan!");
+                return;
+            }
+            
+            const fotoUrl = tipe === 'tiba' ? p.foto_tiba : p.foto_pulang;
+            
+            if(!fotoUrl) {
+                alert(`Foto ${tipe === 'tiba' ? 'Tiba' : 'Pulang'} belum tersedia`);
+                return;
+            }
+            
+            const modalId = `modal-foto-${tipe}-${absenId}`;
+            const namaFoto = tipe === 'tiba' ? 'Foto Tiba' : 'Foto Pulang';
+            
+            const modalHTML = `
+                <div id="${modalId}" class="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4 transition-opacity opacity-0">
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-2xl max-w-lg w-full transform scale-95 transition-transform">
+                        <div class="flex justify-between items-center p-5 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100">
+                            <h3 class="font-bold text-lg text-gray-900">${namaFoto}</h3>
+                            <button onclick="document.getElementById('${modalId}').remove()" class="text-gray-500 hover:text-gray-900 text-2xl font-bold leading-none">✕</button>
+                        </div>
+                        <div class="p-6">
+                            <img src="${fotoUrl}" alt="${namaFoto}" class="w-full h-auto rounded-xl shadow-md object-contain max-h-[500px]" />
+                        </div>
+                        <div class="p-5 border-t border-gray-200 flex gap-3 bg-gray-50">
+                            <a href="${fotoUrl}" target="_blank" download class="flex-1 bg-blue-600 text-white font-bold py-3 rounded-lg text-center hover:bg-blue-700 transition active:scale-95 text-sm">
+                                ⬇️ Download
+                            </a>
+                            <button onclick="document.getElementById('${modalId}').remove()" class="flex-1 bg-gray-300 text-gray-900 font-bold py-3 rounded-lg hover:bg-gray-400 transition active:scale-95 text-sm">
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            const modal = document.getElementById(modalId);
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.querySelector('div').classList.remove('scale-95');
+            }, 10);
+        };
+
+        // Buka Pop up Libur
+        window.bukaModalLibur = function() {
+            // Set tanggal hari ini sebagai default
+            const wkt = new Date();
+            const offset = wkt.getTimezoneOffset() * 60000;
+            document.getElementById('input_tgl_libur').value = new Date(wkt - offset).toISOString().split('T')[0];
+            document.getElementById('input_ket_libur').value = '';
+            
+            const m = document.getElementById('modal-hari-libur');
+            m.classList.remove('hidden'); m.classList.add('flex');
+            setTimeout(() => { m.classList.remove('opacity-0'); m.querySelector('div').classList.remove('scale-95'); }, 10);
+        };
+
+        // Simpan ke Database
+        window.simpanHariLibur = async function(e) {
+            e.preventDefault();
+            const tgl = document.getElementById('input_tgl_libur').value;
+            const ket = document.getElementById('input_ket_libur').value;
+            const btn = document.getElementById('btn-save-libur');
+            
+            btn.innerText = "Menyimpan..."; btn.disabled = true;
+
+            try {
+                // Tembak ke tabel hari_libur
+                const { error } = await window.supabase.from('hari_libur').insert([{
+                    tanggal: tgl,
+                    keterangan: ket
+                }]);
+
+                if (error) {
+                    // Kalau error duplikat (tanggal udah pernah diinput)
+                    if (error.code === '23505') throw new Error("Tanggal ini sudah terdaftar sebagai hari libur!");
+                    throw error;
+                }
+
+                alert("Mantap! Hari libur berhasil ditambahkan. Sistem gaji akan otomatis memberi absen gratis di tanggal tersebut.");
+                window.closeModal('modal-hari-libur');
+            } catch (err) {
+                alert("Gagal menyimpan: " + err.message);
+            } finally {
+                btn.innerText = "Simpan Tanggal Libur"; btn.disabled = false;
+            }
+        };
+
+        // Open Employee Detail
+        window.openEmployeeDetail = function(id) {
+            const karyawan = window.daftarKaryawan.find(k => k.id === id);
+            if (!karyawan) return;
+            
+            window.currentEmployee = karyawan;
+
+            const detailContent = document.getElementById('detail-content');
+            const inisial = karyawan.nama.substring(0, 2).toUpperCase();
+
+            detailContent.innerHTML = `
+                <div class="flex flex-col items-center gap-sm border-b border-outline-variant pb-lg mb-lg">
+                    ${karyawan.foto_profil 
+                        ? `<img src="${karyawan.foto_profil}" class="w-12 h-12 rounded-full object-cover border border-outline-variant shrink-0" />`
+                        : `<div class="w-12 h-12 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-md shrink-0">${inisial}</div>`
+                    }
+                    <h3 class="font-headline-sm text-on-surface font-bold text-center">${karyawan.nama}</h3>
+                    <span class="bg-surface-variant text-on-surface-variant px-3 py-1 rounded-full font-label-md capitalize">${karyawan.role}</span>
+                </div>
+
+                <div class="flex flex-col gap-md border-b border-outline-variant pb-lg mb-lg">
+                    <h4 class="font-label-lg text-primary font-bold">Informasi Profil</h4>
+                    <div class="grid grid-cols-3 gap-y-xs font-body-md">
+                        <div class="text-on-surface-variant">ID Lapangan</div>
+                        <div class="col-span-2 text-on-surface font-medium">: ${karyawan.id_lapangan || '-'}</div>
+                        
+                        <div class="text-on-surface-variant">No. HP</div>
+                        <div class="col-span-2 text-on-surface font-medium">: ${karyawan.nomor_hp || '-'}</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-md">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-label-lg text-primary font-bold">Riwayat Presensi</h4>
+                    </div>
+
+                    <div class="flex gap-2 items-center bg-surface-container-lowest p-2 rounded-lg border border-outline-variant">
+                        <div class="flex flex-col w-full">
+                            <label class="text-[10px] text-on-surface-variant">Dari</label>
+                            <input type="date" id="filter-start" max="${today}" class="text-sm bg-transparent border-none outline-none text-on-surface cursor-pointer" onchange="filterRiwayat()">
+                        </div>
+                        <span class="text-on-surface-variant">-</span>
+                        <div class="flex flex-col w-full">
+                            <label class="text-[10px] text-on-surface-variant">Sampai</label>
+                            <input type="date" id="filter-end" max="${today}" value="${today}" class="text-sm bg-transparent border-none outline-none text-on-surface cursor-pointer" onchange="filterRiwayat()">
+                        </div>
+                    </div>
+
+                    <div id="riwayat-container" class="flex flex-col gap-sm max-h-[350px] overflow-y-auto pr-xs mt-xs">
+                    </div>
+                </div>
+            `;
+
+            filterRiwayat();
+
+            const panel = document.getElementById('employee-detail-panel');
+            const backdrop = document.getElementById('employee-detail-backdrop');
+            
+            backdrop.classList.remove('hidden');
+            setTimeout(() => { backdrop.classList.remove('opacity-0'); }, 10);
+            
+            panel.classList.remove('translate-x-full');
+            panel.classList.add('translate-x-0');
+        };
+
+        // Filter Riwayat
+        window.filterRiwayat = function() {
+            if (!window.currentEmployee) return;
+            const startDate = document.getElementById('filter-start').value;
+            const endDate = document.getElementById('filter-end').value || today;
+            const riwayatContainer = document.getElementById('riwayat-container');
+
+            let presensi = window.currentEmployee.presensi || [];
+            let izinList = window.currentEmployee.izin_karyawan || [];
+
+            let semuaTanggal = new Set();
+            presensi.forEach(p => semuaTanggal.add(p.tanggal));
+            izinList.forEach(i => semuaTanggal.add(i.tanggal));
+
+            let tanggalSorted = Array.from(semuaTanggal).filter(tgl => {
+                let valid = true;
+                if (startDate) valid = valid && tgl >= startDate;
+                if (endDate) valid = valid && tgl <= endDate;
+                return valid;
+            }).sort((a, b) => new Date(b) - new Date(a));
+
+            if (tanggalSorted.length === 0) {
+                riwayatContainer.innerHTML = '<p class="text-on-surface-variant font-body-md text-center py-md">Tidak ada riwayat absen atau izin pada tanggal tersebut.</p>';
+                return;
+            }
+
+            riwayatContainer.innerHTML = tanggalSorted.map(tgl => {
+                const p = presensi.find(x => x.tanggal === tgl);
+                const iz = izinList.find(x => x.tanggal === tgl);
+
+                let statusText = '-';
+                let statusColor = 'bg-primary-container text-on-primary-container';
+                let infoHtml = '';
+                let photoHtml = '';
+                let btnDetailHtml = '';
+                
+                if (iz) {
+                    const appStatus = iz.status_pengajuan || 'Menunggu Verifikasi';
+                    const tipe = String(iz.tipe_izin || '').toLowerCase().trim();
+
+                    if (appStatus === 'Disetujui') statusColor = 'bg-green-100 text-green-700';
+                    else if (appStatus === 'Ditolak') statusColor = 'bg-red-100 text-red-700';
+                    else statusColor = 'bg-amber-100 text-amber-700';
+
+                    if (tipe === 'sakit' || tipe === 'izin') {
+                        statusText = tipe === 'sakit' ? 'Sakit' : 'Izin';
+                        infoHtml = `<p class="font-body-md text-xs text-on-surface-variant mt-1"><b>Keterangan:</b> ${iz.alasan || 'Tidak ada keterangan'}</p>`;
+                    } else if (tipe === 'izin pulang cepat' || iz.jam_rencana_keluar) {
+                        statusText = 'Izin Pulang Cepat';
+                        const jamTiba = p?.waktu_tiba ? p.waktu_tiba.substring(0,5) : '-';
+                        infoHtml = `<p class="font-body-md text-xs text-on-surface-variant mt-1">Tiba: ${jamTiba} | <b>Alasan:</b> ${iz.alasan || '-'}</p>`;
+                        
+                        if (p && p.foto_tiba) {
+                             photoHtml = `
+                                <div class="flex gap-2 mt-2">
+                                    <button onclick="window.lihatFotoAbsen('${p.id}', 'tiba')" class="flex-1 bg-blue-50 text-blue-700 text-[10px] font-bold py-1.5 rounded-lg hover:bg-blue-100 transition border border-blue-200">📸 Foto Tiba</button>
+                                </div>
+                             `;
+                        }
+                    }
+
+                    btnDetailHtml = `
+                        <div class="mt-3 pt-2 border-t border-gray-100 flex justify-between items-center">
+                            <span class="text-[11px] text-gray-500 font-medium">Validasi: <b class="capitalize">${appStatus}</b></span>
+                            <button onclick="window.bukaModalDetailIzin('${iz.id}')" class="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-lg text-xs font-bold hover:bg-blue-100 transition shadow-sm">
+                                📋 Lihat/Setujui
+                            </button>
+                        </div>
+                    `;
+                } 
+                else if (p) {
+                    const statusApproval = p.status_approval || 'Menunggu';
+                    statusText = p.status_tiba || 'Hadir';
+                    if (p.status_tiba === 'Telat') statusColor = 'bg-error-container text-on-error-container';
+
+                    infoHtml = `
+                        <p class="font-body-md text-xs text-on-surface-variant mt-1">
+                            Tiba: ${p.waktu_tiba ? p.waktu_tiba.substring(0,5) : '-'} | 
+                            Pulang: ${p.waktu_pulang ? p.waktu_pulang.substring(0,5) : '-'} ${p.status_pulang ? `(${p.status_pulang})` : ''}
+                            ${p.is_tadarus ? '<br><span class="text-purple-600 font-bold mt-1 inline-block">📖 Sudah Tadarus Al-Quran</span>' : ''}
+                        </p>
+                    `;
+
+                    btnDetailHtml = `
+                        <div class="mt-3 pt-2 border-t border-gray-100 flex justify-between items-center">
+                            <span class="text-[11px] text-gray-500 font-medium">Status: <b class="capitalize">${statusApproval}</b></span>
+                            <button onclick="window.bukaModalDetailAbsen('${p.id}')" class="bg-gray-50 text-gray-700 border border-gray-200 px-3 py-1 rounded-lg text-xs font-bold hover:bg-gray-200 transition shadow-sm">
+                                🔍 Periksa/Setujui
+                            </button>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="border border-outline-variant rounded-xl p-3 mb-sm bg-surface-container-lowest shadow-sm">
+                        <div class="flex justify-between items-center mb-xs">
+                            <span class="font-label-md text-on-surface font-semibold text-sm">${tgl}</span>
+                            <span class="${statusColor} text-[10px] px-2 py-0.5 rounded-full font-bold tracking-wider uppercase">${statusText}</span>
+                        </div>
+                        ${infoHtml}
+                        ${photoHtml}
+                        ${btnDetailHtml}
+                    </div>
+                `;
+            }).join('');
+        };
+
+        // Close Employee Detail
+        window.closeEmployeeDetail = function() {
+            const panel = document.getElementById('employee-detail-panel');
+            const backdrop = document.getElementById('employee-detail-backdrop');
+            
+            panel.classList.remove('translate-x-0');
+            panel.classList.add('translate-x-full');
+            
+            backdrop.classList.add('opacity-0');
+            setTimeout(() => { backdrop.classList.add('hidden'); }, 300);
+        };
+
+        // 🔥 Buka Modal Detail Absen (untuk approval)
+        // 🔥 Buka Modal Detail Absen (untuk approval)
+        window.bukaModalDetailAbsen = function(idAbsen) {
+            const p = window.currentEmployee?.presensi?.find(x => String(x.id) === String(idAbsen));
+            if(!p) return alert("Data absensi tidak ditemukan!");
+
+            document.getElementById('det_abs_id').value = p.id;
+            document.getElementById('det_abs_tgl').innerText = p.tanggal || '-';
+            document.getElementById('det_abs_masuk').innerText = p.waktu_tiba ? p.waktu_tiba.substring(0,5) : '-';
+            document.getElementById('det_abs_pulang').innerText = p.waktu_pulang ? p.waktu_pulang.substring(0,5) : '-';
+            
+            // Isi input jam untuk diedit
+            document.getElementById('det_abs_edit_masuk').value = p.waktu_tiba || '';
+            document.getElementById('det_abs_edit_pulang').value = p.waktu_pulang || '';
+            
+            // 🔥 TAMPILKAN STATUS CENTANGAN TERBARU DARI DATABASE
+            document.getElementById('det_abs_edit_tadarus').checked = p.is_tadarus || false; 
+            document.getElementById('det_abs_edit_rapat').checked = p.is_rapat || false; 
+            document.getElementById('det_abs_edit_nginep').checked = p.is_nginep || false; 
+            
+            // 🔥 FUNGSI KALKULATOR LIVE LEMBUR (LINTAS HARI)
+            const parseJam = (t) => { if(!t) return null; const [h,m] = t.split(':'); return parseInt(h)*60 + parseInt(m); };
+            
+            const hitungLemburLive = () => {
+                let mStr = document.getElementById('det_abs_edit_masuk').value;
+                let pStr = document.getElementById('det_abs_edit_pulang').value;
+                const infoLembur = document.getElementById('det_abs_info_lembur');
+                
+                let mM = parseJam(mStr); let pM = parseJam(pStr);
+                
+                if (mM !== null && pM !== null) {
+                    if (pM < mM) pM += (24 * 60); // Logika Lintas Hari
+                    if (pM > 17 * 60) {
+                        let jam = Math.round((pM - (17 * 60)) / 60);
+                        document.getElementById('det_abs_jam_lembur').innerText = jam + ' Jam';
+                        infoLembur.classList.remove('hidden');
+                        return;
+                    }
+                }
+                infoLembur.classList.add('hidden');
+            };
+
+            // Panggil saat pertama buka, dan jadikan responsif saat diketik
+            hitungLemburLive();
+            document.getElementById('det_abs_edit_masuk').oninput = hitungLemburLive;
+            document.getElementById('det_abs_edit_pulang').oninput = hitungLemburLive;
+
+            // Ganti warna badge
+            const setBadge = (elId, status) => {
+                const el = document.getElementById(elId);
+                el.innerText = status || '-';
+                if(status === 'Telat') el.className = 'inline-block mt-2 text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-bold uppercase tracking-wider';
+                else el.className = 'inline-block mt-2 text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold uppercase tracking-wider';
+            };
+
+            setBadge('det_abs_status_masuk', p.status_tiba);
+            setBadge('det_abs_status_pulang', p.status_pulang);
+
+            // Suntikkan tombol foto
+            const containerFoto = document.getElementById('det_abs_foto_container');
+            if (containerFoto) {
+                containerFoto.innerHTML = `
+                    <div class="flex gap-2">
+                        ${p.foto_tiba 
+                            ? `<button onclick="window.lihatFotoAbsen('${p.id}', 'tiba')" class="flex-1 bg-blue-50 text-blue-700 text-xs font-bold py-2.5 rounded-lg hover:bg-blue-100 transition border border-blue-200 shadow-sm active:scale-95">📸 Lihat Foto Tiba</button>`
+                            : `<button class="flex-1 bg-gray-50 text-gray-400 text-xs font-bold py-2.5 rounded-lg border border-gray-200 cursor-not-allowed">📸 Foto Tiba Kosong</button>`
+                        }
+                        ${p.foto_pulang 
+                            ? `<button onclick="window.lihatFotoAbsen('${p.id}', 'pulang')" class="flex-1 bg-green-50 text-green-700 text-xs font-bold py-2.5 rounded-lg hover:bg-green-100 transition border border-green-200 shadow-sm active:scale-95">📸 Lihat Foto Pulang</button>`
+                            : `<button class="flex-1 bg-gray-50 text-gray-400 text-xs font-bold py-2.5 rounded-lg border border-gray-200 cursor-not-allowed">📸 Foto Pulang Kosong</button>`
+                        }
+                    </div>
+                `;
+            }
+
+            openModal('modal-detail-absen');
+        };
+
+        // 🔥 FUNGSI APPROVE PRESENSI
+        window.approvePresensi = async function(status) {
+            if(!confirm(`Yakin ingin ${status === 'Disetujui' ? 'MENYETUJUI' : 'MENOLAK'} presensi ini?`)) return;
+
+            const id = document.getElementById('det_abs_id').value;
+            const jamMasuk = document.getElementById('det_abs_edit_masuk').value;
+            const jamPulang = document.getElementById('det_abs_edit_pulang').value;
+            
+            // 🔥 TANGKAP NILAI KETIGA CHECKBOX
+            const isTadarus = document.getElementById('det_abs_edit_tadarus').checked; 
+            const isRapat = document.getElementById('det_abs_edit_rapat').checked; 
+            const isNginep = document.getElementById('det_abs_edit_nginep').checked; 
+
+            if (!jamMasuk || !jamPulang) {
+                alert('Mohon isi jam masuk dan jam pulang!');
+                return;
+            }
+
+            try {
+                const { error } = await supabase
+                    .from('presensi')
+                    .update({ 
+                        status_approval: status,
+                        waktu_tiba: jamMasuk,
+                        waktu_pulang: jamPulang,
+                        is_tadarus: isTadarus,
+                        is_rapat: isRapat,     // 🔥 SIMPAN KE DB
+                        is_nginep: isNginep    // 🔥 SIMPAN KE DB
+                    })
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                alert(`Presensi berhasil ${status.toLowerCase()}!`);
+                closeModal('modal-detail-absen');
+
+                // Refresh data (dengan select tambahan kolom)
+                const currentEmpId = window.currentEmployee.id;
+                const { data: freshData } = await supabase
+                    .from('profiles')
+                    .select('id, id_lapangan, nama, nomor_hp, foto_profil, role, presensi(id, tanggal, waktu_tiba, waktu_pulang, status_tiba, status_pulang, status_approval, foto_tiba, foto_pulang, is_tadarus, is_rapat, is_nginep), izin_karyawan(id, tanggal, tipe_izin, status_pengajuan, alasan, foto_bukti, jam_rencana_keluar)')
+                    .order('nama', { ascending: true });
+                
+                if(freshData) {
+                    window.daftarKaryawan = freshData;
+                    window.currentEmployee = freshData.find(k => k.id === currentEmpId);
+                    renderKaryawan(window.daftarKaryawan);
+                    filterRiwayat();
+                }
+            } catch (err) {
+                alert('Gagal approve presensi: ' + err.message);
+            }
+        };
+
+        // 🔥 Buka Modal Detail Izin (untuk approval)
+        window.bukaModalDetailIzin = function(izinId) {
+            const iz = window.currentEmployee?.izin_karyawan?.find(x => String(x.id) === String(izinId));
+            if(!iz) return alert("Data berkas izin tidak ditemukan!");
+
+            document.getElementById('detail_izin_id').value = iz.id;
+            document.getElementById('detail_izin_alasan').value = iz.alasan || '';
+            document.getElementById('detail_izin_foto_edit').value = iz.foto_bukti || '';
+
+            const wrapJam = document.getElementById('wrapper_jam_keluar');
+            if(iz.jam_rencana_keluar) {
+                wrapJam.classList.remove('hidden');
+                document.getElementById('detail_izin_jam_keluar').innerText = iz.jam_rencana_keluar.substring(0,5);
+            } else {
+                wrapJam.classList.add('hidden');
+            }
+
+            const imgContainer = document.getElementById('detail_izin_foto_container');
+            if(iz.foto_bukti) {
+                imgContainer.innerHTML = `
+                    <a href="${iz.foto_bukti}" target="_blank" class="block mt-2 hover:opacity-90 transition">
+                        <img src="${iz.foto_bukti}" alt="Berkas Lampiran" class="w-full h-44 object-contain bg-gray-100 rounded-xl border border-gray-200 shadow-sm" />
+                    </a>
+                    <p class="text-[10px] text-center text-gray-500 mt-1.5 italic">Klik gambar untuk memperbesar</p>
+                `;
+            } else {
+                imgContainer.innerHTML = `
+                    <div class="p-4 bg-gray-50 border border-gray-200 border-dashed rounded-xl text-center text-xs text-gray-400 italic mt-1">
+                        Karyawan tidak menyertakan foto bukti lampiran.
+                    </div>
+                `;
+            }
+
+            // ✅ KODE BARU (tampil untuk semua izin/sakit/pulang cepat)
+const containerAksi = document.getElementById('detail_izin_aksi_container');
+const typeIzin = String(iz.tipe_izin || '').toLowerCase().trim();
+
+// Tampilkan tombol jika tipe izin adalah: izin, sakit, atau izin pulang cepat
+if (typeIzin === 'izin' || typeIzin === 'sakit' || typeIzin === 'izin pulang cepat') {
+    containerAksi.classList.remove('hidden');
+} else {
+    containerAksi.classList.add('hidden');
+}
+
+            openModal('modal-detail-izin');
+        };
+
+        // 🔥 FUNGSI APPROVE IZIN
+        window.approveIzin = async function(status) {
+            if(!confirm(`Yakin ingin ${status === 'Disetujui' ? 'MENYETUJUI' : 'MENOLAK'} pengajuan izin ini?`)) return;
+
+            const idIzin = document.getElementById('detail_izin_id').value;
+            const alasanBaru = document.getElementById('detail_izin_alasan').value;
+            const fotoBaru = document.getElementById('detail_izin_foto_edit').value;
+
+            try {
+                const { error: errorIzin } = await supabase
+                    .from('izin_karyawan')
+                    .update({ 
+                        status_pengajuan: status,
+                        alasan: alasanBaru,
+                        foto_bukti: fotoBaru || undefined
+                    })
+                    .eq('id', idIzin);
+
+                if (errorIzin) throw errorIzin;
+
+                alert(`Pengajuan izin berhasil ${status.toLowerCase()}!`);
+                closeModal('modal-detail-izin');
+
+                // Refresh data
+                const currentEmpId = window.currentEmployee.id;
+                const { data: freshData } = await supabase
+                    .from('profiles')
+                    .select('id, id_lapangan, nama, nomor_hp, foto_profil, role, presensi(id, tanggal, waktu_tiba, waktu_pulang, status_tiba, status_pulang, status_approval, foto_tiba, foto_pulang), izin_karyawan(id, tanggal, tipe_izin, status_pengajuan, alasan, foto_bukti, jam_rencana_keluar)')
+                    .order('nama', { ascending: true });
+                
+                if(freshData) {
+                    window.daftarKaryawan = freshData;
+                    window.currentEmployee = freshData.find(k => k.id === currentEmpId);
+                    renderKaryawan(window.daftarKaryawan);
+                    filterRiwayat();
+                }
+            } catch (err) {
+                alert('Gagal approve izin: ' + err.message);
+            }
+        };
+
+        // Kontrol Modal
+        window.openModal = function(id) {
+            const m = document.getElementById(id);
+            if(!m) return;
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+            setTimeout(() => { 
+                m.classList.remove('opacity-0'); 
+                const isi = m.querySelector('div');
+                if(isi) isi.classList.remove('scale-95'); 
+            }, 10);
+        };
+        
+        window.closeModal = function(id) {
+            const m = document.getElementById(id);
+            if(!m) return;
+            m.classList.add('opacity-0'); 
+            const isi = m.querySelector('div');
+            if(isi) isi.classList.add('scale-95');
+            setTimeout(() => { 
+                m.classList.add('hidden'); 
+                m.classList.remove('flex'); 
+            }, 300);
+        };
+
+        // Init
+        document.addEventListener('DOMContentLoaded', async () => {
+            const allowedRoles = ['owner', 'hrd', 'keuangan', 'it'];
+            const client = window.supabase || supabase;
+            
+            const { data: { session } } = await client.auth.getSession();
+            if (!session) return window.location.replace('/');
+            
+            const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+            if (!allowedRoles.includes(prof?.role)) {
+                alert(`Akses Ditolak! Data karyawan terbatas untuk Owner & HRD.`);
+                return window.location.replace('/');
+            }
+            document.body.style.display = 'block';
+            
+            fetchKaryawan();
+        });
+    </script>
+</Layout>

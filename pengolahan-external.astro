@@ -1,0 +1,574 @@
+---
+import GeneralLayout from '../layouts/Layout.astro';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+---
+
+<GeneralLayout title="Pengolahan Eksternal - Manajemen Bang Jelantah">
+    <style is:global>
+        body { display: none; }
+    </style>
+
+    <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Pengolahan Eksternal (Spinner)</h1>
+            <p class="text-gray-600">Catat penyaringan bahan baku dengan pihak luar, update stok, dan otomatis rekap biaya jasa.</p>
+        </div>
+    </div>
+
+    <div class="mb-6 border-b border-gray-200 overflow-x-auto hide-scrollbar">
+        <div class="flex gap-8 min-w-max">
+            <button class="tab-btn active px-4 py-3 font-bold transition border-b-2 border-orange-600 text-orange-600" data-tab="tab-input">
+                <i class="bi bi-funnel-fill mr-2"></i> Input Pengolahan
+            </button>
+            <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="tab-riwayat">
+                <i class="bi bi-clock-history mr-2"></i> Riwayat Pengolahan
+            </button>
+        </div>
+    </div>
+
+    <div id="tab-input" class="tab-content block">
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm lg:w-2/3">
+            <div class="p-6 border-b border-gray-100 bg-orange-50/50">
+                <h3 class="font-bold text-lg text-gray-900">Form Proses Spinner / Penyaringan</h3>
+            </div>
+            
+            <form id="form-pengolahan" class="p-6 space-y-6">
+                <input type="hidden" id="edit_group_tanggal" value="">
+                <input type="hidden" id="edit_group_vendor" value="">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Tanggal Proses</label>
+                        <input type="date" id="tgl_proses" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-orange-500 font-medium" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Vendor Eksternal</label>
+                        <input type="text" id="nama_vendor" placeholder="Nama Vendor..." class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-orange-500 font-medium" required>
+                    </div>
+                </div>
+
+                <hr class="border-dashed">
+
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="text-sm font-bold text-red-600"><i class="bi bi-box-arrow-up-right"></i> Bahan Mentah Keluar</h4>
+                        <button type="button" onclick="window.tambahBarisBahan()" class="text-xs bg-red-100 text-red-700 px-3 py-1.5 rounded-lg font-bold hover:bg-red-200 transition shadow-sm">+ Tambah Bahan</button>
+                    </div>
+                    <div id="container-bahan-mentah" class="space-y-3 bg-red-50/30 p-4 rounded-xl border border-red-100">
+                        </div>
+                </div>
+
+                <div>
+                    <h4 class="text-sm font-bold text-green-600 mb-3"><i class="bi bi-box-arrow-in-down-left"></i> Barang Jadi (Hasil)</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-green-50/30 p-4 rounded-xl border border-green-100">
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Minyak (Kg)</label>
+                            <input type="hidden" id="komoditas_minyak" value="minyak_jelantah">
+                            <input type="number" step="0.1" id="vol_minyak" class="w-full border border-green-300 rounded-lg p-2.5 text-sm outline-none font-bold text-green-700 bg-white" placeholder="Hasil Minyak (Kg)" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Ampas Kering / Spinner</label>
+                            <input type="hidden" id="komoditas_spinner" value="spinner">
+                            <input type="number" step="0.1" id="vol_spinner" class="w-full border border-green-300 rounded-lg p-2.5 text-sm outline-none font-bold text-green-700 bg-white" placeholder="Hasil Spinner (Kg)" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-900 p-5 rounded-xl shadow-inner text-white grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Jml Jerigen Minyak</label>
+                        <input type="number" id="jml_jerigen" class="w-full border-none bg-gray-800 rounded-lg p-3 text-sm outline-none font-bold text-white focus:ring-2 focus:ring-orange-500" placeholder="Cth: 10" oninput="window.hitungTotalBiaya()" required>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Harga Jasa Per Jerigen (Rp)</label>
+                        <input type="number" id="harga_jasa_per_jerigen" class="w-full border-none bg-gray-800 rounded-lg p-3 text-sm outline-none font-bold text-white focus:ring-2 focus:ring-orange-500" placeholder="Cth: 15000" oninput="window.hitungTotalBiaya()" required>
+                    </div>
+                    <div class="text-right">
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total Biaya Masuk Pengeluaran</label>
+                        <div class="flex items-center justify-end gap-2">
+                            <span class="text-orange-400 font-bold text-xl">Rp</span>
+                            <input type="number" id="input_total_biaya" class="bg-gray-800 border-b border-gray-600 text-orange-400 font-mono text-2xl font-bold w-40 text-right outline-none focus:border-orange-500 py-1" value="0" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" id="btn-draft-pengolahan" onclick="window.eksekusiPengolahanMassal('Draft')" class="px-5 py-3 bg-white border-2 border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition shadow-sm text-sm flex items-center gap-2">
+                        <i class="bi bi-save"></i> Simpan Sementara (Draft)
+                    </button>
+                    
+                    <button type="button" id="btn-save-pengolahan" onclick="window.eksekusiPengolahanMassal('Selesai')" class="px-6 py-3 bg-orange-600 text-white font-bold rounded-xl hover:bg-orange-700 transition shadow-sm active:scale-95 flex items-center gap-2">
+                        <i class="bi bi-gear-fill"></i> Eksekusi & Catat ke Sistem
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="tab-riwayat" class="tab-content hidden">
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-4 py-3 text-sm font-bold text-gray-900">Tanggal</th>
+                            <th class="px-4 py-3 text-sm font-bold text-gray-900">Vendor</th>
+                            <th class="px-4 py-3 text-sm font-bold text-gray-900">Diproses</th>
+                            <th class="px-4 py-3 text-sm font-bold text-gray-900">Hasil Jadi</th>
+                            <th class="px-4 py-3 text-sm font-bold text-gray-900 text-right">Biaya Jasa</th>
+                            <th class="px-4 py-3 text-sm font-bold text-gray-900 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="riwayat-tbody" class="divide-y divide-gray-100">
+                        <tr><td colspan="6" class="text-center py-4 text-gray-500">Memuat riwayat...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</GeneralLayout>
+
+<script>
+    import { supabase } from '../lib/supabase';
+    window.supabase = supabase;
+    
+    // Variabel Global
+    let currentUserId = '';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const allowedRoles = ['owner', 'hrd', 'keuangan', 'admin', 'it'];
+        const client = window.supabase; 
+        
+        const { data: { session } } = await client.auth.getSession();
+        if (!session) return window.location.replace('/');
+        
+        currentUserId = session.user.id;
+        const { data: prof } = await client.from('profiles').select('role').eq('id', currentUserId).single();
+        if (!allowedRoles.includes(prof?.role)) {
+            alert("Akses Ditolak!"); return window.location.replace('/');
+        }
+        document.body.style.display = 'block';
+
+        // Tab Logic
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-tab');
+                tabBtns.forEach(b => {
+                    b.classList.remove('active', 'border-orange-600', 'text-orange-600', 'font-bold');
+                    b.classList.add('border-transparent', 'text-gray-600', 'font-medium');
+                });
+                tabContents.forEach(c => { c.classList.remove('block'); c.classList.add('hidden'); });
+                
+                this.classList.add('active', 'border-orange-600', 'text-orange-600', 'font-bold');
+                this.classList.remove('border-transparent', 'text-gray-600', 'font-medium');
+                document.getElementById(targetId)?.classList.replace('hidden', 'block');
+            });
+        });
+
+        // ===================================
+        // 1. MESIN DINAMIS BAHAN MENTAH
+        // ===================================
+        window.opsiBahanMentah = [
+            { id: 'minyak_jelantah', nama: 'Minyak Jelantah' },
+            { id: 'kriuk', nama: 'Kriuk' },
+            { id: 'ampas', nama: 'Ampas / Sludge' }
+        ];
+
+        window.tambahBarisBahan = function() {
+            const container = document.getElementById('container-bahan-mentah');
+            const rowId = 'bahan_' + Date.now();
+            
+            const rowHTML = `
+                <div id="${rowId}" class="baris-bahan flex flex-col md:flex-row items-end gap-3 bg-white p-3 rounded-xl border border-red-200 shadow-sm animate-in fade-in zoom-in-95 duration-200">
+                    <div class="flex-1 w-full">
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Komoditas</label>
+                        <select class="input-komoditas-asal w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 font-medium" onchange="window.updateOpsiBahan()" required>
+                            <option value="">-- Pilih Bahan --</option>
+                            ${window.opsiBahanMentah.map(k => `<option value="${k.id}">${k.nama}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="w-full md:w-32 shrink-0">
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Vol (Kg)</label>
+                        <input type="number" step="0.1" class="input-vol-asal w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 font-bold text-red-700" placeholder="0" required>
+                    </div>
+                    <button type="button" onclick="document.getElementById('${rowId}').remove(); window.updateOpsiBahan();" class="w-full md:w-auto h-[42px] px-4 bg-red-100 text-red-600 font-bold rounded-lg hover:bg-red-200 transition">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', rowHTML);
+            window.updateOpsiBahan();
+        };
+
+        // Filter opsi agar tidak bisa milih komoditas yang sama 2x
+        window.updateOpsiBahan = function() {
+            const selects = Array.from(document.querySelectorAll('.input-komoditas-asal'));
+            const selectedValues = selects.map(s => s.value).filter(v => v !== '');
+            
+            selects.forEach(select => {
+                const currentValue = select.value;
+                Array.from(select.options).forEach(opt => {
+                    if(opt.value === '') return;
+                    opt.disabled = selectedValues.includes(opt.value) && opt.value !== currentValue;
+                });
+            });
+        };
+
+        // ===================================
+        // 2. KALKULASI & LOAD DATA
+        // ===================================
+        window.hitungTotalBiaya = function() {
+            // 🔥 TARIK NILAI JERIGEN, BUKAN KG MINYAK
+            const jmlJerigen = parseFloat(document.getElementById('jml_jerigen').value) || 0;
+            const harga = parseFloat(document.getElementById('harga_jasa_per_jerigen').value) || 0;
+            
+            // 🔥 RUMUS BARU: Jerigen x Harga Jasa
+            const total = jmlJerigen * harga;
+            document.getElementById('input_total_biaya').value = total;
+        };
+
+        async function loadDataHalaman() {
+            document.getElementById('tgl_proses').value = new Date().toISOString().split('T')[0];
+            window.tambahBarisBahan(); 
+
+            const { data: riwayat } = await client.from('pengolahan_eksternal')
+                .select('*, asal:komoditas_asal_id(nama_komoditas), min:komoditas_minyak_id(nama_komoditas), spin:komoditas_spinner_id(nama_komoditas)')
+                .order('tanggal', { ascending: false });
+                
+            // 🔥 AMANKAN DATA KE WINDOW AGAR BISA DI-READ SAAT EDIT
+            window.allRiwayatPengolahan = riwayat || [];
+
+            let htmlRow = '';
+            riwayat?.forEach(r => {
+                const isSecondaryRow = (r.vol_minyak === 0 && r.vol_spinner === 0 && r.total_biaya === 0);
+                
+                // Badge pembeda status Draft vs Selesai
+                const badgeStatus = r.status === 'Draft'
+                    ? `<span class="bg-amber-100 text-amber-700 border border-amber-200 text-[9px] px-1.5 py-0.5 rounded font-bold ml-1">DRAFT</span>`
+                    : `<span class="bg-green-100 text-green-700 border border-green-200 text-[9px] px-1.5 py-0.5 rounded font-bold ml-1">LUNAS</span>`;
+
+                const hasilHtml = isSecondaryRow ? '<span class="text-xs text-gray-400 italic">Tergabung di atas</span>' : `
+                    <div class="flex flex-col gap-1.5">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded text-[10px] font-bold w-16 text-center">Minyak</span>
+                            <span class="text-sm font-bold text-gray-700">${r.vol_minyak} Kg <span class="text-xs text-gray-400">(${r.jml_jerigen || 0} Jrg)</span></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="bg-green-50 text-green-700 px-2 py-0.5 rounded text-[10px] font-bold w-16 text-center">Spinner</span>
+                            <span class="text-sm font-bold text-gray-700">${r.vol_spinner} Kg</span>
+                        </div>
+                    </div>`;
+
+                const biayaHtml = isSecondaryRow ? '-' : `
+                    <div class="text-sm font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded inline-block whitespace-nowrap">Rp ${Number(r.total_biaya).toLocaleString('id-ID')}</div>
+                    <div class="text-[10px] text-gray-500 mt-1">@Rp${r.harga_jasa_per_jerigen}/Jrg</div>`;
+
+                const tombolEdit = r.status === 'Draft' 
+                    ? `<button onclick="window.loadEditKeInput('${r.tanggal}', '${r.nama_vendor}')" class="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-100 shadow-sm transition flex items-center gap-1" title="Edit / Tarik ke Form">
+                            <i class="bi bi-pencil-square"></i> Edit
+                       </button>`
+                    : `<span class="text-[10px] italic text-gray-400 bg-gray-50 px-2 py-1 rounded border border-gray-200">Terkunci</span>`;
+                htmlRow += `
+                <tr class="hover:bg-gray-50 border-b border-gray-100">
+                    <td class="px-4 py-3 align-top whitespace-nowrap font-bold text-gray-900 text-sm">${r.tanggal}</td>
+                    <td class="px-4 py-3 align-top text-sm font-bold text-gray-700">
+                        <i class="bi bi-person mr-1 text-gray-400"></i> ${r.nama_vendor} ${isSecondaryRow ? '' : badgeStatus}
+                    </td>
+                    <td class="px-4 py-3 align-top whitespace-nowrap">
+                        <span class="bg-red-50 text-red-700 px-2 py-1 rounded text-[10px] font-bold block w-fit mb-1">${r.asal?.nama_komoditas}</span>
+                        <div class="text-sm font-bold text-gray-700">${r.vol_asal} Kg</div>
+                    </td>
+                    <td class="px-4 py-3 align-top">${hasilHtml}</td>
+                    <td class="px-4 py-3 align-top text-right">${biayaHtml}</td>
+                    <td class="px-4 py-3 align-top text-center">
+                        <div class="flex items-center justify-center gap-1.5">
+                            ${tombolEdit}
+                            
+                            <button onclick="window.hapusRiwayatPengolahan('${r.tanggal}', '${r.nama_vendor}', '${r.status || 'Selesai'}')" class="bg-red-50 text-red-600 border border-red-200 px-2.5 py-1.5 rounded-lg text-xs font-bold hover:bg-red-100 shadow-sm transition flex items-center gap-1" title="Hapus Transaksi">
+                                <i class="bi bi-trash"></i> Hapus
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('riwayat-tbody').innerHTML = htmlRow || '<tr><td colspan="6" class="text-center py-4 text-gray-500">Belum ada riwayat.</td></tr>';
+        }
+
+        window.loadEditKeInput = function(tanggal, vendor) {
+            // 1. Saring semua baris komoditas yang punya tanggal & nama vendor kembar
+            const groupRows = window.allRiwayatPengolahan.filter(r => r.tanggal === tanggal && r.nama_vendor === vendor);
+            if(groupRows.length === 0) return alert("Waduh, data tidak ditemukan!");
+
+            // Cari baris utama (yang menyimpan rincian hasil minyak & biaya)
+            const barisUtama = groupRows.find(r => r.vol_minyak > 0 || r.total_biaya > 0) || groupRows[0];
+
+            // 🔥 2. UBAH DI SINI: BIKIN FUNGSI PENGAMAN BIAR GAK CRASH (NULL)
+            const setVal = (id, val) => { 
+                const el = document.getElementById(id); 
+                if(el) el.value = val; 
+            };
+
+            // Tembakkan data ke Form Utama menggunakan fungsi pengaman (setVal)
+            setVal('tgl_proses', tanggal);
+            setVal('nama_vendor', vendor);
+            setVal('vol_minyak', barisUtama.vol_minyak || 0);
+            setVal('jml_jerigen', barisUtama.jml_jerigen || 0);
+            setVal('vol_spinner', barisUtama.vol_spinner || 0);
+            // Pastikan pakai harga_jasa_per_jerigen
+            setVal('harga_jasa', barisUtama.harga_jasa_per_jerigen || 0); 
+            setVal('input_total_biaya', barisUtama.total_biaya || 0);
+
+            // Kunci ID Lama di Input Hidden untuk persiapan rewrite/update data
+            setVal('edit_group_tanggal', tanggal);
+            setVal('edit_group_vendor', vendor);
+
+            // 3. Bongkar & Cetak Ulang Baris Bahan Mentah Keluar
+            const containerBahan = document.getElementById('container-bahan-mentah');
+            containerBahan.innerHTML = ''; // Sterilkan kontainer lama
+
+            groupRows.forEach(item => {
+                const rowId = 'bahan_' + Date.now() + Math.random().toString(36).substr(2, 5);
+
+                const rowHTML = document.createElement('div');
+                rowHTML.className = "baris-bahan flex flex-col md:flex-row items-end gap-3 bg-white p-3 rounded-xl border border-red-200 shadow-sm";
+                rowHTML.id = rowId;
+                rowHTML.innerHTML = `
+                    <div class="flex-1 w-full">
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Komoditas</label>
+                        <select class="input-komoditas-asal w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 font-medium" onchange="window.updateOpsiBahan()" required>
+                            <option value="">-- Pilih Bahan --</option>
+                            ${window.opsiBahanMentah.map(k => `<option value="${k.id}" ${k.id === item.komoditas_asal_id ? 'selected' : ''}>${k.nama}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="w-full md:w-32 shrink-0">
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Vol (Kg)</label>
+                        <input type="number" step="0.1" class="input-vol-asal w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-red-500 font-bold text-red-700" value="${item.vol_asal}" required>
+                    </div>
+                    <button type="button" onclick="document.getElementById('${rowId}').remove(); window.updateOpsiBahan();" class="w-full md:w-auto h-[42px] px-4 bg-red-100 text-red-600 font-bold rounded-lg hover:bg-red-200 transition">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                `;
+                containerBahan.appendChild(rowHTML);
+            });
+
+            window.updateOpsiBahan();
+
+            // 4. PAKSA TAB PINDAH KE DEPAN (TAB INPUT PENGOLAHAN)
+            const tombolTabInput = document.querySelector('.tab-btn[data-tab="tab-input"]');
+            if (tombolTabInput) tombolTabInput.click();
+        };
+
+        await loadDataHalaman();
+
+        // ===================================
+        // 3. SUBMIT EKSEKUSI PENGOLAHAN MASSAL
+        // ===================================
+        window.eksekusiPengolahanMassal = async function(statusTarget) {
+            const form = document.getElementById('form-pengolahan');
+            // Paksa validasi HTML HTML5 validasi bawaan
+            if (!form.reportValidity()) return;
+
+            const barisBahan = document.querySelectorAll('.baris-bahan');
+            if(barisBahan.length === 0) return alert('Tambahkan minimal 1 bahan mentah yang akan diproses!');
+
+            const btnSave = document.getElementById('btn-save-pengolahan');
+            const btnDraft = document.getElementById('btn-draft-pengolahan');
+            
+            btnSave.disabled = true; btnDraft.disabled = true;
+            btnSave.innerText = "Memproses...";
+
+            try {
+                // 🔥 TAMBAHKAN TANDA TANYA (?.) SEBELUM .value BIAR KEBAL ERROR
+                const tgl = document.getElementById('tgl_proses')?.value || '';
+                const vendor = document.getElementById('nama_vendor')?.value || '';
+                const komMinyak = document.getElementById('komoditas_minyak')?.value || '';
+                const volMinyak = parseFloat(document.getElementById('vol_minyak')?.value) || 0;
+                const jmlJerigen = parseFloat(document.getElementById('jml_jerigen')?.value) || 0;
+                const komSpinner = document.getElementById('komoditas_spinner')?.value || '';
+                const volSpinner = parseFloat(document.getElementById('vol_spinner')?.value) || 0;
+                const harga = parseFloat(document.getElementById('harga_jasa')?.value) || 0;
+                const totalBiayaFinal = parseFloat(document.getElementById('input_total_biaya')?.value) || 0;
+
+                const itemsToInsert = [];
+                const mutasiKeluar = [];
+                let isFirstRow = true;
+                let namaItemRincian = [];
+
+                barisBahan.forEach(row => {
+                    const komAsal = row.querySelector('.input-komoditas-asal').value;
+                    const volAsal = parseFloat(row.querySelector('.input-vol-asal').value) || 0;
+                    const namaAsal = row.querySelector('.input-komoditas-asal').options[row.querySelector('.input-komoditas-asal').selectedIndex].text;
+   
+                    if (komAsal && volAsal > 0) {
+                        itemsToInsert.push({
+                            tanggal: tgl,
+                            nama_vendor: vendor,
+                            komoditas_asal_id: komAsal,
+                            vol_asal: volAsal,
+                            komoditas_minyak_id: komMinyak,
+                            vol_minyak: isFirstRow ? volMinyak : 0,
+                            jml_jerigen: isFirstRow ? jmlJerigen : 0,
+                            komoditas_spinner_id: komSpinner,
+                            vol_spinner: isFirstRow ? volSpinner : 0,
+                            harga_jasa_per_jerigen: isFirstRow ? harga : 0,
+                            total_biaya: isFirstRow ? totalBiayaFinal : 0,
+                            status: statusTarget // 🔥 DRAF ATAU SELESAI
+                        });
+                        mutasiKeluar.push({ komAsal, volAsal });
+                        namaItemRincian.push(`${namaAsal} (${volAsal}Kg)`);
+                        isFirstRow = false;
+                    }
+                });
+
+                if(itemsToInsert.length === 0) throw new Error("Isi komoditas bahan mentah dengan benar!");
+
+                // 🛑 JIKA MODE EDIT: Tambahkan ? juga di sini
+                const oldTgl = document.getElementById('edit_group_tanggal')?.value || '';
+                const oldVendor = document.getElementById('edit_group_vendor')?.value || '';
+                if(oldTgl && oldVendor) {
+                    await client.from('pengolahan_eksternal').delete().eq('tanggal', oldTgl).eq('nama_vendor', oldVendor);
+                }
+
+                // 1. SIMPAN DATA UTAMA
+                const { error: errInsert } = await client.from('pengolahan_eksternal').insert(itemsToInsert);
+                if (errInsert) throw errInsert;
+
+                // 🚀 SKENARIO: JIKA DI-EKSEKUSI FINAL (SELESAI) -> JALANKAN MUTASI STOK & POTONG KAS
+                if (statusTarget === 'Selesai') {
+                    
+                    // 2. Potong Stok Gudang Asal
+                    for (let m of mutasiKeluar) {
+                        const { data: gA } = await client.from('gudang_komoditas').select('stok').eq('id', m.komAsal).single();
+                        await client.from('gudang_komoditas').update({ stok: (gA?.stok || 0) - m.volAsal }).eq('id', m.komAsal);
+                        await client.from('gudang_mutasi').insert([{ jenis_mutasi: 'Keluar', komoditas_id: m.komAsal, jumlah: -m.volAsal, keterangan: `Diproses oleh ${vendor} (Pengolahan)` }]);
+                    }
+
+                    // 3. Tambah Stok Hasil (Minyak & Spinner)
+                    if (volMinyak > 0) {
+                        const { data: gM } = await client.from('gudang_komoditas').select('stok').eq('id', komMinyak).single();
+                        await client.from('gudang_komoditas').update({ stok: (gM?.stok || 0) + volMinyak }).eq('id', komMinyak);
+                        await client.from('gudang_mutasi').insert([{ jenis_mutasi: 'Masuk', komoditas_id: komMinyak, jumlah: volMinyak, keterangan: `Hasil proses ${vendor} (Pengolahan)` }]);
+                    }
+                    if (volSpinner > 0) {
+                        const { data: gS } = await client.from('gudang_komoditas').select('stok').eq('id', komSpinner).single();
+                        await client.from('gudang_komoditas').update({ stok: (gS?.stok || 0) + volSpinner }).eq('id', komSpinner);
+                        await client.from('gudang_mutasi').insert([{ jenis_mutasi: 'Masuk', komoditas_id: komSpinner, jumlah: volSpinner, keterangan: `Hasil proses ${vendor} (Pengolahan)` }]);
+                    }
+                    
+                    // 4. Catat Invoice Ke Pembukuan Pengeluaran (Status: Menunggu ACC Keuangan)
+                    if (totalBiayaFinal > 0) {
+                        const { data: existPeng } = await client.from('pengeluaran').select('id, total_harian').eq('user_id', currentUserId).eq('tanggal', tgl).maybeSingle();
+                        let pengeluaranId;
+                        
+                        if (existPeng) {
+                            pengeluaranId = existPeng.id;
+                            // Jika induknya sudah ada, kita cukup menambahkan total nominal hariannya
+                            await client.from('pengeluaran').update({ 
+                                total_harian: (existPeng.total_harian || 0) + totalBiayaFinal 
+                            }).eq('id', pengeluaranId);
+                        } else {
+                            // 🔥 SUNTIKKAN KOLOM sumber_dana DI SINI SAAT MEMBUAT BARIS BARU 🔥
+                            const { data: newPeng } = await client.from('pengeluaran').insert({ 
+                                user_id: currentUserId, 
+                                tanggal: tgl, 
+                                total_harian: totalBiayaFinal, 
+                                status_approval: 'Menunggu',
+                                sumber_dana: 'Uang Keuangan' // <--- ISI OTOMATIS KE KAS KEUANGAN
+                            }).select('id').single();
+                            
+                            if (newPeng) pengeluaranId = newPeng.id;
+                        }
+
+                        // Catat Rincian Nota agar dibaca oleh pengeluaran.astro
+                        if (pengeluaranId) {
+                            await client.from('rincian_pengeluaran').insert([{
+                                pengeluaran_id: pengeluaranId,
+                                nama_item: 'Jasa Pengolahan Spinner',
+                                nominal: totalBiayaFinal,
+                                keterangan: `Pengolahan Bahan [${namaItemRincian.join(' + ')}] via Vendor: ${vendor} (${jmlJerigen} Jerigen)`
+                            }]);
+                        }
+                    }
+                    alert('SUKSES! Transaksi komplit, nota diajukan ke laporan Pengeluaran dengan Sumber Dana: Uang Keuangan.');
+                } else {
+                    // JIKA HANYA DRAFT
+                    alert('Berhasil! Nota berhasil disimpan sementara sebagai Draft.');
+                }
+
+                window.location.reload();
+            } catch (err) {
+                console.error(err);
+                alert(`🚨 GAGAL!\n\nAlasan: ${err.message || 'Koneksi database terputus.'}`);
+                btnSave.disabled = false; btnDraft.disabled = false;
+                btnSave.innerHTML = `<i class="bi bi-gear-fill"></i> Eksekusi & Catat ke Sistem`;
+            }
+        };
+        // =================================================================
+        // 🔥 FUNGSI HAPUS DENGAN VALIDASI KEUANGAN (ANTI-BENTROK) 🔥
+        // =================================================================
+        window.hapusRiwayatPengolahan = async function(tanggal, vendor, status) {
+            if(!confirm(`Yakin ingin membatalkan dan menghapus riwayat pengolahan dari Vendor [${vendor}] pada tanggal [${tanggal}]?`)) return;
+            if(!window.supabase) return;
+
+            try {
+                if (status === 'Selesai') {
+                    // 🔥 1. CEK DULU KE MODUL KEUANGAN, APAKAH NOTA INI SUDAH DI-ACC?
+                    const { data: rincianList } = await window.supabase.from('rincian_pengeluaran')
+                        .select('id, pengeluaran_id, nominal, pengeluaran(status_approval, total_harian)')
+                        .eq('nama_item', 'Jasa Pengolahan Spinner')
+                        .like('keterangan', `%Vendor: ${vendor}%`);
+
+                    if (rincianList && rincianList.length > 0) {
+                        // Deteksi apakah tagihan ini sudah terlanjur di-ACC oleh Keuangan
+                        let sudahDiACC = rincianList.some(r => r.pengeluaran?.status_approval === 'ACC' || r.pengeluaran?.status_approval === 'Disetujui');
+                        
+                        if (sudahDiACC) {
+                            alert("⛔ AKSES DITOLAK!\n\nNota ini sudah di-ACC dan dibayar oleh bagian Keuangan. Data ini telah terkunci.\n\nJika ingin melakukan pembatalan, silakan hubungi Admin Keuangan untuk membatalkan tagihan di menu Pengeluaran terlebih dahulu!");
+                            return; // HENTIKAN PROSES HAPUS SEKARANG JUGA!
+                        }
+
+                        // JIKA BELUM ACC (Masih Menunggu):
+                        // Aman untuk dihapus. Kita hapus rincian tagihannya dan kurangi total tagihan harian
+                        for (let rincian of rincianList) {
+                            const totalHarianLama = rincian.pengeluaran?.total_harian || 0;
+                            await window.supabase.from('pengeluaran')
+                                .update({ total_harian: Math.max(0, totalHarianLama - (rincian.nominal || 0)) })
+                                .eq('id', rincian.pengeluaran_id);
+
+                            await window.supabase.from('rincian_pengeluaran').delete().eq('id', rincian.id);
+                        }
+                    }
+
+                    // 🔥 2. KEMBALIKAN STOK GUDANG (KARENA TRANSAKSI BATAL)
+                    const groupRows = window.allRiwayatPengolahan.filter(r => r.tanggal === tanggal && r.nama_vendor === vendor);
+                    for (let item of groupRows) {
+                        if (item.komoditas_asal_id && item.vol_asal > 0) {
+                            const { data: gA } = await window.supabase.from('gudang_komoditas').select('stok').eq('id', item.komoditas_asal_id).single();
+                            await window.supabase.from('gudang_komoditas').update({ stok: (gA?.stok || 0) + item.vol_asal }).eq('id', item.komoditas_asal_id);
+                        }
+                        if (item.vol_minyak > 0 && item.komoditas_minyak_id) {
+                            const { data: gM } = await window.supabase.from('gudang_komoditas').select('stok').eq('id', item.komoditas_minyak_id).single();
+                            await window.supabase.from('gudang_komoditas').update({ stok: Math.max(0, (gM?.stok || 0) - item.vol_minyak) }).eq('id', item.komoditas_minyak_id);
+                        }
+                        if (item.vol_spinner > 0 && item.komoditas_spinner_id) {
+                            const { data: gS } = await window.supabase.from('gudang_komoditas').select('stok').eq('id', item.komoditas_spinner_id).single();
+                            await window.supabase.from('gudang_komoditas').update({ stok: Math.max(0, (gS?.stok || 0) - item.vol_spinner) }).eq('id', item.komoditas_spinner_id);
+                        }
+                    }
+                }
+
+                // 🔥 3. HAPUS DATA UTAMA DARI TABEL PENGOLAHAN
+                const { error: errDel } = await window.supabase.from('pengolahan_eksternal').delete().eq('tanggal', tanggal).eq('nama_vendor', vendor);
+                if(errDel) throw errDel;
+
+                alert("✅ Sukses! Riwayat berhasil dibatalkan dan stok gudang telah dikembalikan seperti semula.");
+                window.location.reload();
+            } catch (err) {
+                console.error(err);
+                alert("Gagal menghapus riwayat transaksi: " + err.message);
+            }
+        };
+    });
+</script>

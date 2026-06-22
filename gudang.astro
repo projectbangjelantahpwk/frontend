@@ -1,0 +1,579 @@
+---
+import GeneralLayout from '../layouts/Layout.astro';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
+const tabs = [
+  { id: 'dashboard', label: 'Ringkasan Stok', icon: 'grid-1x2' },
+  { id: 'olahan', label: 'Manajemen Produksi', icon: 'beaker' },
+  { id: 'kalibrasi', label: 'Kalibrasi Stok', icon: 'sliders' },
+  { id: 'riwayat', label: 'Riwayat Mutasi', icon: 'clock-history' }
+];
+---
+
+<GeneralLayout title="Gudang & Stok - Manajemen Bang Jelantah">
+  <style is:global>
+      /* Mengunci layar menjadi blank (putih) sampai skrip memberi izin masuk */
+      body { display: none; }
+  </style>
+  <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Manajemen Gudang</h1>
+      <p class="text-gray-600">Pantau penerimaan mitra, proses produksi minyak olahan, dan stok barang.</p>
+    </div>
+  </div>
+
+  <div class="mb-6 border-b border-gray-200 overflow-x-auto hide-scrollbar">
+    <div class="flex gap-2 md:gap-8 min-w-max">
+      {tabs.map((tab, idx) => (
+        <button
+          class={`tab-button px-4 py-3 font-medium transition border-b-2 whitespace-nowrap ${
+            idx === 0 ? 'border-primary text-primary font-bold' : 'border-transparent text-gray-600 hover:text-gray-900'
+          }`}
+          data-tab={tab.id}
+        >
+          <i class={`bi bi-${tab.icon} mr-2`}></i> {tab.label}
+        </button>
+      ))}
+    </div>
+  </div>
+
+  <div id="dashboard-tab" class="tab-content block">
+    <div class="mb-8">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            
+            <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm flex flex-col justify-between">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0 p-1">
+                      <img src="/icon/6.png" alt="Jelantah" class="w-full h-full object-contain drop-shadow-sm" onerror="this.style.display='none'">
+                  </div>
+                  <p class="text-sm font-semibold text-gray-700 leading-tight">Minyak Jelantah Kotor</p>
+                </div>
+                <p class="text-3xl font-bold text-gray-900"><span id="stok-minyak_jelantah">0.00</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
+            </div>
+
+            <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm flex flex-col justify-between">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center shrink-0 p-1">
+                      <img src="/icon/8.png" alt="Kriuk" class="w-full h-full object-contain drop-shadow-sm" onerror="this.style.display='none'">
+                  </div>
+                  <p class="text-sm font-semibold text-gray-700 leading-tight">Kriuk</p>
+                </div>
+                <p class="text-3xl font-bold text-gray-900"><span id="stok-kriuk">0.00</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
+            </div>
+
+            <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm flex flex-col justify-between">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 p-1">
+                      <img src="/icon/7.png" alt="Ampas" class="w-full h-full object-contain drop-shadow-sm" onerror="this.style.display='none'">
+                  </div>
+                  <p class="text-sm font-semibold text-gray-700 leading-tight">Ampas (Sludge)</p>
+                </div>
+                <p class="text-3xl font-bold text-gray-900"><span id="stok-ampas">0.00</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
+            </div>
+
+            <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm flex flex-col justify-between">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-lg bg-yellow-50 flex items-center justify-center shrink-0 p-1">
+                      <img src="/icon/9.png" alt="Tepung" class="w-full h-full object-contain drop-shadow-sm" onerror="this.style.display='none'">
+                  </div>
+                  <p class="text-sm font-semibold text-gray-700 leading-tight">Tepung Ayakan</p>
+                </div>
+                <p class="text-3xl font-bold text-gray-900"><span id="stok-tepung">0.00</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
+            </div>
+
+            <div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm flex flex-col justify-between">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 p-1">
+                      <img src="/icon/10.png" alt="Spinner" class="w-full h-full object-contain drop-shadow-sm" onerror="this.style.display='none'">
+                  </div>
+                  <p class="text-sm font-semibold text-gray-700 leading-tight">Spinner</p>
+                </div>
+                <p class="text-3xl font-bold text-gray-900"><span id="stok-spinner">0.00</span> <span class="text-sm font-normal text-gray-500">Kg</span></p>
+            </div>
+
+        </div>
+    </div>
+  </div>
+
+  <div id="olahan-tab" class="tab-content hidden">
+    <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm max-w-3xl mx-auto">
+        <h3 class="text-xl font-bold text-gray-900 mb-2">Formulir Manajemen Produksi</h3>
+        <p class="text-sm text-gray-500 mb-6">Proses pencampuran Minyak Jelantah Kotor, Kriuk, dan Ampas untuk menghasilkan Minyak Olahan & Spinner.</p>
+
+        <form id="olahanForm" class="space-y-6">
+            <div class="bg-orange-50 border border-orange-200 p-5 rounded-2xl space-y-4">
+                <h4 class="text-xs font-bold text-orange-950 uppercase tracking-wider flex items-center gap-1"><i class="bi bi-box-seam"></i> 1. Bahan Baku Yang Digunakan</h4>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-orange-900 mb-1">Minyak Jelantah (Kg)</label>
+                        <input type="number" step="0.01" id="input_minyak_jelantah" class="w-full px-3 py-2 border border-orange-300 rounded-lg outline-none bg-white font-bold" placeholder="0" required />
+                        <span class="text-[10px] text-orange-700 block mt-1">Stok Gudang: <strong id="max_minyak_jelantah">0</strong> Kg</span>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-orange-900 mb-1">Kriuk (Kg)</label>
+                        <input type="number" step="0.01" id="input_kriuk" class="w-full px-3 py-2 border border-orange-300 rounded-lg outline-none bg-white font-bold" placeholder="0" required />
+                        <span class="text-[10px] text-orange-700 block mt-1">Stok Gudang: <strong id="max_kriuk">0</strong> Kg</span>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-orange-900 mb-1">Ampas / Sludge (Kg)</label>
+                        <input type="number" step="0.01" id="input_ampas" class="w-full px-3 py-2 border border-orange-300 rounded-lg outline-none bg-white font-bold" placeholder="0" required />
+                        <span class="text-[10px] text-orange-700 block mt-1">Stok Gudang: <strong id="max_ampas">0</strong> Kg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-green-50 border border-green-200 p-5 rounded-2xl space-y-4">
+                <h4 class="text-xs font-bold text-green-950 uppercase tracking-wider flex items-center gap-1"><i class="bi bi-stars"></i> 2. Hasil Akhir Produksi</h4>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-green-900 mb-1">Minyak Jelantah (Kg)</label>
+                        <input type="number" step="0.01" id="hasil_minyak_jelantah" class="w-full px-3 py-2 border border-green-300 rounded-lg outline-none bg-white font-bold text-green-900" placeholder="0" required />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-green-900 mb-1">Hasil Spinner (Kg)</label>
+                        <input type="number" step="0.01" id="hasil_spinner" class="w-full px-3 py-2 border border-green-300 rounded-lg outline-none bg-white font-bold text-green-900" placeholder="0" required />
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 border border-gray-200 p-4 rounded-xl flex justify-between items-center">
+                <div>
+                    <p class="text-sm font-bold text-gray-700">Penyusutan / Loss Massa</p>
+                    <p class="text-xs text-gray-500">Selisih total bahan baku dengan total hasil produksi</p>
+                </div>
+                <div class="text-right">
+                    <p id="penyusutanDisplay" class="text-2xl font-bold text-gray-900">0 Kg</p>
+                </div>
+            </div>
+
+            <button type="submit" id="btnSubmitOlahan" class="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary text-white rounded-xl hover:opacity-90 active:scale-95 transition font-bold text-lg shadow-sm">
+                <i class="bi bi-gear-fill"></i> Simpan Hasil Produksi
+            </button>
+        </form>
+    </div>
+  </div>
+
+  <div id="kalibrasi-tab" class="tab-content hidden">
+    <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm max-w-2xl mx-auto">
+      <h3 class="text-xl font-bold text-gray-900 mb-2">Formulir Kalibrasi</h3>
+      <p class="text-sm text-gray-500 mb-6">Sesuaikan data sistem dengan fisik aslinya (antisipasi error timbangan/fraud).</p>
+
+      <form id="kalibrasiForm" class="space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Komoditas</label>
+          <select id="kalibrasiKomoditas" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-primary" required>
+            <option value="">-- Pilih Komoditas --</option>
+            <option value="minyak_jelantah" data-stok="0">Minyak Jelantah</option>
+            <option value="tepung" data-stok="0">Tepung Ayakan</option>
+            <option value="kriuk" data-stok="0">Kriuk</option>
+            <option value="ampas" data-stok="0">Ampas (Sludge)</option>
+            <option value="spinner" data-stok="0">Spinner</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Stok di Sistem</label>
+            <div class="relative">
+              <input type="number" id="kalibrasiSistem" class="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-600 font-bold" readonly />
+              <span class="absolute right-3 top-3 text-gray-500">Kg</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-primary mb-2">Stok Fisik Real</label>
+            <div class="relative">
+              <input type="number" step="0.01" id="kalibrasiFisik" class="w-full px-4 py-3 border border-primary bg-green-50 rounded-lg font-bold text-gray-900 outline-none" placeholder="0" required />
+              <span class="absolute right-3 top-3 text-gray-500">Kg</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 p-3 rounded-lg flex justify-between items-center">
+          <span class="text-sm text-gray-600 font-medium">Selisih Ditemukan:</span>
+          <span id="kalibrasiSelisih" class="font-bold text-lg text-gray-900">0 Kg</span>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Catatan Penyesuaian Wajib</label>
+          <textarea id="kalibrasiCatatan" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-primary" rows="2" placeholder="Misal: Timbangan error, tumpah, dll..." required></textarea>
+        </div>
+
+        <button type="submit" id="btnSubmitKalibrasi" class="w-full flex items-center justify-center gap-2 px-6 py-3 bg-yellow-500 text-yellow-900 rounded-xl hover:bg-yellow-400 font-bold transition">
+          <i class="bi bi-sliders"></i> Simpan Penyesuaian
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="riwayat-tab" class="tab-content hidden">
+    <div class="bg-white rounded-xl border border-gray-200 p-0 shadow-sm overflow-hidden">
+      <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+        <div>
+          <h3 class="text-xl font-bold text-gray-900">Riwayat Mutasi Gudang</h3>
+          <p class="text-sm text-gray-500 mt-1">Laporan barang masuk, produksi olahan, dan kalibrasi audit.</p>
+        </div>
+      </div>
+      
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Tanggal</th>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Jenis</th>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Komoditas</th>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Jumlah</th>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Keterangan</th>
+            </tr>
+          </thead>
+          <tbody id="tabelRiwayat" class="divide-y divide-gray-100">
+            <tr><td colspan="5" class="text-center py-4 text-gray-500">Memuat data riwayat...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</GeneralLayout>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded',async () => {
+    // === 🛡️ GATEKEEPER KEUANGAN ===
+      const allowedRoles = ['owner', 'hrd', 'admin', 'keuangan','it'];
+      const client = window.supabase || supabase;
+      
+      const { data: { session } } = await client.auth.getSession();
+      if (!session) return window.location.replace('/'); // Tendang kalau belum login
+      
+      const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+      if (!allowedRoles.includes(prof?.role)) {
+          alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk ke Keuangan.`);
+          return window.location.replace('/');
+      }
+      document.body.style.display = 'block'; // Buka gembok CSS, tampilkan layar!
+    
+    // ==============================================================
+    // 1. FETCH DATA GUDANG (CLIENT-SIDE)
+    // ==============================================================
+    async function loadGudangData() {
+        if(!window.supabase) return;
+
+        // A. Ambil Data Stok Komoditas
+        const { data: komoditas, error: errKom } = await window.supabase.from('gudang_komoditas').select('*');
+        if(!errKom && komoditas) {
+            komoditas.forEach(k => {
+                // 🔥 KUNCI UTAMANYA DI SINI: Pakai parseFloat lalu toFixed(2)
+                const stokAngka = parseFloat(k.stok || 0);
+                const stokFormatted = stokAngka.toFixed(2);
+
+                // Update angka di Dashboard
+                const elStok = document.getElementById(`stok-${k.id}`);
+                if(elStok) elStok.innerText = stokFormatted;
+
+                // Update batas maksimal di form Produksi Olahan
+                if(k.id === 'minyak_jelantah') {
+                    const el = document.getElementById('max_minyak_jelantah');
+                    if(el) el.innerText = stokFormatted;
+                }
+                if(k.id === 'kriuk') {
+                    const el = document.getElementById('max_kriuk');
+                    if(el) el.innerText = stokFormatted;
+                }
+                if(k.id === 'ampas') {
+                    const el = document.getElementById('max_ampas');
+                    if(el) el.innerText = stokFormatted;
+                }
+
+                // Update data-stok di dropdown form Kalibrasi
+                const opt = document.querySelector(`#kalibrasiKomoditas option[value="${k.id}"]`);
+                if(opt) opt.setAttribute('data-stok', stokAngka); // Biarkan angka asli untuk hitungan mesin
+            });
+        }
+
+        const getBadgeColorJs = (jenis) => {
+            if(jenis === 'Masuk') return 'bg-green-100 text-green-700';
+            if(jenis === 'Keluar') return 'bg-red-100 text-red-700';
+            if(jenis === 'Olahan') return 'bg-blue-100 text-blue-700';
+            return 'bg-yellow-100 text-yellow-700';
+        };
+
+        // B. Ambil Data Riwayat Mutasi (Limit 30)
+        const { data: mutasi, error: errMut } = await window.supabase
+            .from('gudang_mutasi')
+            .select('*, komoditas:komoditas_id ( nama_komoditas )')
+            .order('tanggal', { ascending: false })
+            .limit(30);
+
+        if(!errMut && mutasi) {
+            const tbody = document.getElementById('tabelRiwayat');
+            let html = '';
+            
+            if(mutasi.length === 0) {
+                html = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Belum ada riwayat mutasi.</td></tr>';
+            } else {
+                mutasi.forEach(item => {
+                    const tgl = new Date(item.tanggal).toLocaleString('id-ID');
+                    const badge = getBadgeColorJs(item.jenis_mutasi);
+                    const namaK = item.komoditas ? item.komoditas.nama_komoditas : item.komoditas_id;
+                    const sign = item.jumlah > 0 ? '+' : '';
+                    const colorNum = item.jumlah > 0 ? 'text-green-600' : 'text-red-600';
+                    const ket = item.keterangan ? item.keterangan : '-';
+                    // 🔥 Format nilai mutasi jadi 2 desimal
+                    const jumlahFormatted = parseFloat(item.jumlah || 0).toFixed(2);
+
+                    html += `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">${tgl}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${badge}">${item.jenis_mutasi}</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">${namaK}</td>
+                        <td class="px-6 py-4 text-sm font-bold text-right ${colorNum}">${sign}${jumlahFormatted} Kg</td>
+                        <td class="px-6 py-4 text-sm text-gray-500 max-w-[250px] truncate" title="${ket}">${ket}</td>
+                    </tr>
+                    `;
+                });
+            }
+            if(tbody) tbody.innerHTML = html;
+        }
+    }
+
+    loadGudangData();
+
+    // ==============================================================
+    // 2. LOGIKA TAB SWITCHING
+    // ==============================================================
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach((button) => {
+      button.addEventListener('click', function() {
+        const tabId = this.getAttribute('data-tab');
+
+        tabButtons.forEach(btn => {
+          btn.classList.remove('border-primary', 'text-primary', 'font-bold');
+          btn.classList.add('border-transparent', 'text-gray-600');
+        });
+
+        this.classList.remove('border-transparent', 'text-gray-600');
+        this.classList.add('border-primary', 'text-primary', 'font-bold');
+
+        tabContents.forEach(content => content.classList.add('hidden'));
+        document.getElementById(`${tabId}-tab`)?.classList.remove('hidden');
+      });
+    });
+
+    // ==============================================================
+    // 1. VARIABEL UI & KALKULASI PENYUSUTAN (Sudah Sinkron dengan HTML)
+    // ==============================================================
+    const inputMinyakJelantah = document.getElementById('input_minyak_jelantah'); // ID sudah benar!
+    const inputKriuk = document.getElementById('input_kriuk');
+    const inputAmpas = document.getElementById('input_ampas');
+    const hasilMinyakJelantah = document.getElementById('hasil_minyak_jelantah');
+    const hasilSpinner = document.getElementById('hasil_spinner');
+    const penyusutanDisplay = document.getElementById('penyusutanDisplay');
+
+    function hitungPenyusutan() {
+      const minyakjelantah = parseFloat(inputMinyakJelantah.value) || 0;
+      const kriuk = parseFloat(inputKriuk.value) || 0;
+      const ampas = parseFloat(inputAmpas.value) || 0;
+      
+      const jelantah = parseFloat(hasilMinyakJelantah.value) || 0;
+      const spinner = parseFloat(hasilSpinner.value) || 0; // Jangan lupa isi ini di form biar loss 0!
+
+      const totalBahan = minyakjelantah + kriuk + ampas;
+      const totalHasil = jelantah + spinner;
+      
+      const selisih = totalBahan - totalHasil;
+
+      penyusutanDisplay.innerText = selisih.toFixed(2) + ' Kg';
+      penyusutanDisplay.className = selisih < 0 ? 'text-2xl font-bold text-red-600' : 'text-2xl font-bold text-gray-900';
+    }
+
+    [inputMinyakJelantah, inputKriuk, inputAmpas, hasilMinyakJelantah, hasilSpinner].forEach(el => {
+        el?.addEventListener('input', hitungPenyusutan);
+    });
+
+    // ==============================================================
+    // 2. SUBMIT FORM PRODUKSI (Anti-Crash & Kalkulasi Stok Akurat)
+    // ==============================================================
+    document.getElementById('olahanForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const supabaseClient = window.supabase;
+      if(!supabaseClient) return alert('Supabase tidak terkoneksi!');
+
+      // Tarik semua nilai terbaru dari form
+      const minyak_jelantah = parseFloat(inputMinyakJelantah.value) || 0;
+      const kriuk = parseFloat(inputKriuk.value) || 0;
+      const ampas = parseFloat(inputAmpas.value) || 0;
+      const spinner = parseFloat(hasilSpinner.value) || 0;
+      const jelantah = parseFloat(hasilMinyakJelantah.value) || 0;
+      const loss = parseFloat(penyusutanDisplay.innerText) || 0;
+      
+      const maxMinyakJelantah = parseFloat(document.getElementById('max_minyak_jelantah').innerText) || 0;
+      const maxKriuk = parseFloat(document.getElementById('max_kriuk').innerText) || 0;
+      const maxAmpas = parseFloat(document.getElementById('max_ampas').innerText) || 0;
+      
+      if(minyak_jelantah > maxMinyakJelantah) return alert('Kuantitas Minyak Jelantah Kotor melebihi stok gudang!');
+      if(kriuk > maxKriuk) return alert('Kuantitas Kriuk melebihi stok gudang!');
+      if(ampas > maxAmpas) return alert('Kuantitas Ampas melebihi stok gudang!');
+
+      const btn = document.getElementById('btnSubmitOlahan');
+      btn.innerHTML = "Memproses..."; btn.disabled = true;
+
+      try {
+        // A. Simpan rekam jejak (Pastikan kolom database sesuai)
+        // Payload yang BENAR (Sesuai dengan kolom di tabel gudang_olahan)
+        const { error: errOlahan } = await supabaseClient.from('gudang_olahan').insert([{
+          bahan_baku_minyak: minyak_jelantah, 
+          bahan_baku_kriuk: kriuk,      // <--- TAMBAHIN BARIS INI BRO!
+          bahan_baku_ampas: ampas,
+          hasil_minyak_olahan: jelantah,
+          hasil_spinner: spinner,
+          penyusutan_loss: loss,
+          catatan: `Mix: Jelantah(${minyak_jelantah}kg) + Kriuk(${kriuk}kg) + Ampas(${ampas}kg) -> Olahan(${jelantah}kg) & Spinner(${spinner}kg)`
+        }]);
+        if(errOlahan) throw new Error("Gagal simpan data olahan: " + errOlahan.message);
+
+        const mutasiEntries = [];
+
+        // Fungsi bantu agar stok dipastikan berupa angka (parseFloat), mencegah error penggabungan string
+        const updateStok = async (id_komoditas, qty_perubahan, keterangan) => {
+            if (qty_perubahan === 0) return;
+            const { data: c, error: errC } = await supabaseClient.from('gudang_komoditas').select('stok').eq('id', id_komoditas).single();
+            if (errC && errC.code !== 'PGRST116') throw new Error(`Cek stok ${id_komoditas} gagal!`);
+            
+            const stokLama = c ? parseFloat(c.stok) : 0; 
+            const { error: errUpdate } = await supabaseClient.from('gudang_komoditas').update({ stok: (stokLama + qty_perubahan) }).eq('id', id_komoditas);
+            if (errUpdate) throw new Error(`Update stok ${id_komoditas} gagal!`);
+            
+            mutasiEntries.push({ jenis_mutasi: 'Olahan', komoditas_id: id_komoditas, jumlah: qty_perubahan, keterangan: keterangan });
+        };
+
+        // B. Potong bahan baku tambahan
+        await updateStok('kriuk', -kriuk, 'Bahan Baku Produksi');
+        await updateStok('ampas', -ampas, 'Bahan Baku Produksi');
+
+        // C. RUMUS PENGGABUNGAN MINYAK (Minyak Hasil - Minyak Kotor)
+        const selisihMinyak = jelantah - minyak_jelantah; 
+        if (selisihMinyak !== 0 || minyak_jelantah > 0 || jelantah > 0) {
+            const { data: c, error: errC } = await supabaseClient.from('gudang_komoditas').select('stok').eq('id', 'minyak_jelantah').single();
+            if (errC && errC.code !== 'PGRST116') throw new Error("Gagal cek stok minyak_jelantah!");
+            
+            const stokLamaMinyak = c ? parseFloat(c.stok) : 0;
+            const stokBaruMinyak = stokLamaMinyak + selisihMinyak;
+            
+            const { error: errUpdate } = await supabaseClient.from('gudang_komoditas').update({ stok: stokBaruMinyak }).eq('id', 'minyak_jelantah');
+            if (errUpdate) throw new Error("Gagal update total stok minyak_jelantah!");
+            
+            // Catat riwayat audit biar kelihatan kotor keluarnya berapa, bersih masuknya berapa
+            if (minyak_jelantah > 0) mutasiEntries.push({ jenis_mutasi: 'Olahan', komoditas_id: 'minyak_jelantah', jumlah: -minyak_jelantah, keterangan: 'Bahan Baku (Minyak Kotor)' });
+            if (jelantah > 0) mutasiEntries.push({ jenis_mutasi: 'Olahan', komoditas_id: 'minyak_jelantah', jumlah: jelantah, keterangan: 'Hasil Olahan (Minyak Bersih)' });
+        }
+
+        // D. Tambah Stok Spinner
+        await updateStok('spinner', spinner, 'Hasil Akhir Produksi Spinner');
+
+        // E. Eksekusi semua Mutasi ke Database
+        if (mutasiEntries.length > 0) {
+            const { error: errMutasi } = await supabaseClient.from('gudang_mutasi').insert(mutasiEntries);
+            if(errMutasi) throw new Error("Gagal catat mutasi: " + errMutasi.message);
+        }
+
+        alert('Proses produksi selesai & stok minyak berhasil dikalkulasi!');
+        window.location.reload();
+
+      } catch (err) {
+        console.error(err);
+        alert('Gagal: ' + err.message); 
+        btn.innerHTML = `<i class="bi bi-gear-fill"></i> Simpan Hasil Produksi`;
+        btn.disabled = false;
+      }
+    });
+
+    // ==============================================================
+    // 4. LOGIKA FORM: INPUT MANUAL SPINNER
+    // ==============================================================
+    document.getElementById('spinnerForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const inputQty = parseFloat(document.getElementById('input_spinner_qty').value);
+        if(!inputQty || inputQty <= 0) return alert('Masukkan jumlah yang valid!');
+        
+        const btn = document.getElementById('btnSubmitSpinner');
+        btn.innerHTML = "Menyimpan...";
+        btn.disabled = true;
+
+        try {
+            const { data: currentData } = await window.supabase.from('gudang_komoditas').select('stok').eq('id', 'spinner').single();
+            await window.supabase.from('gudang_komoditas').update({ stok: (currentData.stok + inputQty) }).eq('id', 'spinner');
+
+            await window.supabase.from('gudang_mutasi').insert([{
+                jenis_mutasi: 'Masuk',
+                komoditas_id: 'spinner',
+                jumlah: inputQty,
+                keterangan: 'Input manual stok tambahan.'
+            }]);
+
+            alert('Stok Spinner berhasil ditambahkan!');
+            window.location.reload();
+        } catch (err) {
+            alert('Gagal menyimpan Spinner: ' + err.message);
+            btn.innerHTML = `<i class="bi bi-arrow-down-circle-fill"></i> Masukkan ke Gudang`;
+            btn.disabled = false;
+        }
+    });
+
+    // ==============================================================
+    // 5. LOGIKA FORM: KALIBRASI STOK
+    // ==============================================================
+    const selectK = document.getElementById('kalibrasiKomoditas');
+    const inputSistem = document.getElementById('kalibrasiSistem');
+    const inputFisik = document.getElementById('kalibrasiFisik');
+    const textSelisih = document.getElementById('kalibrasiSelisih');
+
+    selectK?.addEventListener('change', function() {
+      const opt = this.options[this.selectedIndex];
+      inputSistem.value = opt.getAttribute('data-stok') || 0;
+      inputFisik.value = '';
+      textSelisih.innerText = '0 Kg';
+    });
+
+    inputFisik?.addEventListener('input', function() {
+      const sis = parseFloat(inputSistem.value) || 0;
+      const fis = parseFloat(this.value) || 0;
+      const selisih = fis - sis;
+      textSelisih.innerText = (selisih > 0 ? '+' : '') + selisih.toFixed(2) + ' Kg';
+      textSelisih.className = selisih < 0 ? 'font-bold text-lg text-red-600' : 'font-bold text-lg text-green-600';
+    });
+
+    document.getElementById('kalibrasiForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const komoditas_id = selectK.value;
+      const selisih = (parseFloat(inputFisik.value) || 0) - (parseFloat(inputSistem.value) || 0);
+      const catatan = document.getElementById('kalibrasiCatatan').value;
+
+      if(selisih === 0) return alert('Tidak ada selisih, kalibrasi tidak diperlukan.');
+      
+      document.getElementById('btnSubmitKalibrasi').innerHTML = "Menyimpan...";
+      
+      try {
+        await window.supabase.from('gudang_komoditas').update({ stok: parseFloat(inputFisik.value) }).eq('id', komoditas_id);
+        
+        await window.supabase.from('gudang_mutasi').insert([{
+          jenis_mutasi: 'Kalibrasi',
+          komoditas_id: komoditas_id,
+          jumlah: selisih,
+          keterangan: 'Penyesuaian (Kalibrasi): ' + catatan
+        }]);
+
+        alert('Kalibrasi stok berhasil!');
+        window.location.reload();
+      } catch (err) {
+        alert('Gagal kalibrasi: ' + err.message);
+        document.getElementById('btnSubmitKalibrasi').innerHTML = `<i class="bi bi-sliders"></i> Simpan Penyesuaian`;
+      }
+    });
+
+  });
+</script>

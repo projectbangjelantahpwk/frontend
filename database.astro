@@ -1,0 +1,1622 @@
+---
+import GeneralLayout from '../layouts/Layout.astro';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
+// Data untuk tabs menu
+const menuTabs = [
+  { id: 'mitra', label: 'Mitra', icon: 'bi-person-lines-fill' },
+  { id: 'rekening', label: 'Rekening Mitra', icon: 'bi-credit-card' },
+  { id: 'gudang', label: 'Gudang Komoditas', icon: 'bi-box-seam' },
+  { id: 'stock_harian', label: 'Stok Gudang Harian', icon: 'bi-clipboard-data' },
+  { id: 'pembelian', label: 'Pembelian Barang', icon: 'bi-cart-plus' },
+  { id: 'penjualan', label: 'Penjualan Barang', icon: 'bi-bag-check' },
+  { id: 'pengeluaran', label: 'Pengeluaran Harian', icon: 'bi-wallet2' }
+];
+
+// Status badge colors
+const statusBadgeColors = {
+  active: 'bg-green-100 text-green-700',
+  inactive: 'bg-red-100 text-red-700',
+};
+---
+<GeneralLayout title="Manajemen Inventory & Keuangan - Bang Jelantah">
+  <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+
+  <style is:global>
+    body { display: none; }
+  </style>
+
+  <!-- HEADER & TAB NAVIGATION -->
+<div class="mb-8 flex items-center justify-between flex-wrap gap-4">
+  <div>
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">Manajemen Inventory & Keuangan</h1>
+    <p class="text-gray-600">Kelola mitra, komoditas, pembelian, penjualan, dan pengeluaran harian.</p>
+  </div>
+  <div class="flex gap-3 flex-wrap">
+    <!-- Import Excel Button -->
+    <button id="importExcelBtn" class="flex items-center gap-2 px-6 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition font-medium">
+      <i class="bi bi-file-earmark-excel"></i>
+      <span>Import Excel</span>
+    </button>
+    
+    <!-- Download Template Button -->
+    <button id="downloadTemplateBtn" class="flex items-center gap-2 px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-medium">
+      <i class="bi bi-download"></i>
+      <span>Template Excel</span>
+    </button>
+    
+    <!-- Add Button (Original) -->
+    <button id="openFormBtn" class="flex items-center gap-2 px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition font-medium">
+      <i id="addIcon" class="bi bi-plus-circle-fill"></i>
+      <span id="addBtnText">Tambah Data</span>
+    </button>
+  </div>
+</div>
+
+<!-- File Input Hidden untuk Import -->
+<input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;" />
+
+  <!-- TAB MENU -->
+  <div class="bg-white rounded-lg border border-gray-200 mb-6 shadow-sm">
+    <div class="flex gap-2 p-4 flex-wrap">
+      {menuTabs.map((tab) => (
+        <button
+          data-tab={tab.id}
+          class={`tab-btn px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 ${
+            tab.id === 'mitra'
+              ? 'bg-green-700 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          <i class={`bi ${tab.icon}`}></i>
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  </div>
+
+  <!-- ========================================
+       TABEL MITRA
+       ======================================== -->
+  <div id="mitra-tab" class="tab-content">
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-200">
+              <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Nama Mitra</th>
+              <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Alamat</th>
+              <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">No. HP</th>
+              <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Rute Jemput</th>
+              <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Total Order</th>
+              <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Status</th>
+              <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tabelMitra">
+            <tr><td colspan="7" class="text-center py-4 text-gray-500">Memuat data mitra...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+       TABEL REKENING MITRA
+       ======================================== -->
+  <div id="rekening-tab" class="tab-content hidden">
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-200">
+              <th class="px-6 py-4 text-left font-bold text-gray-900">Nama Mitra</th>
+              <th class="px-6 py-4 text-left font-bold text-gray-900">Atas Nama</th>
+              <th class="px-6 py-4 text-left font-bold text-gray-900">Nama Bank</th>
+              <th class="px-6 py-4 text-left font-bold text-gray-900">No. Rekening</th>
+              <th class="px-6 py-4 text-left font-bold text-gray-900">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tabelRekening">
+            <tr><td colspan="4" class="text-center py-4 text-gray-500">Memuat data rekening...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+       TABEL GUDANG KOMODITAS
+       ======================================== -->
+  <div id="gudang-tab" class="tab-content hidden">
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-200">
+              <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Nama Komoditas</th>
+              <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Stok</th>
+              <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Satuan</th>
+              <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tabelGudang">
+            <tr><td colspan="4" class="text-center py-4 text-gray-500">Memuat data gudang...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <!-- ========================================
+       TABEL Stock GUdang Harian
+       ======================================== -->
+<div id="stock_harian-tab" class="tab-content hidden">
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-200">
+              <th class="px-4 py-3 text-left font-bold text-gray-900">Tanggal</th>
+              <th class="px-4 py-3 text-left font-bold text-gray-900">Sumber</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Minyak (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Ampas (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Kriuk (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Spinner (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Tepung (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Total (kg)</th>
+              <th class="px-4 py-3 text-left font-bold text-gray-900">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tabelStockHarian">
+            <tr><td colspan="9" class="text-center py-4 text-gray-500">Memuat data stok harian...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <!-- ========================================
+       TABEL PEMBELIAN BARANG
+       ======================================== -->
+  <div id="pembelian-tab" class="tab-content hidden">
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-200">
+              <th class="px-4 py-3 text-left font-bold text-gray-900">Tanggal</th>
+              <th class="px-4 py-3 text-left font-bold text-gray-900">Sumber</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Minyak (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Ampas (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Kriuk (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Spinner (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Tepung (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Total</th>
+              <th class="px-4 py-3 text-left font-bold text-gray-900">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tabelPembelian">
+            <tr><td colspan="9" class="text-center py-4 text-gray-500">Memuat data pembelian...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+       TABEL PENJUALAN BARANG
+       ======================================== -->
+  <div id="penjualan-tab" class="tab-content hidden">
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-200">
+              <th class="px-4 py-3 text-left font-bold text-gray-900">Tanggal</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Minyak (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Ampas (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Kriuk (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Spinner (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Tepung (kg)</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Total</th>
+              <th class="px-4 py-3 text-left font-bold text-gray-900">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tabelPenjualan">
+            <tr><td colspan="8" class="text-center py-4 text-gray-500">Memuat data penjualan...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+       TABEL PENGELUARAN HARIAN
+       ======================================== -->
+  <div id="pengeluaran-tab" class="tab-content hidden">
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-200">
+              <th class="px-4 py-3 text-left font-bold text-gray-900">Tanggal</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Gaji</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Makan</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Bonus</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Lembur</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Bensin</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Listrik</th>
+              <th class="px-4 py-3 text-right font-bold text-gray-900">Total</th>
+              <th class="px-4 py-3 text-left font-bold text-gray-900">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tabelPengeluaran">
+            <tr><td colspan="9" class="text-center py-4 text-gray-500">Memuat data pengeluaran...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</GeneralLayout>
+<!-- =====================================
+     MODAL IMPORT EXCEL
+     ===================================== -->
+<div id="importModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-2xl max-w-2xl w-full">
+    <div class="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+      <h2 class="text-xl font-bold text-gray-900">Import Data dari Excel</h2>
+      <button id="closeImportBtn" class="text-gray-400 hover:text-gray-600"><i class="bi bi-x-lg text-xl"></i></button>
+    </div>
+
+    <div class="p-6 space-y-4">
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <p class="text-sm text-blue-900"><strong>Pilih Tabel:</strong></p>
+        <select id="importTableSelect" class="w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-blue-700">
+          <option value="">-- Pilih Tabel --</option>
+          <option value="mitra">Mitra</option>
+          <option value="stock_gudang_harian">Stok Gudang Harian</option>
+          <option value="pembelian_barang_harian">Pembelian Barang</option>
+          <option value="penjualan_barang_harian">Penjualan Barang</option>
+          <option value="pengeluaran_harian">Pengeluaran Harian</option>
+        </select>
+      </div>
+
+      <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-700 transition" id="dropZone">
+        <i class="bi bi-cloud-arrow-up text-4xl text-gray-400 mb-2"></i>
+        <p class="text-sm font-medium text-gray-900">Drag & drop Excel file di sini</p>
+        <p class="text-xs text-gray-500">atau</p>
+        <button type="button" id="selectFileBtn" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+          Pilih File
+        </button>
+      </div>
+
+      <div id="importPreview" class="hidden bg-gray-50 border border-gray-200 rounded-lg p-4 max-h-80 overflow-y-auto">
+        <p class="text-xs font-bold text-gray-700 mb-2">Preview Data (10 baris pertama):</p>
+        <div id="previewTable"></div>
+      </div>
+
+      <div class="flex gap-3">
+        <button type="button" id="cancelImportBtn" class="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-bold">Batal</button>
+        <button type="button" id="submitImportBtn" class="flex-1 px-6 py-3 bg-blue-700 text-white rounded-xl hover:bg-blue-800 font-bold">Import Data</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =====================================
+     MODAL FORM UNIVERSAL
+     ===================================== -->
+<div id="formModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0">
+  <div class="bg-white rounded-2xl max-w-2xl w-full max-h-screen overflow-y-auto transform scale-95 transition-transform duration-300">
+    <div class="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between z-10">
+      <h2 id="modalTitle" class="text-xl font-bold text-gray-900">Tambah Data</h2>
+      <button id="closeFormBtn" class="text-gray-400 hover:text-gray-600"><i class="bi bi-x-lg text-xl"></i></button>
+    </div>
+
+    <form id="dynamicForm" class="p-6 space-y-6">
+      <input type="hidden" id="editId" value="">
+      <input type="hidden" id="currentTab" value="mitra">
+
+      <!-- Kontainer untuk form fields yang dinamis -->
+      <div id="formFieldsContainer"></div>
+
+      <!-- Buttons -->
+      <div class="flex gap-3 pt-4">
+        <button type="button" id="cancelBtn" class="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-bold transition">Batal</button>
+        <button type="submit" id="submitBtn" class="flex-1 px-6 py-3 bg-green-700 text-white rounded-xl hover:bg-green-800 font-bold transition shadow-sm">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  // Import di sini
+  import { supabase } from '../lib/supabase.js';
+
+  document.addEventListener('DOMContentLoaded', async function() {
+    // === 🛡️ GATEKEEPER KEUANGAN ===
+    const allowedRoles = ['owner', 'keuangan', 'admin', 'it'];
+    const client = window.supabase || supabase;
+    
+    const { data: { session } } = await client.auth.getSession();
+    if (!session) return window.location.replace('/');
+    
+    const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+    if (!allowedRoles.includes(prof?.role)) {
+      alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk.`);
+      return window.location.replace('/');
+    }
+    document.body.style.display = 'block';
+
+    let currentTab = 'mitra';
+
+    // ===== TAB SWITCHING =====
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const tabId = this.getAttribute('data-tab');
+        currentTab = tabId;
+        document.getElementById('currentTab').value = tabId;
+
+        // Update button styles
+        document.querySelectorAll('.tab-btn').forEach(b => {
+          b.classList.remove('bg-green-700', 'text-white');
+          b.classList.add('bg-gray-100', 'text-gray-700');
+        });
+        this.classList.remove('bg-gray-100', 'text-gray-700');
+        this.classList.add('bg-green-700', 'text-white');
+
+        // Tampilkan tab yang sesuai
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.add('hidden');
+        });
+        document.getElementById(`${tabId}-tab`).classList.remove('hidden');
+
+        // Load data untuk tab yang dipilih
+        if(tabId === 'mitra') loadMitra();
+        else if(tabId === 'rekening') loadRekening();
+        else if(tabId === 'gudang') loadGudang();
+        else if(tabId === 'stock_harian') loadStockHarian();
+        else if(tabId === 'pembelian') loadPembelian();
+        else if(tabId === 'penjualan') loadPenjualan();
+        else if(tabId === 'pengeluaran') loadPengeluaran();
+      });
+    });
+
+    // ===== LOAD DATA MITRA =====
+    async function loadMitra() {
+      const { data, error } = await supabase
+        .from('mitra')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if(error) {
+        console.error(error);
+        document.getElementById('tabelMitra').innerHTML = '<tr><td colspan="7" class="text-center py-4 text-red-500 font-bold">Gagal memuat data!</td></tr>';
+        return;
+      }
+
+      let html = '';
+      data.forEach(item => {
+        const status = item.activated ? 'Aktif' : 'Nonaktif';
+        const statusClass = item.activated ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+        
+        html += `
+          <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+            <td class="px-6 py-4 font-bold text-gray-900">${item.nama_mitra}</td>
+            <td class="px-6 py-4 text-sm text-gray-700 max-w-[200px] truncate">${item.alamat || '-'}</td>
+            <td class="px-6 py-4 text-sm text-gray-700">${item.nomor_hp || '-'}</td>
+            <td class="px-6 py-4 text-sm text-gray-700">${item.rute_jemput || '-'}</td>
+            <td class="px-6 py-4 font-bold text-gray-900">${item.total_order || 0}</td>
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${statusClass}">
+                ${status}
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex gap-2">
+                <button class="edit-mitra-btn px-3 py-1 text-blue-600 hover:bg-blue-50 border border-blue-200 rounded text-sm font-medium" data-id="${item.id}">
+                  <i class="bi bi-pencil mr-1"></i>Edit
+                </button>
+                <button onclick="window.hapusData('mitra', ${item.id}, '${item.nama_mitra}')" class="px-3 py-1 text-red-600 hover:bg-red-50 border border-red-200 rounded text-sm font-medium">
+                  <i class="bi bi-trash mr-1"></i>Hapus
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('tabelMitra').innerHTML = html;
+
+      document.querySelectorAll('.edit-mitra-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const id = this.getAttribute('data-id');
+          editMitra(id);
+        });
+      });
+    }
+
+    // ===== LOAD DATA REKENING =====
+    async function loadRekening() {
+      // Sama persis kayak di kemitraan.astro: nge-join tabel rek_mitra dengan mitra
+      const { data, error } = await supabase
+        .from('rek_mitra')
+        .select('id, atas_nama, nama_bank, no_rek, mitra!mitra_id(nama_mitra)')
+        .order('nama_bank', { ascending: true });
+
+      if(error) {
+        console.error(error);
+        document.getElementById('tabelRekening').innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-500 font-bold">Gagal memuat data!</td></tr>';
+        return;
+      }
+
+      let html = '';
+      data.forEach(item => {
+        const namaMitra = item.mitra?.nama_mitra || 'Mitra Tidak Ditemukan';
+        
+        html += `
+          <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+            <td class="px-6 py-4 font-bold text-gray-900">${namaMitra}</td>
+            <td class="px-6 py-4 font-medium text-gray-800">${item.atas_nama}</td>
+            <td class="px-6 py-4 text-sm"><span class="px-2 py-1 bg-blue-100 text-blue-800 rounded font-bold">${item.nama_bank}</span></td>
+            <td class="px-6 py-4 font-mono font-bold text-gray-900">${item.no_rek}</td>
+            <td class="px-6 py-4">
+              <div class="flex gap-2">
+                <button class="edit-rekening-btn px-3 py-1 text-blue-600 hover:bg-blue-50 border border-blue-200 rounded text-sm font-medium" data-id="${item.id}">
+                  <i class="bi bi-pencil mr-1"></i>Edit
+                </button>
+                <button onclick="window.hapusData('rek_mitra', ${item.id}, 'Rekening ${item.atas_nama}')" class="px-3 py-1 text-red-600 hover:bg-red-50 border border-red-200 rounded text-sm font-medium">
+                  <i class="bi bi-trash mr-1"></i>Hapus
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('tabelRekening').innerHTML = html || '<tr><td colspan="4" class="text-center py-4 text-gray-500">Tidak ada data rekening</td></tr>';
+      document.querySelectorAll('.edit-rekening-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          editRekening(this.getAttribute('data-id'));
+        });
+      });
+    }
+
+    // ===== LOAD DATA GUDANG =====
+    async function loadGudang() {
+      const { data, error } = await supabase
+        .from('gudang_komoditas')
+        .select('*')
+        .order('nama_komoditas', { ascending: true });
+
+      if(error) {
+        console.error(error);
+        document.getElementById('tabelGudang').innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-500 font-bold">Gagal memuat data!</td></tr>';
+        return;
+      }
+
+      let html = '';
+      data.forEach(item => {
+        html += `
+          <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+            <td class="px-6 py-4 font-bold text-gray-900">${item.nama_komoditas}</td>
+            <td class="px-6 py-4 font-bold text-lg text-blue-600">${parseFloat(item.stok).toFixed(2)}</td>
+            <td class="px-6 py-4 text-gray-700">${item.satuan}</td>
+            <td class="px-6 py-4">
+              <button class="edit-gudang-btn px-3 py-1 text-blue-600 hover:bg-blue-50 border border-blue-200 rounded text-sm font-medium" data-id="${item.id}">
+                <i class="bi bi-pencil mr-1"></i>Edit Stok
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('tabelGudang').innerHTML = html;
+
+      document.querySelectorAll('.edit-gudang-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const id = this.getAttribute('data-id');
+          editGudang(id);
+        });
+      });
+    }
+    // ===== LOAD DATA STOCK GUDANG HARIAN =====
+    // ===== LOAD DATA STOK HARIAN =====
+    async function loadStockHarian() {
+      const { data, error } = await supabase.from('stock_gudang_harian').select('*').order('tanggal', { ascending: false });
+      if(error) {
+        document.getElementById('tabelStockHarian').innerHTML = '<tr><td colspan="9" class="text-center py-4 text-red-500 font-bold">Gagal memuat data!</td></tr>';
+        return;
+      }
+      let html = '';
+      data.forEach(item => {
+        html += `
+          <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+            <td class="px-4 py-3 font-medium text-gray-900">${item.tanggal}</td>
+            <td class="px-4 py-3 text-gray-700">${item.sumber || '-'}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.minyak_jelantah || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.ampas || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.kriuk || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.spinner || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.tepung || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-bold text-blue-600">${parseFloat(item.total_kg || 0).toFixed(2)}</td>
+            <td class="px-4 py-3">
+              <div class="flex gap-2">
+                <button class="edit-stock-btn px-3 py-1 text-blue-600 hover:bg-blue-50 border border-blue-200 rounded text-sm font-medium" data-id="${item.id}">
+                  <i class="bi bi-pencil mr-1"></i>Edit
+                </button>
+                <button onclick="window.hapusData('stock_gudang_harian', ${item.id}, '${item.tanggal}')" class="px-3 py-1 text-red-600 hover:bg-red-50 border border-red-200 rounded text-sm font-medium">
+                  <i class="bi bi-trash mr-1"></i>Hapus
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      document.getElementById('tabelStockHarian').innerHTML = html || '<tr><td colspan="9" class="text-center py-4 text-gray-500">Tidak ada data stok harian</td></tr>';
+      document.querySelectorAll('.edit-stock-btn').forEach(btn => {
+        btn.addEventListener('click', function() { editStockHarian(this.getAttribute('data-id')); });
+      });
+    }
+
+    // ===== EDIT STOK HARIAN =====
+    async function editStockHarian(id) {
+      const { data, error } = await supabase.from('stock_gudang_harian').select('*').eq('id', id).single();
+      if(error) return alert('Gagal memuat data');
+      document.getElementById('currentTab').value = 'stock_harian';
+      document.getElementById('editId').value = id;
+      document.getElementById('modalTitle').textContent = 'Edit Stok Gudang Harian';
+      renderStockHarianForm(data);
+      openModal();
+    }
+
+    // ===== RENDER FORM STOK HARIAN =====
+    function renderStockHarianForm(data = null) {
+      const container = document.getElementById('formFieldsContainer');
+      container.innerHTML = `
+        <div class="space-y-4">
+          <h3 class="text-sm font-bold text-gray-900 border-b pb-2">Data Stok Gudang Harian</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Tanggal</label>
+              <input type="date" name="tanggal" value="${data?.tanggal || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700" required />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Sumber</label>
+              <input type="text" name="sumber" value="${data?.sumber || ''}" placeholder="Asal/sumber stok" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700" required />
+            </div>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h4 class="text-sm font-bold text-gray-900 mb-3">Kuantitas (kg)</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Minyak Jelantah</label>
+                <input type="number" step="0.01" name="minyak_jelantah" value="${data?.minyak_jelantah || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Ampas</label>
+                <input type="number" step="0.01" name="ampas" value="${data?.ampas || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Kriuk</label>
+                <input type="number" step="0.01" name="kriuk" value="${data?.kriuk || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Spinner</label>
+                <input type="number" step="0.01" name="spinner" value="${data?.spinner || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Tepung</label>
+                <input type="number" step="0.01" name="tepung" value="${data?.tepung || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1 text-blue-700">Total Keseluruhan Kg</label>
+                <input type="number" step="0.01" name="total_kg" value="${data?.total_kg || 0}" class="w-full px-4 py-2 border border-blue-300 bg-blue-50 rounded-lg outline-none focus:border-blue-700 font-bold text-blue-700" />
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ===== LOAD DATA PEMBELIAN =====
+    async function loadPembelian() {
+      const { data, error } = await supabase
+        .from('pembelian_barang_harian')
+        .select('*')
+        .order('tanggal', { ascending: false });
+
+      if(error) {
+        console.error(error);
+        document.getElementById('tabelPembelian').innerHTML = '<tr><td colspan="9" class="text-center py-4 text-red-500 font-bold">Gagal memuat data!</td></tr>';
+        return;
+      }
+
+      let html = '';
+      data.forEach(item => {
+        html += `
+          <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+            <td class="px-4 py-3 font-medium text-gray-900">${item.tanggal}</td>
+            <td class="px-4 py-3 text-gray-700">${item.sumber}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.minyak_jelantah || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.ampas || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.kriuk || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.spinner || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.tepung || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-bold text-blue-600">${parseFloat(item.total_harian || 0).toFixed(2)}</td>
+            <td class="px-4 py-3">
+              <div class="flex gap-2">
+                <button class="edit-pembelian-btn px-3 py-1 text-blue-600 hover:bg-blue-50 border border-blue-200 rounded text-sm font-medium" data-id="${item.id}">
+                  <i class="bi bi-pencil mr-1"></i>Edit
+                </button>
+                <button onclick="window.hapusData('pembelian_barang_harian', ${item.id}, '${item.tanggal}')" class="px-3 py-1 text-red-600 hover:bg-red-50 border border-red-200 rounded text-sm font-medium">
+                  <i class="bi bi-trash mr-1"></i>Hapus
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('tabelPembelian').innerHTML = html || '<tr><td colspan="9" class="text-center py-4 text-gray-500">Tidak ada data pembelian</td></tr>';
+
+      document.querySelectorAll('.edit-pembelian-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const id = this.getAttribute('data-id');
+          editPembelian(id);
+        });
+      });
+    }
+
+    // ===== LOAD DATA PENJUALAN =====
+    async function loadPenjualan() {
+      const { data, error } = await supabase
+        .from('penjualan_barang_harian')
+        .select('*')
+        .order('tanggal', { ascending: false });
+
+      if(error) {
+        console.error(error);
+        document.getElementById('tabelPenjualan').innerHTML = '<tr><td colspan="8" class="text-center py-4 text-red-500 font-bold">Gagal memuat data!</td></tr>';
+        return;
+      }
+
+      let html = '';
+      data.forEach(item => {
+        html += `
+          <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+            <td class="px-4 py-3 font-medium text-gray-900">${item.tanggal}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.minyak_jelantah || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.ampas || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.kriuk || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.spinner || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.tepung || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 text-right font-bold text-green-600">${parseFloat(item.total_harian || 0).toFixed(2)}</td>
+            <td class="px-4 py-3">
+              <div class="flex gap-2">
+                <button class="edit-penjualan-btn px-3 py-1 text-blue-600 hover:bg-blue-50 border border-blue-200 rounded text-sm font-medium" data-id="${item.id}">
+                  <i class="bi bi-pencil mr-1"></i>Edit
+                </button>
+                <button onclick="window.hapusData('penjualan_barang_harian', ${item.id}, '${item.tanggal}')" class="px-3 py-1 text-red-600 hover:bg-red-50 border border-red-200 rounded text-sm font-medium">
+                  <i class="bi bi-trash mr-1"></i>Hapus
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('tabelPenjualan').innerHTML = html || '<tr><td colspan="8" class="text-center py-4 text-gray-500">Tidak ada data penjualan</td></tr>';
+
+      document.querySelectorAll('.edit-penjualan-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const id = this.getAttribute('data-id');
+          editPenjualan(id);
+        });
+      });
+    }
+
+    // ===== LOAD DATA PENGELUARAN =====
+    async function loadPengeluaran() {
+      const { data, error } = await supabase
+        .from('pengeluaran_harian')
+        .select('*')
+        .order('tanggal', { ascending: false });
+
+      if(error) {
+        console.error(error);
+        document.getElementById('tabelPengeluaran').innerHTML = '<tr><td colspan="9" class="text-center py-4 text-red-500 font-bold">Gagal memuat data!</td></tr>';
+        return;
+      }
+
+      let html = '';
+      data.forEach(item => {
+        const total = (parseFloat(item.gaji || 0) + parseFloat(item.makan || 0) + parseFloat(item.bonus || 0) + 
+                      parseFloat(item.lembur || 0) + parseFloat(item.bensin || 0) + parseFloat(item.listrik || 0)).toFixed(2);
+        
+        html += `
+          <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+            <td class="px-4 py-3 font-medium text-gray-900">${item.tanggal}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.gaji || 0).toFixed(0)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.makan || 0).toFixed(0)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.bonus || 0).toFixed(0)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.lembur || 0).toFixed(0)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.bensin || 0).toFixed(0)}</td>
+            <td class="px-4 py-3 text-right font-medium">${parseFloat(item.listrik || 0).toFixed(0)}</td>
+            <td class="px-4 py-3 text-right font-bold text-red-600">${total}</td>
+            <td class="px-4 py-3">
+              <div class="flex gap-2">
+                <button class="edit-pengeluaran-btn px-3 py-1 text-blue-600 hover:bg-blue-50 border border-blue-200 rounded text-sm font-medium" data-id="${item.id}">
+                  <i class="bi bi-pencil mr-1"></i>Edit
+                </button>
+                <button onclick="window.hapusData('pengeluaran_harian', ${item.id}, '${item.tanggal}')" class="px-3 py-1 text-red-600 hover:bg-red-50 border border-red-200 rounded text-sm font-medium">
+                  <i class="bi bi-trash mr-1"></i>Hapus
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('tabelPengeluaran').innerHTML = html || '<tr><td colspan="9" class="text-center py-4 text-gray-500">Tidak ada data pengeluaran</td></tr>';
+
+      document.querySelectorAll('.edit-pengeluaran-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const id = this.getAttribute('data-id');
+          editPengeluaran(id);
+        });
+      });
+    }
+
+    // ===== EDIT MITRA =====
+    async function editMitra(id) {
+      const { data, error } = await supabase.from('mitra').select('*').eq('id', id).single();
+      if(error) return alert('Gagal memuat data');
+
+      document.getElementById('currentTab').value = 'mitra';
+      document.getElementById('editId').value = id;
+      document.getElementById('modalTitle').textContent = 'Edit Mitra';
+
+      renderMitraForm(data);
+      openModal();
+    }
+
+    // ===== EDIT REKENING =====
+    async function editRekening(id) {
+      const { data, error } = await supabase.from('rek_mitra').select('*').eq('id', id).single();
+      if(error) return alert('Gagal memuat data');
+
+      document.getElementById('currentTab').value = 'rekening';
+      document.getElementById('editId').value = id;
+      document.getElementById('modalTitle').textContent = 'Edit Rekening Mitra';
+
+      renderRekeningForm(data);
+      openModal();
+    }
+
+    // ===== RENDER FORM REKENING =====
+    function renderRekeningForm(data = null) {
+      const container = document.getElementById('formFieldsContainer');
+      let html = `
+        <div class="space-y-4">
+          <h3 class="text-sm font-bold text-gray-900 border-b pb-2">Edit Data Rekening</h3>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Nama Bank</label>
+            <input type="text" name="nama_bank" value="${data?.nama_bank || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">No. Rekening</label>
+            <input type="number" name="no_rek" value="${data?.no_rek || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Atas Nama</label>
+            <input type="text" name="atas_nama" value="${data?.atas_nama || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
+          </div>
+        </div>
+      `;
+      container.innerHTML = html;
+    }
+
+    // ===== EDIT GUDANG =====
+    async function editGudang(id) {
+      const { data, error } = await supabase.from('gudang_komoditas').select('*').eq('id', id).single();
+      if(error) return alert('Gagal memuat data');
+
+      document.getElementById('currentTab').value = 'gudang';
+      document.getElementById('editId').value = id;
+      document.getElementById('modalTitle').textContent = 'Edit Stok Komoditas';
+
+      renderGudangForm(data);
+      openModal();
+    }
+
+    // ===== EDIT PEMBELIAN =====
+    async function editPembelian(id) {
+      const { data, error } = await supabase.from('pembelian_barang_harian').select('*').eq('id', id).single();
+      if(error) return alert('Gagal memuat data');
+
+      document.getElementById('currentTab').value = 'pembelian';
+      document.getElementById('editId').value = id;
+      document.getElementById('modalTitle').textContent = 'Edit Pembelian Barang';
+
+      renderPembelianForm(data);
+      openModal();
+    }
+
+    // ===== EDIT PENJUALAN =====
+    async function editPenjualan(id) {
+      const { data, error } = await supabase.from('penjualan_barang_harian').select('*').eq('id', id).single();
+      if(error) return alert('Gagal memuat data');
+
+      document.getElementById('currentTab').value = 'penjualan';
+      document.getElementById('editId').value = id;
+      document.getElementById('modalTitle').textContent = 'Edit Penjualan Barang';
+
+      renderPenjualanForm(data);
+      openModal();
+    }
+
+    // ===== EDIT PENGELUARAN =====
+    async function editPengeluaran(id) {
+      const { data, error } = await supabase.from('pengeluaran_harian').select('*').eq('id', id).single();
+      if(error) return alert('Gagal memuat data');
+
+      document.getElementById('currentTab').value = 'pengeluaran';
+      document.getElementById('editId').value = id;
+      document.getElementById('modalTitle').textContent = 'Edit Pengeluaran Harian';
+
+      renderPengeluaranForm(data);
+      openModal();
+    }
+
+    // ===== RENDER FORM MITRA =====
+    function renderMitraForm(data = null) {
+      const container = document.getElementById('formFieldsContainer');
+      const ruteOptions = ['Purwakarta', 'Subang', 'Bandung', 'Jakarta', 'Bekasi', 'Karawang'];
+      const sumberOptions = ['Facebook', 'Tiktok', 'Lainnya'];
+      
+      // Susunan Form yang Mengalir Lurus ke Bawah (Tanpa Grid Menyamping)
+      let html = `
+        <div class="space-y-4">
+          <h3 class="text-sm font-bold text-gray-900 border-b pb-2">Informasi Mitra</h3>
+          
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Nama Mitra</label>
+            <input type="text" name="nama_mitra" value="${data?.nama_mitra || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
+          </div>
+          
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">No. HP</label>
+            <input type="tel" name="nomor_hp" value="${data?.nomor_hp || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
+          </div>
+          
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Alamat</label>
+            <textarea name="alamat" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" rows="2" required>${data?.alamat || ''}</textarea>
+          </div>
+          
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Link Google Maps (Opsional)</label>
+            <input type="url" name="link_gmaps" value="${data?.link_gmaps || ''}" placeholder="https://maps.google.com/..." class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+          </div>
+          
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Rute Jemput</label>
+            <select name="rute_jemput" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required>
+              <option value="">-- Pilih Rute --</option>
+              ${ruteOptions.map(r => `<option value="${r}" ${data?.rute_jemput === r ? 'selected' : ''}>${r}</option>`).join('')}
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Sumber Mitra</label>
+            <select name="sumber_mitra" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required>
+              <option value="">-- Pilih Sumber --</option>
+              ${sumberOptions.map(s => `<option value="${s}" ${data?.sumber_mitra === s ? 'selected' : ''}>${s}</option>`).join('')}
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Jenis Pelanggan</label>
+            <select name="jenis_pelanggan" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required>
+              <option value="Rumah Tangga" ${data?.jenis_pelanggan === 'Rumah Tangga' ? 'selected' : ''}>Rumah Tangga / Perorangan</option>
+              <option value="Restoran/Rumah Makan" ${data?.jenis_pelanggan === 'Restoran/Rumah Makan' ? 'selected' : ''}>Restoran / Rumah Makan</option>
+              <option value="Pengepul Kecil" ${data?.jenis_pelanggan === 'Pengepul Kecil' ? 'selected' : ''}>Pengepul Kecil</option>
+              <option value="Pabrik/Industri" ${data?.jenis_pelanggan === 'Pabrik/Industri' ? 'selected' : ''}>Pabrik / Industri</option>
+              <option value="Lainnya" ${data?.jenis_pelanggan === 'Lainnya' ? 'selected' : ''}>Lainnya</option>
+            </select>
+          </div>
+
+          <div class="mt-2 pt-2 border-t border-gray-100">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" name="activated" ${data?.activated || !data ? 'checked' : ''} class="w-4 h-4 rounded border-gray-300 text-green-700 focus:ring-green-700" />
+              <span class="text-xs font-bold text-gray-700">Mitra Aktif</span>
+            </label>
+          </div>
+        </div>
+      `;
+      container.innerHTML = html;
+    }
+
+    // ===== RENDER FORM GUDANG =====
+    function renderGudangForm(data = null) {
+      const container = document.getElementById('formFieldsContainer');
+
+      let html = `
+        <div class="space-y-4">
+          <h3 class="text-sm font-bold text-gray-900 border-b pb-2">Update Stok Komoditas</h3>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Nama Komoditas</label>
+            <input type="text" value="${data?.nama_komoditas || ''}" class="w-full px-4 py-2 border border-gray-300 bg-gray-100 rounded-lg" disabled />
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Stok (kg)</label>
+              <input type="number" step="0.01" name="stok" value="${data?.stok || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Satuan</label>
+              <input type="text" value="${data?.satuan || 'kg'}" class="w-full px-4 py-2 border border-gray-300 bg-gray-100 rounded-lg" disabled />
+            </div>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    // ===== RENDER FORM PEMBELIAN =====
+    function renderPembelianForm(data = null) {
+      const container = document.getElementById('formFieldsContainer');
+
+      let html = `
+        <div class="space-y-4">
+          <h3 class="text-sm font-bold text-gray-900 border-b pb-2">Data Pembelian Barang</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Tanggal (DD-MM-YYYY)</label>
+              <input type="date" name="tanggal" value="${data?.tanggal || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Sumber Pembelian</label>
+              <input type="text" name="sumber" value="${data?.sumber || ''}" placeholder="Contoh: Cv. XYZ, Perseorangan" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
+            </div>
+          </div>
+          <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <h4 class="text-sm font-bold text-blue-900 mb-3">Kuantitas Komoditas (kg)</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Minyak Jelantah</label>
+                <input type="number" step="0.01" name="minyak_jelantah" value="${data?.minyak_jelantah || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Ampas</label>
+                <input type="number" step="0.01" name="ampas" value="${data?.ampas || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Kriuk</label>
+                <input type="number" step="0.01" name="kriuk" value="${data?.kriuk || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Spinner</label>
+                <input type="number" step="0.01" name="spinner" value="${data?.spinner || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Tepung</label>
+                <input type="number" step="0.01" name="tepung" value="${data?.tepung || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    // ===== RENDER FORM PENJUALAN =====
+    function renderPenjualanForm(data = null) {
+      const container = document.getElementById('formFieldsContainer');
+
+      let html = `
+        <div class="space-y-4">
+          <h3 class="text-sm font-bold text-gray-900 border-b pb-2">Data Penjualan Barang</h3>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Tanggal (DD-MM-YYYY)</label>
+            <input type="date" name="tanggal" value="${data?.tanggal || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
+          </div>
+          <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+            <h4 class="text-sm font-bold text-green-900 mb-3">Kuantitas Penjualan (kg)</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Minyak Jelantah</label>
+                <input type="number" step="0.01" name="minyak_jelantah" value="${data?.minyak_jelantah || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Ampas</label>
+                <input type="number" step="0.01" name="ampas" value="${data?.ampas || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Kriuk</label>
+                <input type="number" step="0.01" name="kriuk" value="${data?.kriuk || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Spinner</label>
+                <input type="number" step="0.01" name="spinner" value="${data?.spinner || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Tepung</label>
+                <input type="number" step="0.01" name="tepung" value="${data?.tepung || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    // ===== RENDER FORM PENGELUARAN =====
+    function renderPengeluaranForm(data = null) {
+      const container = document.getElementById('formFieldsContainer');
+
+      let html = `
+        <div class="space-y-4">
+          <h3 class="text-sm font-bold text-gray-900 border-b pb-2">Data Pengeluaran Harian</h3>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Tanggal</label>
+            <input type="date" name="tanggal" value="${data?.tanggal || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
+          </div>
+
+          <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+            <h4 class="text-sm font-bold text-red-900 mb-3">Pengeluaran SDM (Gaji & Tunjangan)</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Gaji</label>
+                <input type="number" step="0.01" name="gaji" value="${data?.gaji || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Makan</label>
+                <input type="number" step="0.01" name="makan" value="${data?.makan || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Bonus</label>
+                <input type="number" step="0.01" name="bonus" value="${data?.bonus || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Lembur</label>
+                <input type="number" step="0.01" name="lembur" value="${data?.lembur || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Uang Rapat</label>
+                <input type="number" step="0.01" name="uang_rapat" value="${data?.uang_rapat || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Uang Nginep</label>
+                <input type="number" step="0.01" name="uang_nginep" value="${data?.uang_nginep || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Uang Kesehatan</label>
+                <input type="number" step="0.01" name="uang_kesehatan" value="${data?.uang_kesehatan || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
+            <h4 class="text-sm font-bold text-orange-900 mb-3">Pengeluaran Operasional</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Bensin</label>
+                <input type="number" step="0.01" name="bensin" value="${data?.bensin || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Parkir</label>
+                <input type="number" step="0.01" name="parkir" value="${data?.parkir || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Admin</label>
+                <input type="number" step="0.01" name="admin" value="${data?.admin || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Iklan</label>
+                <input type="number" step="0.01" name="iklan" value="${data?.iklan || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Listrik</label>
+                <input type="number" step="0.01" name="listrik" value="${data?.listrik || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Karung</label>
+                <input type="number" step="0.01" name="karung" value="${data?.karung || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Plastik</label>
+                <input type="number" step="0.01" name="plastik" value="${data?.plastik || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Service</label>
+                <input type="number" step="0.01" name="service" value="${data?.service || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Jasa Spinner</label>
+                <input type="number" step="0.01" name="jasa_spinner" value="${data?.jasa_spinner || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Dana Talang</label>
+                <input type="number" step="0.01" name="dana_talang" value="${data?.dana_talang || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Lain-lain</label>
+                <input type="number" step="0.01" name="lain_lain" value="${data?.lain_lain || 0}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" />
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    // ===== MODAL FUNCTIONS =====
+    function openModal() {
+      const formModal = document.getElementById('formModal');
+      formModal.classList.remove('hidden');
+      formModal.classList.add('flex');
+      setTimeout(() => { formModal.classList.remove('opacity-0'); formModal.querySelector('div').classList.remove('scale-95'); }, 10);
+    }
+
+    function closeModal() {
+      const formModal = document.getElementById('formModal');
+      formModal.classList.add('opacity-0'); 
+      formModal.querySelector('div').classList.add('scale-95');
+      setTimeout(() => { formModal.classList.add('hidden'); formModal.classList.remove('flex'); }, 300);
+    }
+
+    document.getElementById('closeFormBtn').addEventListener('click', closeModal);
+    document.getElementById('cancelBtn').addEventListener('click', closeModal);
+
+    // ===== ADD BUTTON =====
+    document.getElementById('openFormBtn').addEventListener('click', function() {
+      const activeTab = document.querySelector('.tab-btn.bg-green-700');
+      const tabName = activeTab.getAttribute('data-tab');
+      
+      document.getElementById('editId').value = '';
+      document.getElementById('currentTab').value = tabName;
+
+      if(tabName === 'mitra') {
+        document.getElementById('modalTitle').textContent = 'Tambah Mitra';
+        renderMitraForm();
+      } else if(tabName === 'gudang') {
+        document.getElementById('modalTitle').textContent = 'Saya tidak bisa menambah gudang (data fixed)';
+        return alert('Gudang Komoditas sudah di-set otomatis. Hanya bisa mengedit stok!');
+      } else if(tabName === 'stock_harian') {
+        document.getElementById('modalTitle').textContent = 'Tambah Stok Gudang Harian';
+        renderStockHarianForm();
+      } else if(tabName === 'pembelian') {
+        document.getElementById('modalTitle').textContent = 'Tambah Pembelian Barang';
+        renderPembelianForm();
+      } else if(tabName === 'penjualan') {
+        document.getElementById('modalTitle').textContent = 'Tambah Penjualan Barang';
+        renderPenjualanForm();
+      } else if(tabName === 'pengeluaran') {
+        document.getElementById('modalTitle').textContent = 'Tambah Pengeluaran Harian';
+        renderPengeluaranForm();
+      }
+
+      openModal();
+    });
+
+    // ===== FORM SUBMIT =====
+    document.getElementById('dynamicForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const editId = document.getElementById('editId').value;
+      const currentTab = document.getElementById('currentTab').value;
+      const btn = document.getElementById('submitBtn');
+      
+      btn.innerText = 'Memproses...';
+      btn.disabled = true;
+
+      try {
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+
+        // Convert numeric fields
+        Object.keys(data).forEach(key => {
+          if(key !== 'sumber' && key !== 'nama_mitra' && key !== 'alamat' && key !== 'link_gmaps' && key !== 'nomor_hp' && key !== 'rute_jemput' && key !== 'sumber_mitra' && key !== 'tanggal') {
+            if(data[key] !== '' && !isNaN(data[key])) {
+              data[key] = parseFloat(data[key]);
+            }
+          }
+        });
+
+        // Handle activated checkbox
+        if(currentTab === 'mitra') {
+          data.activated = document.querySelector('input[name="activated"]')?.checked || false;
+        }
+
+        let targetTable = currentTab === 'mitra' ? 'mitra' :
+                          currentTab === 'rekening' ? 'rek_mitra' : '';
+                          currentTab === 'gudang' ? 'gudang_komoditas' :
+                          currentTab === 'stock_harian' ? 'stock_gudang_harian' :
+                          currentTab === 'pembelian' ? 'pembelian_barang_harian' :
+                          currentTab === 'penjualan' ? 'penjualan_barang_harian' :
+                          currentTab === 'pengeluaran' ? 'pengeluaran_harian' :'';
+
+        let result;
+        if(editId) {
+          result = await supabase.from(targetTable).update(data).eq('id', editId);
+        } else {
+          result = await supabase.from(targetTable).insert([data]);
+        }
+
+        if(result.error) throw result.error;
+
+        alert(editId ? 'Data berhasil diperbarui!' : 'Data berhasil ditambahkan!');
+        closeModal();
+        
+        if(currentTab === 'mitra') loadMitra();
+        else if(currentTab === 'gudang') loadGudang();
+        else if(currentTab === 'stock_harian') loadStockHarian();
+        else if(currentTab === 'pembelian') loadPembelian();
+        else if(currentTab === 'penjualan') loadPenjualan();
+        else if(currentTab === 'pengeluaran') loadPengeluaran();
+
+      } catch(err) {
+        alert('Gagal: ' + err.message);
+      } finally {
+        btn.innerText = 'Simpan';
+        btn.disabled = false;
+      }
+    });
+
+    // ===== HAPUS DATA FUNCTION =====
+   window.hapusData = async function(table, id, nama) {
+      if(!confirm(`Yakin ingin menghapus "${nama}"?`)) return;
+    
+      try {
+          const { error } = await supabase.from(table).delete().eq('id', id);
+          if(error) throw error;
+      
+          alert('Data berhasil dihapus!');
+          
+          if(table === 'mitra') loadMitra();
+          else if(table === 'stock_gudang_harian') loadStockHarian();
+          else if(table === 'pembelian_barang_harian') loadPembelian();
+          else if(table === 'penjualan_barang_harian') loadPenjualan();
+          else if(table === 'pengeluaran_harian') loadPengeluaran();
+          else if(table === 'rek_mitra') loadRekening(); // <--- TARUH DI SINI BRO
+      
+      } catch(err) {
+          alert('Gagal: ' + err.message);
+      }
+  };
+
+
+    // ==========================================
+    // LOGIKA IMPORT EXCEL KE DATABASE
+    // ==========================================
+    const importModal = document.getElementById('importModal');
+    const importExcelBtn = document.getElementById('importExcelBtn');
+    const closeImportBtn = document.getElementById('closeImportBtn');
+    const cancelImportBtn = document.getElementById('cancelImportBtn');
+    const selectFileBtn = document.getElementById('selectFileBtn');
+    const excelFileInput = document.getElementById('excelFileInput');
+    const importTableSelect = document.getElementById('importTableSelect');
+    const importPreview = document.getElementById('importPreview');
+    const previewTable = document.getElementById('previewTable');
+    const submitImportBtn = document.getElementById('submitImportBtn');
+
+    let importedData = []; // Variabel penyimpan data sementara
+
+    // Buka Tutup Modal Import
+    importExcelBtn.addEventListener('click', () => {
+      importModal.classList.remove('hidden');
+      importModal.classList.add('flex');
+    });
+
+    const tutupImport = () => {
+      importModal.classList.add('hidden');
+      importModal.classList.remove('flex');
+      excelFileInput.value = ''; // Reset input file
+      importPreview.classList.add('hidden');
+      importedData = [];
+    };
+
+    closeImportBtn.addEventListener('click', tutupImport);
+    cancelImportBtn.addEventListener('click', tutupImport);
+
+    // Klik kotak drag & drop akan membuka file explorer
+    document.getElementById('dropZone').addEventListener('click', () => excelFileInput.click());
+
+    // Proses Baca File Excel saat file dipilih
+    excelFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const tableName = importTableSelect.value;
+      if (!tableName) {
+        alert("⚠️ Silakan pilih 'Tabel Tujuan' di dropdown terlebih dahulu!");
+        excelFileInput.value = '';
+        return;
+      }
+
+      try {
+        selectFileBtn.innerText = "Membaca file...";
+        
+        // Injeksi Library Excel (Sama seperti fitur download)
+        if (typeof window.XLSX === 'undefined') {
+          await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+            script.onload = resolve;
+            script.onerror = () => reject(new Error("Gagal memuat library Excel. Cek koneksi internet."));
+            document.head.appendChild(script);
+          });
+        }
+
+        // Mulai proses baca file menggunakan FileReader
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const data = new Uint8Array(e.target.result);
+          const workbook = window.XLSX.read(data, {type: 'array'});
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          
+          // Konversi dari Sheet ke format JSON
+          const jsonData = window.XLSX.utils.sheet_to_json(worksheet);
+          
+          if (jsonData.length === 0) return alert("❌ File Excel kosong atau format tidak sesuai.");
+          
+          importedData = jsonData;
+          
+          // Tampilkan Preview (Maksimal 10 baris pertama)
+          importPreview.classList.remove('hidden');
+          const previewData = jsonData.slice(0, 10);
+          const headers = Object.keys(previewData[0]);
+          let html = '<table class="w-full text-left text-xs bg-white border border-gray-200"><thead><tr class="bg-gray-100">';
+          headers.forEach(h => html += `<th class="p-2 border">${h}</th>`);
+          html += '</tr></thead><tbody>';
+          
+          previewData.forEach(row => {
+            html += '<tr>';
+            headers.forEach(h => html += `<td class="p-2 border truncate max-w-[100px]">${row[h] || ''}</td>`);
+            html += '</tr>';
+          });
+          html += '</tbody></table>';
+          if (jsonData.length > 10) html += `<p class="mt-2 text-xs text-gray-500 italic">Menampilkan 10 dari total ${jsonData.length} baris.</p>`;
+          
+          previewTable.innerHTML = html;
+          selectFileBtn.innerText = "Ganti File";
+        };
+        reader.readAsArrayBuffer(file);
+        
+      } catch (err) {
+        console.error(err);
+        alert("Error membaca Excel: " + err.message);
+        selectFileBtn.innerText = "Pilih File";
+      }
+    });
+
+    // Eksekusi Submit Data ke Supabase
+    submitImportBtn.addEventListener('click', async () => {
+      const tableName = importTableSelect.value;
+      
+      if (!tableName) return alert("Pilih tabel tujuan terlebih dahulu!");
+      if (importedData.length === 0) return alert("Pilih file Excel yang valid terlebih dahulu!");
+      
+      if (!confirm(`Yakin ingin meng-import ${importedData.length} baris data ke tabel ${tableName}?`)) return;
+
+      submitImportBtn.innerText = "Menyimpan ke Database...";
+      submitImportBtn.disabled = true;
+
+      try {
+        // Menerjemahkan (Mapping) nama kolom di Excel agar sama dengan nama kolom di Database
+        const payload = importedData.map(row => {
+          let mappedRow = {};
+          if (tableName === 'mitra') {
+            mappedRow = {
+              nama_mitra: row['Nama Mitra'] || 'Tanpa Nama',
+              alamat: row['Alamat'] || '',
+              nomor_hp: String(row['No. HP'] || ''),
+              link_gmaps: row['Link GMaps'] || '',
+              rute_jemput: row['Rute Jemput'] || 'Purwakarta',
+              sumber_mitra: row['Sumber Mitra'] || 'Lainnya',
+              jenis_pelanggan: row['Jenis Pelanggan'] || 'Lainnya', // 🔥 SUNTIKAN BARU DARI EXCEL
+              total_order: row['Total Order'] || 0,
+              total_transaksi: row['Total Transaksi'] || 0,
+              activated: true
+            };
+          } else if (tableName === 'stock_gudang_harian') {
+             mappedRow = {
+              tanggal: row['Tanggal'] || new Date().toISOString().split('T')[0],
+              sumber: row['Sumber'] || '-',
+              minyak_jelantah: parseFloat(row['Minyak Jelantah']) || 0,
+              ampas: parseFloat(row['Ampas']) || 0,
+              kriuk: parseFloat(row['Kriuk']) || 0,
+              spinner: parseFloat(row['Spinner']) || 0,
+              tepung: parseFloat(row['Tepung']) || 0,
+              total_kg: parseFloat(row['Total Kg']) || 0
+            };
+          } else if (tableName === 'pembelian_barang_harian') {
+             mappedRow = {
+              tanggal: row['Tanggal'] || new Date().toISOString().split('T')[0],
+              sumber: row['Sumber'] || '-',
+              minyak_jelantah: parseFloat(row['Minyak Jelantah']) || 0,
+              ampas: parseFloat(row['Ampas']) || 0,
+              kriuk: parseFloat(row['Kriuk']) || 0,
+              spinner: parseFloat(row['Spinner']) || 0,
+              tepung: parseFloat(row['Tepung']) || 0,
+              total_harian: parseFloat(row['Total Harian']) || 0
+            };
+          } else if (tableName === 'penjualan_barang_harian') {
+             mappedRow = {
+              tanggal: row['Tanggal'] || new Date().toISOString().split('T')[0],
+              minyak_jelantah: parseFloat(row['Minyak Jelantah']) || 0,
+              ampas: parseFloat(row['Ampas']) || 0,
+              kriuk: parseFloat(row['Kriuk']) || 0,
+              spinner: parseFloat(row['Spinner']) || 0,
+              tepung: parseFloat(row['Tepung']) || 0,
+              total_harian: parseFloat(row['Total Harian']) || 0
+            };
+          } else if (tableName === 'pengeluaran_harian') {
+            mappedRow = {
+              tanggal: row['Tanggal'] || new Date().toISOString().split('T')[0],
+              gaji: parseFloat(row['Gaji']) || 0,
+              makan: parseFloat(row['Makan']) || 0,
+              bonus: parseFloat(row['Bonus']) || 0,
+              lembur: parseFloat(row['Lembur']) || 0,
+              uang_rapat: parseFloat(row['Uang Rapat']) || 0,
+              uang_nginep: parseFloat(row['Uang Nginep']) || 0,
+              uang_kesehatan: parseFloat(row['Uang Kesehatan']) || 0,
+              bensin: parseFloat(row['Bensin']) || 0,
+              parkir: parseFloat(row['Parkir']) || 0,
+              admin: parseFloat(row['Admin']) || 0,
+              iklan: parseFloat(row['Iklan']) || 0,
+              listrik: parseFloat(row['Listrik']) || 0,
+              karung: parseFloat(row['Karung']) || 0,
+              plastik: parseFloat(row['Plastik']) || 0,
+              service: parseFloat(row['Service']) || 0,
+              jasa_spinner: parseFloat(row['Jasa Spinner']) || 0,
+              dana_talang: parseFloat(row['Dana Talang']) || 0,
+              lain_lain: parseFloat(row['Lain-lain']) || 0
+            };
+          }
+          return mappedRow;
+        });
+
+        // Tembak massal (Bulk Insert) ke Supabase
+        const { error } = await window.supabase.from(tableName).insert(payload);
+        if (error) throw error;
+
+        alert(`✅ ${payload.length} data berhasil di-import!`);
+        tutupImport();
+        
+        // Refresh tabel sesuai yang aktif
+        if(tableName === 'mitra') loadMitra();
+        else if(tableName === 'pembelian_barang_harian') loadPembelian();
+        else if(tableName === 'penjualan_barang_harian') loadPenjualan();
+        else if(tableName === 'pengeluaran_harian') loadPengeluaran();
+        
+      } catch (err) {
+        console.error(err);
+        alert('❌ Gagal Import Database: ' + err.message);
+      } finally {
+        submitImportBtn.innerText = "Import Data";
+        submitImportBtn.disabled = false;
+      }
+    });
+    
+    // ===== DOWNLOAD TEMPLATE EXCEL =====
+    // ===== DOWNLOAD TEMPLATE EXCEL (PER BAGIAN AKTIF) =====
+    document.getElementById('downloadTemplateBtn').addEventListener('click', async function() {
+      const btn = this;
+      const originalText = btn.innerHTML;
+      
+      // Deteksi tab mana yang sedang aktif saat ini
+      const currentTab = document.getElementById('currentTab').value; 
+      
+      if (currentTab === 'gudang') {
+          return alert('⚠️ Gudang Komoditas tidak menggunakan template Excel karena datanya berjalan otomatis.');
+      }
+
+      try {
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Memproses...';
+        btn.disabled = true;
+
+        // 1. Injeksi Library Excel
+        if (typeof window.XLSX === 'undefined') {
+          await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+            script.onload = resolve;
+            script.onerror = () => reject(new Error("Gagal memuat library Excel. Cek koneksi internet."));
+            document.head.appendChild(script);
+          });
+        }
+
+        const workbook = window.XLSX.utils.book_new();
+        let fileName = '';
+
+        if (currentTab === 'mitra') {
+            // 🔥 Objek template disesuaikan penuh dengan struktur kolom database.astro lu
+            const mitraTemplate = [{ 
+                'Nama Mitra': '', 
+                'No. HP': '', 
+                'Rute Jemput': 'Purwakarta', 
+                'Sumber Mitra': 'Lainnya', 
+                'Jenis Pelanggan': 'Rumah Tangga', // Kelompok baru kita
+                'Deposit': 0, 
+                'Total Order': 0, 
+                'Total Transaksi': 0,
+                'Alamat': '', 
+                'Link GMaps': '' 
+            }];
+            
+            const mitraSheet = window.XLSX.utils.json_to_sheet(mitraTemplate);
+            
+            // Atur lebar tiap kolom secara presisi (Total ada 10 kolom sesuai objek di atas)
+            mitraSheet['!cols'] = [
+                { wch: 20 }, // Nama Mitra
+                { wch: 15 }, // No. HP
+                { wch: 15 }, // Rute Jemput
+                { wch: 15 }, // Sumber Mitra
+                { wch: 20 }, // Jenis Pelanggan (wch dikasih 20 biar muat teks panjang)
+                { wch: 12 }, // Deposit
+                { wch: 12 }, // Total Order
+                { wch: 15 }, // Total Transaksi
+                { wch: 35 }, // Alamat
+                { wch: 35 }  // Link GMaps
+            ];
+            
+            window.XLSX.utils.book_append_sheet(workbook, mitraSheet, 'Mitra');
+            fileName = `Template_Mitra_${new Date().toISOString().split('T')[0]}.xlsx`;
+        }
+        else if (currentTab === 'stock_harian') {
+            const stockTemplate = [{ 'Tanggal': '2026-01-01', 'Sumber': '', 'Minyak Jelantah': 0, 'Ampas': 0, 'Kriuk': 0, 'Spinner': 0, 'Tepung': 0, 'Total Kg': 0 }];
+            const stockSheet = window.XLSX.utils.json_to_sheet(stockTemplate);
+            stockSheet['!cols'] = [{ wch: 12 }, { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
+            window.XLSX.utils.book_append_sheet(workbook, stockSheet, 'Stok_Harian');
+            fileName = `Template_Stok_Harian_${new Date().toISOString().split('T')[0]}.xlsx`;
+        }
+        else if (currentTab === 'pembelian') {
+            const pembelianTemplate = [{ 'Tanggal': '2026-01-01', 'Sumber': '', 'Minyak Jelantah': 0, 'Ampas': 0, 'Kriuk': 0, 'Spinner': 0, 'Tepung': 0, 'Total Harian': 0 }];
+            const pembelianSheet = window.XLSX.utils.json_to_sheet(pembelianTemplate);
+            pembelianSheet['!cols'] = [{ wch: 12 }, { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
+            window.XLSX.utils.book_append_sheet(workbook, pembelianSheet, 'Pembelian');
+            fileName = `Template_Pembelian_${new Date().toISOString().split('T')[0]}.xlsx`;
+        }
+        else if (currentTab === 'penjualan') {
+            const penjualanTemplate = [{ 'Tanggal': '2026-01-01', 'Minyak Jelantah': 0, 'Ampas': 0, 'Kriuk': 0, 'Spinner': 0, 'Tepung': 0, 'Total Harian': 0 }];
+            const penjualanSheet = window.XLSX.utils.json_to_sheet(penjualanTemplate);
+            penjualanSheet['!cols'] = [{ wch: 12 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
+            window.XLSX.utils.book_append_sheet(workbook, penjualanSheet, 'Penjualan');
+            fileName = `Template_Penjualan_${new Date().toISOString().split('T')[0]}.xlsx`;
+        }
+        else if (currentTab === 'pengeluaran') {
+            const pengeluaranTemplate = [{ 'Tanggal': '2026-01-01', 'Gaji': 0, 'Makan': 0, 'Bonus': 0, 'Lembur': 0, 'Uang Rapat': 0, 'Uang Nginep': 0, 'Uang Kesehatan': 0, 'Bensin': 0, 'Parkir': 0, 'Admin': 0, 'Iklan': 0, 'Listrik': 0, 'Karung': 0, 'Plastik': 0, 'Service': 0, 'Jasa Spinner': 0, 'Dana Talang': 0, 'Lain-lain': 0 }];
+            const pengeluaranSheet = window.XLSX.utils.json_to_sheet(pengeluaranTemplate);
+            pengeluaranSheet['!cols'] = Array(19).fill({ wch: 12 });
+            window.XLSX.utils.book_append_sheet(workbook, pengeluaranSheet, 'Pengeluaran');
+            fileName = `Template_Pengeluaran_${new Date().toISOString().split('T')[0]}.xlsx`;
+        }
+
+        // 3. Download File
+        if (fileName) {
+            window.XLSX.writeFile(workbook, fileName);
+            alert(`✅ Template Excel [${currentTab.toUpperCase()}] berhasil didownload!`);
+        }
+
+      } catch(err) {
+        console.error(err);
+        alert('❌ Gagal download template: ' + err.message);
+      } finally {
+        // Kembalikan tombol seperti semula
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    });
+
+    // Load initial data
+    loadMitra();
+    
+  });
+</script>

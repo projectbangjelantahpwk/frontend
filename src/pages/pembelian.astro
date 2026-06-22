@@ -389,15 +389,38 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             trxSelesai.forEach(t => {
                 const jam = t.created_at ? new Date(t.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) : '';
                 const waktuTampil = jam ? `${jam} WIB` : '';
+                
+                // 1. Cek Metode Bayar
+                let metodeText = `${t.metode_bayar || '-'}`;
+                if (t.metode_bayar_2) metodeText += ` + ${t.metode_bayar_2}`;
+
+                // 2. Buat elemen info bank KHUSUS kalau ada kata 'transfer' atau 'bank'
+                let detailBankHtml = '';
+                const m1Low = (t.metode_bayar || '').toLowerCase();
+                const m2Low = (t.metode_bayar_2 || '').toLowerCase();
+                
+                if (m1Low.includes('transfer') || m2Low.includes('transfer') || m1Low.includes('bank') || m2Low.includes('bank')) {
+                    detailBankHtml = `
+                    <div class="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-100 text-xs shadow-sm">
+                        <div class="font-bold text-blue-800"><i class="bi bi-bank2 mr-1"></i> ${t.nama_bank || 'Bank Tidak Diisi'}</div>
+                        <div class="font-mono text-blue-900 font-bold tracking-wide my-0.5">${t.no_rek || '-'}</div>
+                        <div class="text-gray-600">a.n <span class="font-bold text-gray-800">${t.atas_nama || '-'}</span></div>
+                    </div>`;
+                }
+
+                // 3. Render ke tabel
                 htmlLunas += `
                 <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 text-sm font-bold text-gray-900">${t.penjemputan?.mitra?.nama_mitra || t.nama_mitra_tidak_terdaftar || 'Tanpa Nama Mitra'}</td>
-                    <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                    <td class="px-6 py-4 text-sm font-bold text-gray-900 align-top">${t.penjemputan?.mitra?.nama_mitra || t.nama_mitra_tidak_terdaftar || 'Tanpa Nama Mitra'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap align-top">
                         <div class="font-medium text-gray-900">${t.penjemputan?.tanggal || t.tanggal_transaksi || '-'}</div>
                         ${jam ? `<div class="text-[11px] text-gray-400 font-mono mt-0.5">${waktuTampil}</div>` : ''}
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-600">${t.metode_bayar || '-'} ${t.metode_bayar_2 ? ' + '+t.metode_bayar_2 : ''}</td> 
-                    <td class="px-6 py-4 text-sm font-bold text-green-700 text-right">Rp ${Number(t.grand_total || 0).toLocaleString('id-ID')}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600 align-top w-1/3">
+                        <div class="font-medium text-gray-800">${metodeText}</div>
+                        ${detailBankHtml}
+                    </td> 
+                    <td class="px-6 py-4 text-sm font-bold text-green-700 text-right align-top">Rp ${Number(t.grand_total || 0).toLocaleString('id-ID')}</td>
                 </tr>`;
             });
             tbodyLunas.innerHTML = htmlLunas || '<tr><td colspan="4" class="text-center py-4">Data kosong</td></tr>'; 

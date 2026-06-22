@@ -427,8 +427,9 @@ const tabs = [
         // Payload yang BENAR (Sesuai dengan kolom di tabel gudang_olahan)
         const { error: errOlahan } = await supabaseClient.from('gudang_olahan').insert([{
           bahan_baku_minyak: minyak_jelantah, 
-          hasil_minyak_olahan: jelantah,
+          bahan_baku_kriuk: kriuk,      // <--- TAMBAHIN BARIS INI BRO!
           bahan_baku_ampas: ampas,
+          hasil_minyak_olahan: jelantah,
           hasil_spinner: spinner,
           penyusutan_loss: loss,
           catatan: `Mix: Jelantah(${minyak_jelantah}kg) + Kriuk(${kriuk}kg) + Ampas(${ampas}kg) -> Olahan(${jelantah}kg) & Spinner(${spinner}kg)`

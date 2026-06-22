@@ -792,12 +792,12 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             const rincianItems = [];
             let countUangJalan = 0;
             let totalNominalPengajuan = 0;
-            let mitraIdUntukInduk = null; // ✅ Tambahkan penampung Mitra ID
 
             itemRows.forEach(row => {
                 const kategori = row.querySelector('.add_item_select').value;
                 const nominal = parseFloat(row.querySelector('.add_item_nominal').value) || 0;
                 let keterangan = row.querySelector('.add_item_keterangan').value.trim();
+                let itemIdMitra = null; // ✅ Variabel penampung per-baris
 
                 if(kategori === 'Uang Jalan') countUangJalan++;
                 totalNominalPengajuan += nominal;
@@ -812,15 +812,15 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         throw new Error(`Mitra dengan nama "${namaDiketik}" tidak ditemukan! Silakan pilih dari daftar dropdown.`);
                     }
 
-                    mitraIdUntukInduk = mitraMatch.id; // ✅ Simpan ID-nya untuk tabel Induk
+                    itemIdMitra = mitraMatch.id; // ✅ Ambil ID-nya khusus untuk baris ini
                     keterangan = `Deposit - ${mitraMatch.nama_mitra}`; 
-                    // ❌ depositPromises dihapus karena Edge Function yang akan memproses ini
                 }
 
                 rincianItems.push({ 
                     nama_item: kategori, 
                     nominal: nominal, 
-                    keterangan: keterangan || null 
+                    keterangan: keterangan || null,
+                    mitra_id: itemIdMitra // ✅ Titipkan ID-nya ke array
                 });
             });
 
@@ -892,7 +892,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 .eq('tanggal', tanggalStr)
                 .eq('sumber_dana', sumberDana)
                 .maybeSingle();
-                
+
             if(errCheck) throw errCheck;
 
             let pengeluaranId;
@@ -905,42 +905,34 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         tanggal: tanggalStr, 
                         total_harian: 0, 
                         status_approval: 'Menunggu',
-                        sumber_dana: sumberDana,
-                        mitra_id: mitraIdUntukInduk // ✅ Sisipkan di sini!
+                        sumber_dana: sumberDana 
+                        // 🔥 mitra_id tidak usah dimasukkan ke sini
                     }) 
                     .select('id').single();
-                    
+
                 if(errInsert) throw errInsert;
                 pengeluaranId = inserted.id;
             }
 
             // =================================================================
-            // 🔥 5. KIRIM DATA KE EDGE FUNCTION (API OPSI A)
+            // 🔥 5. KIRIM DATA KE EDGE FUNCTION
             // =================================================================
             
-            // Urutkan array: Pastikan "Uang Jalan" diproses paling pertama agar saldonya siap dipotong item lain
             rincianItems.sort((a, b) => (a.nama_item === 'Uang Jalan' ? -1 : 1));
 
-            // Gunakan loop berurutan (for...of) agar Edge Function punya jeda mikir untuk potong kas
             for (const item of rincianItems) {
-                // Gunakan fitur native supabase.functions.invoke
-                const { data, error } = await window.supabase.functions.invoke('pengeluaran-trick', {
+                const { data, error } = await window.supabase.functions.invoke('NAMA_EDGE_FUNCTION_LU', {
                     body: { 
                         pengeluaran_id: pengeluaranId,
                         nama_item: item.nama_item,
                         nominal: item.nominal,
-                        keterangan: item.keterangan 
+                        keterangan: item.keterangan,
+                        mitra_id: item.mitra_id // ✅ Payload mitra_id dikirim numpang lewat di sini!
                     }
                 });
 
-                if (error) {
-                    throw new Error(`Gagal memproses [${item.nama_item}]: ${error.message}`);
-                }
-                
-                // Jika logic Deno me-return success: false dari dalam try-catch nya
-                if (data && data.success === false) {
-                    throw new Error(`Ditolak server: ${data.error}`);
-                }
+                if (error) throw new Error(`Gagal memproses [${item.nama_item}]: ${error.message}`);
+                if (data && data.success === false) throw new Error(`Ditolak server: ${data.error}`);
             }
             
             alert("✅ Mantap! Seluruh data sukses dicatat. Kas Perusahaan dan Uang Jalan otomatis diatur oleh Sistem Database.");

@@ -937,6 +937,8 @@ const statusBadgeColors = {
       container.innerHTML = html;
     }
 
+    
+
     // ===== RENDER FORM GUDANG =====
     function renderGudangForm(data = null) {
       const container = document.getElementById('formFieldsContainer');
@@ -1187,6 +1189,9 @@ const statusBadgeColors = {
       } else if(tabName === 'gudang') {
         document.getElementById('modalTitle').textContent = 'Saya tidak bisa menambah gudang (data fixed)';
         return alert('Gudang Komoditas sudah di-set otomatis. Hanya bisa mengedit stok!');
+      } else if (tabName === 'rekening') {
+          document.getElementById('modalTitle').textContent = 'Tambah Rekening Mitra';
+          renderRekeningForm();
       } else if(tabName === 'stock_harian') {
         document.getElementById('modalTitle').textContent = 'Tambah Stok Gudang Harian';
         renderStockHarianForm();

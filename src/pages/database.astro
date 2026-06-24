@@ -5,7 +5,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 // Data untuk tabs menu
 const menuTabs = [
   { id: 'mitra', label: 'Mitra', icon: 'bi-person-lines-fill' },
-  { id: 'rekening', label: 'Rekening Mitra', icon: 'bi-credit-card' },
   { id: 'gudang', label: 'Gudang Komoditas', icon: 'bi-box-seam' },
   { id: 'stock_harian', label: 'Stok Gudang Harian', icon: 'bi-clipboard-data' },
   { id: 'pembelian', label: 'Pembelian Barang', icon: 'bi-cart-plus' },
@@ -95,30 +94,6 @@ const statusBadgeColors = {
           </thead>
           <tbody id="tabelMitra">
             <tr><td colspan="7" class="text-center py-4 text-gray-500">Memuat data mitra...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================
-       TABEL REKENING MITRA
-       ======================================== -->
-  <div id="rekening-tab" class="tab-content hidden">
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="bg-gray-50 border-b border-gray-200">
-              <th class="px-6 py-4 text-left font-bold text-gray-900">Nama Mitra</th>
-              <th class="px-6 py-4 text-left font-bold text-gray-900">Atas Nama</th>
-              <th class="px-6 py-4 text-left font-bold text-gray-900">Nama Bank</th>
-              <th class="px-6 py-4 text-left font-bold text-gray-900">No. Rekening</th>
-              <th class="px-6 py-4 text-left font-bold text-gray-900">Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="tabelRekening">
-            <tr><td colspan="4" class="text-center py-4 text-gray-500">Memuat data rekening...</td></tr>
           </tbody>
         </table>
       </div>
@@ -372,7 +347,6 @@ const statusBadgeColors = {
 
         // Load data untuk tab yang dipilih
         if(tabId === 'mitra') loadMitra();
-        else if(tabId === 'rekening') loadRekening();
         else if(tabId === 'gudang') loadGudang();
         else if(tabId === 'stock_harian') loadStockHarian();
         else if(tabId === 'pembelian') loadPembelian();
@@ -431,52 +405,6 @@ const statusBadgeColors = {
         btn.addEventListener('click', function() {
           const id = this.getAttribute('data-id');
           editMitra(id);
-        });
-      });
-    }
-
-    // ===== LOAD DATA REKENING =====
-    async function loadRekening() {
-      // Sama persis kayak di kemitraan.astro: nge-join tabel rek_mitra dengan mitra
-      const { data, error } = await supabase
-        .from('rek_mitra')
-        .select('id, atas_nama, nama_bank, no_rek, mitra!mitra_id(nama_mitra)')
-        .order('nama_bank', { ascending: true });
-
-      if(error) {
-        console.error(error);
-        document.getElementById('tabelRekening').innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-500 font-bold">Gagal memuat data!</td></tr>';
-        return;
-      }
-
-      let html = '';
-      data.forEach(item => {
-        const namaMitra = item.mitra?.nama_mitra || 'Mitra Tidak Ditemukan';
-        
-        html += `
-          <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
-            <td class="px-6 py-4 font-bold text-gray-900">${namaMitra}</td>
-            <td class="px-6 py-4 font-medium text-gray-800">${item.atas_nama}</td>
-            <td class="px-6 py-4 text-sm"><span class="px-2 py-1 bg-blue-100 text-blue-800 rounded font-bold">${item.nama_bank}</span></td>
-            <td class="px-6 py-4 font-mono font-bold text-gray-900">${item.no_rek}</td>
-            <td class="px-6 py-4">
-              <div class="flex gap-2">
-                <button class="edit-rekening-btn px-3 py-1 text-blue-600 hover:bg-blue-50 border border-blue-200 rounded text-sm font-medium" data-id="${item.id}">
-                  <i class="bi bi-pencil mr-1"></i>Edit
-                </button>
-                <button onclick="window.hapusData('rek_mitra', ${item.id}, 'Rekening ${item.atas_nama}')" class="px-3 py-1 text-red-600 hover:bg-red-50 border border-red-200 rounded text-sm font-medium">
-                  <i class="bi bi-trash mr-1"></i>Hapus
-                </button>
-              </div>
-            </td>
-          </tr>
-        `;
-      });
-
-      document.getElementById('tabelRekening').innerHTML = html || '<tr><td colspan="4" class="text-center py-4 text-gray-500">Tidak ada data rekening</td></tr>';
-      document.querySelectorAll('.edit-rekening-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-          editRekening(this.getAttribute('data-id'));
         });
       });
     }
@@ -769,8 +697,14 @@ const statusBadgeColors = {
 
     // ===== EDIT MITRA =====
     async function editMitra(id) {
-      const { data, error } = await supabase.from('mitra').select('*').eq('id', id).single();
-      if(error) return alert('Gagal memuat data');
+      // 🔥 UBAH QUERY SELECT: Tambahkan join '*, rek_mitra(*)' agar data bank ikut ketarik
+      const { data, error } = await window.supabase
+        .from('mitra')
+        .select('*, rek_mitra(*)') 
+        .eq('id', id)
+        .single();
+        
+      if(error) return alert('Gagal memuat data: ' + error.message);
 
       document.getElementById('currentTab').value = 'mitra';
       document.getElementById('editId').value = id;
@@ -778,42 +712,6 @@ const statusBadgeColors = {
 
       renderMitraForm(data);
       openModal();
-    }
-
-    // ===== EDIT REKENING =====
-    async function editRekening(id) {
-      const { data, error } = await supabase.from('rek_mitra').select('*').eq('id', id).single();
-      if(error) return alert('Gagal memuat data');
-
-      document.getElementById('currentTab').value = 'rekening';
-      document.getElementById('editId').value = id;
-      document.getElementById('modalTitle').textContent = 'Edit Rekening Mitra';
-
-      renderRekeningForm(data);
-      openModal();
-    }
-
-    // ===== RENDER FORM REKENING =====
-    function renderRekeningForm(data = null) {
-      const container = document.getElementById('formFieldsContainer');
-      let html = `
-        <div class="space-y-4">
-          <h3 class="text-sm font-bold text-gray-900 border-b pb-2">Edit Data Rekening</h3>
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Nama Bank</label>
-            <input type="text" name="nama_bank" value="${data?.nama_bank || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">No. Rekening</label>
-            <input type="number" name="no_rek" value="${data?.no_rek || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Atas Nama</label>
-            <input type="text" name="atas_nama" value="${data?.atas_nama || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700" required />
-          </div>
-        </div>
-      `;
-      container.innerHTML = html;
     }
 
     // ===== EDIT GUDANG =====
@@ -871,8 +769,11 @@ const statusBadgeColors = {
     // ===== RENDER FORM MITRA =====
     function renderMitraForm(data = null) {
       const container = document.getElementById('formFieldsContainer');
-      const ruteOptions = ['Purwakarta', 'Subang', 'Bandung', 'Jakarta', 'Bekasi', 'Karawang'];
-      const sumberOptions = ['Facebook', 'Tiktok', 'Lainnya'];
+      const ruteOptions = ['Purwakarta', 'Subang', 'Bandung', 'Cimahi', 'Kab Bandung', 'Kab Bandung Barat',
+                           'Jakarta', 'Kab Bekasi', 'Bekasi', 'Karawang', 'Indramayu', 'Cianjur', 'Tasik',
+                           'Sumedang', 'Garut', 'Bogor', 'Kab Bogor'];
+      const sumberOptions = ['Facebook', 'Tiktok', 'Instagram', 
+                             'Canvaser Lapangan', 'Lainnya'];
       
       // Susunan Form yang Mengalir Lurus ke Bawah (Tanpa Grid Menyamping)
       let html = `
@@ -926,18 +827,36 @@ const statusBadgeColors = {
             </select>
           </div>
 
-          <div class="mt-2 pt-2 border-t border-gray-100">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" name="activated" ${data?.activated || !data ? 'checked' : ''} class="w-4 h-4 rounded border-gray-300 text-green-700 focus:ring-green-700" />
-              <span class="text-xs font-bold text-gray-700">Mitra Aktif</span>
+          <div class="mt-4 pt-4 border-t border-gray-200">
+            <h3 class="text-sm font-bold text-blue-800 mb-3"><i class="bi bi-bank mr-1"></i> Informasi Rekening (Opsional)</h3>
+            <p class="text-[10px] text-gray-500 mb-3 -mt-2">Kosongkan jika mitra menggunakan pembayaran cash tunai.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Nama Bank / E-Wallet</label>
+                <input type="text" name="nama_bank" value="${data?.rek_mitra?.[0]?.nama_bank || ''}" placeholder="BCA, Mandiri, Dana, Gopay..." class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 uppercase" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Nomor Rekening / HP</label>
+                <input type="number" name="no_rek" value="${data?.rek_mitra?.[0]?.no_rek || ''}" placeholder="Cth: 0123456789" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-mono" />
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Atas Nama (Pemilik Rekening)</label>
+                <input type="text" name="atas_nama" value="${data?.rek_mitra?.[0]?.atas_nama || ''}" placeholder="Sesuai buku tabungan atau aplikasi..." class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <label class="flex items-center gap-2 cursor-pointer w-fit">
+              <input type="checkbox" name="activated" ${data?.activated || !data ? 'checked' : ''} class="w-5 h-5 rounded border-gray-300 text-green-700 focus:ring-green-700" />
+              <span class="text-sm font-bold text-gray-800">Status Mitra Aktif</span>
             </label>
           </div>
         </div>
       `;
       container.innerHTML = html;
     }
-
-    
 
     // ===== RENDER FORM GUDANG =====
     function renderGudangForm(data = null) {
@@ -1189,9 +1108,6 @@ const statusBadgeColors = {
       } else if(tabName === 'gudang') {
         document.getElementById('modalTitle').textContent = 'Saya tidak bisa menambah gudang (data fixed)';
         return alert('Gudang Komoditas sudah di-set otomatis. Hanya bisa mengedit stok!');
-      } else if (tabName === 'rekening') {
-          document.getElementById('modalTitle').textContent = 'Tambah Rekening Mitra';
-          renderRekeningForm();
       } else if(tabName === 'stock_harian') {
         document.getElementById('modalTitle').textContent = 'Tambah Stok Gudang Harian';
         renderStockHarianForm();
@@ -1224,33 +1140,90 @@ const statusBadgeColors = {
         const formData = new FormData(this);
         const data = Object.fromEntries(formData);
 
-        // Convert numeric fields
+        // 🔥 1. PISAHKAN DATA REKENING (PASTIKAN ANGKA 0 DI DEPAN AMAN JADI STRING) 🔥
+        const dataRekening = {
+            nama_bank: data.nama_bank || null,
+            no_rek: data.no_rek ? String(data.no_rek) : null, // Dijamin jadi teks/String
+            atas_nama: data.atas_nama || null
+        };
+
+        // Hapus property rekening dari object 'data' induk agar tidak error saat nyimpan ke tabel mitra
+        delete data.nama_bank;
+        delete data.no_rek;
+        delete data.atas_nama;
+
+        // Convert numeric fields (Ini tidak akan menyentuh no_rek karena sudah kita cabut di atas)
         Object.keys(data).forEach(key => {
           if(key !== 'sumber' && key !== 'nama_mitra' && key !== 'alamat' && key !== 'link_gmaps' && key !== 'nomor_hp' && key !== 'rute_jemput' && key !== 'sumber_mitra' && key !== 'tanggal') {
             if(data[key] !== '' && !isNaN(data[key])) {
-              data[key] = parseFloat(data[key]);
+               data[key] = parseFloat(data[key]);
             }
           }
         });
 
-        // Handle activated checkbox
-        if(currentTab === 'mitra') {
-          data.activated = document.querySelector('input[name="activated"]')?.checked || false;
+        // =======================================================
+        // 🚀 A. LOGIKA KHUSUS TAB MITRA (Simpan ke 2 Tabel)
+        // =======================================================
+        if (currentTab === 'mitra') {
+            data.activated = document.querySelector('input[name="activated"]')?.checked || false;
+            let mitraIdSaved = editId;
+
+            // 1. Simpan ke tabel 'mitra'
+            if (editId) {
+                const { error: errMitra } = await window.supabase.from('mitra').update(data).eq('id', editId);
+                if (errMitra) throw errMitra;
+            } else {
+                // Insert baru dan tarik kembali ID-nya
+                const { data: newMitra, error: errMitra } = await window.supabase.from('mitra').insert([data]).select('id').single();
+                if (errMitra) throw errMitra;
+                mitraIdSaved = newMitra.id;
+            }
+
+            // 2. Simpan ke tabel 'rek_mitra' (Opsional)
+            const isRekeningDiisi = dataRekening.nama_bank || dataRekening.no_rek || dataRekening.atas_nama;
+            
+            if (isRekeningDiisi) {
+                dataRekening.mitra_id = mitraIdSaved;
+                
+                // Cek apakah mitra ini sudah punya data rekening
+                const { data: cekRek } = await window.supabase.from('rek_mitra').select('id').eq('mitra_id', mitraIdSaved).maybeSingle();
+
+                if (cekRek) {
+                    // Jika sudah ada -> UPDATE
+                    const { error: errRek } = await window.supabase.from('rek_mitra').update(dataRekening).eq('id', cekRek.id);
+                    if (errRek) throw errRek;
+                } else {
+                    // Jika belum ada -> INSERT
+                    const { error: errRek } = await window.supabase.from('rek_mitra').insert([dataRekening]);
+                    if (errRek) throw errRek;
+                }
+            } else if (editId) {
+                // Jika form rekening dikosongkan saat ngedit, hapus data rekening dari database
+                await window.supabase.from('rek_mitra').delete().eq('mitra_id', mitraIdSaved);
+            }
+
+            alert(editId ? 'Profil Mitra & Rekening berhasil diperbarui!' : 'Profil Mitra & Rekening berhasil ditambahkan!');
+            closeModal();
+            loadMitra();
+            return; // 🛑 Hentikan kode agar tidak lanjut ke logika tab lain di bawah
         }
 
-        let targetTable = currentTab === 'mitra' ? 'mitra' :
-                          currentTab === 'rekening' ? 'rek_mitra' : '';
-                          currentTab === 'gudang' ? 'gudang_komoditas' :
+        // =======================================================
+        // 🚀 B. LOGIKA UNTUK TAB LAINNYA (Gudang, Pembelian, dll)
+        // =======================================================
+        let targetTable = currentTab === 'gudang' ? 'gudang_komoditas' :
                           currentTab === 'stock_harian' ? 'stock_gudang_harian' :
                           currentTab === 'pembelian' ? 'pembelian_barang_harian' :
                           currentTab === 'penjualan' ? 'penjualan_barang_harian' :
-                          currentTab === 'pengeluaran' ? 'pengeluaran_harian' :'';
+                          currentTab === 'pengeluaran' ? 'pengeluaran_harian' : '';
+
+        if (!targetTable) throw new Error("Tabel tujuan tidak ditemukan!");
 
         let result;
         if(editId) {
-          result = await supabase.from(targetTable).update(data).eq('id', editId);
+          result = await window.supabase.from(targetTable).update(data).eq('id', editId);
         } else {
-          result = await supabase.from(targetTable).insert([data]);
+          result = await window.supabase.from(targetTable).insert([data]);
         }
 
         if(result.error) throw result.error;
@@ -1258,15 +1231,14 @@ const statusBadgeColors = {
         alert(editId ? 'Data berhasil diperbarui!' : 'Data berhasil ditambahkan!');
         closeModal();
         
-        if(currentTab === 'mitra') loadMitra();
-        else if(currentTab === 'gudang') loadGudang();
+        if(currentTab === 'gudang') loadGudang();
         else if(currentTab === 'stock_harian') loadStockHarian();
         else if(currentTab === 'pembelian') loadPembelian();
         else if(currentTab === 'penjualan') loadPenjualan();
         else if(currentTab === 'pengeluaran') loadPengeluaran();
 
       } catch(err) {
-        alert('Gagal: ' + err.message);
+        alert('Gagal memproses data: ' + err.message);
       } finally {
         btn.innerText = 'Simpan';
         btn.disabled = false;

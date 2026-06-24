@@ -249,23 +249,23 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             <div class="flex flex-col gap-4">
                                 <div>
                                     <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Estimasi Minyak</label>
-                                    <input type="number" id="est-minyak" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.1">
+                                    <input type="number" id="est-minyak" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.01">
                                 </div>
                                 <div>
                                     <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Estimasi Tepung</label>
-                                    <input type="number" id="est-tepung" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.1">
+                                    <input type="number" id="est-tepung" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.01">
                                 </div>
                                 <div>
                                     <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Estimasi Kriuk</label>
-                                    <input type="number" id="est-kriuk" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.1">
+                                    <input type="number" id="est-kriuk" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.01">
                                 </div>
                                 <div>
                                     <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Estimasi Spinner</label>
-                                    <input type="number" id="est-spinner" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.1">
+                                    <input type="number" id="est-spinner" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.01">
                                 </div>
                                 <div>
                                     <label class="block text-xs text-on-surface-variant mb-1 font-semibold">Estimasi Ampas</label>
-                                    <input type="number" id="est-ampas" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.1">
+                                    <input type="number" id="est-ampas" class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all" value="0" min="0" step="0.01">
                                 </div>
                             </div>
                         </div>
@@ -654,8 +654,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                 // 3. Fetch Dropdown Mitra & Tampilkan Detail Gmaps (Hanya yang Activated)
                 const { data: daftarMitra } = await window.supabase
                     .from('mitra')
-                    .select('id, nama_mitra, alamat, link_gmaps, rute_jemput')
-                    .eq('activated', true) // 🔥 Menampilkan hanya yang activated = true
+                    .select('id, nama_mitra, alamat, link_gmaps, rute_jemput') // ✅ TAMBAHKAN rute_jemput
+                    .eq('activated', true) 
                     .order('nama_mitra', { ascending: true });
                             
                 window.allMitra = daftarMitra || []; // Simpan global
@@ -1112,42 +1112,101 @@ window.hapusPenjemputan = async function(id) {
             }
         };
 
+        // =======================================================
+        // 🔥 FUNGSI UI & TOMBOL (Ditaruh di Atas Agar Langsung Aktif) 🔥
+        // =======================================================
         window.setVehicle = function(type) {
-            document.getElementById('tipe_kendaraan_input').value = type;
+            const tkInput = document.getElementById('tipe_kendaraan_input');
+            if(tkInput) tkInput.value = type;
+            
             const btnMotor = document.getElementById('btn-motor');
             const btnMobil = document.getElementById('btn-mobil');
             const selectMotor = document.getElementById('kurir-motor-select');
             const selectMobil = document.getElementById('kurir-mobil-select');
-
+            
             if (type === 'motor') {
-                btnMotor.className = 'flex-1 py-2 rounded-md font-label-sm bg-surface shadow text-primary font-bold transition-all';
-                btnMobil.className = 'flex-1 py-2 rounded-md font-label-sm text-on-surface-variant hover:bg-surface-variant transition-all';
-                selectMotor.classList.replace('hidden', 'block');
-                selectMobil.classList.replace('flex', 'hidden');
-                document.getElementById('input_driver_motor').required = true;
-                document.getElementById('input_driver_mobil').required = false;
+                if(btnMotor) btnMotor.className = 'flex-1 py-2 rounded-md font-label-sm bg-surface shadow text-primary font-bold transition-all';
+                if(btnMobil) btnMobil.className = 'flex-1 py-2 rounded-md font-label-sm text-on-surface-variant hover:bg-surface-variant transition-all';
+                if(selectMotor) selectMotor.classList.replace('hidden', 'block');
+                if(selectMobil) selectMobil.classList.replace('flex', 'hidden');
+                
+                const idm = document.getElementById('input_driver_motor'); if(idm) idm.required = true;
+                const idb = document.getElementById('input_driver_mobil'); if(idb) idb.required = false;
             } else {
-                btnMobil.className = 'flex-1 py-2 rounded-md font-label-sm bg-surface shadow text-primary font-bold transition-all';
-                btnMotor.className = 'flex-1 py-2 rounded-md font-label-sm text-on-surface-variant hover:bg-surface-variant transition-all';
-                selectMotor.classList.replace('block', 'hidden');
-                selectMobil.classList.replace('hidden', 'flex');
-                document.getElementById('input_driver_motor').required = false;
-                document.getElementById('input_driver_mobil').required = true;
-            }
-        
-            // 🔥 TAMBAHAN BARU: JIKA ARMADA BERUBAH JADI MOBIL, CEK DUET OTOMATIS 🔥
-            if (type === 'mobil') {
-                document.getElementById('input_driver_mobil').dispatchEvent(new Event('change'));
+                if(btnMobil) btnMobil.className = 'flex-1 py-2 rounded-md font-label-sm bg-surface shadow text-primary font-bold transition-all';
+                if(btnMotor) btnMotor.className = 'flex-1 py-2 rounded-md font-label-sm text-on-surface-variant hover:bg-surface-variant transition-all';
+                if(selectMotor) selectMotor.classList.replace('block', 'hidden');
+                if(selectMobil) selectMobil.classList.replace('hidden', 'flex');
+                
+                const idm = document.getElementById('input_driver_motor'); if(idm) idm.required = false;
+                const idb = document.getElementById('input_driver_mobil'); if(idb) idb.required = true;
             }
         };
 
+        window.tambahPenjemputan = function() {
+            // Cek role agar form tidak bocor
+            if(typeof currentUserRole !== 'undefined' && !['owner', 'hrd', 'admin'].includes(currentUserRole)) {
+                return alert('Akses Ditolak: Hanya Admin, HRD, dan Owner yang diizinkan menerbitkan penugasan!');
+            }
+            
+            // Bersihkan sisa data Edit sebelumnya
+            const idEdit = document.getElementById('edit_penjemputan_id');
+            if(idEdit) idEdit.value = '';
+            
+            const titleModal = document.getElementById('modal-title-pickup');
+            if(titleModal) titleModal.innerText = "Tugaskan Jadwal Baru";
+            
+            // Reset navigasi Step di Modal
+            const s1 = document.getElementById('form-step-1'); if(s1) s1.classList.replace('hidden', 'flex');
+            const fs1 = document.getElementById('footer-step-1'); if(fs1) fs1.classList.replace('hidden', 'flex');
+            const s2 = document.getElementById('form-step-2'); if(s2) s2.classList.replace('flex', 'hidden');
+            const fs2 = document.getElementById('footer-step-2'); if(fs2) fs2.classList.replace('flex', 'hidden');
+            const s3 = document.getElementById('form-step-3'); if(s3) s3.classList.replace('flex', 'hidden');
+            const fs3 = document.getElementById('footer-step-3'); if(fs3) fs3.classList.replace('flex', 'hidden');
+
+            // Reset TomSelect biar kosong
+            if(typeof tomMitra !== 'undefined' && tomMitra) tomMitra.clear(); 
+            else { const im = document.getElementById('input_mitra'); if(im) im.value = ''; }
+            
+            if(typeof tomMotor !== 'undefined' && tomMotor) tomMotor.clear();
+            if(typeof tomMobil !== 'undefined' && tomMobil) tomMobil.clear();
+            if(typeof tomHelper !== 'undefined' && tomHelper) tomHelper.clear();
+            if(typeof tomMobilPickup !== 'undefined' && tomMobilPickup) tomMobilPickup.clear();
+            else { const imp = document.getElementById('input_mobil_pickup'); if(imp) imp.value = ''; }
+
+            // Set default Tanggal Hari Ini
+            const formatterWIB = new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' });
+            const [hari, bulan, tahun] = formatterWIB.format(new Date()).split('/');
+            const inputTgl = document.getElementById('input_tanggal');
+            if(inputTgl) inputTgl.value = `${tahun}-${bulan}-${hari}`;
+            
+            // Reset Nominal Estimasi ke 0
+            const allInputIds = ['est-minyak', 'est-tepung', 'est-kriuk', 'est-spinner', 'est-ampas', 'satuan-minyak', 'satuan-tepung', 'satuan-kriuk', 'satuan-spinner', 'satuan-ampas'];
+            allInputIds.forEach(id => { const el = document.getElementById(id); if(el) el.value = '0'; });
+            
+            // Panggil trigger kalkulasi kalau ada
+            if (typeof hitungEstimasiTransaksi === 'function') hitungEstimasiTransaksi();
+            
+            // Paksa default armada ke Motor
+            window.setVehicle('motor');
+            
+            // Buka Modal Animasi
+            const modal = document.getElementById('new-pickup-modal');
+            if(modal) modal.classList.add('active');
+        };
+
         // ==========================================
-        // SUBMIT TUGAS BARU ATAU UPDATE
+        // SUBMIT TUGAS BARU ATAU UPDATE (FULL DEBUG MODE 🚀)
         // ==========================================
         document.getElementById('formPenjemputan')?.addEventListener('submit', async function(e) {
             e.preventDefault();
+            console.log("=========================================");
+            console.log("🚀 [DEBUG 1] TOMBOL SUBMIT DIKLIK - Memulai proses...");
                 
-            if(!isAllowed()) return alert('Akses Ditolak!');
+            if(!isAllowed()) {
+                console.error("❌ [DEBUG] Gagal: Akses Ditolak (Bukan Admin/HRD/Owner)");
+                return alert('Akses Ditolak!');
+            }
             
             const btn = document.getElementById('btnSubmitPenjemputan');
             btn.innerHTML = 'Menyimpan...'; btn.disabled = true;
@@ -1157,33 +1216,62 @@ window.hapusPenjemputan = async function(id) {
                 const tipeKendaraan = document.getElementById('tipe_kendaraan_input').value;
                 const mitra_id = document.getElementById('input_mitra').value;
                 const tanggal = document.getElementById('input_tanggal').value;
+
+                console.log(`📝 [DEBUG 2] Data Awal Form -> Mode: ${editId ? 'EDIT ('+editId+')' : 'BARU'} | Kendaraan: ${tipeKendaraan} | Tanggal: ${tanggal}`);
+
+                // 🔥 1. VALIDASI MITRA
+                if (!mitra_id) {
+                    console.warn("⚠️ [DEBUG] Validasi Gagal: Mitra belum dipilih!");
+                    btn.innerHTML = 'Kirim Perintah Jalan'; btn.disabled = false;
+                    return alert('Peringatan: Silakan pilih Lokasi Mitra terlebih dahulu!');
+                }
+
+                // Ambil Rute
                 const selectedMitraObj = window.allMitra.find(m => String(m.id) === String(mitra_id));
                 const wilayah = selectedMitraObj?.rute_jemput || 'Belum Diatur';
+                console.log(`📍 [DEBUG 3] Data Mitra Terpilih -> ID: ${mitra_id} | Rute: ${wilayah}`);
                 
                 let driver_id = null;
                 let helper_id = null;
-                let id_mobil_terpilih = null; // <-- Variabel baru
+                let id_mobil_terpilih = null;
+
                 if (tipeKendaraan === 'motor') {
                     driver_id = document.getElementById('input_driver_motor').value;
+                    if (!driver_id) {
+                        console.warn("⚠️ [DEBUG] Validasi Gagal: Kurir Motor belum dipilih!");
+                        btn.innerHTML = 'Kirim Perintah Jalan'; btn.disabled = false;
+                        return alert('Peringatan: Silakan pilih Kurir Motor terlebih dahulu!');
+                    }
+                    console.log(`🛵 [DEBUG 4] Kurir Motor Terpilih -> ID: ${driver_id}`);
                 } else {
                     driver_id = document.getElementById('input_driver_mobil').value;
+                    if (!driver_id) {
+                        console.warn("⚠️ [DEBUG] Validasi Gagal: Supir Mobil belum dipilih!");
+                        btn.innerHTML = 'Kirim Perintah Jalan'; btn.disabled = false;
+                        return alert('Peringatan: Silakan pilih Supir Mobil terlebih dahulu!');
+                    }
+
                     const helper = document.getElementById('input_helper_mobil').value;
                     if(helper) helper_id = helper;
                     
-                    const armadaTerpilih = document.getElementById('input_mobil_pickup').value; // <-- Ambil nilai mobil
+                    const armadaTerpilih = document.getElementById('input_mobil_pickup').value;
                     if(armadaTerpilih) id_mobil_terpilih = armadaTerpilih;
+
+                    console.log(`🚚 [DEBUG 4] Kru Mobil Terpilih -> Supir ID: ${driver_id} | Helper ID: ${helper_id || 'TIDAK ADA'} | Armada ID: ${id_mobil_terpilih || 'TIDAK ADA'}`);
                 }
 
-                if (!window.supabase) throw new Error("Supabase Client tidak ditemukan!");
+                if (!window.supabase) {
+                    console.error("💥 [FATAL] Supabase Client Tidak Ditemukan di Window!");
+                    throw new Error("Supabase Client tidak ditemukan!");
+                }
 
-                // 🔥 AMBIL DATA ESTIMASI DARI FORM 🔥
+                console.log("🧮 [DEBUG 5] Mengambil data estimasi dan harga satuan dari form...");
                 const estMinyak = parseFloat(document.getElementById('est-minyak').value) || 0;
                 const estTepung = parseFloat(document.getElementById('est-tepung').value) || 0;
                 const estKriuk = parseFloat(document.getElementById('est-kriuk').value) || 0;
                 const estSpinner = parseFloat(document.getElementById('est-spinner').value) || 0;
                 const estAmpas = parseFloat(document.getElementById('est-ampas').value) || 0;
 
-                // 🔥 AMBIL DATA HARGA SATUAN BARU 🔥
                 const satMinyak = parseFloat(document.getElementById('satuan-minyak').value) || 0;
                 const satTepung = parseFloat(document.getElementById('satuan-tepung').value) || 0;
                 const satKriuk = parseFloat(document.getElementById('satuan-kriuk').value) || 0;
@@ -1191,8 +1279,17 @@ window.hapusPenjemputan = async function(id) {
                 const satAmpas = parseFloat(document.getElementById('satuan-ampas').value) || 0;
                 
                 const totalEstimasi = estMinyak + estTepung + estKriuk + estSpinner + estAmpas;
-                
                 const estimasiTransaksi = ((estMinyak * satMinyak) + (estTepung * satTepung) + (estKriuk * satKriuk) + (estSpinner * satSpinner) + (estAmpas * satAmpas));
+
+                // Tampilkan tabel di console biar rapi
+                console.table({
+                    'Minyak': { Estimasi_KG: estMinyak, Harga_Satuan: satMinyak },
+                    'Tepung': { Estimasi_KG: estTepung, Harga_Satuan: satTepung },
+                    'Kriuk': { Estimasi_KG: estKriuk, Harga_Satuan: satKriuk },
+                    'Spinner': { Estimasi_KG: estSpinner, Harga_Satuan: satSpinner },
+                    'Ampas': { Estimasi_KG: estAmpas, Harga_Satuan: satAmpas },
+                    'TOTAL_AKHIR': { Estimasi_KG: totalEstimasi, Total_Rupiah: estimasiTransaksi }
+                });
 
                 const payloadPenjemputan = {
                     mitra_id: parseInt(mitra_id), 
@@ -1216,35 +1313,45 @@ window.hapusPenjemputan = async function(id) {
                     satuan_ampas: satAmpas
                 };
 
+                console.log("📦 [DEBUG 6] PAYLOAD SIAP DIKIRIM KE SUPABASE:", payloadPenjemputan);
+
                 // ==========================
                 // JALUR A: UPDATE JADWAL (EDIT)
                 // ==========================
                 if (editId) {
-                    // Update Penjemputan dengan data estimasi
+                    console.log(`🔄 [DEBUG 7A] Menjalankan fungsi UPDATE untuk ID: ${editId}...`);
                     const { error: errUpdate } = await window.supabase
                         .from('penjemputan')
                         .update(payloadPenjemputan)
                         .eq('id', editId);
                     
-                    if (errUpdate) throw errUpdate;
+                    if (errUpdate) {
+                        console.error("❌ [DEBUG 7A] Gagal UPDATE tabel penjemputan:", errUpdate);
+                        throw errUpdate;
+                    }
+                    console.log("✅ [DEBUG 7A] UPDATE tabel penjemputan sukses!");
 
                     const p = window.allJadwalPending.find(x => x.id == editId);
                     let txId = p?.transaksi?.[0]?.id;
-                    
+
                     if (txId) {
-                        // Update Transaksi Induk
-                        await window.supabase.from('transaksi').update({ 
-                            kalkulator_user_id: driver_id, 
+                        console.log(`🔄 [DEBUG 8] Sinkronisasi Supir ke tabel Transaksi yang sudah ada (ID: ${txId})...`);
+                        const { error: errSync } = await window.supabase.from('transaksi').update({ 
+                            kalkulator_user_id: driver_id 
                         }).eq('id', txId);
+                        
+                        if (errSync) console.error("⚠️ [DEBUG 8] Gagal sinkronisasi transaksi lama:", errSync);
                     } else {
-                        // Buat Transaksi Baru Kalau Datanya Bolong
-                        const {data: newTx} = await window.supabase.from('transaksi').insert([{
+                        console.log(`➕ [DEBUG 8] Tidak ada transaksi terikat. Membuat Transaksi Baru untuk Penjemputan ID: ${editId}...`);
+                        const {data: newTx, error: errNewTx} = await window.supabase.from('transaksi').insert([{
                             penjemputan_id: editId, 
                             kalkulator_user_id: driver_id, 
                             subtotal: 0, 
                             grand_total: 0
                         }]).select().single();
-                        txId = newTx.id;
+
+                        if (errNewTx) console.error("⚠️ [DEBUG 8] Gagal membuat transaksi baru:", errNewTx);
+                        else console.log("✅ [DEBUG 8] Transaksi baru berhasil dibuat:", newTx);
                     }
                     
                     alert('Jadwal dan estimasi berhasil diperbarui!');
@@ -1253,8 +1360,8 @@ window.hapusPenjemputan = async function(id) {
                 // JALUR B: INSERT JADWAL BARU
                 // ==========================
                 } else {
-                    // Masukkan status 'Belum' ke dalam payload untuk insert baru
                     payloadPenjemputan.status = 'Belum';
+                    console.log("➕ [DEBUG 7B] Menjalankan fungsi INSERT untuk jadwal baru...");
 
                     const { data: pickupData, error: errPickup } = await window.supabase
                         .from('penjemputan')
@@ -1262,25 +1369,35 @@ window.hapusPenjemputan = async function(id) {
                         .select()
                         .single();
                         
-                    if (errPickup) throw errPickup;
+                    if (errPickup) {
+                        console.error("❌ [DEBUG 7B] Gagal INSERT tabel penjemputan:", errPickup);
+                        throw errPickup;
+                    }
+                    console.log("✅ [DEBUG 7B] INSERT tabel penjemputan sukses! ID Baru:", pickupData.id);
 
-                    // Buat Data Transaksi Awal Kosong
+                    console.log("➕ [DEBUG 8] Membuat Transaksi Awal Kosong...");
                     const { data: txData, error: errTx } = await window.supabase.from('transaksi').insert([{
                         penjemputan_id: pickupData.id, 
                         kalkulator_user_id: driver_id, 
                         subtotal: 0, 
                         grand_total: 0
                     }]).select().single();
-                    
-                    if (errTx) throw errTx;
+
+                    if (errTx) {
+                        console.error("❌ [DEBUG 8] Gagal membuat Transaksi Awal:", errTx);
+                        throw errTx;
+                    }
+                    console.log("✅ [DEBUG 8] Transaksi awal sukses dibuat:", txData);
 
                     alert('Tugas penjemputan baru beserta estimasi berhasil diterbitkan!');
                 }
 
+                console.log("🎉 [DEBUG 9] SEMUA PROSES SELESAI. Me-reload halaman...");
                 window.location.reload();
 
             } catch (error) {
-                alert('Gagal memproses penugasan: ' + error.message);
+                console.error("🔥 [FATAL ERROR] TERJADI KESALAHAN PADA BLOK TRY:", error);
+                alert('Gagal memproses penugasan: ' + (error.message || "Cek Console F12 untuk detail"));
                 btn.innerHTML = 'Kirim Perintah Jalan'; btn.disabled = false;
             }
         });

@@ -389,17 +389,23 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         if(!confirm(`Yakin ingin menyetujui item rincian ini? Saldo [${finalSumberDana}] akan otomatis terpotong.`)) return;
         
         try {
-            const { error } = await window.supabase
-                .from('rincian_pengeluaran')
-                .update({ status_approval: statusText })
-                .eq('id', rincianId);
-                
-            if(error) throw error;
+            // UBAH BAGIAN INI: Tembak ke Deno Edge Function
+            const { data, error } = await window.supabase.functions.invoke('approve-pengeluaran', {
+                body: { 
+                    rincian_id: rincianId,
+                    sumber_dana: finalSumberDana,
+                    statusText: statusText
+                }
+            });
+
+            if (error) throw new Error(error.message);
+            if (data && data.success === false) throw new Error(data.error);
             
             alert(`Sukses! Status berhasil diubah dan saldo ${finalSumberDana} otomatis terpotong.`);
             window.location.reload();
+
         } catch (err) { 
-            alert("Gagal memproses persetujuan item: " + err.message); 
+            alert("Gagal memproses persetujuan item: " + err.message);
         }
     };
 

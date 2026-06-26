@@ -6,7 +6,8 @@ const tabs = [
   { id: 'dashboard', label: 'Ringkasan Stok', icon: 'grid-1x2' },
   { id: 'olahan', label: 'Manajemen Produksi', icon: 'beaker' },
   { id: 'kalibrasi', label: 'Kalibrasi Stok', icon: 'sliders' },
-  { id: 'riwayat', label: 'Riwayat Mutasi', icon: 'clock-history' }
+  { id: 'riwayat', label: 'Riwayat Mutasi', icon: 'clock-history' },
+  { id: 'jerigen', label: 'Kelola Jerigen', icon: 'inbox' },
 ];
 ---
 
@@ -233,6 +234,66 @@ const tabs = [
         </table>
       </div>
     </div>
+  </div>
+
+<div id="jerigen" class="tab-content hidden space-y-6">
+      
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+              <h3 class="text-lg font-bold text-gray-800"><i class="bi bi-plus-circle text-primary me-2"></i>Input Data Jerigen</h3>
+          </div>
+          <div class="p-6">
+              <form id="jerigenForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                  <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
+                      <input type="date" id="jerigenTanggal" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                  </div>
+                  <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">Volume Minyak (Kg)</label>
+                      <input type="number" step="0.01" id="jerigenVolume" required placeholder="Contoh: 18.5" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                  </div>
+                  <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">Jml Jerigen</label>
+                      <input type="number" id="jerigenJumlah" required placeholder="Contoh: 1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                  </div>
+                  <div class="lg:col-span-2">
+                      <label class="block text-sm font-medium text-gray-700 mb-1">Catatan (Opsional)</label>
+                      <div class="flex gap-2">
+                          <input type="text" id="jerigenCatatan" placeholder="Cth: Kondisi bagus..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                          <button type="submit" id="btnSubmitJerigen" class="bg-primary hover:opacity-90 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
+                              Simpan
+                          </button>
+                      </div>
+                  </div>
+              </form>
+          </div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 class="text-lg font-bold text-gray-800"><i class="bi bi-clock-history text-primary me-2"></i>Riwayat Jerigen</h3>
+              <button onclick="window.loadJerigen()" class="text-sm text-primary hover:underline font-medium">
+                  <i class="bi bi-arrow-clockwise"></i> Refresh
+              </button>
+          </div>
+          <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm border-collapse">
+                  <thead class="bg-gray-100 border-b border-gray-200 text-gray-600">
+                      <tr>
+                          <th class="p-4 font-semibold">Waktu Input</th>
+                          <th class="p-4 font-semibold">Tanggal Data</th>
+                          <th class="p-4 font-semibold">Volume (Kg)</th>
+                          <th class="p-4 font-semibold">Jml Jerigen</th>
+                          <th class="p-4 font-semibold">Catatan</th>
+                      </tr>
+                  </thead>
+                  <tbody id="tbodyJerigen" class="divide-y divide-gray-100">
+                      <tr><td colspan="5" class="p-4 text-center text-gray-500">Memuat data...</td></tr>
+                  </tbody>
+              </table>
+          </div>
+      </div>
+
   </div>
 
 </GeneralLayout>
@@ -585,6 +646,93 @@ const tabs = [
         document.getElementById('btnSubmitKalibrasi').innerHTML = `<i class="bi bi-sliders"></i> Simpan Penyesuaian`;
       }
     });
+    // -----------------------------------------
+    // 🔥 LOGIKA TATA KELOLA JERIGEN
+    // -----------------------------------------
+    
+    // 1. Fungsi Tarik Riwayat Jerigen
+    window.loadJerigen = async () => {
+        const tbody = document.getElementById('tbodyJerigen');
+        if (!tbody) return;
+        
+        try {
+            const { data, error } = await window.supabase
+                .from('tata_kelola_jerigen')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(50);
+                
+            if (error) throw error;
+            
+            if (data && data.length > 0) {
+                tbody.innerHTML = data.map(item => `
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="p-4 text-gray-500 whitespace-nowrap">${new Date(item.created_at).toLocaleString('id-ID')}</td>
+                        <td class="p-4 font-medium whitespace-nowrap">${item.tanggal}</td>
+                        <td class="p-4 text-green-700 font-bold bg-green-50/50">${item.volume_minyak_kg} Kg</td>
+                        <td class="p-4">
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-bold border border-blue-200">
+                                ${item.jumlah_jerigen} Pcs
+                            </span>
+                        </td>
+                        <td class="p-4 text-gray-600 min-w-[200px]">${item.catatan || '-'}</td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-gray-500 italic">Belum ada riwayat jerigen.</td></tr>';
+            }
+        } catch (err) {
+            console.error("Error load jerigen:", err);
+            tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-red-500">Gagal memuat data.</td></tr>';
+        }
+    };
 
+    // 2. Set Tanggal Default Form Hari Ini
+    const inputTglJerigen = document.getElementById('jerigenTanggal');
+    if (inputTglJerigen) inputTglJerigen.value = new Date().toISOString().split('T')[0];
+
+    // 3. Fungsi Insert Data Jerigen Baru
+    document.getElementById('jerigenForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnSubmitJerigen');
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i>...';
+        btn.disabled = true;
+
+        try {
+            // Wajib ambil ID User dari sesi karena RLS lu mensyaratkan auth.uid() = user_id
+            const { data: { session }, error: authErr } = await window.supabase.auth.getSession();
+            if (authErr || !session) throw new Error("Gagal mengambil sesi. Pastikan Anda sudah login.");
+            
+            const user_id = session.user.id; 
+            const tanggal = document.getElementById('jerigenTanggal').value;
+            const volume_minyak_kg = parseFloat(document.getElementById('jerigenVolume').value);
+            const jumlah_jerigen = parseInt(document.getElementById('jerigenJumlah').value);
+            const catatan = document.getElementById('jerigenCatatan').value;
+
+            // Tembak ke Supabase
+            const { error } = await window.supabase
+                .from('tata_kelola_jerigen')
+                .insert([{ user_id, tanggal, volume_minyak_kg, jumlah_jerigen, catatan }]);
+                
+            if (error) throw error;
+            
+            alert("Data Jerigen berhasil disimpan!");
+            
+            // Bersihkan form & segarkan tabel
+            document.getElementById('jerigenForm').reset();
+            document.getElementById('jerigenTanggal').value = new Date().toISOString().split('T')[0];
+            window.loadJerigen();
+            
+        } catch (err) {
+            console.error("Error insert jerigen:", err);
+            alert("Gagal menyimpan data: " + err.message);
+        } finally {
+            btn.innerHTML = 'Simpan';
+            btn.disabled = false;
+        }
+    });
+
+    // Panggil datanya saat pertama kali halaman dibuka
+    window.loadJerigen();
   });
 </script>

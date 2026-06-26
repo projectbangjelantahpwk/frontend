@@ -526,15 +526,23 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
     // Cukup tembak id rincian, sisanya Trigger DB yang hitung dan hapus induknya!
     window.hapusItemPengeluaran = async function(rincianId) {
-        if(!confirm('Hapus rincian ini?\n\nSistem akan menghitung ulang saldo dan tagihan otomatis.')) return;
+        if(!confirm('Yakin ingin menghapus rincian ini?\n\nJika item ini sudah pernah di-ACC sebelumnya, sistem akan otomatis ME-REFUND (mengembalikan) uangnya ke Kas Perusahaan!')) return;
         if(!window.supabase) return;
+        
         try {
-            const { error: errHapus } = await window.supabase.from('rincian_pengeluaran').delete().eq('id', rincianId);
-            if(errHapus) throw errHapus;
+            // Tembak ke Deno Edge Function
+            const { data, error } = await window.supabase.functions.invoke('hapus-pengeluaran', {
+                body: { rincian_id: rincianId }
+            });
+
+            if (error) throw new Error(error.message);
+            if (data && data.success === false) throw new Error(data.error);
             
-            alert('Mantap! Item dihapus & sistem berhasil menghitung ulang.');
+            alert('Mantap bro! Item berhasil dihapus & kas perusahaan sudah disesuaikan otomatis.');
             window.location.reload();
-        } catch(err) { alert('Gagal menghapus item: ' + err.message); }
+        } catch(err) { 
+            alert('Gagal menghapus item: ' + err.message); 
+        }
     };
 
     // ==========================================

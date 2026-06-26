@@ -56,7 +56,16 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             
             <div>
                 <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Isi Pesan / Catatan <span class="text-red-500">*</span></label>
-                <textarea id="form_isi" rows="5" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 font-medium bg-gray-50 focus:bg-white transition" placeholder="Ketik pengumuman atau informasi penting di sini..." required></textarea>
+                
+                <textarea id="form_isi" rows="3" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 font-medium bg-gray-50 focus:bg-white transition" placeholder="Ketik pengumuman di sini..." required oninput="window.kalkulasiLayarHP(this)"></textarea>
+                
+                <div class="flex justify-between items-start mt-1.5 px-1">
+                    <p id="indikator-hp" class="text-[10px] font-bold text-gray-400"><i class="bi bi-phone"></i> Tampilan HP: Kosong</p>
+                    <p id="counter-huruf" class="text-[10px] text-gray-500 font-mono font-bold">0 / 105 Huruf</p>
+                </div>
+                <p id="warning-hp" class="text-[9.5px] text-orange-600 mt-1 hidden italic leading-tight">
+                    *Teks melebihi 3 baris HP! Aplikasi Android akan otomatis memecahnya menjadi beberapa slide agar tetap muat di layar.
+                </p>
             </div>
             
             <div class="grid grid-cols-2 gap-4">
@@ -191,10 +200,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('form_isi').value = '';
         document.getElementById('form_urutan').value = '1';
         document.getElementById('form_aktif').checked = true;
-        
         document.getElementById('modal-title').innerText = 'Buat Pengumuman Baru';
         document.getElementById('btn-submit').innerText = 'SIMPAN PENGUMUMAN';
-        
+        window.kalkulasiLayarHP(document.getElementById('form_isi'));
         bukaModalAnimasi();
     }
 
@@ -207,7 +215,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('form_isi').value = data.isi_pesan;
             document.getElementById('form_urutan').value = data.urutan;
             document.getElementById('form_aktif').checked = data.is_active;
-
+            window.kalkulasiLayarHP(document.getElementById('form_isi'));
             document.getElementById('modal-title').innerText = 'Edit Pengumuman';
             document.getElementById('btn-submit').innerText = 'PERBARUI DATA';
             
@@ -274,6 +282,37 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert("Gagal menghapus data: " + error.message);
         }
     }
+    // ==========================================
+    // 4. RULE KALKULASI LAYAR ANDROID (3 BARIS)
+    // ==========================================
+    window.kalkulasiLayarHP = function(el) {
+        const jmlHuruf = el.value.length;
+        const counter = document.getElementById('counter-huruf');
+        const indikator = document.getElementById('indikator-hp');
+        const warning = document.getElementById('warning-hp');
+        
+        counter.innerText = `${jmlHuruf} Huruf`;
+        
+        // Asumsi: 1 Baris Android = ~35 huruf. Maksimal 3 baris = 105 huruf.
+        const maxHurufSatuSlide = 105; 
 
+        if (jmlHuruf === 0) {
+            indikator.innerHTML = `<i class="bi bi-phone"></i> Tampilan HP: Kosong`;
+            indikator.className = "text-[10px] font-bold text-gray-400";
+            warning.classList.add('hidden');
+            counter.classList.replace('text-red-600', 'text-gray-500');
+        } else if (jmlHuruf <= maxHurufSatuSlide) {
+            indikator.innerHTML = `<i class="bi bi-phone"></i> Tampilan HP: Pas 1 Slide ✓`;
+            indikator.className = "text-[10px] font-bold text-green-600";
+            warning.classList.add('hidden');
+            counter.classList.replace('text-red-600', 'text-gray-500');
+        } else {
+            const jmlSlide = Math.ceil(jmlHuruf / maxHurufSatuSlide);
+            indikator.innerHTML = `<i class="bi bi-phone"></i> Tampilan HP: Terpecah ${jmlSlide} Slide ⚠️`;
+            indikator.className = "text-[10px] font-bold text-orange-600";
+            warning.classList.remove('hidden');
+            counter.classList.replace('text-gray-500', 'text-red-600');
+        }
+    };
 });
 </script>

@@ -230,7 +230,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         };
 
         async function loadDataHalaman() {
-            document.getElementById('tgl_proses').value = new Date().toISOString().split('T')[0];
+            const waktuLokal = new Date();
+            const offset = waktuLokal.getTimezoneOffset() * 60000;
+            document.getElementById('tgl_proses').value = new Date(waktuLokal - offset).toISOString().split('T')[0];
             window.tambahBarisBahan(); 
 
             const { data: riwayat } = await client.from('pengolahan_eksternal')
@@ -466,7 +468,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                             pengeluaranId = existPeng.id;
                             // Jika induknya sudah ada, kita cukup menambahkan total nominal hariannya
                             await client.from('pengeluaran').update({ 
-                                total_harian: (existPeng.total_harian || 0) + totalBiayaFinal 
+                                total_harian: (existPeng.total_harian || 0) + totalBiayaFinal,
+                                updated_at: new Date().toISOString()
                             }).eq('id', pengeluaranId);
                         } else {
                             // 🔥 SUNTIKKAN KOLOM sumber_dana DI SINI SAAT MEMBUAT BARIS BARU 🔥

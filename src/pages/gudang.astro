@@ -7,7 +7,7 @@ const tabs = [
   { id: 'olahan', label: 'Manajemen Produksi', icon: 'beaker' },
   { id: 'kalibrasi', label: 'Kalibrasi Stok', icon: 'sliders' },
   { id: 'riwayat', label: 'Riwayat Mutasi', icon: 'clock-history' },
-  { id: 'jerigen', label: 'Kelola Jerigen', icon: 'inbox' }
+  { id: 'galon', label: 'Kelola Galon', icon: 'inbox' }
 ];
 ---
 
@@ -234,32 +234,33 @@ const tabs = [
         </table>
       </div>
     </div>
-  </div>
-  <div id="jerigen" class="tab-content hidden space-y-6">
+
+    <!-- 🔥 FIX: id diubah jadi galon-tab biar tombolnya berfungsi -->
+    <div id="galon-tab" class="tab-content hidden space-y-6">
       
       <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
-              <h3 class="text-lg font-bold text-gray-800"><i class="bi bi-plus-circle text-primary me-2"></i>Input Data Jerigen</h3>
+              <h3 class="text-lg font-bold text-gray-800"><i class="bi bi-plus-circle text-primary me-2"></i>Input Data Galon</h3>
           </div>
           <div class="p-6">
-              <form id="jerigenForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+              <form id="galonForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
                   <div>
                       <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
-                      <input type="date" id="jerigenTanggal" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                      <input type="date" id="galonTanggal" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
                   </div>
                   <div>
                       <label class="block text-sm font-medium text-gray-700 mb-1">Volume Minyak (Kg)</label>
-                      <input type="number" step="0.01" id="jerigenVolume" required placeholder="Contoh: 18.5" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                      <input type="number" step="0.01" id="galonVolume" required placeholder="Contoh: 18.5" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
                   </div>
                   <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-1">Jml Jerigen</label>
-                      <input type="number" id="jerigenJumlah" required placeholder="Contoh: 1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                      <label class="block text-sm font-medium text-gray-700 mb-1">Jml Galon</label>
+                      <input type="number" id="galonJumlah" required placeholder="Contoh: 1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
                   </div>
                   <div class="lg:col-span-2">
                       <label class="block text-sm font-medium text-gray-700 mb-1">Catatan (Opsional)</label>
                       <div class="flex gap-2">
-                          <input type="text" id="jerigenCatatan" placeholder="Cth: Kondisi bagus..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
-                          <button type="submit" id="btnSubmitJerigen" class="bg-primary hover:opacity-90 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
+                          <input type="text" id="galonCatatan" placeholder="Cth: Kondisi bagus..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                          <button type="submit" id="btnSubmitGalon" class="bg-primary hover:opacity-90 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
                               Simpan
                           </button>
                       </div>
@@ -270,8 +271,8 @@ const tabs = [
 
       <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-              <h3 class="text-lg font-bold text-gray-800"><i class="bi bi-clock-history text-primary me-2"></i>Riwayat Jerigen</h3>
-              <button onclick="window.loadJerigen()" class="text-sm text-primary hover:underline font-medium">
+              <h3 class="text-lg font-bold text-gray-800"><i class="bi bi-clock-history text-primary me-2"></i>Riwayat Galon</h3>
+              <button onclick="window.loadGalon()" class="text-sm text-primary hover:underline font-medium">
                   <i class="bi bi-arrow-clockwise"></i> Refresh
               </button>
           </div>
@@ -282,17 +283,17 @@ const tabs = [
                           <th class="p-4 font-semibold">Waktu Input</th>
                           <th class="p-4 font-semibold">Tanggal Data</th>
                           <th class="p-4 font-semibold">Volume (Kg)</th>
-                          <th class="p-4 font-semibold">Jml Jerigen</th>
+                          <th class="p-4 font-semibold">Jml Galon</th>
                           <th class="p-4 font-semibold">Catatan</th>
                       </tr>
                   </thead>
-                  <tbody id="tbodyJerigen" class="divide-y divide-gray-100">
+                  <tbody id="tbodyGalon" class="divide-y divide-gray-100">
                       <tr><td colspan="5" class="p-4 text-center text-gray-500">Memuat data...</td></tr>
                   </tbody>
               </table>
           </div>
       </div>
-
+  </div>
   </div>
 
 </GeneralLayout>
@@ -362,7 +363,7 @@ const tabs = [
         const { data: mutasi, error: errMut } = await window.supabase
             .from('gudang_mutasi')
             .select('*, komoditas:komoditas_id ( nama_komoditas )')
-            .order('tanggal', { ascending: false })
+            .order('created_at', { ascending: false }) // 🔥 FIX: Diganti jadi created_at agar tidak error
             .limit(30);
 
         if(!errMut && mutasi) {
@@ -373,13 +374,13 @@ const tabs = [
                 html = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Belum ada riwayat mutasi.</td></tr>';
             } else {
                 mutasi.forEach(item => {
-                    const tgl = new Date(item.tanggal).toLocaleString('id-ID');
+                    // 🔥 FIX: Ambil dari created_at kalau tanggal kosong
+                    const tgl = new Date(item.created_at || item.tanggal).toLocaleString('id-ID'); 
                     const badge = getBadgeColorJs(item.jenis_mutasi);
                     const namaK = item.komoditas ? item.komoditas.nama_komoditas : item.komoditas_id;
                     const sign = item.jumlah > 0 ? '+' : '';
                     const colorNum = item.jumlah > 0 ? 'text-green-600' : 'text-red-600';
                     const ket = item.keterangan ? item.keterangan : '-';
-                    // 🔥 Format nilai mutasi jadi 2 desimal
                     const jumlahFormatted = parseFloat(item.jumlah || 0).toFixed(2);
 
                     html += `
@@ -645,18 +646,18 @@ const tabs = [
         document.getElementById('btnSubmitKalibrasi').innerHTML = `<i class="bi bi-sliders"></i> Simpan Penyesuaian`;
       }
     });
+    
     // -----------------------------------------
-    // 🔥 LOGIKA TATA KELOLA JERIGEN
+    // 🔥 LOGIKA TATA KELOLA GALON
     // -----------------------------------------
     
-    // 1. Fungsi Tarik Riwayat Jerigen
-    window.loadJerigen = async () => {
-        const tbody = document.getElementById('tbodyJerigen');
+    window.loadGalon = async () => {
+        const tbody = document.getElementById('tbodyGalon');
         if (!tbody) return;
         
         try {
             const { data, error } = await window.supabase
-                .from('tata_kelola_jerigen')
+                .from('tata_kelola_jerigen') // DB tetap aman
                 .select('*')
                 .order('created_at', { ascending: false })
                 .limit(50);
@@ -678,52 +679,47 @@ const tabs = [
                     </tr>
                 `).join('');
             } else {
-                tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-gray-500 italic">Belum ada riwayat jerigen.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-gray-500 italic">Belum ada riwayat galon.</td></tr>';
             }
         } catch (err) {
-            console.error("Error load jerigen:", err);
+            console.error("Error load galon:", err);
             tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-red-500">Gagal memuat data.</td></tr>';
         }
     };
 
-    // 2. Set Tanggal Default Form Hari Ini
-    const inputTglJerigen = document.getElementById('jerigenTanggal');
-    if (inputTglJerigen) inputTglJerigen.value = new Date().toISOString().split('T')[0];
+    const inputTglGalon = document.getElementById('galonTanggal');
+    if (inputTglGalon) inputTglGalon.value = new Date().toISOString().split('T')[0];
 
-    // 3. Fungsi Insert Data Jerigen Baru
-    document.getElementById('jerigenForm')?.addEventListener('submit', async (e) => {
+    document.getElementById('galonForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const btn = document.getElementById('btnSubmitJerigen');
+        const btn = document.getElementById('btnSubmitGalon');
         btn.innerHTML = '<i class="bi bi-hourglass-split"></i>...';
         btn.disabled = true;
 
         try {
-            // Wajib ambil ID User dari sesi karena RLS lu mensyaratkan auth.uid() = user_id
             const { data: { session }, error: authErr } = await window.supabase.auth.getSession();
             if (authErr || !session) throw new Error("Gagal mengambil sesi. Pastikan Anda sudah login.");
             
             const user_id = session.user.id; 
-            const tanggal = document.getElementById('jerigenTanggal').value;
-            const volume_minyak_kg = parseFloat(document.getElementById('jerigenVolume').value);
-            const jumlah_jerigen = parseInt(document.getElementById('jerigenJumlah').value);
-            const catatan = document.getElementById('jerigenCatatan').value;
+            const tanggal = document.getElementById('galonTanggal').value;
+            const volume_minyak_kg = parseFloat(document.getElementById('galonVolume').value);
+            const jumlah_jerigen = parseInt(document.getElementById('galonJumlah').value); // DB tetap aman pakai kolom lama
+            const catatan = document.getElementById('galonCatatan').value;
 
-            // Tembak ke Supabase
             const { error } = await window.supabase
                 .from('tata_kelola_jerigen')
                 .insert([{ user_id, tanggal, volume_minyak_kg, jumlah_jerigen, catatan }]);
                 
             if (error) throw error;
             
-            alert("Data Jerigen berhasil disimpan!");
+            alert("Data Galon berhasil disimpan!");
             
-            // Bersihkan form & segarkan tabel
-            document.getElementById('jerigenForm').reset();
-            document.getElementById('jerigenTanggal').value = new Date().toISOString().split('T')[0];
-            window.loadJerigen();
+            document.getElementById('galonForm').reset();
+            document.getElementById('galonTanggal').value = new Date().toISOString().split('T')[0];
+            window.loadGalon();
             
         } catch (err) {
-            console.error("Error insert jerigen:", err);
+            console.error("Error insert galon:", err);
             alert("Gagal menyimpan data: " + err.message);
         } finally {
             btn.innerHTML = 'Simpan';
@@ -731,7 +727,7 @@ const tabs = [
         }
     });
 
-    // Panggil datanya saat pertama kali halaman dibuka
-    window.loadJerigen();
+    // Jalankan auto-load saat buka halaman
+    window.loadGalon();
   });D
 </script>

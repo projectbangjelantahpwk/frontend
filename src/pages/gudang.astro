@@ -362,8 +362,10 @@ const tabs = [
         // B. Ambil Data Riwayat Mutasi (Limit 30)
         const { data: mutasi, error: errMut } = await window.supabase
             .from('gudang_mutasi')
-            .select('*, komoditas:komoditas_id ( nama_komoditas )')
-            .order('created_at', { ascending: false }) // 🔥 FIX: Diganti jadi created_at agar tidak error
+            // 🔥 FIX 1: Panggil relasi langsung pakai nama tabelnya
+            .select('*, gudang_komoditas(nama_komoditas)') 
+            // 🔥 FIX 2: Kembalikan ke 'tanggal' (Gudang mutasi lu ternyata pakai ini)
+            .order('tanggal', { ascending: false }) 
             .limit(30);
 
         if(!errMut && mutasi) {
@@ -374,10 +376,12 @@ const tabs = [
                 html = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Belum ada riwayat mutasi.</td></tr>';
             } else {
                 mutasi.forEach(item => {
-                    // 🔥 FIX: Ambil dari created_at kalau tanggal kosong
-                    const tgl = new Date(item.created_at || item.tanggal).toLocaleString('id-ID'); 
+                    const tgl = new Date(item.tanggal).toLocaleString('id-ID'); 
                     const badge = getBadgeColorJs(item.jenis_mutasi);
-                    const namaK = item.komoditas ? item.komoditas.nama_komoditas : item.komoditas_id;
+                    
+                    // 🔥 FIX 3: Sesuaikan penangkapan data relasi
+                    const namaK = item.gudang_komoditas ? item.gudang_komoditas.nama_komoditas : item.komoditas_id;
+                    
                     const sign = item.jumlah > 0 ? '+' : '';
                     const colorNum = item.jumlah > 0 ? 'text-green-600' : 'text-red-600';
                     const ket = item.keterangan ? item.keterangan : '-';
@@ -397,6 +401,8 @@ const tabs = [
                 });
             }
             if(tbody) tbody.innerHTML = html;
+        } else if (errMut) {
+            console.error("Gagal narik mutasi:", errMut.message);
         }
     }
 
@@ -646,7 +652,7 @@ const tabs = [
         document.getElementById('btnSubmitKalibrasi').innerHTML = `<i class="bi bi-sliders"></i> Simpan Penyesuaian`;
       }
     });
-    
+
     // -----------------------------------------
     // 🔥 LOGIKA TATA KELOLA GALON
     // -----------------------------------------
@@ -729,5 +735,5 @@ const tabs = [
 
     // Jalankan auto-load saat buka halaman
     window.loadGalon();
-  });D
+  });
 </script>

@@ -611,6 +611,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         let tglMulai = senin.toISOString().split('T')[0];
         let tglAkhir = sabtu.toISOString().split('T')[0];
 
+        // Simpan Data Dasar untuk dikirim ke Deno
+        window.currentSalaryData = { empId: emp.id, tglMulai, tglAkhir, sisaKasbonDb: totalHutangKasbon };
+        
         // 🔥 TARIK OTOMATIS DATA JERIGEN DARI GUDANG (MINGGU INI)
         try {
             const { data: jerigenData } = await window.supabase
@@ -630,9 +633,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
         const slip = (emp.slip_gaji || []).find(s => s.periode === tglAkhir && s.status === 'Menunggu');
         document.getElementById('m_slip_id').value = slip ? slip.id : '';
-
-        // Simpan Data Dasar untuk dikirim ke Deno
-        window.currentSalaryData = { empId: emp.id, tglMulai, tglAkhir, sisaKasbonDb: totalHutangKasbon };
         
         // Panggil Deno untuk Preview UI
         window.kalkulasiRealtimeGaji();

@@ -1,11 +1,30 @@
 ---
 // LeaderboardMitra.astro
+// Bagian Server-Side kosong karena kita pakai CSR (Javascript di Client)
 ---
 
-<div id="leaderboard-container">
-    <div id="list-container">
-        <p>Loading leaderboard...</p> 
+<div class="bg-surface rounded-xl shadow-sm p-4 border border-outline">
+    
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-on-surface">Leaderboard Mitra</h2>
+        <span class="text-sm text-on-surface-variant font-medium" id="periode-label">Bulan Ini</span>
     </div>
+
+    <div class="flex flex-wrap gap-2 mb-4 border-b border-outline pb-4">
+        <button class="filter-btn px-3 py-1.5 text-sm rounded-full border" data-category="total_keseluruhan">Total Keseluruhan</button>
+        <button class="filter-btn px-3 py-1.5 text-sm rounded-full border border-outline text-on-surface" data-category="minyak_jelantah">Minyak Jelantah</button>
+        <button class="filter-btn px-3 py-1.5 text-sm rounded-full border border-outline text-on-surface" data-category="ampas">Ampas</button>
+        <button class="filter-btn px-3 py-1.5 text-sm rounded-full border border-outline text-on-surface" data-category="kriuk">Kriuk</button>
+        <button class="filter-btn px-3 py-1.5 text-sm rounded-full border border-outline text-on-surface" data-category="tepung">Tepung</button>
+        <button class="filter-btn px-3 py-1.5 text-sm rounded-full border border-outline text-on-surface" data-category="spinner">Spinner</button>
+    </div>
+
+    <div id="list-container" class="min-h-[250px]">
+        <div class="flex h-full items-center justify-center pt-8">
+            <p class="text-on-surface-variant animate-pulse">Menyiapkan Leaderboard...</p> 
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -14,14 +33,22 @@
     const listContainer = document.getElementById('list-container');
     const filterButtons = document.querySelectorAll('.filter-btn');
 
-    // 1. Fungsi Fetch
+    // Setup nama bulan di UI
+    const namaBulan = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+    const now = new Date();
+    document.getElementById('periode-label').textContent = `${namaBulan[now.getMonth()]} ${now.getFullYear()}`;
+
+    // Fungsi Ambil Data
     async function fetchLeaderboard(kategori = 'total_keseluruhan') {
-        // Ini cara murni Javascript buat ngilangin error "possibly null"
         if (!listContainer) return; 
 
-        listContainer.innerHTML = '<p class="text-center mt-4">Loading data...</p>';
+        // State saat loading (fetch data baru)
+        listContainer.innerHTML = `
+            <div class="flex h-[200px] items-center justify-center">
+                <p class="text-on-surface-variant animate-pulse font-medium">Memuat data...</p>
+            </div>
+        `;
 
-        const now = new Date();
         const currentPeriode = `${String(now.getMonth() + 1).padStart(2, '0')} ${now.getFullYear()}`;
 
         const { data: dbData, error } = await supabase
@@ -33,37 +60,42 @@
 
         if (error) {
             console.error("Gagal fetch leaderboard:", error);
-            listContainer.innerHTML = '<p class="text-center text-red-500 mt-4">Gagal memuat data.</p>';
+            listContainer.innerHTML = '<p class="text-center text-red-500 mt-8">Gagal memuat data dari server.</p>';
             return;
         }
 
         renderLeaderboard(dbData, kategori);
     }
 
-    // 2. Fungsi Render HTML
-    function renderLeaderboard(data: any[], kategori: string) {
+    // Fungsi Render Card Mitra
+    function renderLeaderboard(data, kategori) {
         if (!listContainer) return;
-
         listContainer.innerHTML = ''; 
 
+        // State saat data tidak ada (Kosong)
         if (!data || data.length === 0) {
-            listContainer.innerHTML = '<p class="text-center mt-4">Belum ada data bulan ini.</p>';
+            listContainer.innerHTML = `
+                <div class="flex h-[200px] items-center justify-center text-center">
+                    <p class="text-on-surface-variant">Belum ada catatan penyetoran<br>untuk bulan ini.</p>
+                </div>
+            `;
             return;
         }
 
-        // Tambahkan : any dan : number di sini
-        data.forEach((mitra: any, index: number) => {
+        // State saat data ada (Render List)
+        data.forEach((mitra, index) => {
             const rank = index + 1;
             const value = mitra[kategori] || 0; 
             
+            // Format HTML per baris peringkat
             const cardHtml = `
-                <div class="flex items-center gap-4 p-3 border-b border-outline last:border-0">
-                    <div class="font-bold text-lg flex-shrink-0">
-                        #${rank}
+                <div class="flex items-center gap-4 p-3 border-b border-outline last:border-0 hover:bg-surface-container transition-colors rounded-lg">
+                    <div class="font-bold text-lg flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${rank === 1 ? 'bg-primary text-on-primary' : 'bg-primary/10 text-primary'}">
+                        ${rank}
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="font-semibold text-on-surface truncate">${mitra.nama_mitra}</p>
-                        <p class="text-sm text-on-surface-variant">Total: ${value} KG</p>
+                        <p class="text-sm text-on-surface-variant">Total: <span class="font-bold">${value}</span> KG</p>
                     </div>
                 </div>
             `;
@@ -71,22 +103,34 @@
         });
     }
 
-    // 3. Logika Filter
+    // Logika Tombol & Styling Aktif
     filterButtons.forEach(button => {
         button.addEventListener('click', (e) => {
-            // Tambahkan "as HTMLElement" di akhir baris ini
-            const btn = e.currentTarget as HTMLElement; 
+            const btn = e.currentTarget;
             if (!btn) return; 
             
             const category = btn.getAttribute('data-category') || 'total_keseluruhan'; 
 
-            filterButtons.forEach(b => b.classList.remove('active-styling'));
-            btn.classList.add('active-styling');
+            // Hapus gaya aktif dari semua tombol
+            filterButtons.forEach(b => {
+                b.classList.remove('bg-primary', 'text-on-primary', 'border-primary');
+                b.classList.add('border-outline', 'text-on-surface');
+            });
 
+            // Pasang gaya aktif ke tombol yang diklik
+            btn.classList.add('bg-primary', 'text-on-primary', 'border-primary');
+            btn.classList.remove('border-outline', 'text-on-surface');
+
+            // Panggil data ulang
             fetchLeaderboard(category);
         });
     });
 
-    // 4. Jalankan pas pertama load
+    // Jalankan awal (Set tombol 'total_keseluruhan' aktif)
+    const defaultBtn = document.querySelector('[data-category="total_keseluruhan"]');
+    if(defaultBtn) {
+        defaultBtn.classList.add('bg-primary', 'text-on-primary', 'border-primary');
+        defaultBtn.classList.remove('border-outline', 'text-on-surface');
+    }
     fetchLeaderboard('total_keseluruhan'); 
 </script>

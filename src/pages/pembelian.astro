@@ -927,7 +927,23 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
         let noHp = trx.penjemputan?.mitra?.nomor_hp || '';
         if (!noHp) return alert('❌ Nomor HP Mitra tidak tersedia di database!');
-        if (noHp.startsWith('0')) noHp = '62' + noHp.substring(1);
+        
+        // 1. Sapu bersih semua spasi, strip, tanda plus, atau huruf
+        noHp = noHp.replace(/\D/g, ''); 
+        
+        // 2. Filter berbagai macam skenario input nomor
+        if (noHp.startsWith('620')) {
+            // Kasus typo: 620812... (dobel kode negara & 0 lokal)
+            noHp = '62' + noHp.substring(3);
+        } 
+        else if (noHp.startsWith('0')) {
+            // Kasus normal: 0812... 
+            noHp = '62' + noHp.substring(1);
+        } 
+        else if (noHp.startsWith('8')) {
+            // Kasus kelupaan: 812... (tanpa 0 atau 62 di depan)
+            noHp = '62' + noHp;
+        }
 
         const namaPenjual = trx.penjemputan?.mitra?.nama_mitra || trx.nama_mitra_tidak_terdaftar || 'Tanpa Nama Mitra';
         const namaDriver = trx.driver?.nama || 'Driver Tidak Diketahui';

@@ -59,11 +59,12 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     <th class="px-6 py-4 text-sm font-bold text-gray-900">Mitra</th> 
                     <th class="px-6 py-4 text-sm font-bold text-gray-900">Tanggal</th>
                     <th class="px-6 py-4 text-sm font-bold text-gray-900">Metode Bayar</th>
-                    <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right">Nominal</th> 
+                    <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right">Nominal</th>
+                    <th class="px-6 py-4 text-sm font-bold text-gray-900 text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody id="riwayat-lunas-tbody" class="divide-y divide-gray-100">
-                <tr><td colspan="4" class="text-center py-4">Memuat...</td></tr> 
+                <tr><td colspan="5" class="text-center py-4">Memuat...</td></tr> 
             </tbody>
         </table>
     </div> 
@@ -228,7 +229,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             window.allMitraGlobal = listMitra || []; 
 
             const { data: transaksi, error: errTransaksi } = await window.supabase.from('transaksi')
-                .select('*, transaksi_item(komoditas, volume, harga_unit, id), penjemputan(tanggal, mitra(nama_mitra, id), mitra_id)')
+                .select('*, transaksi_item(komoditas, volume, harga_unit, id), penjemputan(tanggal, mitra(nama_mitra, id, nomor_hp), mitra_id), driver:profiles!kalkulator_user_id(nama)')
                 .order('created_at', { ascending: false });
             
             if (errTransaksi) { 
@@ -269,6 +270,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             const trxMenunggu = transaksi?.filter(t => !t.is_paid_by_admin && t.metode_bayar) || []; 
             const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || []; 
             window.dataTransaksiGlobal = trxMenunggu;
+            window.riwayatLunasGlobal = trxSelesai;
             
             const badge = document.getElementById('badge-validasi');
             const countEl = document.getElementById('title-validasi-count'); 
@@ -379,6 +381,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         <button onclick="window.validasiBayar('${trx.id}')" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-700 text-white rounded-xl hover:bg-green-800 transition font-bold active:scale-95">
                             <i class="bi bi-check-circle"></i> Validasi Lunas 
                         </button>
+                        <button onclick="window.hapusTransaksi('${trx.id}')" class="flex-none flex items-center justify-center px-4 py-3 bg-red-50 text-red-700 border border-red-200 rounded-xl hover:bg-red-100 transition font-bold active:scale-95" title="Hapus Data">
+                            <i class="bi bi-trash3-fill"></i> Hapus Data
+                        </button>
                     </div>
                 </div>`;
             }); 
@@ -389,12 +394,19 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             trxSelesai.forEach(t => {
                 const jam = t.created_at ? new Date(t.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) : '';
                 const waktuTampil = jam ? `${jam} WIB` : '';
+
+                // 1. TAMBAHKAN BLOK KODE INI UNTUK GENERATE ID STRUK
+                const dateObj = t.created_at ? new Date(t.created_at) : new Date();
+                const yyyy = dateObj.getFullYear();
+                const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const dd = String(dateObj.getDate()).padStart(2, '0');
+                const idStruk = `BJ-${yyyy}${mm}${dd}${t.id}`;
                 
-                // 1. Cek Metode Bayar
+                // 2. Cek Metode Bayar
                 let metodeText = `${t.metode_bayar || '-'}`;
                 if (t.metode_bayar_2) metodeText += ` + ${t.metode_bayar_2}`;
 
-                // 2. Buat elemen info bank KHUSUS kalau ada kata 'transfer' atau 'bank'
+                // 3. Buat elemen info bank KHUSUS kalau ada kata 'transfer' atau 'bank'
                 let detailBankHtml = '';
                 const m1Low = (t.metode_bayar || '').toLowerCase();
                 const m2Low = (t.metode_bayar_2 || '').toLowerCase();
@@ -408,7 +420,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     </div>`;
                 }
 
-                // 3. Render ke tabel
+                // 4. Render ke tabel
                 htmlLunas += `
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 text-sm font-bold text-gray-900 align-top">${t.penjemputan?.mitra?.nama_mitra || t.nama_mitra_tidak_terdaftar || 'Tanpa Nama Mitra'}</td>
@@ -421,6 +433,11 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         ${detailBankHtml}
                     </td> 
                     <td class="px-6 py-4 text-sm font-bold text-green-700 text-right align-top">Rp ${Number(t.grand_total || 0).toLocaleString('id-ID')}</td>
+                    <td class="px-6 py-4 text-center align-top">
+                        <button onclick="window.kirimStrukWA('${t.id}', '${idStruk}')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition shadow-sm inline-flex items-center gap-1">
+                            <i class="bi bi-whatsapp"></i> WA
+                        </button>
+                    </td>
                 </tr>`;
             });
             tbodyLunas.innerHTML = htmlLunas || '<tr><td colspan="4" class="text-center py-4">Data kosong</td></tr>'; 
@@ -659,6 +676,28 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
        } 
     };
 
+    // ==========================================
+    // FUNGSI HAPUS TRANSAKSI
+    // ==========================================
+    window.hapusTransaksi = async function(trxId) {
+        if(!confirm('🚨 PERINGATAN KRITIS 🚨\n\nApakah Anda yakin ingin MENGHAPUS transaksi ini secara permanen?\n\nSistem akan secara otomatis:\n- Mengurangi stok gudang\n- Mengembalikan saldo deposit mitra (jika ada)\n- Menghapus riwayat talangan karyawan (jika ada)')) return;
+        
+        if(!window.supabase) return;
+        
+        try {
+            const { error } = await window.supabase.rpc('hapus_transaksi_mitra', { p_trx_id: parseInt(trxId) });
+            
+            if (error) throw error;
+            
+            alert('✅ Data transaksi berhasil dihapus beserta seluruh riwayat terkaitnya.');
+            window.location.reload();
+            
+        } catch (err) {
+            console.error("Gagal hapus transaksi:", err);
+            alert('❌ Gagal menghapus transaksi: ' + err.message);
+        }
+    };
+
     window.bukaModalEditTrx = function(trxId) { 
         window.goToEditStep(1);
         const trx = window.dataTransaksiGlobal.find(t => String(t.id) === String(trxId)); 
@@ -878,6 +917,74 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
             alert("Gagal menyimpan transaksi: " + err.message);
             if(btn) { btn.innerText = "SIMPAN PERUBAHAN"; btn.disabled = false; }
         }
+    };
+    // ==========================================
+    // 7. GENERATE STRUK WHATSAPP
+    // ==========================================
+    window.kirimStrukWA = function(trxId, idStruk) {
+        const trx = window.riwayatLunasGlobal?.find(t => String(t.id) === String(trxId));
+        if (!trx) return alert('❌ Data transaksi tidak ditemukan!');
+
+        let noHp = trx.penjemputan?.mitra?.nomor_hp || '';
+        if (!noHp) return alert('❌ Nomor HP Mitra tidak tersedia di database!');
+        if (noHp.startsWith('0')) noHp = '62' + noHp.substring(1);
+
+        const namaPenjual = trx.penjemputan?.mitra?.nama_mitra || trx.nama_mitra_tidak_terdaftar || 'Tanpa Nama Mitra';
+        const namaDriver = trx.driver?.nama || 'Driver Tidak Diketahui';
+        const tanggalTrx = trx.penjemputan?.tanggal || trx.tanggal_transaksi || '-';
+
+        let detailBarang = '';
+        let totalKotor = 0;
+        
+        if (trx.transaksi_item && trx.transaksi_item.length > 0) {
+            trx.transaksi_item.forEach(item => {
+                const sub = item.volume * item.harga_unit;
+                totalKotor += sub;
+                detailBarang += `│ ${item.komoditas}\n│ ${item.volume} kg @ Rp ${item.harga_unit.toLocaleString('id-ID')} = Rp ${sub.toLocaleString('id-ID')}\n`;
+            });
+        } else {
+            detailBarang = `│ Tidak ada rincian barang\n`;
+        }
+
+        const dp = trx.potongan_dp || 0;
+        const sisa = trx.grand_total || 0;
+        
+        let metodeText = `${trx.metode_bayar || '-'}`;
+        if (trx.metode_bayar_2) metodeText += ` + ${trx.metode_bayar_2}`;
+
+        const textWA = `
+╔════════════════════════════════════════════╗
+║                                            ║
+║          🛢️  BANG JELANTAH  🛢️            ║
+║     STRUK PENJEMPUTAN MINYAK JELANTAH      ║
+║                                            ║
+╠════════════════════════════════════════════╣
+║  📍 Jl. Raya Industri No. 12               ║
+║     Jakarta Timur | 📞 0812-3456-7890      ║
+╚════════════════════════════════════════════╝
+┌─ INFORMASI TRANSAKSI ─────────────────────┐
+│ 📅 Tanggal: ${tanggalTrx}
+│ 👤 Penjual: ${namaPenjual}
+│ 👨‍💼 Driver: ${namaDriver}
+└────────────────────────────────────────────┘
+┌─ DETAIL BARANG ───────────────────────────┐
+${detailBarang.trimEnd()}
+└────────────────────────────────────────────┘
+┌─ RINGKASAN PEMBAYARAN ────────────────────┐
+│ Total: Rp ${totalKotor.toLocaleString('id-ID')}
+│ DP (Sudah Dibayar): Rp ${dp.toLocaleString('id-ID')}
+│ ─────────────────────────────────────
+│ SISA: Rp ${sisa.toLocaleString('id-ID')}
+│ Metode: ${metodeText}
+└────────────────────────────────────────────┘
+🌍 "Minyak lama, energi baru!"
+Bersama jaga bumi Indonesia 💚
+════════════════════════════════════════════
+ID: ${idStruk}
+════════════════════════════════════════════`.trim();
+
+        const url = `https://wa.me/${noHp}?text=${encodeURIComponent(textWA)}`;
+        window.open(url, '_blank');
     };
   });
 </script>

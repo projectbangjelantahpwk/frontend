@@ -202,7 +202,76 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         </form> 
     </div>
 </div>
+<div class="hidden">
+    <div id="struk-wa-template" style="width: 340px; background-color: #ffffff; padding: 20px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; box-sizing: border-box; line-height: 1.4;">
+        
+        <div style="text-align: center; margin-bottom: 15px; width: 100%;">
+            <img src="/3.png" alt="Logo Bang Jelantah" style="display: block; margin: 0 auto 8px auto; width: 80px; height: auto;">
+                
+            <div style="font-size: 18px; font-weight: 800; color: #4CAF50; margin: 0 0 4px 0; letter-spacing: 0.5px;">BANG JELANTAH</div>
+            <div style="font-size: 11px; font-weight: bold; margin: 0 0 10px 0; color: #444;">STRUK PENJEMPUTAN MINYAK JELANTAH</div>
+            <div style="font-size: 10px; color: #666; line-height: 1.4;">
+                Kp. Pasar Minggu No 39. RT/RW 08/03<br>
+                Desa/Kec Campaka. Kab Purwakarta, Jawa Barat<br>
+                0896-5507-6318
+            </div>
+        </div>
 
+        <div style="border-top: 1px dashed #bbb; margin: 12px 0;"></div>
+
+        <div style="font-size: 10px; font-weight: bold; color: #888; margin-bottom: 8px; text-transform: uppercase;">Informasi Transaksi</div>
+        <div style="display: flex; font-size: 11px; margin-bottom: 4px;">
+            <div style="width: 30%; color: #666;">Tanggal</div>
+            <div id="str-target-tanggal" style="width: 70%; font-weight: 600;">: -</div>
+        </div>
+        <div style="display: flex; font-size: 11px; margin-bottom: 4px;">
+            <div style="width: 30%; color: #666;">Penjual</div>
+            <div id="str-target-penjual" style="width: 70%; font-weight: 600;">: -</div>
+        </div>
+        <div style="display: flex; font-size: 11px; margin-bottom: 4px;">
+            <div style="width: 30%; color: #666;">Driver</div>
+            <div id="str-target-driver" style="width: 70%; font-weight: 600;">: -</div>
+        </div>
+
+        <div style="border-top: 1px dashed #bbb; margin: 12px 0;"></div>
+
+        <div style="font-size: 10px; font-weight: bold; color: #888; margin-bottom: 8px; text-transform: uppercase;">Detail Barang</div>
+        <div id="str-target-items" style="width: 100%; margin-bottom: 10px;">
+            </div>
+
+        <div style="border-top: 1px dashed #bbb; margin: 12px 0;"></div>
+
+        <div style="font-size: 10px; font-weight: bold; color: #888; margin-bottom: 8px; text-transform: uppercase;">Ringkasan Pembayaran</div>
+        <div style="width: 100%;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px;">
+                <div style="color: #666;">Total</div>
+                <div id="str-target-total" style="font-weight: 600;">Rp 0</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px;">
+                <div style="color: #666;">DP (Sudah Dibayar)</div>
+                <div id="str-target-dp" style="font-weight: 600;">Rp 0</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 14px; color: #4CAF50; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #bbb; font-weight: 800;">
+                <div>SISA</div>
+                <div id="str-target-sisa">Rp 0</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px;">
+                <div style="color: #666;">Metode</div>
+                <div id="str-target-metode" style="font-weight: 600;">-</div>
+            </div>
+        </div>
+
+        <div style="border-top: 1px dashed #bbb; margin: 12px 0;"></div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <div style="font-size: 11px; font-style: italic; font-weight: 800; color: #4CAF50; margin-bottom: 2px;">"Minyak lama, energi baru!"</div>
+            <div style="font-size: 10px; color: #555; margin-bottom: 12px;">Bersama jaga bumi Indonesia 💚</div>
+            <div id="str-target-id" style="background: #f9f9f9; border: 1px solid #ccc; padding: 6px 0; border-radius: 4px; font-family: monospace; font-size: 10px; color: #333; letter-spacing: 1px;">ID: -</div>
+        </div>
+
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" is:inline></script>
 <script is:inline>
   document.addEventListener('DOMContentLoaded', async () => {
     // === 🛡️ GATEKEEPER KEUANGAN ===
@@ -919,88 +988,161 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
         }
     };
     // ==========================================
-    // 7. GENERATE STRUK WHATSAPP
+    // 7A. FUNGSI PENGISI DATA TEMPLATE STRUK HTML
     // ==========================================
-    window.kirimStrukWA = function(trxId, idStruk) {
-        const trx = window.riwayatLunasGlobal?.find(t => String(t.id) === String(trxId));
-        if (!trx) return alert('❌ Data transaksi tidak ditemukan!');
-
-        let noHp = trx.penjemputan?.mitra?.nomor_hp || '';
-        if (!noHp) return alert('❌ Nomor HP Mitra tidak tersedia di database!');
-        
-        // 1. Sapu bersih semua spasi, strip, tanda plus, atau huruf
-        noHp = noHp.replace(/\D/g, ''); 
-        
-        // 2. Filter berbagai macam skenario input nomor
-        if (noHp.startsWith('620')) {
-            // Kasus typo: 620812... (dobel kode negara & 0 lokal)
-            noHp = '62' + noHp.substring(3);
-        } 
-        else if (noHp.startsWith('0')) {
-            // Kasus normal: 0812... 
-            noHp = '62' + noHp.substring(1);
-        } 
-        else if (noHp.startsWith('8')) {
-            // Kasus kelupaan: 812... (tanpa 0 atau 62 di depan)
-            noHp = '62' + noHp;
-        }
-
+    window.siapkanDataStruk = function(trx, idStruk) {
+        // 1. Ambil data dasar
+        const tanggalTrx = trx.penjemputan?.tanggal || trx.tanggal_transaksi || '-';
         const namaPenjual = trx.penjemputan?.mitra?.nama_mitra || trx.nama_mitra_tidak_terdaftar || 'Tanpa Nama Mitra';
         const namaDriver = trx.driver?.nama || 'Driver Tidak Diketahui';
-        const tanggalTrx = trx.penjemputan?.tanggal || trx.tanggal_transaksi || '-';
 
-        let detailBarang = '';
+        // 2. Tembak ke elemen HTML dasar
+        document.getElementById('str-target-tanggal').innerText = `: ${tanggalTrx}`;
+        document.getElementById('str-target-penjual').innerText = `: ${namaPenjual}`;
+        document.getElementById('str-target-driver').innerText = `: ${namaDriver}`;
+        document.getElementById('str-target-id').innerText = `ID: ${idStruk}`;
+
+        // 3. Looping detail barang & hitung total kotor
+        let detailBarangHtml = '';
         let totalKotor = 0;
         
         if (trx.transaksi_item && trx.transaksi_item.length > 0) {
             trx.transaksi_item.forEach(item => {
                 const sub = item.volume * item.harga_unit;
                 totalKotor += sub;
-                detailBarang += `│ ${item.komoditas}\n│ ${item.volume} kg @ Rp ${item.harga_unit.toLocaleString('id-ID')} = Rp ${sub.toLocaleString('id-ID')}\n`;
+                // Render baris HTML untuk setiap item (gaya inline CSS biar aman di-convert)
+                detailBarangHtml += `
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 8px;">
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-weight: 600; color: #333;">${item.komoditas}</span>
+                            <span style="color: #666; font-size: 10px; margin-top: 2px;">${item.volume} kg x Rp ${item.harga_unit.toLocaleString('id-ID')}</span>
+                        </div>
+                        <div style="font-weight: 600;">Rp ${sub.toLocaleString('id-ID')}</div>
+                    </div>
+                `;
             });
         } else {
-            detailBarang = `│ Tidak ada rincian barang\n`;
+            detailBarangHtml = `<div style="font-size: 11px; font-style: italic; color: #999;">Tidak ada rincian barang</div>`;
         }
+        document.getElementById('str-target-items').innerHTML = detailBarangHtml;
 
+        // 4. Isi ringkasan pembayaran
         const dp = trx.potongan_dp || 0;
         const sisa = trx.grand_total || 0;
-        
         let metodeText = `${trx.metode_bayar || '-'}`;
         if (trx.metode_bayar_2) metodeText += ` + ${trx.metode_bayar_2}`;
 
-        const textWA = `
-╔════════════════════════════════════════════╗
-║                                            ║
-║          🛢️  BANG JELANTAH  🛢️            ║
-║     STRUK PENJEMPUTAN MINYAK JELANTAH      ║
-║                                            ║
-╠════════════════════════════════════════════╣
-║  📍 Jl. Raya Industri No. 12               ║
-║     Jakarta Timur | 📞 0812-3456-7890      ║
-╚════════════════════════════════════════════╝
-┌─ INFORMASI TRANSAKSI ─────────────────────┐
-│ 📅 Tanggal: ${tanggalTrx}
-│ 👤 Penjual: ${namaPenjual}
-│ 👨‍💼 Driver: ${namaDriver}
-└────────────────────────────────────────────┘
-┌─ DETAIL BARANG ───────────────────────────┐
-${detailBarang.trimEnd()}
-└────────────────────────────────────────────┘
-┌─ RINGKASAN PEMBAYARAN ────────────────────┐
-│ Total: Rp ${totalKotor.toLocaleString('id-ID')}
-│ DP (Sudah Dibayar): Rp ${dp.toLocaleString('id-ID')}
-│ ─────────────────────────────────────
-│ SISA: Rp ${sisa.toLocaleString('id-ID')}
-│ Metode: ${metodeText}
-└────────────────────────────────────────────┘
-🌍 "Minyak lama, energi baru!"
-Bersama jaga bumi Indonesia 💚
-════════════════════════════════════════════
-ID: ${idStruk}
-════════════════════════════════════════════`.trim();
+        document.getElementById('str-target-total').innerText = `Rp ${totalKotor.toLocaleString('id-ID')}`;
+        document.getElementById('str-target-dp').innerText = `Rp ${dp.toLocaleString('id-ID')}`;
+        document.getElementById('str-target-sisa').innerText = `Rp ${sisa.toLocaleString('id-ID')}`;
+        document.getElementById('str-target-metode').innerText = metodeText;
+    };
 
-        const url = `https://wa.me/${noHp}?text=${encodeURIComponent(textWA)}`;
-        window.open(url, '_blank');
+    // ==========================================
+    // 7. GENERATE STRUK GAMBAR & KIRIM WHATSAPP
+    // ==========================================
+    window.kirimStrukWA = async function(trxId, idStruk) {
+        const trx = window.riwayatLunasGlobal?.find(t => String(t.id) === String(trxId));
+        if (!trx) return alert('❌ Data transaksi tidak ditemukan!');
+
+        let noHp = trx.penjemputan?.mitra?.nomor_hp || '';
+
+        // JARING PENGAMAN: Kalau nomor HP kosong (misal mitra manual / timbang mandiri)
+        if (!noHp) {
+            // Munculkan popup input di layar kasir
+            const inputHp = prompt(`⚠️ Nomor HP Mitra tidak ditemukan di database.\n\nSilakan masukkan nomor HP / WhatsApp tujuan untuk mengirim ID Struk ${idStruk}:`, "08");
+            
+            // Kalau kasir klik cancel, batalkan proses
+            if (inputHp === null) return; 
+            
+            // Kalau kasir langsung klik OK tapi kosong
+            if (!inputHp.trim() || inputHp === "08") {
+                return alert('❌ Proses dibatalkan karena Nomor HP tidak diisi!');
+            }
+            
+            noHp = inputHp;
+        }
+        
+        // Bersihkan dan format nomor HP (Sama kayak kode lama lu)
+        noHp = noHp.replace(/\D/g, '');
+        if (noHp.startsWith('620')) noHp = '62' + noHp.substring(3);
+        else if (noHp.startsWith('0')) noHp = '62' + noHp.substring(1);
+        else if (noHp.startsWith('8')) noHp = '62' + noHp;
+
+        // 1. Tembak data ke template HTML (Menggunakan fungsi Tahap 2)
+        window.siapkanDataStruk(trx, idStruk);
+
+        // 2. Persiapkan elemen agar bisa difoto html2canvas
+        const targetEl = document.getElementById('struk-wa-template');
+        const wrapper = targetEl.parentElement; // Ini div class="hidden" dari Tahap 1
+        
+        // Tampilkan sementara di luar layar (biar html2canvas bisa baca)
+        wrapper.classList.remove('hidden');
+        wrapper.style.position = 'absolute';
+        wrapper.style.top = '-9999px';
+        wrapper.style.left = '-9999px';
+
+        try {
+            // 3. Render HTML menjadi Canvas
+            const canvas = await html2canvas(targetEl, {
+                scale: 2, // Resolusi 2x lipat biar teks struknya tajam / gak pecah
+                useCORS: true, // Izin baca gambar/logo dari luar
+                backgroundColor: '#ffffff'
+            });
+
+            // Kembalikan ke mode hidden
+            wrapper.classList.add('hidden');
+            wrapper.style.position = '';
+            wrapper.style.top = '';
+            wrapper.style.left = '';
+
+            // 4. Ubah Canvas jadi Blob (File Gambar)
+            canvas.toBlob(async (blob) => {
+                if (!blob) return alert('Gagal membuat gambar struk!');
+                
+                const fileName = `${idStruk}.png`;
+                const file = new File([blob], fileName, { type: 'image/png' });
+                // Ganti bagian const textWA yang lama dengan ini:
+                const textWA = `Terima kasih Kak 🙏\nTransaksi sudah kami verifikasi dan berhasil diproses.\nKami sangat menghargai kepercayaan Kakak kepada Bang Jelantah Purwakarta. 😊\n\nID Struk: ${idStruk}`;
+
+                // 5. CABANG LOGIKA: HP (Mobile) vs Laptop (Desktop)
+                // Cek apakah browser support Web Share API (biasanya di HP)
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        // Di HP: Akan muncul popup "Share via WhatsApp" bawaan HP (langsung sama gambarnya)
+                        await navigator.share({
+                            files: [file],
+                            title: 'Struk Bang Jelantah',
+                            text: textWA
+                        });
+                    } catch (err) {
+                        console.log('Share dibatalkan user:', err);
+                    }
+                } else {
+                    // Fallback untuk Desktop/Laptop (WA Web gak support direct attachment via link)
+                    // a. Download gambar ke laptop otomatis
+                    const downloadUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(downloadUrl);
+
+                    // b. Kasih notif ke kasir & buka WA Web
+                    alert('📥 Gambar struk otomatis ter-download ke laptop!\n\nSilakan klik "Attach / Lampirkan Gambar" di WhatsApp Web lalu pilih file gambar yang baru saja di-download.');
+                    const waUrl = `https://wa.me/${noHp}?text=${encodeURIComponent(textWA)}`;
+                    window.open(waUrl, '_blank');
+                }
+            }, 'image/png');
+
+        } catch (error) {
+            console.error('Error jepret struk:', error);
+            alert('Terjadi kesalahan saat memproses gambar struk.');
+            // Pastikan disembunyikan lagi kalau error
+            wrapper.classList.add('hidden');
+        }
     };
   });
 </script>

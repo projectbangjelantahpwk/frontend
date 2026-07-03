@@ -1,413 +1,771 @@
 ---
 // [cite: 1]
-import GeneralLayout from '../layouts/Layout.astro';
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import GeneralLayout from "../layouts/Layout.astro";
+import "bootstrap-icons/font/bootstrap-icons.css";
 ---
 
 <GeneralLayout title="Pembelian & Validasi - Manajemen Bang Jelantah">
-    <style is:global>
-        /* [cite: 1, 2] Mengunci layar menjadi blank (putih) sampai skrip memberi izin masuk */
-        body { display: none; }
-    </style>
-  <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+  <style is:global>
+    /* [cite: 1, 2] Mengunci layar menjadi blank (putih) sampai skrip memberi izin masuk */
+    body {
+      display: none;
+    }
+  </style>
+  <div
+    class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4"
+  >
     <div>
       <h1 class="text-3xl font-bold text-gray-900 mb-2">Pembelian Mitra</h1>
-      <p class="text-gray-600">Kelola riwayat pembelian komoditas mitra dan validasi pembayaran.</p>
+      <p class="text-gray-600">
+        Kelola riwayat pembelian komoditas mitra dan validasi pembayaran.
+      </p>
     </div>
   </div>
 
   <div class="mb-6 border-b border-gray-200 overflow-x-auto hide-scrollbar">
     <div class="flex gap-8 min-w-max">
-      <button class="tab-btn active px-4 py-3 font-medium transition border-b-2 border-green-700 text-green-700" data-tab="validasi">
+      <button
+        class="tab-btn active px-4 py-3 font-medium transition border-b-2 border-green-700 text-green-700"
+        data-tab="validasi"
+      >
         <i class="bi bi-shield-check mr-2"></i> Validasi Bayar
-        <span id="badge-validasi" class="hidden ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-red-700 text-xs font-bold">0</span>
+        <span
+          id="badge-validasi"
+          class="hidden ml-2 items-center justify-center w-5 h-5 rounded-full bg-red-100 text-red-700 text-xs font-bold"
+          >0</span
+        >
       </button>
 
-      <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="riwayat">
+      <button
+        class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900"
+        data-tab="riwayat"
+      >
         <i class="bi bi-clock-history mr-2"></i> Riwayat Lunas
       </button>
 
-      <button class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="pembelian">
+      <button
+        class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900"
+        data-tab="pembelian"
+      >
         <i class="bi bi-cart-check mr-2"></i> Pembelian Komoditas
       </button>
     </div>
   </div>
 
-  <div id="validasi" class="tab-content block"> 
+  <div id="validasi" class="tab-content block">
     <div class="mb-8">
       <div class="flex items-center gap-2 mb-6">
         <i class="bi bi-exclamation-triangle text-red-600 text-xl"></i>
-        <h2 class="text-xl font-bold text-gray-900">Menunggu Validasi (<span id="title-validasi-count">0</span>)</h2> 
+        <h2 class="text-xl font-bold text-gray-900">
+          Menunggu Validasi (<span id="title-validasi-count">0</span>)
+        </h2>
       </div>
 
-      <div id="validasi-container" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-         <p class="text-gray-500">Memuat data validasi...</p> 
+      <div
+        id="validasi-container"
+        class="grid grid-cols-1 lg:grid-cols-2 gap-6"
+      >
+        <p class="text-gray-500">Memuat data validasi...</p>
       </div>
     </div>
   </div>
 
   <div id="riwayat" class="tab-content hidden">
-    <div class="flex items-center gap-2 mb-6"> 
-        <i class="bi bi-clock-history text-blue-600 text-xl"></i>
-        <h2 class="text-xl font-bold text-gray-900">Riwayat Pembayaran Selesai</h2>
+    <div class="flex items-center gap-2 mb-6">
+      <i class="bi bi-clock-history text-blue-600 text-xl"></i>
+      <h2 class="text-xl font-bold text-gray-900">
+        Riwayat Pembayaran Selesai
+      </h2>
     </div>
 
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-        <table class="w-full text-left">
-            <thead class="bg-gray-50 border-b border-gray-200">
-                <tr>
-                    <th class="px-6 py-4 text-sm font-bold text-gray-900">Mitra</th> 
-                    <th class="px-6 py-4 text-sm font-bold text-gray-900">Tanggal</th>
-                    <th class="px-6 py-4 text-sm font-bold text-gray-900">Metode Bayar</th>
-                    <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right">Nominal</th>
-                    <th class="px-6 py-4 text-sm font-bold text-gray-900 text-center">Aksi</th>
-                </tr>
-            </thead>
-            <tbody id="riwayat-lunas-tbody" class="divide-y divide-gray-100">
-                <tr><td colspan="5" class="text-center py-4">Memuat...</td></tr> 
-            </tbody>
-        </table>
-    </div> 
+    <div
+      class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm"
+    >
+      <table class="w-full text-left">
+        <thead class="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th class="px-6 py-4 text-sm font-bold text-gray-900">Mitra</th>
+            <th class="px-6 py-4 text-sm font-bold text-gray-900">Tanggal</th>
+            <th class="px-6 py-4 text-sm font-bold text-gray-900"
+              >Metode Bayar</th
+            >
+            <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right"
+              >Nominal</th
+            >
+            <th class="px-6 py-4 text-sm font-bold text-gray-900 text-center"
+              >Aksi</th
+            >
+          </tr>
+        </thead>
+        <tbody id="riwayat-lunas-tbody" class="divide-y divide-gray-100">
+          <tr><td colspan="5" class="text-center py-4">Memuat...</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
-  <div id="pembelian" class="tab-content hidden"> <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-gray-900">Pembelian Komoditas (Mitra)</h2> </div>
-    
-    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex flex-wrap gap-4 items-end">
-        <div>
-            <label class="block text-xs font-bold text-gray-600 mb-1">Mulai Tanggal</label> <input type="date" id="filter-start-beli" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600">
-        </div>
-        <div>
-            <label class="block text-xs font-bold text-gray-600 mb-1">Sampai Tanggal</label> <input type="date" id="filter-end-beli" class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600">
-        </div>
-        <button onclick="filterTabelBeli()" class="bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-800">Filter Data Pembelian</button> </div>
+  <div id="pembelian" class="tab-content hidden">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold text-gray-900">
+        Pembelian Komoditas (Mitra)
+      </h2>
+    </div>
 
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-        <div class="overflow-x-auto max-h-[600px]">
-            <table class="w-full text-left" id="tabel-pembelian"> <thead class="bg-gray-50 sticky top-0 border-b border-gray-200">
-                    <tr>
-                        <th class="px-6 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">Tanggal</th> <th class="px-6 py-4 text-sm font-bold text-gray-900">Mitra</th> <th class="px-6 py-4 text-sm font-bold text-gray-900">Komoditas</th>
-                        <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right whitespace-nowrap">Berat (Kg)</th>
-                        <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right whitespace-nowrap">Harga Satuan</th> <th class="px-6 py-4 text-sm font-bold text-gray-900 text-right whitespace-nowrap">Subtotal Harga</th> </tr>
-                </thead>
-                <tbody id="pembelian-tbody" class="divide-y divide-gray-200">
-                    <tr><td colspan="6" class="text-center py-4 text-gray-500">Memuat...</td></tr> </tbody>
-            </table>
-        </div>
+    <div
+      class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex flex-wrap gap-4 items-end"
+    >
+      <div>
+        <label class="block text-xs font-bold text-gray-600 mb-1"
+          >Mulai Tanggal</label
+        >
+        <input
+          type="date"
+          id="filter-start-beli"
+          class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600"
+        />
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-gray-600 mb-1"
+          >Sampai Tanggal</label
+        >
+        <input
+          type="date"
+          id="filter-end-beli"
+          class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600"
+        />
+      </div>
+
+      <!-- DROPDOWN KOMODITAS BARU -->
+      <div>
+        <label class="block text-xs font-bold text-gray-600 mb-1"
+          >Pilih Komoditas</label
+        >
+        <select
+          id="filter-komoditas-beli"
+          class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-600 bg-white min-w-40"
+        >
+          <option value="Semua">Semua Komoditas</option>
+          <option value="Minyak Jelantah">Minyak Jelantah</option>
+          <option value="Ampas Goreng">Ampas Goreng</option>
+          <option value="Kriuk">Kriuk</option>
+          <option value="Tepung Ayakan">Tepung Ayakan</option>
+          <option value="Spinner">Spinner</option>
+        </select>
+      </div>
+
+      <button
+        onclick="filterTabelBeli()"
+        class="bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-800"
+      >
+        Filter Data
+      </button>
+    </div>
+
+    <div
+      class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm"
+    >
+      <div class="overflow-x-auto max-h-150">
+        <table class="w-full text-left" id="tabel-pembelian">
+          <thead class="bg-gray-50 sticky top-0 border-b border-gray-200">
+            <tr>
+              <th
+                class="px-6 py-4 text-sm font-bold text-gray-900 whitespace-nowrap"
+                >Tanggal</th
+              >
+              <th class="px-6 py-4 text-sm font-bold text-gray-900">Mitra</th>
+              <th class="px-6 py-4 text-sm font-bold text-gray-900"
+                >Komoditas</th
+              >
+              <th
+                class="px-6 py-4 text-sm font-bold text-gray-900 text-right whitespace-nowrap"
+                >Berat (Kg)</th
+              >
+              <th
+                class="px-6 py-4 text-sm font-bold text-gray-900 text-right whitespace-nowrap"
+                >Harga Satuan</th
+              >
+              <th
+                class="px-6 py-4 text-sm font-bold text-gray-900 text-right whitespace-nowrap"
+                >Subtotal Harga</th
+              >
+            </tr>
+          </thead>
+          <tbody id="pembelian-tbody" class="divide-y divide-gray-200">
+            <tr
+              ><td colspan="6" class="text-center py-4 text-gray-500"
+                >Memuat...</td
+              ></tr
+            >
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </GeneralLayout>
 
-<div id="modal-edit-transaksi" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0"> <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-blue-50 shrink-0">
-            <div>
-                <h3 class="font-bold text-lg text-gray-900">Edit Data Transaksi</h3> <p id="edit-step-indicator" class="text-xs text-blue-700 font-medium mt-0.5">Langkah 1 dari 3: Data Pokok</p>
-            </div>
-            <button type="button" onclick="closeModal('modal-edit-transaksi')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button> </div>
-        
-        <form id="form-edit-transaksi" novalidate onsubmit="window.simpanEditTransaksi(event)" class="p-6 overflow-y-auto flex-1 flex flex-col justify-between">
-    
-            <input type="hidden" id="edit_trx_id">
-            <input type="hidden" id="edit_penjemputan_id">
-            <input type="hidden" id="edit_mitra_id">
-
-            <div id="edit-step-1" class="flex flex-col gap-4">
-                <div class="w-full">
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Tanggal Transaksi</label> <input type="date" id="edit_trx_tgl" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 font-medium" required>
-                </div>
-                
-                <div class="w-full"> 
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Nama Mitra Pengumpul</label>
-                    <select id="edit_trx_mitra_select" onchange="window.toggleMitraManual()" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 font-medium bg-white" required>
-                    </select> 
-                </div>
-
-                <div id="container_mitra_manual" class="w-full hidden">
-                    <label class="block text-xs font-bold text-amber-700 uppercase tracking-wider mb-1 mt-2">Nama Mitra Manual / Tidak Terdaftar</label>
-                    <input type="text" id="edit_nama_mitra_manual" class="w-full border border-amber-300 bg-amber-50 rounded-xl p-3 text-sm outline-none focus:border-amber-600 font-bold text-amber-900" placeholder="Ketik nama mitra kustom...">
-                </div>
-                
-                <div class="w-full"> <label class="block text-xs font-bold text-red-600 uppercase tracking-wider mb-1">Potongan DP / Kasbon (Rp)</label>
-                    <input type="number" id="edit_trx_dp" class="w-full border border-red-300 bg-red-50 rounded-xl p-3 outline-none focus:border-red-600 text-red-900 font-bold font-mono" placeholder="0"> </div>
-            </div>
-
-            <div id="edit-step-2" class="hidden flex-col gap-5"> <div id="edit_items_container" class="space-y-4"></div>
-
-                <div class="w-full pt-3 border-t border-gray-100">
-                    <label class="block text-xs font-bold text-green-700 uppercase tracking-wider mb-1">Total Harga Transaksi (Rp)</label> <input type="number" id="edit_trx_grand_total" class="w-full border border-green-300 bg-green-50 rounded-xl p-3 outline-none focus:border-green-600 text-green-900 font-bold font-mono text-lg" required>
-                </div>
-            </div>
-
-            <div id="edit-step-3" class="hidden flex-col gap-4"> 
-            <div class="w-full bg-blue-50 p-3 rounded-xl border border-blue-200 shadow-sm">
-                <label class="block text-xs font-bold text-blue-800 uppercase tracking-wider mb-1">Metode Pembayaran 1</label>
-                <select id="edit_metode_bayar" onchange="window.renderMetodeDetails()" class="w-full border border-blue-300 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-blue-600 font-bold mb-3">
-                    <option value="Cash (Dana UMKM)">Cash (Dana UMKM)</option>
-                    <option value="Cash (Talangan Karyawan)">Cash (Talangan Karyawan)</option>
-                    <option value="Transfer">Transfer Bank/E-Wallet</option>
-                    <option value="QRIS">QRIS</option>
-                    <option value="Full Deposit">Full Deposit (Potong Saldo)</option>
-                </select>
-            
-                <label class="flex items-center gap-2 cursor-pointer mb-2">
-                    <input type="checkbox" id="cb_split_payment" onchange="window.toggleMetode2()" class="w-4 h-4 text-blue-600 rounded">
-                    <span class="text-xs font-bold text-blue-900">Ada kekurangan? (Tambah metode ke-2)</span>
-                </label>
-            
-                <div id="container_metode_2" style="display: none; margin-bottom: 12px;">
-                    <select id="edit_metode_bayar_2" onchange="window.renderMetodeDetails()" class="w-full border border-blue-300 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-blue-600 font-bold">
-                        <option value="Cash (Dana UMKM)">Cash (Dana UMKM)</option>
-                        <option value="Cash (Talangan Karyawan)">Cash (Talangan Karyawan)</option>
-                        <option value="Transfer">Transfer Bank/E-Wallet</option>
-                        <option value="QRIS">QRIS</option>
-                        <option value="Full Deposit">Full Deposit (Potong Saldo)</option>
-                    </select>
-                </div>
-            
-                <div id="container_toggle_3" style="display: none;">
-                    <label class="flex items-center gap-2 cursor-pointer mb-2">
-                        <input type="checkbox" id="cb_split_payment_3" onchange="window.toggleMetode3()" class="w-4 h-4 text-blue-600 rounded">
-                        <span class="text-xs font-bold text-blue-900">Masih kurang? (Tambah metode ke-3)</span>
-                    </label>
-                </div>
-            
-                <div id="container_metode_3" style="display: none;">
-                    <select id="edit_metode_bayar_3" onchange="window.renderMetodeDetails()" class="w-full border border-blue-300 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-blue-600 font-bold">
-                        <option value="Cash (Dana UMKM)">Cash (Dana UMKM)</option>
-                        <option value="Cash (Talangan Karyawan)">Cash (Talangan Karyawan)</option>
-                        <option value="Transfer">Transfer Bank/E-Wallet</option>
-                        <option value="QRIS">QRIS</option>
-                        <option value="Full Deposit">Full Deposit (Potong Saldo)</option>
-                    </select>
-                </div>
-            </div>
-    
-        <div id="edit_payment_details_container" class="w-full transition-all duration-300 space-y-3"></div> 
+<div
+  id="modal-edit-transaksi"
+  class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity opacity-0"
+>
+  <div
+    class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]"
+  >
+    <div
+      class="p-6 border-b border-gray-100 flex justify-between items-center bg-blue-50 shrink-0"
+    >
+      <div>
+        <h3 class="font-bold text-lg text-gray-900">Edit Data Transaksi</h3>
+        <p
+          id="edit-step-indicator"
+          class="text-xs text-blue-700 font-medium mt-0.5"
+        >
+          Langkah 1 dari 3: Data Pokok
+        </p>
+      </div>
+      <button
+        type="button"
+        onclick="closeModal('modal-edit-transaksi')"
+        class="text-gray-400 hover:text-gray-900"
+        ><i class="bi bi-x-lg"></i></button
+      >
     </div>
 
-            <div id="footer-edit-1" class="mt-8 flex justify-end shrink-0">
-                <button type="button" onclick="window.goToEditStep(2)" class="w-12 h-12 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition text-xl flex items-center justify-center shadow-sm active:scale-95" title="Selanjutnya"> <i class="bi bi-arrow-right"></i> </button>
-            </div>
-            
-            <div id="footer-edit-2" class="mt-8 hidden w-full justify-between items-center shrink-0">
-                <button type="button" onclick="window.goToEditStep(1)" class="w-12 h-12 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 border border-gray-200 transition text-xl flex items-center justify-center active:scale-95" title="Kembali"> <i class="bi bi-arrow-left"></i> </button>
-                <button type="button" onclick="window.goToEditStep(3)" class="w-12 h-12 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition text-xl flex items-center justify-center shadow-sm active:scale-95" title="Selanjutnya"> <i class="bi bi-arrow-right"></i>
-                </button> </div>
+    <form
+      id="form-edit-transaksi"
+      novalidate
+      onsubmit="window.simpanEditTransaksi(event)"
+      class="p-6 overflow-y-auto flex-1 flex flex-col justify-between"
+    >
+      <input type="hidden" id="edit_trx_id" />
+      <input type="hidden" id="edit_penjemputan_id" />
+      <input type="hidden" id="edit_mitra_id" />
 
-            <div id="footer-edit-3" class="mt-8 hidden w-full justify-between items-center shrink-0"> <button type="button" onclick="window.goToEditStep(2)" class="w-12 h-12 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 border border-gray-200 transition text-xl flex items-center justify-center active:scale-95" title="Kembali">
-                    <i class="bi bi-arrow-left"></i>
-                </button> <button type="submit" id="btn-save-trx" class="w-12 h-12 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition text-xl flex items-center justify-center shadow-sm active:scale-95" title="Simpan Perubahan">
-                    <i class="bi bi-floppy-fill"></i> </button>
-            </div>
-        </form> 
-    </div>
+      <div id="edit-step-1" class="flex flex-col gap-4">
+        <div class="w-full">
+          <label
+            class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1"
+            >Tanggal Transaksi</label
+          >
+          <input
+            type="date"
+            id="edit_trx_tgl"
+            class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 font-medium"
+            required
+          />
+        </div>
+
+        <div class="w-full">
+          <label
+            class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1"
+            >Nama Mitra Pengumpul</label
+          >
+          <select
+            id="edit_trx_mitra_select"
+            onchange="window.toggleMitraManual()"
+            class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 font-medium bg-white"
+            required
+          >
+          </select>
+        </div>
+
+        <div id="container_mitra_manual" class="w-full hidden">
+          <label
+            class="block text-xs font-bold text-amber-700 uppercase tracking-wider mb-1 mt-2"
+            >Nama Mitra Manual / Tidak Terdaftar</label
+          >
+          <input
+            type="text"
+            id="edit_nama_mitra_manual"
+            class="w-full border border-amber-300 bg-amber-50 rounded-xl p-3 text-sm outline-none focus:border-amber-600 font-bold text-amber-900"
+            placeholder="Ketik nama mitra kustom..."
+          />
+        </div>
+
+        <div class="w-full">
+          <label
+            class="block text-xs font-bold text-red-600 uppercase tracking-wider mb-1"
+            >Potongan DP / Kasbon (Rp)</label
+          >
+          <input
+            type="number"
+            id="edit_trx_dp"
+            class="w-full border border-red-300 bg-red-50 rounded-xl p-3 outline-none focus:border-red-600 text-red-900 font-bold font-mono"
+            placeholder="0"
+          />
+        </div>
+      </div>
+
+      <div id="edit-step-2" class="hidden flex-col gap-5">
+        <div id="edit_items_container" class="space-y-4"></div>
+
+        <div class="w-full pt-3 border-t border-gray-100">
+          <label
+            class="block text-xs font-bold text-green-700 uppercase tracking-wider mb-1"
+            >Total Harga Transaksi (Rp)</label
+          >
+          <input
+            type="number"
+            id="edit_trx_grand_total"
+            class="w-full border border-green-300 bg-green-50 rounded-xl p-3 outline-none focus:border-green-600 text-green-900 font-bold font-mono text-lg"
+            required
+          />
+        </div>
+      </div>
+
+      <div id="edit-step-3" class="hidden flex-col gap-4">
+        <div
+          class="w-full bg-blue-50 p-3 rounded-xl border border-blue-200 shadow-sm"
+        >
+          <label
+            class="block text-xs font-bold text-blue-800 uppercase tracking-wider mb-1"
+            >Metode Pembayaran 1</label
+          >
+          <select
+            id="edit_metode_bayar"
+            onchange="window.renderMetodeDetails()"
+            class="w-full border border-blue-300 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-blue-600 font-bold mb-3"
+          >
+            <option value="Cash (Dana UMKM)">Cash (Dana UMKM)</option>
+            <option value="Cash (Talangan Karyawan)"
+              >Cash (Talangan Karyawan)</option
+            >
+            <option value="Transfer">Transfer Bank/E-Wallet</option>
+            <option value="QRIS">QRIS</option>
+            <option value="Full Deposit">Full Deposit (Potong Saldo)</option>
+          </select>
+
+          <label class="flex items-center gap-2 cursor-pointer mb-2">
+            <input
+              type="checkbox"
+              id="cb_split_payment"
+              onchange="window.toggleMetode2()"
+              class="w-4 h-4 text-blue-600 rounded"
+            />
+            <span class="text-xs font-bold text-blue-900"
+              >Ada kekurangan? (Tambah metode ke-2)</span
+            >
+          </label>
+
+          <div
+            id="container_metode_2"
+            style="display: none; margin-bottom: 12px;"
+          >
+            <select
+              id="edit_metode_bayar_2"
+              onchange="window.renderMetodeDetails()"
+              class="w-full border border-blue-300 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-blue-600 font-bold"
+            >
+              <option value="Cash (Dana UMKM)">Cash (Dana UMKM)</option>
+              <option value="Cash (Talangan Karyawan)"
+                >Cash (Talangan Karyawan)</option
+              >
+              <option value="Transfer">Transfer Bank/E-Wallet</option>
+              <option value="QRIS">QRIS</option>
+              <option value="Full Deposit">Full Deposit (Potong Saldo)</option>
+            </select>
+          </div>
+
+          <div id="container_toggle_3" style="display: none;">
+            <label class="flex items-center gap-2 cursor-pointer mb-2">
+              <input
+                type="checkbox"
+                id="cb_split_payment_3"
+                onchange="window.toggleMetode3()"
+                class="w-4 h-4 text-blue-600 rounded"
+              />
+              <span class="text-xs font-bold text-blue-900"
+                >Masih kurang? (Tambah metode ke-3)</span
+              >
+            </label>
+          </div>
+
+          <div id="container_metode_3" style="display: none;">
+            <select
+              id="edit_metode_bayar_3"
+              onchange="window.renderMetodeDetails()"
+              class="w-full border border-blue-300 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-blue-600 font-bold"
+            >
+              <option value="Cash (Dana UMKM)">Cash (Dana UMKM)</option>
+              <option value="Cash (Talangan Karyawan)"
+                >Cash (Talangan Karyawan)</option
+              >
+              <option value="Transfer">Transfer Bank/E-Wallet</option>
+              <option value="QRIS">QRIS</option>
+              <option value="Full Deposit">Full Deposit (Potong Saldo)</option>
+            </select>
+          </div>
+        </div>
+
+        <div
+          id="edit_payment_details_container"
+          class="w-full transition-all duration-300 space-y-3"
+        >
+        </div>
+      </div>
+
+      <div id="footer-edit-1" class="mt-8 flex justify-end shrink-0">
+        <button
+          type="button"
+          onclick="window.goToEditStep(2)"
+          class="w-12 h-12 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition text-xl flex items-center justify-center shadow-sm active:scale-95"
+          title="Selanjutnya"
+        >
+          <i class="bi bi-arrow-right"></i>
+        </button>
+      </div>
+
+      <div
+        id="footer-edit-2"
+        class="mt-8 hidden w-full justify-between items-center shrink-0"
+      >
+        <button
+          type="button"
+          onclick="window.goToEditStep(1)"
+          class="w-12 h-12 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 border border-gray-200 transition text-xl flex items-center justify-center active:scale-95"
+          title="Kembali"
+        >
+          <i class="bi bi-arrow-left"></i>
+        </button>
+        <button
+          type="button"
+          onclick="window.goToEditStep(3)"
+          class="w-12 h-12 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition text-xl flex items-center justify-center shadow-sm active:scale-95"
+          title="Selanjutnya"
+        >
+          <i class="bi bi-arrow-right"></i>
+        </button>
+      </div>
+
+      <div
+        id="footer-edit-3"
+        class="mt-8 hidden w-full justify-between items-center shrink-0"
+      >
+        <button
+          type="button"
+          onclick="window.goToEditStep(2)"
+          class="w-12 h-12 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 border border-gray-200 transition text-xl flex items-center justify-center active:scale-95"
+          title="Kembali"
+        >
+          <i class="bi bi-arrow-left"></i>
+        </button>
+        <button
+          type="submit"
+          id="btn-save-trx"
+          class="w-12 h-12 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition text-xl flex items-center justify-center shadow-sm active:scale-95"
+          title="Simpan Perubahan"
+        >
+          <i class="bi bi-floppy-fill"></i>
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
 <div class="hidden">
-    <div id="struk-wa-template" style="width: 340px; background-color: #ffffff; padding: 20px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; box-sizing: border-box; line-height: 1.4;">
-        
-        <div style="text-align: center; margin-bottom: 15px; width: 100%;">
-            <img src="/3.png" alt="Logo Bang Jelantah" style="display: block; margin: 0 auto 8px auto; width: 80px; height: auto;">
-                
-            <div style="font-size: 18px; font-weight: 800; color: #4CAF50; margin: 0 0 4px 0; letter-spacing: 0.5px;">BANG JELANTAH</div>
-            <div style="font-size: 11px; font-weight: bold; margin: 0 0 10px 0; color: #444;">STRUK PENJEMPUTAN MINYAK JELANTAH</div>
-            <div style="font-size: 10px; color: #666; line-height: 1.4;">
-                Kp. Pasar Minggu No 39. RT/RW 08/03<br>
-                Desa/Kec Campaka. Kab Purwakarta, Jawa Barat<br>
-                0896-5507-6318
-            </div>
-        </div>
+  <div
+    id="struk-wa-template"
+    style="width: 340px; background-color: #ffffff; padding: 20px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; box-sizing: border-box; line-height: 1.4;"
+  >
+    <div style="text-align: center; margin-bottom: 15px; width: 100%;">
+      <img
+        src="/3.png"
+        alt="Logo Bang Jelantah"
+        style="display: block; margin: 0 auto 8px auto; width: 80px; height: auto;"
+      />
 
-        <div style="border-top: 1px dashed #bbb; margin: 12px 0;"></div>
-
-        <div style="font-size: 10px; font-weight: bold; color: #888; margin-bottom: 8px; text-transform: uppercase;">Informasi Transaksi</div>
-        <div style="display: flex; font-size: 11px; margin-bottom: 4px;">
-            <div style="width: 30%; color: #666;">Tanggal</div>
-            <div id="str-target-tanggal" style="width: 70%; font-weight: 600;">: -</div>
-        </div>
-        <div style="display: flex; font-size: 11px; margin-bottom: 4px;">
-            <div style="width: 30%; color: #666;">Penjual</div>
-            <div id="str-target-penjual" style="width: 70%; font-weight: 600;">: -</div>
-        </div>
-        <div style="display: flex; font-size: 11px; margin-bottom: 4px;">
-            <div style="width: 30%; color: #666;">Driver</div>
-            <div id="str-target-driver" style="width: 70%; font-weight: 600;">: -</div>
-        </div>
-
-        <div style="border-top: 1px dashed #bbb; margin: 12px 0;"></div>
-
-        <div style="font-size: 10px; font-weight: bold; color: #888; margin-bottom: 8px; text-transform: uppercase;">Detail Barang</div>
-        <div id="str-target-items" style="width: 100%; margin-bottom: 10px;">
-            </div>
-
-        <div style="border-top: 1px dashed #bbb; margin: 12px 0;"></div>
-
-        <div style="font-size: 10px; font-weight: bold; color: #888; margin-bottom: 8px; text-transform: uppercase;">Ringkasan Pembayaran</div>
-        <div style="width: 100%;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px;">
-                <div style="color: #666;">Total</div>
-                <div id="str-target-total" style="font-weight: 600;">Rp 0</div>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px;">
-                <div style="color: #666;">DP (Sudah Dibayar)</div>
-                <div id="str-target-dp" style="font-weight: 600;">Rp 0</div>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 14px; color: #4CAF50; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #bbb; font-weight: 800;">
-                <div>SISA</div>
-                <div id="str-target-sisa">Rp 0</div>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px;">
-                <div style="color: #666;">Metode</div>
-                <div id="str-target-metode" style="font-weight: 600;">-</div>
-            </div>
-        </div>
-
-        <div style="border-top: 1px dashed #bbb; margin: 12px 0;"></div>
-
-        <div style="text-align: center; margin-top: 20px;">
-            <div style="font-size: 11px; font-style: italic; font-weight: 800; color: #4CAF50; margin-bottom: 2px;">"Minyak lama, energi baru!"</div>
-            <div style="font-size: 10px; color: #555; margin-bottom: 12px;">Bersama jaga bumi Indonesia 💚</div>
-            <div id="str-target-id" style="background: #f9f9f9; border: 1px solid #ccc; padding: 6px 0; border-radius: 4px; font-family: monospace; font-size: 10px; color: #333; letter-spacing: 1px;">ID: -</div>
-        </div>
-
+      <div
+        style="font-size: 18px; font-weight: 800; color: #4CAF50; margin: 0 0 4px 0; letter-spacing: 0.5px;"
+      >
+        BANG JELANTAH
+      </div>
+      <div
+        style="font-size: 11px; font-weight: bold; margin: 0 0 10px 0; color: #444;"
+      >
+        STRUK PENJEMPUTAN MINYAK JELANTAH
+      </div>
+      <div style="font-size: 10px; color: #666; line-height: 1.4;">
+        Kp. Pasar Minggu No 39. RT/RW 08/03<br />
+        Desa/Kec Campaka. Kab Purwakarta, Jawa Barat<br />
+        0896-5507-6318
+      </div>
     </div>
+
+    <div style="border-top: 1px dashed #bbb; margin: 12px 0;"></div>
+
+    <div
+      style="font-size: 10px; font-weight: bold; color: #888; margin-bottom: 8px; text-transform: uppercase;"
+    >
+      Informasi Transaksi
+    </div>
+    <div style="display: flex; font-size: 11px; margin-bottom: 4px;">
+      <div style="width: 30%; color: #666;">Tanggal</div>
+      <div id="str-target-tanggal" style="width: 70%; font-weight: 600;">
+        : -
+      </div>
+    </div>
+    <div style="display: flex; font-size: 11px; margin-bottom: 4px;">
+      <div style="width: 30%; color: #666;">Penjual</div>
+      <div id="str-target-penjual" style="width: 70%; font-weight: 600;">
+        : -
+      </div>
+    </div>
+    <div style="display: flex; font-size: 11px; margin-bottom: 4px;">
+      <div style="width: 30%; color: #666;">Driver</div>
+      <div id="str-target-driver" style="width: 70%; font-weight: 600;">
+        : -
+      </div>
+    </div>
+
+    <div style="border-top: 1px dashed #bbb; margin: 12px 0;"></div>
+
+    <div
+      style="font-size: 10px; font-weight: bold; color: #888; margin-bottom: 8px; text-transform: uppercase;"
+    >
+      Detail Barang
+    </div>
+    <div id="str-target-items" style="width: 100%; margin-bottom: 10px;"></div>
+
+    <div style="border-top: 1px dashed #bbb; margin: 12px 0;"></div>
+
+    <div
+      style="font-size: 10px; font-weight: bold; color: #888; margin-bottom: 8px; text-transform: uppercase;"
+    >
+      Ringkasan Pembayaran
+    </div>
+    <div style="width: 100%;">
+      <div
+        style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px;"
+      >
+        <div style="color: #666;">Total</div>
+        <div id="str-target-total" style="font-weight: 600;">Rp 0</div>
+      </div>
+      <div
+        style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px;"
+      >
+        <div style="color: #666;">DP (Sudah Dibayar)</div>
+        <div id="str-target-dp" style="font-weight: 600;">Rp 0</div>
+      </div>
+      <div
+        style="display: flex; justify-content: space-between; font-size: 14px; color: #4CAF50; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #bbb; font-weight: 800;"
+      >
+        <div>SISA</div>
+        <div id="str-target-sisa">Rp 0</div>
+      </div>
+      <div
+        style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px;"
+      >
+        <div style="color: #666;">Metode</div>
+        <div id="str-target-metode" style="font-weight: 600;">-</div>
+      </div>
+    </div>
+
+    <div style="border-top: 1px dashed #bbb; margin: 12px 0;"></div>
+
+    <div style="text-align: center; margin-top: 20px;">
+      <div
+        style="font-size: 11px; font-style: italic; font-weight: 800; color: #4CAF50; margin-bottom: 2px;"
+      >
+        "Minyak lama, energi baru!"
+      </div>
+      <div style="font-size: 10px; color: #555; margin-bottom: 12px;">
+        Bersama jaga bumi Indonesia 💚
+      </div>
+      <div
+        id="str-target-id"
+        style="background: #f9f9f9; border: 1px solid #ccc; padding: 6px 0; border-radius: 4px; font-family: monospace; font-size: 10px; color: #333; letter-spacing: 1px;"
+      >
+        ID: -
+      </div>
+    </div>
+  </div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" is:inline></script>
+<script
+  src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+  is:inline></script>
 <script is:inline>
-  document.addEventListener('DOMContentLoaded', async () => {
+  document.addEventListener("DOMContentLoaded", async () => {
     // === 🛡️ GATEKEEPER KEUANGAN ===
-    const allowedRoles = ['owner', 'hrd', 'keuangan', 'admin','it'];
+    const allowedRoles = ["owner", "hrd", "keuangan", "admin", "it"];
     const client = window.supabase || supabase;
-      
-    const { data: { session } } = await client.auth.getSession();
-    if (!session) return window.location.replace('/'); // Tendang kalau belum login
-      
-    const { data: prof } = await client.from('profiles').select('role').eq('id', session.user.id).single();
-    if (!allowedRoles.includes(prof?.role)) { 
-        alert(`Akses Ditolak! Role Anda (${prof?.role || 'Guest'}) dilarang masuk ke Keuangan.`);
-        return window.location.replace('/');
+
+    const {
+      data: { session },
+    } = await client.auth.getSession();
+    if (!session) return window.location.replace("/"); // Tendang kalau belum login
+
+    const { data: prof } = await client
+      .from("profiles")
+      .select("role")
+      .eq("id", session.user.id)
+      .single();
+    if (!allowedRoles.includes(prof?.role)) {
+      alert(
+        `Akses Ditolak! Role Anda (${prof?.role || "Guest"}) dilarang masuk ke Keuangan.`,
+      );
+      return window.location.replace("/");
     }
-    document.body.style.display = 'block'; // Buka gembok CSS, tampilkan layar!
-    
+    document.body.style.display = "block"; // Buka gembok CSS, tampilkan layar!
+
     // ==========================================
     // 1. FETCH DATA PEMBELIAN & VALIDASI
     // ==========================================
     async function loadData() {
-        if(!window.supabase) return;
-        try {
-            const { data: listMitra } = await window.supabase.from('mitra').select('id, nama_mitra').order('nama_mitra', { ascending: true });
-            window.allMitraGlobal = listMitra || []; 
+      if (!window.supabase) return;
+      try {
+        const { data: listMitra } = await window.supabase
+          .from("mitra")
+          .select("id, nama_mitra")
+          .order("nama_mitra", { ascending: true });
+        window.allMitraGlobal = listMitra || [];
 
-            const { data: transaksi, error: errTransaksi } = await window.supabase.from('transaksi')
-                .select('*, transaksi_item(komoditas, volume, harga_unit, id), penjemputan(tanggal, mitra(nama_mitra, id, nomor_hp), mitra_id), driver:profiles!kalkulator_user_id(nama)')
-                .order('created_at', { ascending: false });
-            
-            if (errTransaksi) { 
-                alert("Error Supabase (Transaksi): " + errTransaksi.message);
-                console.error("Detail Error Transaksi:", errTransaksi);
-            }
-            
-            // Render Tabel Pembelian
-            const tbodyPembelian = document.getElementById('pembelian-tbody');
-            let htmlPembelian = ''; 
-            transaksi?.forEach(t => {
-                const tanggal = t.penjemputan?.tanggal || t.tanggal_transaksi || '-';
-                const jam = t.created_at ? new Date(t.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) : '';
-                const waktuTampil = jam ? `${jam} WIB` : '';
-                const namaMitra = t.penjemputan?.mitra?.nama_mitra || t.nama_mitra_tidak_terdaftar || 'Tanpa Nama Mitra'; 
-                if (t.transaksi_item && t.transaksi_item.length > 0) {
-                    t.transaksi_item.forEach(item => { 
-                        const hargaSatuan = item.harga_unit || 0;
-                        const subtotal = item.volume * hargaSatuan;
-                        htmlPembelian += ` 
-                        <tr class="hover:bg-gray-50" data-date="${t.penjemputan?.tanggal || ''}">
+        const { data: transaksi, error: errTransaksi } = await window.supabase
+          .from("transaksi")
+          .select(
+            "*, transaksi_item(komoditas, volume, harga_unit, id), penjemputan(tanggal, mitra(nama_mitra, id, nomor_hp), mitra_id), driver:profiles!kalkulator_user_id(nama)",
+          )
+          .order("created_at", { ascending: false });
+
+        if (errTransaksi) {
+          alert("Error Supabase (Transaksi): " + errTransaksi.message);
+          console.error("Detail Error Transaksi:", errTransaksi);
+        }
+
+        // Render Tabel Pembelian
+        const tbodyPembelian = document.getElementById("pembelian-tbody");
+        let htmlPembelian = "";
+        transaksi?.forEach((t) => {
+          const tanggal = t.penjemputan?.tanggal || t.tanggal_transaksi || "-";
+          const jam = t.created_at
+            ? new Date(t.created_at).toLocaleTimeString("id-ID", {
+                hour: "2-digit",
+                minute: "2-digit",
+                timeZone: "Asia/Jakarta",
+              })
+            : "";
+          const waktuTampil = jam ? `${jam} WIB` : "";
+          const namaMitra =
+            t.penjemputan?.mitra?.nama_mitra ||
+            t.nama_mitra_tidak_terdaftar ||
+            "Tanpa Nama Mitra";
+          if (t.transaksi_item && t.transaksi_item.length > 0) {
+            t.transaksi_item.forEach((item) => {
+              const hargaSatuan = item.harga_unit || 0;
+              const subtotal = item.volume * hargaSatuan;
+
+              // PERBAHARUAN TAHAP 1:
+              // Memasukkan variabel 'tanggal' langsung ke data-date
+              // Menambahkan atribut data-komoditas
+              htmlPembelian += ` 
+                        <tr class="hover:bg-gray-50" data-date="${tanggal}" data-komoditas="${item.komoditas || ""}">
                             <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
                                 <div class="font-medium text-gray-900">${tanggal}</div>
-                                ${jam ? `<div class="text-[11px] text-gray-400 font-mono mt-0.5">${waktuTampil}</div>` : ''}
+                                ${jam ? `<div class="text-[11px] text-gray-400 font-mono mt-0.5">${waktuTampil}</div>` : ""}
                             </td>
                             <td class="px-6 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">${namaMitra}</td> 
                             <td class="px-6 py-4 text-sm font-medium text-blue-700 whitespace-nowrap">${item.komoditas}</td>
                             <td class="px-6 py-4 text-sm text-gray-700 text-right">${item.volume} Kg</td>
-                            <td class="px-6 py-4 text-sm text-gray-600 text-right">Rp ${hargaSatuan.toLocaleString('id-ID')}</td> 
-                            <td class="px-6 py-4 text-sm font-bold text-right text-green-700">Rp ${subtotal.toLocaleString('id-ID')}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600 text-right">Rp ${hargaSatuan.toLocaleString("id-ID")}</td> 
+                            <td class="px-6 py-4 text-sm font-bold text-right text-green-700">Rp ${subtotal.toLocaleString("id-ID")}</td>
                         </tr>`;
-                    }); 
-                }
             });
-            tbodyPembelian.innerHTML = htmlPembelian || '<tr><td colspan="6" class="text-center py-4 text-gray-500 italic">Data pembelian kosong</td></tr>'; 
+          }
+        });
+        tbodyPembelian.innerHTML =
+          htmlPembelian ||
+          '<tr><td colspan="6" class="text-center py-4 text-gray-500 italic">Data pembelian kosong</td></tr>';
 
-            // Pisahkan Data Validasi
-            const trxMenunggu = transaksi?.filter(t => !t.is_paid_by_admin && t.metode_bayar) || []; 
-            const trxSelesai = transaksi?.filter(t => t.is_paid_by_admin) || []; 
-            window.dataTransaksiGlobal = trxMenunggu;
-            window.riwayatLunasGlobal = trxSelesai;
-            
-            const badge = document.getElementById('badge-validasi');
-            const countEl = document.getElementById('title-validasi-count'); 
-            if(badge && countEl) {
-                countEl.innerText = trxMenunggu.length;
-                if(trxMenunggu.length > 0) { 
-                    badge.innerText = trxMenunggu.length;
-                    badge.classList.remove('hidden'); 
-                }
-            }
+        // Pisahkan Data Validasi
+        const trxMenunggu =
+          transaksi?.filter((t) => !t.is_paid_by_admin && t.metode_bayar) || [];
+        const trxSelesai = transaksi?.filter((t) => t.is_paid_by_admin) || [];
+        window.dataTransaksiGlobal = trxMenunggu;
+        window.riwayatLunasGlobal = trxSelesai;
 
-            const valContainer = document.getElementById('validasi-container');
-            let htmlVal = ''; 
-            trxMenunggu.forEach(trx => {
-                const jam = trx.created_at ? new Date(trx.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) : '';
-                const waktuTampil = jam ? `${jam} WIB` : '';
-                const subtotal = trx.transaksi_item?.reduce((acc, i) => acc + (i.volume * (i.harga_unit||0)), 0) || 0;
-                const finalTotal = subtotal - (trx.potongan_dp || 0); 
-                let itemHtml = '';
-                trx.transaksi_item?.forEach(i => { 
-                    itemHtml += `<div class="flex justify-between text-gray-700"><span>${i.komoditas} (${i.volume}kg @ ${i.harga_unit})</span><span>Rp ${(i.volume * (i.harga_unit||0)).toLocaleString('id-ID')}</span></div>`;
-                }); 
-                
-                let infoBayarHtml = ''; 
-                // Cek apakah ada metode 2 untuk dimunculkan di UI
-                const m1 = trx.metode_bayar || '';
-                const m2 = trx.metode_bayar_2 || '';
-                
-                // Lampirkan metode_bayar_2 jika ada
-                const textMetode = m2 ? `${m1} & ${m2}` : m1;
-                
-                const m1Low = m1.toLowerCase();
-                const m2Low = m2.toLowerCase();
+        const badge = document.getElementById("badge-validasi");
+        const countEl = document.getElementById("title-validasi-count");
+        if (badge && countEl) {
+          countEl.innerText = trxMenunggu.length;
+          if (trxMenunggu.length > 0) {
+            badge.innerText = trxMenunggu.length;
+            badge.classList.remove("hidden");
+            badge.classList.add("inline-flex"); // <--- Tambahkan baris ini
+          }
+        }
 
-                if (m1Low.includes('transfer') || m2Low.includes('transfer') || m1Low.includes('bank') || m2Low.includes('bank')) { 
-                    infoBayarHtml = `
+        const valContainer = document.getElementById("validasi-container");
+        let htmlVal = "";
+        trxMenunggu.forEach((trx) => {
+          const jam = trx.created_at
+            ? new Date(trx.created_at).toLocaleTimeString("id-ID", {
+                hour: "2-digit",
+                minute: "2-digit",
+                timeZone: "Asia/Jakarta",
+              })
+            : "";
+          const waktuTampil = jam ? `${jam} WIB` : "";
+          const subtotal =
+            trx.transaksi_item?.reduce(
+              (acc, i) => acc + i.volume * (i.harga_unit || 0),
+              0,
+            ) || 0;
+          const finalTotal = subtotal - (trx.potongan_dp || 0);
+          let itemHtml = "";
+          trx.transaksi_item?.forEach((i) => {
+            itemHtml += `<div class="flex justify-between text-gray-700"><span>${i.komoditas} (${i.volume}kg @ ${i.harga_unit})</span><span>Rp ${(i.volume * (i.harga_unit || 0)).toLocaleString("id-ID")}</span></div>`;
+          });
+
+          let infoBayarHtml = "";
+          // Cek apakah ada metode 2 untuk dimunculkan di UI
+          const m1 = trx.metode_bayar || "";
+          const m2 = trx.metode_bayar_2 || "";
+
+          // Lampirkan metode_bayar_2 jika ada
+          const textMetode = m2 ? `${m1} & ${m2}` : m1;
+
+          const m1Low = m1.toLowerCase();
+          const m2Low = m2.toLowerCase();
+
+          if (
+            m1Low.includes("transfer") ||
+            m2Low.includes("transfer") ||
+            m1Low.includes("bank") ||
+            m2Low.includes("bank")
+          ) {
+            infoBayarHtml = `
                         <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 mb-4 mt-3">
                             <p class="text-xs font-bold text-blue-800 mb-2"><i class="bi bi-bank2 mr-1"></i> Informasi Transfer Bank/E-wallet (${textMetode})</p> 
                             
                             <div class="flex flex-col gap-2 text-sm bg-white p-3 rounded-lg border border-blue-100 shadow-sm">
                                 <div class="flex justify-between items-center">
-                                    <div><span class="text-gray-500 text-[10px] uppercase font-bold block">Atas Nama</span><span class="font-bold text-gray-900">${trx.atas_nama || '-'}</span></div>
-                                    <button onclick="window.salinTeks('${trx.atas_nama || ''}', 'Atas Nama')" class="text-blue-600 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Copy Atas Nama"><i class="bi bi-clipboard"></i></button>
+                                    <div><span class="text-gray-500 text-[10px] uppercase font-bold block">Atas Nama</span><span class="font-bold text-gray-900">${trx.atas_nama || "-"}</span></div>
+                                    <button onclick="window.salinTeks('${trx.atas_nama || ""}', 'Atas Nama')" class="text-blue-600 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Copy Atas Nama"><i class="bi bi-clipboard"></i></button>
                                 </div>
                                 <div class="w-full h-px bg-blue-50"></div>
                                 <div class="flex justify-between items-center">
-                                    <div><span class="text-gray-500 text-[10px] uppercase font-bold block">Nama Bank / E-Wallet</span><span class="font-bold text-gray-900">${trx.nama_bank || '-'}</span></div>
-                                    <button onclick="window.salinTeks('${trx.nama_bank || ''}', 'Nama Bank')" class="text-blue-600 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Copy Bank"><i class="bi bi-clipboard"></i></button>
+                                    <div><span class="text-gray-500 text-[10px] uppercase font-bold block">Nama Bank / E-Wallet</span><span class="font-bold text-gray-900">${trx.nama_bank || "-"}</span></div>
+                                    <button onclick="window.salinTeks('${trx.nama_bank || ""}', 'Nama Bank')" class="text-blue-600 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Copy Bank"><i class="bi bi-clipboard"></i></button>
                                 </div>
                                 <div class="w-full h-px bg-blue-50"></div>
                                 <div class="flex justify-between items-center">
-                                    <div><span class="text-gray-500 text-[10px] uppercase font-bold block">No. Rekening / No. HP</span><span class="font-mono font-bold text-lg text-blue-700">${trx.no_rek || '-'}</span></div>
-                                    <button onclick="window.salinTeks('${trx.no_rek || ''}', 'No. Rekening')" class="text-blue-600 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Copy No Rekening"><i class="bi bi-clipboard"></i></button>
+                                    <div><span class="text-gray-500 text-[10px] uppercase font-bold block">No. Rekening / No. HP</span><span class="font-mono font-bold text-lg text-blue-700">${trx.no_rek || "-"}</span></div>
+                                    <button onclick="window.salinTeks('${trx.no_rek || ""}', 'No. Rekening')" class="text-blue-600 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Copy No Rekening"><i class="bi bi-clipboard"></i></button>
                                 </div>
                             </div>
                         </div>`;
-                } else if (m1Low.includes('qris') || m2Low.includes('qris')) { 
-                    infoBayarHtml = `
+          } else if (m1Low.includes("qris") || m2Low.includes("qris")) {
+            infoBayarHtml = `
                         <div class="bg-purple-50 p-4 rounded-xl border border-purple-200 mb-4 mt-3">
                             <p class="text-xs font-bold text-purple-800 mb-2"><i class="bi bi-qr-code-scan mr-1"></i> Bukti Pembayaran QRIS (${textMetode})</p> 
-                            ${trx.photo_qris  ? `<a href="${trx.photo_qris}" target="_blank" class="block w-full h-36 bg-white rounded-lg border border-purple-200 overflow-hidden hover:opacity-90 transition shadow-sm"> 
+                            ${
+                              trx.photo_qris
+                                ? `<a href="${trx.photo_qris}" target="_blank" class="block w-full h-36 bg-white rounded-lg border border-purple-200 overflow-hidden hover:opacity-90 transition shadow-sm"> 
                                 <img src="${trx.photo_qris}" alt="QRIS" class="w-full h-full object-contain">
                              </a>
-                             <p class="text-[11px] text-center text-purple-600 mt-2 font-medium italic">Klik gambar untuk memperbesar</p>` : 
-                            `<p class="text-xs text-red-500 italic bg-white p-2 rounded border border-red-100">Foto QRIS belum diunggah.</p>`}
+                             <p class="text-[11px] text-center text-purple-600 mt-2 font-medium italic">Klik gambar untuk memperbesar</p>`
+                                : `<p class="text-xs text-red-500 italic bg-white p-2 rounded border border-red-100">Foto QRIS belum diunggah.</p>`
+                            }
                         </div>`;
-                } else {
-                    infoBayarHtml = `
+          } else {
+            infoBayarHtml = `
                         <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 mb-4 mt-3 flex items-start gap-3 shadow-sm">
                             <div class="bg-amber-200 p-2 rounded-full text-amber-700"> <i class="bi bi-cash-stack text-xl"></i></div>
                             <div>
@@ -415,16 +773,16 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                                  <p class="text-xs text-amber-800 leading-relaxed mt-1">Cek silang tabel <b>Pengeluaran (Dana Talang)</b> untuk kesesuaian nilai transaksi ini.</p> 
                             </div>
                         </div>`;
-                }
-                
-                htmlVal += `
+          }
+
+          htmlVal += `
                 <div class="bg-white rounded-xl border border-red-200 p-6 shadow-sm"> 
                     <div class="flex items-start justify-between mb-4 border-b border-gray-100 pb-4">
                         <div> 
-                            <h3 class="font-bold text-gray-900 text-lg">${trx.penjemputan?.mitra?.nama_mitra || trx.nama_mitra_tidak_terdaftar || 'Tanpa Nama Mitra'}</h3> 
+                            <h3 class="font-bold text-gray-900 text-lg">${trx.penjemputan?.mitra?.nama_mitra || trx.nama_mitra_tidak_terdaftar || "Tanpa Nama Mitra"}</h3> 
                             <p class="text-sm text-gray-500 flex items-center gap-1.5">
-                                Tgl Transaksi: ${trx.penjemputan?.tanggal || trx.tanggal_transaksi || '-'} 
-                                ${jam ? `<span class="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-mono font-bold">${waktuTampil}</span>` : ''}
+                                Tgl Transaksi: ${trx.penjemputan?.tanggal || trx.tanggal_transaksi || "-"} 
+                                ${jam ? `<span class="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-mono font-bold">${waktuTampil}</span>` : ""}
                             </p>
                         </div>
                         <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Belum Lunas</span> 
@@ -432,7 +790,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                     
                     <div class="space-y-2 mb-2 text-sm"> ${itemHtml}
                         <div class="flex justify-between text-red-600 pt-2">
-                            <span>Potongan DP</span><span>- Rp ${Number(trx.potongan_dp || 0).toLocaleString('id-ID')}</span> 
+                            <span>Potongan DP</span><span>- Rp ${Number(trx.potongan_dp || 0).toLocaleString("id-ID")}</span> 
                         </div>
                     </div>
 
@@ -440,7 +798,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
                     <div class="border-t border-gray-200 pt-4 mb-6"> 
                         <p class="text-sm text-gray-600 mb-1">Total Wajib Dibayar</p> 
-                        <p class="text-3xl font-bold text-gray-900">Rp ${Number(trx.grand_total || 0).toLocaleString('id-ID')}</p>
+                        <p class="text-3xl font-bold text-gray-900">Rp ${Number(trx.grand_total || 0).toLocaleString("id-ID")}</p>
                     </div>
                     
                     <div class="flex gap-3"> 
@@ -455,242 +813,333 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         </button>
                     </div>
                 </div>`;
-            }); 
-            valContainer.innerHTML = htmlVal || '<p class="text-gray-500">Tidak ada transaksi yang menunggu validasi.</p>';
+        });
+        valContainer.innerHTML =
+          htmlVal ||
+          '<p class="text-gray-500">Tidak ada transaksi yang menunggu validasi.</p>';
 
-            const tbodyLunas = document.getElementById('riwayat-lunas-tbody');
-            let htmlLunas = ''; 
-            trxSelesai.forEach(t => {
-                const jam = t.created_at ? new Date(t.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) : '';
-                const waktuTampil = jam ? `${jam} WIB` : '';
+        const tbodyLunas = document.getElementById("riwayat-lunas-tbody");
+        let htmlLunas = "";
+        trxSelesai.forEach((t) => {
+          const jam = t.created_at
+            ? new Date(t.created_at).toLocaleTimeString("id-ID", {
+                hour: "2-digit",
+                minute: "2-digit",
+                timeZone: "Asia/Jakarta",
+              })
+            : "";
+          const waktuTampil = jam ? `${jam} WIB` : "";
 
-                // 1. TAMBAHKAN BLOK KODE INI UNTUK GENERATE ID STRUK
-                const dateObj = t.created_at ? new Date(t.created_at) : new Date();
-                const yyyy = dateObj.getFullYear();
-                const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-                const dd = String(dateObj.getDate()).padStart(2, '0');
-                const idStruk = `BJ-${yyyy}${mm}${dd}${t.id}`;
-                
-                // 2. Cek Metode Bayar
-                let metodeText = `${t.metode_bayar || '-'}`;
-                if (t.metode_bayar_2) metodeText += ` + ${t.metode_bayar_2}`;
+          // 1. TAMBAHKAN BLOK KODE INI UNTUK GENERATE ID STRUK
+          const dateObj = t.created_at ? new Date(t.created_at) : new Date();
+          const yyyy = dateObj.getFullYear();
+          const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+          const dd = String(dateObj.getDate()).padStart(2, "0");
+          const idStruk = `BJ-${yyyy}${mm}${dd}${t.id}`;
 
-                // 3. Buat elemen info bank KHUSUS kalau ada kata 'transfer' atau 'bank'
-                let detailBankHtml = '';
-                const m1Low = (t.metode_bayar || '').toLowerCase();
-                const m2Low = (t.metode_bayar_2 || '').toLowerCase();
-                
-                if (m1Low.includes('transfer') || m2Low.includes('transfer') || m1Low.includes('bank') || m2Low.includes('bank')) {
-                    detailBankHtml = `
+          // 2. Cek Metode Bayar
+          let metodeText = `${t.metode_bayar || "-"}`;
+          if (t.metode_bayar_2) metodeText += ` + ${t.metode_bayar_2}`;
+
+          // 3. Buat elemen info bank KHUSUS kalau ada kata 'transfer' atau 'bank'
+          let detailBankHtml = "";
+          const m1Low = (t.metode_bayar || "").toLowerCase();
+          const m2Low = (t.metode_bayar_2 || "").toLowerCase();
+
+          if (
+            m1Low.includes("transfer") ||
+            m2Low.includes("transfer") ||
+            m1Low.includes("bank") ||
+            m2Low.includes("bank")
+          ) {
+            detailBankHtml = `
                     <div class="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-100 text-xs shadow-sm">
-                        <div class="font-bold text-blue-800"><i class="bi bi-bank2 mr-1"></i> ${t.nama_bank || 'Bank Tidak Diisi'}</div>
-                        <div class="font-mono text-blue-900 font-bold tracking-wide my-0.5">${t.no_rek || '-'}</div>
-                        <div class="text-gray-600">a.n <span class="font-bold text-gray-800">${t.atas_nama || '-'}</span></div>
+                        <div class="font-bold text-blue-800"><i class="bi bi-bank2 mr-1"></i> ${t.nama_bank || "Bank Tidak Diisi"}</div>
+                        <div class="font-mono text-blue-900 font-bold tracking-wide my-0.5">${t.no_rek || "-"}</div>
+                        <div class="text-gray-600">a.n <span class="font-bold text-gray-800">${t.atas_nama || "-"}</span></div>
                     </div>`;
-                }
+          }
 
-                // 4. Render ke tabel
-                htmlLunas += `
+          // 4. Render ke tabel
+          htmlLunas += `
                 <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 text-sm font-bold text-gray-900 align-top">${t.penjemputan?.mitra?.nama_mitra || t.nama_mitra_tidak_terdaftar || 'Tanpa Nama Mitra'}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-gray-900 align-top">${t.penjemputan?.mitra?.nama_mitra || t.nama_mitra_tidak_terdaftar || "Tanpa Nama Mitra"}</td>
                     <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap align-top">
-                        <div class="font-medium text-gray-900">${t.penjemputan?.tanggal || t.tanggal_transaksi || '-'}</div>
-                        ${jam ? `<div class="text-[11px] text-gray-400 font-mono mt-0.5">${waktuTampil}</div>` : ''}
+                        <div class="font-medium text-gray-900">${t.penjemputan?.tanggal || t.tanggal_transaksi || "-"}</div>
+                        ${jam ? `<div class="text-[11px] text-gray-400 font-mono mt-0.5">${waktuTampil}</div>` : ""}
                     </td>
                     <td class="px-6 py-4 text-sm text-gray-600 align-top w-1/3">
                         <div class="font-medium text-gray-800">${metodeText}</div>
                         ${detailBankHtml}
                     </td> 
-                    <td class="px-6 py-4 text-sm font-bold text-green-700 text-right align-top">Rp ${Number(t.grand_total || 0).toLocaleString('id-ID')}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-green-700 text-right align-top">Rp ${Number(t.grand_total || 0).toLocaleString("id-ID")}</td>
                     <td class="px-6 py-4 text-center align-top">
                         <button onclick="window.kirimStrukWA('${t.id}', '${idStruk}')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition shadow-sm inline-flex items-center gap-1">
                             <i class="bi bi-whatsapp"></i> WA
                         </button>
                     </td>
                 </tr>`;
-            });
-            tbodyLunas.innerHTML = htmlLunas || '<tr><td colspan="4" class="text-center py-4">Data kosong</td></tr>'; 
-        } catch (error) {
-            console.error("Gagal load data:", error);
-        }
+        });
+        tbodyLunas.innerHTML =
+          htmlLunas ||
+          '<tr><td colspan="4" class="text-center py-4">Data kosong</td></tr>';
+      } catch (error) {
+        console.error("Gagal load data:", error);
+      }
     }
     await loadData();
 
     // ==========================================
     // 2. TAB SWITCHING LOGIC
     // ==========================================
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-    
-    tabButtons.forEach((button) => { 
-        button.addEventListener('click', function() {
-            let tabName = this.getAttribute('data-tab');
-            tabButtons.forEach((btn) => { 
-                btn.classList.remove('active', 'border-green-700', 'text-green-700');
-                btn.classList.add('border-transparent', 'text-gray-600');
-            });
-            tabContents.forEach((content) => { 
-                content.classList.add('hidden');
-                content.classList.remove('block');
-            });
-            this.classList.add('active', 'border-green-700', 'text-green-700'); 
-            this.classList.remove('border-transparent', 'text-gray-600');
-            
-            const activeTab = document.getElementById(tabName); 
-            if(activeTab) {
-                activeTab.classList.remove('hidden'); activeTab.classList.add('block');
-            }
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    const tabContents = document.querySelectorAll(".tab-content");
+
+    tabButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        let tabName = this.getAttribute("data-tab");
+        tabButtons.forEach((btn) => {
+          btn.classList.remove("active", "border-green-700", "text-green-700");
+          btn.classList.add("border-transparent", "text-gray-600");
         });
+        tabContents.forEach((content) => {
+          content.classList.add("hidden");
+          content.classList.remove("block");
+        });
+        this.classList.add("active", "border-green-700", "text-green-700");
+        this.classList.remove("border-transparent", "text-gray-600");
+
+        const activeTab = document.getElementById(tabName);
+        if (activeTab) {
+          activeTab.classList.remove("hidden");
+          activeTab.classList.add("block");
+        }
+      });
     });
 
     // ==========================================
     // 3. MODAL CONTROLS & FILTER
     // ==========================================
-    window.openModal = function(id) { 
-        const m = document.getElementById(id);
-        m.classList.remove('hidden'); m.classList.add('flex');
-        setTimeout(() => { m.classList.remove('opacity-0'); m.querySelector('div').classList.remove('scale-95'); }, 10);
-    }
-    window.closeModal = function(id) { 
-        const m = document.getElementById(id);
-        m.classList.add('opacity-0'); m.querySelector('div').classList.add('scale-95'); 
-        setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
-    }
+    window.openModal = function (id) {
+      const m = document.getElementById(id);
+      m.classList.remove("hidden");
+      m.classList.add("flex");
+      setTimeout(() => {
+        m.classList.remove("opacity-0");
+        m.querySelector("div").classList.remove("scale-95");
+      }, 10);
+    };
+    window.closeModal = function (id) {
+      const m = document.getElementById(id);
+      m.classList.add("opacity-0");
+      m.querySelector("div").classList.add("scale-95");
+      setTimeout(() => {
+        m.classList.add("hidden");
+        m.classList.remove("flex");
+      }, 300);
+    };
     // ==========================================
     // FUNGSI COPY TEKS KE CLIPBOARD
     // ==========================================
-    window.salinTeks = function(teks, label) {
-        if (!teks || teks === '-') return alert(label + ' kosong, tidak ada yang disalin!');
-        
-        navigator.clipboard.writeText(teks).then(() => {
-            alert('✅ ' + label + ' berhasil disalin:\n' + teks);
-        }).catch(err => {
-            alert('❌ Gagal menyalin: ' + err);
+    window.salinTeks = function (teks, label) {
+      if (!teks || teks === "-")
+        return alert(label + " kosong, tidak ada yang disalin!");
+
+      navigator.clipboard
+        .writeText(teks)
+        .then(() => {
+          alert("✅ " + label + " berhasil disalin:\n" + teks);
+        })
+        .catch((err) => {
+          alert("❌ Gagal menyalin: " + err);
         });
     };
-    window.filterTabelBeli = function() { 
-        const start = document.getElementById('filter-start-beli').value;
-        const end = document.getElementById('filter-end-beli').value; 
-        if(!start || !end) return alert("Pilih tanggal awal dan akhir!");
-        document.querySelectorAll('#tabel-pembelian tbody tr').forEach(tr => { 
-            const date = tr.getAttribute('data-date');
-            if(date) tr.style.display = (date >= start && date <= end) ? '' : 'none';
-        });
-    }; 
+    window.filterTabelBeli = function () {
+      const start = document.getElementById("filter-start-beli").value;
+      const end = document.getElementById("filter-end-beli").value;
+      const filterKomoditas = document.getElementById(
+        "filter-komoditas-beli",
+      ).value;
+
+      // Peringatan jika user hanya mengisi salah satu tanggal (awal atau akhir saja)
+      if ((start && !end) || (!start && end)) {
+        return alert(
+          "Pilih tanggal awal dan akhir untuk filter waktu, atau kosongkan keduanya jika hanya ingin memfilter komoditas!",
+        );
+      }
+
+      document.querySelectorAll("#tabel-pembelian tbody tr").forEach((tr) => {
+        // Abaikan baris "Memuat..." atau baris tabel kosong yang tidak memiliki atribut data
+        if (!tr.hasAttribute("data-date")) return;
+
+        const date = tr.getAttribute("data-date");
+        const komoditas = tr.getAttribute("data-komoditas");
+
+        let matchDate = true;
+        // Cek apakah ada filter tanggal yang aktif
+        if (start && end && date) {
+          matchDate = date >= start && date <= end;
+        }
+
+        let matchKomoditas = true;
+        // Cek apakah opsi komoditas spesifik dipilih (bukan "Semua")
+        if (filterKomoditas !== "Semua" && komoditas) {
+          matchKomoditas = komoditas === filterKomoditas;
+        }
+
+        // Tampilkan baris HANYA JIKA lolos kedua filter (tanggal dan komoditas)
+        if (matchDate && matchKomoditas) {
+          tr.style.display = "";
+        } else {
+          tr.style.display = "none";
+        }
+      });
+    };
 
     // ==========================================
     // 4. NAVIGASI STEP MODAL EDIT
     // ==========================================
-    window.goToEditStep = function(step) {
-        [1, 2, 3].forEach(num => {
-            const stepEl = document.getElementById(`edit-step-${num}`);
-            const footerEl = document.getElementById(`footer-edit-${num}`);
-            if (stepEl) { stepEl.classList.add('hidden'); stepEl.classList.remove('flex'); }
-            if (footerEl) { footerEl.classList.add('hidden'); footerEl.classList.remove('flex'); }
-        });
-
-        const targetStep = document.getElementById(`edit-step-${step}`);
-        const targetFooter = document.getElementById(`footer-edit-${step}`);
-        if (targetStep) { targetStep.classList.remove('hidden'); targetStep.classList.add('flex'); }
-        if (targetFooter) { targetFooter.classList.remove('hidden'); targetFooter.classList.add('flex'); }
-
-        const indicator = document.getElementById('edit-step-indicator');
-        if (indicator) {
-            if (step === 1) indicator.innerText = 'Langkah 1 dari 3: Data Pokok';
-            if (step === 2) indicator.innerText = 'Langkah 2 dari 3: Rincian Komoditas';
-            if (step === 3) indicator.innerText = 'Langkah 3 dari 3: Metode Pembayaran';
+    window.goToEditStep = function (step) {
+      [1, 2, 3].forEach((num) => {
+        const stepEl = document.getElementById(`edit-step-${num}`);
+        const footerEl = document.getElementById(`footer-edit-${num}`);
+        if (stepEl) {
+          stepEl.classList.add("hidden");
+          stepEl.classList.remove("flex");
         }
+        if (footerEl) {
+          footerEl.classList.add("hidden");
+          footerEl.classList.remove("flex");
+        }
+      });
+
+      const targetStep = document.getElementById(`edit-step-${step}`);
+      const targetFooter = document.getElementById(`footer-edit-${step}`);
+      if (targetStep) {
+        targetStep.classList.remove("hidden");
+        targetStep.classList.add("flex");
+      }
+      if (targetFooter) {
+        targetFooter.classList.remove("hidden");
+        targetFooter.classList.add("flex");
+      }
+
+      const indicator = document.getElementById("edit-step-indicator");
+      if (indicator) {
+        if (step === 1) indicator.innerText = "Langkah 1 dari 3: Data Pokok";
+        if (step === 2)
+          indicator.innerText = "Langkah 2 dari 3: Rincian Komoditas";
+        if (step === 3)
+          indicator.innerText = "Langkah 3 dari 3: Metode Pembayaran";
+      }
     };
 
     // ==========================================
     // 5. AUTO KALKULASI & METODE BAYAR DINAMIS
     // ==========================================
-    window.hitungTotalEdit = function() {
-        let subtotal = 0;
-        document.querySelectorAll('.edit-item-row').forEach(row => {
-            const vol = parseFloat(row.querySelector('.item_volume').value) || 0;
-            const hrg = parseFloat(row.querySelector('.item_harga').value) || 0;
-            subtotal += (vol * hrg);
-        });
-        const dp = parseFloat(document.getElementById('edit_trx_dp').value) || 0;
-        document.getElementById('edit_trx_grand_total').value = subtotal - dp;
+    window.hitungTotalEdit = function () {
+      let subtotal = 0;
+      document.querySelectorAll(".edit-item-row").forEach((row) => {
+        const vol = parseFloat(row.querySelector(".item_volume").value) || 0;
+        const hrg = parseFloat(row.querySelector(".item_harga").value) || 0;
+        subtotal += vol * hrg;
+      });
+      const dp = parseFloat(document.getElementById("edit_trx_dp").value) || 0;
+      document.getElementById("edit_trx_grand_total").value = subtotal - dp;
     };
 
-    const inputDp = document.getElementById('edit_trx_dp');
-    if(inputDp) inputDp.addEventListener('input', window.hitungTotalEdit);
+    const inputDp = document.getElementById("edit_trx_dp");
+    if (inputDp) inputDp.addEventListener("input", window.hitungTotalEdit);
 
-    window.toggleMitraManual = function() {
-    const valMitra = document.getElementById('edit_trx_mitra_select').value;
-    const container = document.getElementById('container_mitra_manual');
-    const inputManual = document.getElementById('edit_nama_mitra_manual');
+    window.toggleMitraManual = function () {
+      const valMitra = document.getElementById("edit_trx_mitra_select").value;
+      const container = document.getElementById("container_mitra_manual");
+      const inputManual = document.getElementById("edit_nama_mitra_manual");
 
-    if (valMitra === "0") {
-        container.classList.remove('hidden');
-        container.classList.add('block');
+      if (valMitra === "0") {
+        container.classList.remove("hidden");
+        container.classList.add("block");
         inputManual.required = true;
-    } else {
-        container.classList.remove('block');
-        container.classList.add('hidden');
+      } else {
+        container.classList.remove("block");
+        container.classList.add("hidden");
         inputManual.required = false;
-        inputManual.value = ''; // Reset isi jika pilih mitra terdaftar
-    }
-};
-
-    window.toggleMetode2 = function() {
-        const isChecked = document.getElementById('cb_split_payment').checked;
-        document.getElementById('container_metode_2').style.display = isChecked ? 'block' : 'none';
-        document.getElementById('container_toggle_3').style.display = isChecked ? 'block' : 'none';
-        
-        // Kalau metode 2 dimatikan, otomatis reset dan matikan juga metode 3
-        if (!isChecked) {
-            document.getElementById('edit_metode_bayar_2').value = 'Cash (Dana UMKM)';
-            document.getElementById('cb_split_payment_3').checked = false;
-            window.toggleMetode3();
-        }
-        window.renderMetodeDetails(); 
+        inputManual.value = ""; // Reset isi jika pilih mitra terdaftar
+      }
     };
 
-    window.toggleMetode3 = function() {
-        const isChecked = document.getElementById('cb_split_payment_3').checked;
-        document.getElementById('container_metode_3').style.display = isChecked ? 'block' : 'none';
-        if (!isChecked) document.getElementById('edit_metode_bayar_3').value = 'Cash (Dana UMKM)';
-        window.renderMetodeDetails(); 
+    window.toggleMetode2 = function () {
+      const isChecked = document.getElementById("cb_split_payment").checked;
+      document.getElementById("container_metode_2").style.display = isChecked
+        ? "block"
+        : "none";
+      document.getElementById("container_toggle_3").style.display = isChecked
+        ? "block"
+        : "none";
+
+      // Kalau metode 2 dimatikan, otomatis reset dan matikan juga metode 3
+      if (!isChecked) {
+        document.getElementById("edit_metode_bayar_2").value =
+          "Cash (Dana UMKM)";
+        document.getElementById("cb_split_payment_3").checked = false;
+        window.toggleMetode3();
+      }
+      window.renderMetodeDetails();
     };
 
-    window.renderMetodeDetails = function(trxData = null) {
-        const m1 = document.getElementById('edit_metode_bayar').value;
-        const isSplit2 = document.getElementById('cb_split_payment').checked;
-        const isSplit3 = document.getElementById('cb_split_payment_3').checked;
-        
-        const m2 = isSplit2 ? document.getElementById('edit_metode_bayar_2').value : '';
-        const m3 = isSplit3 ? document.getElementById('edit_metode_bayar_3').value : '';
+    window.toggleMetode3 = function () {
+      const isChecked = document.getElementById("cb_split_payment_3").checked;
+      document.getElementById("container_metode_3").style.display = isChecked
+        ? "block"
+        : "none";
+      if (!isChecked)
+        document.getElementById("edit_metode_bayar_3").value =
+          "Cash (Dana UMKM)";
+      window.renderMetodeDetails();
+    };
 
-        const hasBank = (m1 === 'Transfer' || m2 === 'Transfer' || m3 === 'Transfer');
-        const hasQris = (m1 === 'QRIS' || m2 === 'QRIS' || m3 === 'QRIS');
-        const hasDeposit = (m1 === 'Full Deposit' || m2 === 'Full Deposit' || m3 === 'Full Deposit');
+    window.renderMetodeDetails = function (trxData = null) {
+      const m1 = document.getElementById("edit_metode_bayar").value;
+      const isSplit2 = document.getElementById("cb_split_payment").checked;
+      const isSplit3 = document.getElementById("cb_split_payment_3").checked;
 
-        const payContainer = document.getElementById('edit_payment_details_container');
-        let html = '';
+      const m2 = isSplit2
+        ? document.getElementById("edit_metode_bayar_2").value
+        : "";
+      const m3 = isSplit3
+        ? document.getElementById("edit_metode_bayar_3").value
+        : "";
 
-        if (hasBank) {
-            html += `
+      const hasBank =
+        m1 === "Transfer" || m2 === "Transfer" || m3 === "Transfer";
+      const hasQris = m1 === "QRIS" || m2 === "QRIS" || m3 === "QRIS";
+      const hasDeposit =
+        m1 === "Full Deposit" || m2 === "Full Deposit" || m3 === "Full Deposit";
+
+      const payContainer = document.getElementById(
+        "edit_payment_details_container",
+      );
+      let html = "";
+
+      if (hasBank) {
+        html += `
                 <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-3 shadow-sm">
                     <p class="text-xs font-bold text-gray-700 uppercase"><i class="bi bi-bank2"></i> Detail Transfer Bank/E-Wallet</p>
-                    <input type="text" id="edit_atas_nama" placeholder="Atas Nama" value="${trxData?.atas_nama || ''}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
-                    <input type="text" id="edit_nama_bank" placeholder="Nama Bank" value="${trxData?.nama_bank || ''}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
-                    <input type="text" id="edit_no_rek" placeholder="No Rek" value="${trxData?.no_rek || ''}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
+                    <input type="text" id="edit_atas_nama" placeholder="Atas Nama" value="${trxData?.atas_nama || ""}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
+                    <input type="text" id="edit_nama_bank" placeholder="Nama Bank" value="${trxData?.nama_bank || ""}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
+                    <input type="text" id="edit_no_rek" placeholder="No Rek" value="${trxData?.no_rek || ""}" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm outline-none">
                 </div>`;
-        }
-        if (hasQris) {
-            html += `
+      }
+      if (hasQris) {
+        html += `
                 <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-3 shadow-sm">
                     <p class="text-xs font-bold text-gray-700 uppercase"><i class="bi bi-qr-code"></i> Tautan QRIS</p>
-                    <textarea id="edit_photo_qris_url" rows="2" placeholder="Link gambar QRIS" class="w-full border border-gray-300 p-2.5 rounded-lg text-xs outline-none">${trxData?.photo_qris || ''}</textarea> 
+                    <textarea id="edit_photo_qris_url" rows="2" placeholder="Link gambar QRIS" class="w-full border border-gray-300 p-2.5 rounded-lg text-xs outline-none">${trxData?.photo_qris || ""}</textarea> 
                 </div>`;
-        }
+      }
 
-        if (hasDeposit) {
-            html += `
+      if (hasDeposit) {
+        html += `
                 <div class="p-4 bg-teal-50 border border-teal-200 rounded-xl flex items-start gap-3 shadow-sm mb-3">
                     <div class="bg-teal-200 p-1.5 rounded-full text-teal-700 shrink-0"><i class="bi bi-wallet2"></i></div>
                     <div>
@@ -700,120 +1149,155 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         </p>
                     </div>
                 </div>`;
-        }
-        
-        if (m1.includes('Cash') || m2.includes('Cash') || m3.includes('Cash')) {
-            let sumber = [];
-            if (m1 === 'Cash (Dana UMKM)' || m2 === 'Cash (Dana UMKM)' || m3 === 'Cash (Dana UMKM)') sumber.push('Dana UMKM');
-            if (m1 === 'Cash (Talangan Karyawan)' || m2 === 'Cash (Talangan Karyawan)' || m3 === 'Cash (Talangan Karyawan)') sumber.push('Talangan Karyawan');
-            
-            let pesanTambahan = sumber.includes('Dana UMKM') 
-                ? '<span class="text-green-700">Dana UMKM aman, tidak perlu update rincian pengeluaran lagi.</span>' 
-                : '<span class="text-red-600">Perhatian: Pastikan talangan karyawan dicatat di Pengeluaran!</span>';
+      }
 
-            html += `
+      if (m1.includes("Cash") || m2.includes("Cash") || m3.includes("Cash")) {
+        let sumber = [];
+        if (
+          m1 === "Cash (Dana UMKM)" ||
+          m2 === "Cash (Dana UMKM)" ||
+          m3 === "Cash (Dana UMKM)"
+        )
+          sumber.push("Dana UMKM");
+        if (
+          m1 === "Cash (Talangan Karyawan)" ||
+          m2 === "Cash (Talangan Karyawan)" ||
+          m3 === "Cash (Talangan Karyawan)"
+        )
+          sumber.push("Talangan Karyawan");
+
+        let pesanTambahan = sumber.includes("Dana UMKM")
+          ? '<span class="text-green-700">Dana UMKM aman, tidak perlu update rincian pengeluaran lagi.</span>'
+          : '<span class="text-red-600">Perhatian: Pastikan talangan karyawan dicatat di Pengeluaran!</span>';
+
+        html += `
                 <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3 shadow-sm">
                     <div class="bg-amber-200 p-1.5 rounded-full text-amber-700 shrink-0"><i class="bi bi-cash-stack"></i></div>
                     <div>
                         <p class="text-xs font-bold text-amber-900">Pembayaran Tunai</p>
                         <p class="text-[10px] text-amber-800 mt-1 leading-relaxed">
-                            Sumber Dana: <b>${sumber.join(' & ')}</b>.<br/>
+                            Sumber Dana: <b>${sumber.join(" & ")}</b>.<br/>
                             ${pesanTambahan}
                         </p>
                     </div>
                 </div>`;
-        }
-        payContainer.innerHTML = html;
+      }
+      payContainer.innerHTML = html;
     };
-
 
     // ==========================================
     // 6. VALIDASI & EDIT TRANSAKSI (FUNGSI UTAMA)
     // ==========================================
-    window.validasiBayar = async function(trxId) {
-       if(!confirm('Tandai transaksi ini sudah dibayar LUNAS?\n\n(Perhatian: Stok gudang akan otomatis bertambah, dan rekap performa Mitra akan di-update)')) return;
-       if(!window.supabase) return;
-        
-       try {
-           const { error } = await window.supabase.rpc('validasi_pembayaran_mitra', { p_trx_id: trxId });
-           if (error) throw error;
-        
-           alert('Transaksi divalidasi Lunas. Stok Gudang, Performa Profil Mitra, dan Rekap Bulanan berhasil di-update otomatis.'); 
-           window.location.reload();
-       } catch (err) {
-           alert('Gagal memproses validasi & stok: ' + err.message);
-       } 
+    window.validasiBayar = async function (trxId) {
+      if (
+        !confirm(
+          "Tandai transaksi ini sudah dibayar LUNAS?\n\n(Perhatian: Stok gudang akan otomatis bertambah, dan rekap performa Mitra akan di-update)",
+        )
+      )
+        return;
+      if (!window.supabase) return;
+
+      try {
+        const { error } = await window.supabase.rpc(
+          "validasi_pembayaran_mitra",
+          { p_trx_id: trxId },
+        );
+        if (error) throw error;
+
+        alert(
+          "Transaksi divalidasi Lunas. Stok Gudang, Performa Profil Mitra, dan Rekap Bulanan berhasil di-update otomatis.",
+        );
+        window.location.reload();
+      } catch (err) {
+        alert("Gagal memproses validasi & stok: " + err.message);
+      }
     };
 
     // ==========================================
     // FUNGSI HAPUS TRANSAKSI
     // ==========================================
-    window.hapusTransaksi = async function(trxId) {
-        if(!confirm('🚨 PERINGATAN KRITIS 🚨\n\nApakah Anda yakin ingin MENGHAPUS transaksi ini secara permanen?\n\nSistem akan secara otomatis:\n- Mengurangi stok gudang\n- Mengembalikan saldo deposit mitra (jika ada)\n- Menghapus riwayat talangan karyawan (jika ada)')) return;
-        
-        if(!window.supabase) return;
-        
-        try {
-            const { error } = await window.supabase.rpc('hapus_transaksi_mitra', { p_trx_id: parseInt(trxId) });
-            
-            if (error) throw error;
-            
-            alert('✅ Data transaksi berhasil dihapus beserta seluruh riwayat terkaitnya.');
-            window.location.reload();
-            
-        } catch (err) {
-            console.error("Gagal hapus transaksi:", err);
-            alert('❌ Gagal menghapus transaksi: ' + err.message);
-        }
+    window.hapusTransaksi = async function (trxId) {
+      if (
+        !confirm(
+          "🚨 PERINGATAN KRITIS 🚨\n\nApakah Anda yakin ingin MENGHAPUS transaksi ini secara permanen?\n\nSistem akan secara otomatis:\n- Mengurangi stok gudang\n- Mengembalikan saldo deposit mitra (jika ada)\n- Menghapus riwayat talangan karyawan (jika ada)",
+        )
+      )
+        return;
+
+      if (!window.supabase) return;
+
+      try {
+        const { error } = await window.supabase.rpc("hapus_transaksi_mitra", {
+          p_trx_id: parseInt(trxId),
+        });
+
+        if (error) throw error;
+
+        alert(
+          "✅ Data transaksi berhasil dihapus beserta seluruh riwayat terkaitnya.",
+        );
+        window.location.reload();
+      } catch (err) {
+        console.error("Gagal hapus transaksi:", err);
+        alert("❌ Gagal menghapus transaksi: " + err.message);
+      }
     };
 
-    window.bukaModalEditTrx = function(trxId) { 
-        window.goToEditStep(1);
-        const trx = window.dataTransaksiGlobal.find(t => String(t.id) === String(trxId)); 
-        if(!trx) return alert("Data transaksi tidak ditemukan!");
-        
-        // Pengecekan aman (Defensif) sebelum isi value
-        const elTrxId = document.getElementById('edit_trx_id');
-        if (elTrxId) elTrxId.value = trx.id;
-        
-        const elPenjemputanId = document.getElementById('edit_penjemputan_id');
-        if (elPenjemputanId) elPenjemputanId.value = trx.penjemputan_id || ''; 
-        
-        const elTrxTgl = document.getElementById('edit_trx_tgl');
-        if (elTrxTgl) elTrxTgl.value = trx.penjemputan?.tanggal || trx.tanggal_transaksi || '';
-        
-        const elTrxDp = document.getElementById('edit_trx_dp');
-        if (elTrxDp) elTrxDp.value = trx.potongan_dp || 0;
-        
-        let optMitra = ''; 
-        const currentMitraId = trx.penjemputan?.mitra?.id || trx.mitra_id || null;
-        const fallbackName = trx.nama_mitra_tidak_terdaftar || 'Timbang Mandiri / Tidak Terdaftar';
-        optMitra += `<option value="0" ${currentMitraId === null ? 'selected' : ''}>${currentMitraId === null ? fallbackName : 'Timbang Mandiri / Tidak Terdaftar'}</option>`;
-        if(window.allMitraGlobal) {
-            window.allMitraGlobal.forEach(m => {
-                const selected = currentMitraId && String(m.id) === String(currentMitraId) ? 'selected' : '';
-                optMitra += `<option value="${m.id}" ${selected}>${m.nama_mitra}</option>`;
-            });
-        } 
-        
-        const elMitraSelect = document.getElementById('edit_trx_mitra_select');
-        if (elMitraSelect) elMitraSelect.innerHTML = optMitra;
-        
-        const inputManual = document.getElementById('edit_nama_mitra_manual');
-        if (inputManual) {
-            if (currentMitraId === null) {
-                inputManual.value = trx.nama_mitra_tidak_terdaftar || '';
-            } else {
-                inputManual.value = '';
-            }
+    window.bukaModalEditTrx = function (trxId) {
+      window.goToEditStep(1);
+      const trx = window.dataTransaksiGlobal.find(
+        (t) => String(t.id) === String(trxId),
+      );
+      if (!trx) return alert("Data transaksi tidak ditemukan!");
+
+      // Pengecekan aman (Defensif) sebelum isi value
+      const elTrxId = document.getElementById("edit_trx_id");
+      if (elTrxId) elTrxId.value = trx.id;
+
+      const elPenjemputanId = document.getElementById("edit_penjemputan_id");
+      if (elPenjemputanId) elPenjemputanId.value = trx.penjemputan_id || "";
+
+      const elTrxTgl = document.getElementById("edit_trx_tgl");
+      if (elTrxTgl)
+        elTrxTgl.value =
+          trx.penjemputan?.tanggal || trx.tanggal_transaksi || "";
+
+      const elTrxDp = document.getElementById("edit_trx_dp");
+      if (elTrxDp) elTrxDp.value = trx.potongan_dp || 0;
+
+      let optMitra = "";
+      const currentMitraId = trx.penjemputan?.mitra?.id || trx.mitra_id || null;
+      const fallbackName =
+        trx.nama_mitra_tidak_terdaftar || "Timbang Mandiri / Tidak Terdaftar";
+      optMitra += `<option value="0" ${currentMitraId === null ? "selected" : ""}>${currentMitraId === null ? fallbackName : "Timbang Mandiri / Tidak Terdaftar"}</option>`;
+      if (window.allMitraGlobal) {
+        window.allMitraGlobal.forEach((m) => {
+          const selected =
+            currentMitraId && String(m.id) === String(currentMitraId)
+              ? "selected"
+              : "";
+          optMitra += `<option value="${m.id}" ${selected}>${m.nama_mitra}</option>`;
+        });
+      }
+
+      const elMitraSelect = document.getElementById("edit_trx_mitra_select");
+      if (elMitraSelect) elMitraSelect.innerHTML = optMitra;
+
+      const inputManual = document.getElementById("edit_nama_mitra_manual");
+      if (inputManual) {
+        if (currentMitraId === null) {
+          inputManual.value = trx.nama_mitra_tidak_terdaftar || "";
+        } else {
+          inputManual.value = "";
         }
-        
-        window.toggleMitraManual();
-        
-        let itemsHtml = '';
-        if (trx.transaksi_item && trx.transaksi_item.length > 0) { 
-            trx.transaksi_item.forEach((item, index) => {
-                itemsHtml += `
+      }
+
+      window.toggleMitraManual();
+
+      let itemsHtml = "";
+      if (trx.transaksi_item && trx.transaksi_item.length > 0) {
+        trx.transaksi_item.forEach((item, index) => {
+          itemsHtml += `
                 <div class="edit-item-row p-4 bg-gray-50 border border-gray-200 rounded-xl relative space-y-3 shadow-sm">
                     <span class="inline-block bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200 mb-1">Barang Ke-${index + 1}: ${item.komoditas}</span> 
                     <input type="hidden" class="item_id" value="${item.id}"> 
@@ -827,322 +1311,373 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
                         <input type="number" class="item_harga w-full border border-gray-300 rounded-lg p-2 text-sm outline-none bg-white font-semibold" value="${item.harga_unit}" oninput="window.hitungTotalEdit()" required>
                     </div>
                  </div>`;
-            });
-        } else {
-            itemsHtml = `<p class="text-sm text-red-500 italic">Transaksi ini tidak memiliki rincian komoditas.</p>`;
-        }
-        
-        const elItemsContainer = document.getElementById('edit_items_container');
-        if (elItemsContainer) elItemsContainer.innerHTML = itemsHtml;
-        
-        const elGrandTotal = document.getElementById('edit_trx_grand_total');
-        if (elGrandTotal) elGrandTotal.value = trx.grand_total || 0;
-        
-        let rawM1 = trx.metode_bayar || '';
-        let rawM2 = trx.metode_bayar_2 || '';
-        let rawM3 = trx.metode_bayar_3 || '';
-        if (rawM1.includes('&')) {
-            const splitData = rawM1.split('&').map(s => s.trim());
-            rawM1 = splitData[0] || '';
-            rawM2 = splitData[1] || '';
-            rawM3 = splitData[2] || '';
-        }
+        });
+      } else {
+        itemsHtml = `<p class="text-sm text-red-500 italic">Transaksi ini tidak memiliki rincian komoditas.</p>`;
+      }
 
-        const mappingMetode = (val) => {
-            if (!val) return null;
-            val = val.toLowerCase();
-            if (val.includes('talangan') || val.includes('karyawan')) return 'Cash (Talangan Karyawan)';
-            if (val.includes('transfer') || val.includes('bank')) return 'Transfer';
-            if (val.includes('qris')) return 'QRIS';
-            if (val.includes('deposit')) return 'Full Deposit';
-            return 'Cash (Dana UMKM)'; 
-        };
+      const elItemsContainer = document.getElementById("edit_items_container");
+      if (elItemsContainer) elItemsContainer.innerHTML = itemsHtml;
 
-        const finalM1 = mappingMetode(rawM1) || 'Cash (Dana UMKM)';
-        const finalM2 = mappingMetode(rawM2);
-        const finalM3 = mappingMetode(rawM3);
+      const elGrandTotal = document.getElementById("edit_trx_grand_total");
+      if (elGrandTotal) elGrandTotal.value = trx.grand_total || 0;
 
-        const elMetodeBayar = document.getElementById('edit_metode_bayar');
-        if (elMetodeBayar) elMetodeBayar.value = finalM1;
-        
-        const cbSplit = document.getElementById('cb_split_payment');
-        const containerMetode2 = document.getElementById('container_metode_2');
-        const elMetodeBayar2 = document.getElementById('edit_metode_bayar_2');
-        const containerToggle3 = document.getElementById('container_toggle_3');
-        
-        if (finalM2) {
-            if (cbSplit) cbSplit.checked = true;
-            if (containerMetode2) containerMetode2.style.display = 'block';
-            if (elMetodeBayar2) elMetodeBayar2.value = finalM2;
-            if (containerToggle3) containerToggle3.style.display = 'block';
-        } else {
-            if (cbSplit) cbSplit.checked = false;
-            if (containerMetode2) containerMetode2.style.display = 'none';
-            if (elMetodeBayar2) elMetodeBayar2.value = 'Cash (Dana UMKM)';
-            if (containerToggle3) containerToggle3.style.display = 'none';
-        }
+      let rawM1 = trx.metode_bayar || "";
+      let rawM2 = trx.metode_bayar_2 || "";
+      let rawM3 = trx.metode_bayar_3 || "";
+      if (rawM1.includes("&")) {
+        const splitData = rawM1.split("&").map((s) => s.trim());
+        rawM1 = splitData[0] || "";
+        rawM2 = splitData[1] || "";
+        rawM3 = splitData[2] || "";
+      }
 
-        const cbSplit3 = document.getElementById('cb_split_payment_3');
-        const containerMetode3 = document.getElementById('container_metode_3');
-        const elMetodeBayar3 = document.getElementById('edit_metode_bayar_3');
-        
-        if (finalM3) {
-            if (cbSplit3) cbSplit3.checked = true;
-            if (containerMetode3) containerMetode3.style.display = 'block';
-            if (elMetodeBayar3) elMetodeBayar3.value = finalM3;
-        } else {
-            if (cbSplit3) cbSplit3.checked = false;
-            if (containerMetode3) containerMetode3.style.display = 'none';
-            if (elMetodeBayar3) elMetodeBayar3.value = 'Cash (Dana UMKM)';
-        }
+      const mappingMetode = (val) => {
+        if (!val) return null;
+        val = val.toLowerCase();
+        if (val.includes("talangan") || val.includes("karyawan"))
+          return "Cash (Talangan Karyawan)";
+        if (val.includes("transfer") || val.includes("bank")) return "Transfer";
+        if (val.includes("qris")) return "QRIS";
+        if (val.includes("deposit")) return "Full Deposit";
+        return "Cash (Dana UMKM)";
+      };
 
-        window.renderMetodeDetails(trx);
-        window.openModal('modal-edit-transaksi');
+      const finalM1 = mappingMetode(rawM1) || "Cash (Dana UMKM)";
+      const finalM2 = mappingMetode(rawM2);
+      const finalM3 = mappingMetode(rawM3);
+
+      const elMetodeBayar = document.getElementById("edit_metode_bayar");
+      if (elMetodeBayar) elMetodeBayar.value = finalM1;
+
+      const cbSplit = document.getElementById("cb_split_payment");
+      const containerMetode2 = document.getElementById("container_metode_2");
+      const elMetodeBayar2 = document.getElementById("edit_metode_bayar_2");
+      const containerToggle3 = document.getElementById("container_toggle_3");
+
+      if (finalM2) {
+        if (cbSplit) cbSplit.checked = true;
+        if (containerMetode2) containerMetode2.style.display = "block";
+        if (elMetodeBayar2) elMetodeBayar2.value = finalM2;
+        if (containerToggle3) containerToggle3.style.display = "block";
+      } else {
+        if (cbSplit) cbSplit.checked = false;
+        if (containerMetode2) containerMetode2.style.display = "none";
+        if (elMetodeBayar2) elMetodeBayar2.value = "Cash (Dana UMKM)";
+        if (containerToggle3) containerToggle3.style.display = "none";
+      }
+
+      const cbSplit3 = document.getElementById("cb_split_payment_3");
+      const containerMetode3 = document.getElementById("container_metode_3");
+      const elMetodeBayar3 = document.getElementById("edit_metode_bayar_3");
+
+      if (finalM3) {
+        if (cbSplit3) cbSplit3.checked = true;
+        if (containerMetode3) containerMetode3.style.display = "block";
+        if (elMetodeBayar3) elMetodeBayar3.value = finalM3;
+      } else {
+        if (cbSplit3) cbSplit3.checked = false;
+        if (containerMetode3) containerMetode3.style.display = "none";
+        if (elMetodeBayar3) elMetodeBayar3.value = "Cash (Dana UMKM)";
+      }
+
+      window.renderMetodeDetails(trx);
+      window.openModal("modal-edit-transaksi");
     };
 
-    window.simpanEditTransaksi = async function(e) { 
-        e.preventDefault();
-        if(!window.supabase) return; 
-        
-        // 1. Ambil Tanggal (Wajib) secara aman
-        const elTgl = document.getElementById('edit_trx_tgl');
-        const tglBaru = elTgl ? elTgl.value : '';
-        if (!tglBaru) {
-            if(typeof window.goToEditStep === 'function') window.goToEditStep(1);
-            return alert("Tanggal transaksi wajib diisi!");
-        }
+    window.simpanEditTransaksi = async function (e) {
+      e.preventDefault();
+      if (!window.supabase) return;
 
-        // 🔍 JARING PENGAMAN: Ambil ID Transaksi (Cek id 'edit_trx_id' atau 'edit_id')
-        // Kita paksa diconvert ke Integer (Angka) biar dibaca BigInt oleh Supabase
-        const rawTrxId = document.getElementById('edit_trx_id')?.value || document.getElementById('edit_id')?.value;
-        const trxId = rawTrxId ? parseInt(rawTrxId) : null;
+      // 1. Ambil Tanggal (Wajib) secara aman
+      const elTgl = document.getElementById("edit_trx_tgl");
+      const tglBaru = elTgl ? elTgl.value : "";
+      if (!tglBaru) {
+        if (typeof window.goToEditStep === "function") window.goToEditStep(1);
+        return alert("Tanggal transaksi wajib diisi!");
+      }
 
-        // Jika ID Utama ini tidak ketemu, kita batalkan proses daripada bikin database crash
-        if (!trxId) {
-            return alert("❌ Gagal menyimpan: ID Transaksi tidak ditemukan atau kosong!");
-        }
+      // 🔍 JARING PENGAMAN: Ambil ID Transaksi (Cek id 'edit_trx_id' atau 'edit_id')
+      // Kita paksa diconvert ke Integer (Angka) biar dibaca BigInt oleh Supabase
+      const rawTrxId =
+        document.getElementById("edit_trx_id")?.value ||
+        document.getElementById("edit_id")?.value;
+      const trxId = rawTrxId ? parseInt(rawTrxId) : null;
 
-        const btn = document.getElementById('btn-save-trx');
-        if(btn) { btn.innerText = "Menyimpan..."; btn.disabled = true; }
+      // Jika ID Utama ini tidak ketemu, kita batalkan proses daripada bikin database crash
+      if (!trxId) {
+        return alert(
+          "❌ Gagal menyimpan: ID Transaksi tidak ditemukan atau kosong!",
+        );
+      }
 
-        try {
-            // 2. TANGKAP DATA LAINNYA
-            const penjemputanIdRaw = document.getElementById('edit_penjemputan_id')?.value;
-            const penjemputanId = penjemputanIdRaw ? parseInt(penjemputanIdRaw) : null;
-            
-            const mitraIdRaw = document.getElementById('edit_trx_mitra_select')?.value;
-            const mitraIdTerpilih = (mitraIdRaw === "0" || !mitraIdRaw) ? null : parseInt(mitraIdRaw); 
-            
-            const namaMitraManualText = document.getElementById('edit_nama_mitra_manual')?.value || null;
-            
-            const dpBaru = parseFloat(document.getElementById('edit_trx_dp')?.value) || 0;
-            const totalManual = parseFloat(document.getElementById('edit_trx_grand_total')?.value) || 0;
-            
-            // 3. AMBIL METODE BAYAR
-            const m1 = document.getElementById('edit_metode_bayar')?.value || '';
-            const isSplit = document.getElementById('cb_split_payment')?.checked;
-            const m2 = isSplit ? (document.getElementById('edit_metode_bayar_2')?.value || '') : '';
-            
-            // 4. AMBIL INFO BANK
-            const namaBank = document.getElementById('edit_nama_bank')?.value || null;
-            const noRek = document.getElementById('edit_no_rek')?.value || null;
-            const atasNama = document.getElementById('edit_atas_nama')?.value || null;
-            const photoQris = document.getElementById('edit_photo_qris_url')?.value || null;
+      const btn = document.getElementById("btn-save-trx");
+      if (btn) {
+        btn.innerText = "Menyimpan...";
+        btn.disabled = true;
+      }
 
-            // 5. LOOPING ITEMS
-            const itemsPayload = [];
-            const itemRows = document.querySelectorAll('.edit-item-row');
-            itemRows.forEach(row => {
-                const itemId = row.querySelector('.item_id')?.value;
-                const volBaru = parseFloat(row.querySelector('.item_volume')?.value) || 0;
-                const hargaBaru = parseFloat(row.querySelector('.item_harga')?.value) || 0; 
-                if(itemId) itemsPayload.push({ id: parseInt(itemId), volume: volBaru, harga_unit: hargaBaru });
+      try {
+        // 2. TANGKAP DATA LAINNYA
+        const penjemputanIdRaw = document.getElementById(
+          "edit_penjemputan_id",
+        )?.value;
+        const penjemputanId = penjemputanIdRaw
+          ? parseInt(penjemputanIdRaw)
+          : null;
+
+        const mitraIdRaw = document.getElementById(
+          "edit_trx_mitra_select",
+        )?.value;
+        const mitraIdTerpilih =
+          mitraIdRaw === "0" || !mitraIdRaw ? null : parseInt(mitraIdRaw);
+
+        const namaMitraManualText =
+          document.getElementById("edit_nama_mitra_manual")?.value || null;
+
+        const dpBaru =
+          parseFloat(document.getElementById("edit_trx_dp")?.value) || 0;
+        const totalManual =
+          parseFloat(document.getElementById("edit_trx_grand_total")?.value) ||
+          0;
+
+        // 3. AMBIL METODE BAYAR
+        const m1 = document.getElementById("edit_metode_bayar")?.value || "";
+        const isSplit = document.getElementById("cb_split_payment")?.checked;
+        const m2 = isSplit
+          ? document.getElementById("edit_metode_bayar_2")?.value || ""
+          : "";
+
+        // 4. AMBIL INFO BANK
+        const namaBank =
+          document.getElementById("edit_nama_bank")?.value || null;
+        const noRek = document.getElementById("edit_no_rek")?.value || null;
+        const atasNama =
+          document.getElementById("edit_atas_nama")?.value || null;
+        const photoQris =
+          document.getElementById("edit_photo_qris_url")?.value || null;
+
+        // 5. LOOPING ITEMS
+        const itemsPayload = [];
+        const itemRows = document.querySelectorAll(".edit-item-row");
+        itemRows.forEach((row) => {
+          const itemId = row.querySelector(".item_id")?.value;
+          const volBaru =
+            parseFloat(row.querySelector(".item_volume")?.value) || 0;
+          const hargaBaru =
+            parseFloat(row.querySelector(".item_harga")?.value) || 0;
+          if (itemId)
+            itemsPayload.push({
+              id: parseInt(itemId),
+              volume: volBaru,
+              harga_unit: hargaBaru,
             });
+        });
 
-            // 6. TEMBAK DATABASE (Pastikan p_trx_id tertembak dengan angka valid)
-            const { error } = await window.supabase.rpc('edit_transaksi_mitra', {
-                p_trx_id: trxId, // 🔥 Diisi dengan angka Integer hasil convert di atas
-                p_penjemputan_id: penjemputanId,
-                p_mitra_id: mitraIdTerpilih,
-                p_nama_mitra_tidak_terdaftar: namaMitraManualText,
-                p_tanggal: tglBaru,
-                p_potongan_dp: dpBaru,
-                p_grand_total: totalManual,
-                p_metode_bayar: m1, 
-                p_metode_bayar_2: m2,
-                p_nama_bank: namaBank,
-                p_no_rek: noRek,
-                p_atas_nama: atasNama,
-                p_photo_qris: photoQris,
-                p_items: itemsPayload 
-            });
+        // 6. TEMBAK DATABASE (Pastikan p_trx_id tertembak dengan angka valid)
+        const { error } = await window.supabase.rpc("edit_transaksi_mitra", {
+          p_trx_id: trxId, // 🔥 Diisi dengan angka Integer hasil convert di atas
+          p_penjemputan_id: penjemputanId,
+          p_mitra_id: mitraIdTerpilih,
+          p_nama_mitra_tidak_terdaftar: namaMitraManualText,
+          p_tanggal: tglBaru,
+          p_potongan_dp: dpBaru,
+          p_grand_total: totalManual,
+          p_metode_bayar: m1,
+          p_metode_bayar_2: m2,
+          p_nama_bank: namaBank,
+          p_no_rek: noRek,
+          p_atas_nama: atasNama,
+          p_photo_qris: photoQris,
+          p_items: itemsPayload,
+        });
 
-            if (error) throw error;
-            alert('Mantap! Seluruh data transaksi & pembayaran berhasil di-update!');
-            window.location.reload();
-            
-        } catch(err) {
-            console.error(err);
-            alert("Gagal menyimpan transaksi: " + err.message);
-            if(btn) { btn.innerText = "SIMPAN PERUBAHAN"; btn.disabled = false; }
+        if (error) throw error;
+        alert(
+          "Mantap! Seluruh data transaksi & pembayaran berhasil di-update!",
+        );
+        window.location.reload();
+      } catch (err) {
+        console.error(err);
+        alert("Gagal menyimpan transaksi: " + err.message);
+        if (btn) {
+          btn.innerText = "SIMPAN PERUBAHAN";
+          btn.disabled = false;
         }
+      }
     };
     // ==========================================
     // 7A. FUNGSI PENGISI DATA TEMPLATE STRUK HTML
     // ==========================================
-    window.siapkanDataStruk = function(trx, idStruk) {
-        // 1. Ambil data dasar
-        const tanggalTrx = trx.penjemputan?.tanggal || trx.tanggal_transaksi || '-';
-        const namaPenjual = trx.penjemputan?.mitra?.nama_mitra || trx.nama_mitra_tidak_terdaftar || 'Tanpa Nama Mitra';
-        const namaDriver = trx.driver?.nama || 'Driver Tidak Diketahui';
+    window.siapkanDataStruk = function (trx, idStruk) {
+      // 1. Ambil data dasar
+      const tanggalTrx =
+        trx.penjemputan?.tanggal || trx.tanggal_transaksi || "-";
+      const namaPenjual =
+        trx.penjemputan?.mitra?.nama_mitra ||
+        trx.nama_mitra_tidak_terdaftar ||
+        "Tanpa Nama Mitra";
+      const namaDriver = trx.driver?.nama || "Driver Tidak Diketahui";
 
-        // 2. Tembak ke elemen HTML dasar
-        document.getElementById('str-target-tanggal').innerText = `: ${tanggalTrx}`;
-        document.getElementById('str-target-penjual').innerText = `: ${namaPenjual}`;
-        document.getElementById('str-target-driver').innerText = `: ${namaDriver}`;
-        document.getElementById('str-target-id').innerText = `ID: ${idStruk}`;
+      // 2. Tembak ke elemen HTML dasar
+      document.getElementById("str-target-tanggal").innerText =
+        `: ${tanggalTrx}`;
+      document.getElementById("str-target-penjual").innerText =
+        `: ${namaPenjual}`;
+      document.getElementById("str-target-driver").innerText =
+        `: ${namaDriver}`;
+      document.getElementById("str-target-id").innerText = `ID: ${idStruk}`;
 
-        // 3. Looping detail barang & hitung total kotor
-        let detailBarangHtml = '';
-        let totalKotor = 0;
-        
-        if (trx.transaksi_item && trx.transaksi_item.length > 0) {
-            trx.transaksi_item.forEach(item => {
-                const sub = item.volume * item.harga_unit;
-                totalKotor += sub;
-                // Render baris HTML untuk setiap item (gaya inline CSS biar aman di-convert)
-                detailBarangHtml += `
+      // 3. Looping detail barang & hitung total kotor
+      let detailBarangHtml = "";
+      let totalKotor = 0;
+
+      if (trx.transaksi_item && trx.transaksi_item.length > 0) {
+        trx.transaksi_item.forEach((item) => {
+          const sub = item.volume * item.harga_unit;
+          totalKotor += sub;
+          // Render baris HTML untuk setiap item (gaya inline CSS biar aman di-convert)
+          detailBarangHtml += `
                     <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 8px;">
                         <div style="display: flex; flex-direction: column;">
                             <span style="font-weight: 600; color: #333;">${item.komoditas}</span>
-                            <span style="color: #666; font-size: 10px; margin-top: 2px;">${item.volume} kg x Rp ${item.harga_unit.toLocaleString('id-ID')}</span>
+                            <span style="color: #666; font-size: 10px; margin-top: 2px;">${item.volume} kg x Rp ${item.harga_unit.toLocaleString("id-ID")}</span>
                         </div>
-                        <div style="font-weight: 600;">Rp ${sub.toLocaleString('id-ID')}</div>
+                        <div style="font-weight: 600;">Rp ${sub.toLocaleString("id-ID")}</div>
                     </div>
                 `;
-            });
-        } else {
-            detailBarangHtml = `<div style="font-size: 11px; font-style: italic; color: #999;">Tidak ada rincian barang</div>`;
-        }
-        document.getElementById('str-target-items').innerHTML = detailBarangHtml;
+        });
+      } else {
+        detailBarangHtml = `<div style="font-size: 11px; font-style: italic; color: #999;">Tidak ada rincian barang</div>`;
+      }
+      document.getElementById("str-target-items").innerHTML = detailBarangHtml;
 
-        // 4. Isi ringkasan pembayaran
-        const dp = trx.potongan_dp || 0;
-        const sisa = trx.grand_total || 0;
-        let metodeText = `${trx.metode_bayar || '-'}`;
-        if (trx.metode_bayar_2) metodeText += ` + ${trx.metode_bayar_2}`;
+      // 4. Isi ringkasan pembayaran
+      const dp = trx.potongan_dp || 0;
+      const sisa = trx.grand_total || 0;
+      let metodeText = `${trx.metode_bayar || "-"}`;
+      if (trx.metode_bayar_2) metodeText += ` + ${trx.metode_bayar_2}`;
 
-        document.getElementById('str-target-total').innerText = `Rp ${totalKotor.toLocaleString('id-ID')}`;
-        document.getElementById('str-target-dp').innerText = `Rp ${dp.toLocaleString('id-ID')}`;
-        document.getElementById('str-target-sisa').innerText = `Rp ${sisa.toLocaleString('id-ID')}`;
-        document.getElementById('str-target-metode').innerText = metodeText;
+      document.getElementById("str-target-total").innerText =
+        `Rp ${totalKotor.toLocaleString("id-ID")}`;
+      document.getElementById("str-target-dp").innerText =
+        `Rp ${dp.toLocaleString("id-ID")}`;
+      document.getElementById("str-target-sisa").innerText =
+        `Rp ${sisa.toLocaleString("id-ID")}`;
+      document.getElementById("str-target-metode").innerText = metodeText;
     };
 
     // ==========================================
     // 7. GENERATE STRUK GAMBAR & KIRIM WHATSAPP
     // ==========================================
-    window.kirimStrukWA = async function(trxId, idStruk) {
-        const trx = window.riwayatLunasGlobal?.find(t => String(t.id) === String(trxId));
-        if (!trx) return alert('❌ Data transaksi tidak ditemukan!');
+    window.kirimStrukWA = async function (trxId, idStruk) {
+      const trx = window.riwayatLunasGlobal?.find(
+        (t) => String(t.id) === String(trxId),
+      );
+      if (!trx) return alert("❌ Data transaksi tidak ditemukan!");
 
-        let noHp = trx.penjemputan?.mitra?.nomor_hp || '';
+      let noHp = trx.penjemputan?.mitra?.nomor_hp || "";
 
-        // JARING PENGAMAN: Kalau nomor HP kosong (misal mitra manual / timbang mandiri)
-        if (!noHp) {
-            // Munculkan popup input di layar kasir
-            const inputHp = prompt(`⚠️ Nomor HP Mitra tidak ditemukan di database.\n\nSilakan masukkan nomor HP / WhatsApp tujuan untuk mengirim ID Struk ${idStruk}:`, "08");
-            
-            // Kalau kasir klik cancel, batalkan proses
-            if (inputHp === null) return; 
-            
-            // Kalau kasir langsung klik OK tapi kosong
-            if (!inputHp.trim() || inputHp === "08") {
-                return alert('❌ Proses dibatalkan karena Nomor HP tidak diisi!');
+      // JARING PENGAMAN: Kalau nomor HP kosong (misal mitra manual / timbang mandiri)
+      if (!noHp) {
+        // Munculkan popup input di layar kasir
+        const inputHp = prompt(
+          `⚠️ Nomor HP Mitra tidak ditemukan di database.\n\nSilakan masukkan nomor HP / WhatsApp tujuan untuk mengirim ID Struk ${idStruk}:`,
+          "08",
+        );
+
+        // Kalau kasir klik cancel, batalkan proses
+        if (inputHp === null) return;
+
+        // Kalau kasir langsung klik OK tapi kosong
+        if (!inputHp.trim() || inputHp === "08") {
+          return alert("❌ Proses dibatalkan karena Nomor HP tidak diisi!");
+        }
+
+        noHp = inputHp;
+      }
+
+      // Bersihkan dan format nomor HP (Sama kayak kode lama lu)
+      noHp = noHp.replace(/\D/g, "");
+      if (noHp.startsWith("620")) noHp = "62" + noHp.substring(3);
+      else if (noHp.startsWith("0")) noHp = "62" + noHp.substring(1);
+      else if (noHp.startsWith("8")) noHp = "62" + noHp;
+
+      // 1. Tembak data ke template HTML (Menggunakan fungsi Tahap 2)
+      window.siapkanDataStruk(trx, idStruk);
+
+      // 2. Persiapkan elemen agar bisa difoto html2canvas
+      const targetEl = document.getElementById("struk-wa-template");
+      const wrapper = targetEl.parentElement; // Ini div class="hidden" dari Tahap 1
+
+      // Tampilkan sementara di luar layar (biar html2canvas bisa baca)
+      wrapper.classList.remove("hidden");
+      wrapper.style.position = "absolute";
+      wrapper.style.top = "-9999px";
+      wrapper.style.left = "-9999px";
+
+      try {
+        // 3. Render HTML menjadi Canvas
+        const canvas = await html2canvas(targetEl, {
+          scale: 2, // Resolusi 2x lipat biar teks struknya tajam / gak pecah
+          useCORS: true, // Izin baca gambar/logo dari luar
+          backgroundColor: "#ffffff",
+        });
+
+        // Kembalikan ke mode hidden
+        wrapper.classList.add("hidden");
+        wrapper.style.position = "";
+        wrapper.style.top = "";
+        wrapper.style.left = "";
+
+        // 4. Ubah Canvas jadi Blob (File Gambar)
+        canvas.toBlob(async (blob) => {
+          if (!blob) return alert("Gagal membuat gambar struk!");
+
+          const fileName = `${idStruk}.png`;
+          const file = new File([blob], fileName, { type: "image/png" });
+          // Ganti bagian const textWA yang lama dengan ini:
+          const textWA = `Terima kasih Kak 🙏\nTransaksi sudah kami verifikasi dan berhasil diproses.\nKami sangat menghargai kepercayaan Kakak kepada Bang Jelantah Purwakarta. 😊\n\nID Struk: ${idStruk}`;
+
+          // 5. CABANG LOGIKA: HP (Mobile) vs Laptop (Desktop)
+          // Cek apakah browser support Web Share API (biasanya di HP)
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+              // Di HP: Akan muncul popup "Share via WhatsApp" bawaan HP (langsung sama gambarnya)
+              await navigator.share({
+                files: [file],
+                title: "Struk Bang Jelantah",
+                text: textWA,
+              });
+            } catch (err) {
+              console.log("Share dibatalkan user:", err);
             }
-            
-            noHp = inputHp;
-        }
-        
-        // Bersihkan dan format nomor HP (Sama kayak kode lama lu)
-        noHp = noHp.replace(/\D/g, '');
-        if (noHp.startsWith('620')) noHp = '62' + noHp.substring(3);
-        else if (noHp.startsWith('0')) noHp = '62' + noHp.substring(1);
-        else if (noHp.startsWith('8')) noHp = '62' + noHp;
+          } else {
+            // Fallback untuk Desktop/Laptop (WA Web gak support direct attachment via link)
+            // a. Download gambar ke laptop otomatis
+            const downloadUrl = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = downloadUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(downloadUrl);
 
-        // 1. Tembak data ke template HTML (Menggunakan fungsi Tahap 2)
-        window.siapkanDataStruk(trx, idStruk);
-
-        // 2. Persiapkan elemen agar bisa difoto html2canvas
-        const targetEl = document.getElementById('struk-wa-template');
-        const wrapper = targetEl.parentElement; // Ini div class="hidden" dari Tahap 1
-        
-        // Tampilkan sementara di luar layar (biar html2canvas bisa baca)
-        wrapper.classList.remove('hidden');
-        wrapper.style.position = 'absolute';
-        wrapper.style.top = '-9999px';
-        wrapper.style.left = '-9999px';
-
-        try {
-            // 3. Render HTML menjadi Canvas
-            const canvas = await html2canvas(targetEl, {
-                scale: 2, // Resolusi 2x lipat biar teks struknya tajam / gak pecah
-                useCORS: true, // Izin baca gambar/logo dari luar
-                backgroundColor: '#ffffff'
-            });
-
-            // Kembalikan ke mode hidden
-            wrapper.classList.add('hidden');
-            wrapper.style.position = '';
-            wrapper.style.top = '';
-            wrapper.style.left = '';
-
-            // 4. Ubah Canvas jadi Blob (File Gambar)
-            canvas.toBlob(async (blob) => {
-                if (!blob) return alert('Gagal membuat gambar struk!');
-                
-                const fileName = `${idStruk}.png`;
-                const file = new File([blob], fileName, { type: 'image/png' });
-                // Ganti bagian const textWA yang lama dengan ini:
-                const textWA = `Terima kasih Kak 🙏\nTransaksi sudah kami verifikasi dan berhasil diproses.\nKami sangat menghargai kepercayaan Kakak kepada Bang Jelantah Purwakarta. 😊\n\nID Struk: ${idStruk}`;
-
-                // 5. CABANG LOGIKA: HP (Mobile) vs Laptop (Desktop)
-                // Cek apakah browser support Web Share API (biasanya di HP)
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    try {
-                        // Di HP: Akan muncul popup "Share via WhatsApp" bawaan HP (langsung sama gambarnya)
-                        await navigator.share({
-                            files: [file],
-                            title: 'Struk Bang Jelantah',
-                            text: textWA
-                        });
-                    } catch (err) {
-                        console.log('Share dibatalkan user:', err);
-                    }
-                } else {
-                    // Fallback untuk Desktop/Laptop (WA Web gak support direct attachment via link)
-                    // a. Download gambar ke laptop otomatis
-                    const downloadUrl = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = downloadUrl;
-                    a.download = fileName;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(downloadUrl);
-
-                    // b. Kasih notif ke kasir & buka WA Web
-                    alert('📥 Gambar struk otomatis ter-download ke laptop!\n\nSilakan klik "Attach / Lampirkan Gambar" di WhatsApp Web lalu pilih file gambar yang baru saja di-download.');
-                    const waUrl = `https://wa.me/${noHp}?text=${encodeURIComponent(textWA)}`;
-                    window.open(waUrl, '_blank');
-                }
-            }, 'image/png');
-
-        } catch (error) {
-            console.error('Error jepret struk:', error);
-            alert('Terjadi kesalahan saat memproses gambar struk.');
-            // Pastikan disembunyikan lagi kalau error
-            wrapper.classList.add('hidden');
-        }
+            // b. Kasih notif ke kasir & buka WA Web
+            alert(
+              '📥 Gambar struk otomatis ter-download ke laptop!\n\nSilakan klik "Attach / Lampirkan Gambar" di WhatsApp Web lalu pilih file gambar yang baru saja di-download.',
+            );
+            const waUrl = `https://wa.me/${noHp}?text=${encodeURIComponent(textWA)}`;
+            window.open(waUrl, "_blank");
+          }
+        }, "image/png");
+      } catch (error) {
+        console.error("Error jepret struk:", error);
+        alert("Terjadi kesalahan saat memproses gambar struk.");
+        // Pastikan disembunyikan lagi kalau error
+        wrapper.classList.add("hidden");
+      }
     };
   });
 </script>

@@ -651,26 +651,22 @@ const tabs = [
     document.body.style.display = "block"; // Buka gembok CSS, tampilkan layar!
 
     // ==============================================================
-    // 1. FETCH DATA GUDANG (CLIENT-SIDE)
+    // 1A. FETCH DATA STOK GUDANG (Dipanggil sekali saat awal)
     // ==============================================================
-    async function loadGudangData() {
+    async function loadStokData() {
       if (!window.supabase) return;
 
-      // A. Ambil Data Stok Komoditas
       const { data: komoditas, error: errKom } = await window.supabase
         .from("gudang_komoditas")
         .select("*");
       if (!errKom && komoditas) {
         komoditas.forEach((k) => {
-          // 🔥 KUNCI UTAMANYA DI SINI: Pakai parseFloat lalu toFixed(2)
           const stokAngka = parseFloat(k.stok || 0);
           const stokFormatted = stokAngka.toFixed(2);
 
-          // Update angka di Dashboard
           const elStok = document.getElementById(`stok-${k.id}`);
           if (elStok) elStok.innerText = stokFormatted;
 
-          // Update batas maksimal di form Produksi Olahan
           if (k.id === "minyak_jelantah") {
             const el = document.getElementById("max_minyak_jelantah");
             if (el) el.innerText = stokFormatted;
@@ -684,37 +680,74 @@ const tabs = [
             if (el) el.innerText = stokFormatted;
           }
 
-          // Update data-stok di dropdown form Kalibrasi
           const opt = document.querySelector(
             `#kalibrasiKomoditas option[value="${k.id}"]`,
           );
-          if (opt) opt.setAttribute("data-stok", stokAngka); // Biarkan angka asli untuk hitungan mesin
+          if (opt) opt.setAttribute("data-stok", stokAngka);
         });
       }
+    }
 
-      const getBadgeColorJs = (jenis) => {
-        if (jenis === "Masuk") return "bg-green-100 text-green-700";
-        if (jenis === "Keluar") return "bg-red-100 text-red-700";
-        if (jenis === "Olahan") return "bg-blue-100 text-blue-700";
-        return "bg-yellow-100 text-yellow-700";
-      };
+    // ==============================================================
+    // 1B. FETCH DATA RIWAYAT MUTASI (SERVER-SIDE FILTERING)
+    // ==============================================================
+    async function loadMutasiData(
+      filterStart = null,
+      filterEnd = null,
+      filterKomoditas = "Semua",
+    ) {
+      if (!window.supabase) return;
 
-      // B. Ambil Data Riwayat Mutasi (Limit 30)
-      const { data: mutasi, error: errMut } = await window.supabase
+      const tbody = document.getElementById("tabelRiwayat");
+      if (tbody)
+        tbody.innerHTML =
+          '<tr><td colspan="5" class="text-center py-4 text-gray-500 font-medium"><i class="bi bi-hourglass-split mr-2"></i>Memuat data riwayat...</td></tr>';
+
+      // SET DEFAULT: 7 Hari Terakhir jika tidak ada filter tanggal
+      let startDate, endDate;
+
+      if (!filterStart || !filterEnd) {
+        const today = new Date();
+        const lastWeek = new Date();
+        lastWeek.setDate(today.getDate() - 7);
+
+        // Format YYYY-MM-DD
+        endDate = today.toISOString().split("T")[0] + "T23:59:59.999Z";
+        startDate = lastWeek.toISOString().split("T")[0] + "T00:00:00.000Z";
+      } else {
+        // Jika user memilih tanggal, pastikan mencakup dari jam 00:00 sampai 23:59
+        startDate = filterStart + "T00:00:00.000Z";
+        endDate = filterEnd + "T23:59:59.999Z";
+      }
+
+      // Susun Query Supabase secara Dinamis
+      let query = window.supabase
         .from("gudang_mutasi")
-        // 🔥 FIX 1: Panggil relasi langsung pakai nama tabelnya
         .select("*, gudang_komoditas(nama_komoditas)")
-        // 🔥 FIX 2: Kembalikan ke 'tanggal' (Gudang mutasi lu ternyata pakai ini)
-        .order("tanggal", { ascending: false })
-        .limit(100);
+        .gte("tanggal", startDate) // Greater than or equal (Dari tanggal)
+        .lte("tanggal", endDate) // Less than or equal (Sampai tanggal)
+        .order("tanggal", { ascending: false });
+
+      // Jika user memfilter komoditas spesifik, tambahkan query pencarian
+      if (filterKomoditas !== "Semua") {
+        query = query.eq("komoditas_id", filterKomoditas);
+      }
+
+      // Eksekusi tembakan ke database
+      const { data: mutasi, error: errMut } = await query;
 
       if (!errMut && mutasi) {
-        const tbody = document.getElementById("tabelRiwayat");
-        let html = "";
+        const getBadgeColorJs = (jenis) => {
+          if (jenis === "Masuk") return "bg-green-100 text-green-700";
+          if (jenis === "Keluar") return "bg-red-100 text-red-700";
+          if (jenis === "Olahan") return "bg-blue-100 text-blue-700";
+          return "bg-yellow-100 text-yellow-700";
+        };
 
+        let html = "";
         if (mutasi.length === 0) {
           html =
-            '<tr><td colspan="5" class="text-center py-4 text-gray-500">Belum ada riwayat mutasi.</td></tr>';
+            '<tr><td colspan="5" class="text-center py-4 text-gray-500">Belum ada riwayat mutasi pada periode yang dipilih.</td></tr>';
         } else {
           mutasi.forEach((item) => {
             const tgl = new Date(item.tanggal).toLocaleString("id-ID");
@@ -728,15 +761,9 @@ const tabs = [
             const ket = item.keterangan ? item.keterangan : "-";
             const jumlahFormatted = parseFloat(item.jumlah || 0).toFixed(2);
 
-            // PERBAHARUAN TAHAP 1:
-            // Ekstrak tanggal mentah (format YYYY-MM-DD) untuk atribut data-date
-            const rawDate = item.tanggal
-              ? item.tanggal.split("T")[0].split(" ")[0]
-              : "";
-
-            // PERBAHARUAN: Gunakan item.komoditas_id untuk filternya, bukan namaK
+            // Atribut data-date sudah dihapus karena filter kini diurus oleh database
             html += `
-                    <tr class="hover:bg-gray-50 transition" data-date="${rawDate}" data-komoditas="${item.komoditas_id}">
+                    <tr class="hover:bg-gray-50 transition">
                         <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">${tgl}</td>
                         <td class="px-6 py-4">
                             <span class="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${badge}">${item.jenis_mutasi}</span>
@@ -751,10 +778,14 @@ const tabs = [
         if (tbody) tbody.innerHTML = html;
       } else if (errMut) {
         console.error("Gagal narik mutasi:", errMut.message);
+        if (tbody)
+          tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-red-500">Gagal memuat data: ${errMut.message}</td></tr>`;
       }
     }
 
-    loadGudangData();
+    // Panggil kedua fungsi saat halaman pertama kali dibuka
+    loadStokData();
+    loadMutasiData();
 
     // ==============================================================
     // 2. LOGIKA TAB SWITCHING
@@ -896,27 +927,22 @@ const tabs = [
             throw new Error("Gagal simpan data olahan: " + errOlahan.message);
 
           const mutasiEntries = [];
-
-          // Fungsi bantu agar stok dipastikan berupa angka (parseFloat), mencegah error penggabungan string
+          // Fungsi bantu (SUDAH ANTI RACE-CONDITION)
           const updateStok = async (
             id_komoditas,
             qty_perubahan,
             keterangan,
           ) => {
             if (qty_perubahan === 0) return;
-            const { data: c, error: errC } = await supabaseClient
-              .from("gudang_komoditas")
-              .select("stok")
-              .eq("id", id_komoditas)
-              .single();
-            if (errC && errC.code !== "PGRST116")
-              throw new Error(`Cek stok ${id_komoditas} gagal!`);
 
-            const stokLama = c ? parseFloat(c.stok) : 0;
-            const { error: errUpdate } = await supabaseClient
-              .from("gudang_komoditas")
-              .update({ stok: stokLama + qty_perubahan })
-              .eq("id", id_komoditas);
+            // Langsung tembak RPC, biarkan database yang menghitung secara atomik
+            const { error: errUpdate } = await supabaseClient.rpc(
+              "update_stok_komoditas",
+              {
+                p_id: id_komoditas,
+                p_qty: qty_perubahan,
+              },
+            );
             if (errUpdate)
               throw new Error(`Update stok ${id_komoditas} gagal!`);
 
@@ -935,25 +961,18 @@ const tabs = [
           // C. RUMUS PENGGABUNGAN MINYAK (Minyak Hasil - Minyak Kotor)
           const selisihMinyak = jelantah - minyak_jelantah;
           if (selisihMinyak !== 0 || minyak_jelantah > 0 || jelantah > 0) {
-            const { data: c, error: errC } = await supabaseClient
-              .from("gudang_komoditas")
-              .select("stok")
-              .eq("id", "minyak_jelantah")
-              .single();
-            if (errC && errC.code !== "PGRST116")
-              throw new Error("Gagal cek stok minyak_jelantah!");
-
-            const stokLamaMinyak = c ? parseFloat(c.stok) : 0;
-            const stokBaruMinyak = stokLamaMinyak + selisihMinyak;
-
-            const { error: errUpdate } = await supabaseClient
-              .from("gudang_komoditas")
-              .update({ stok: stokBaruMinyak })
-              .eq("id", "minyak_jelantah");
+            // Langsung eksekusi perubahan matematika di level database
+            const { error: errUpdate } = await supabaseClient.rpc(
+              "update_stok_komoditas",
+              {
+                p_id: "minyak_jelantah",
+                p_qty: selisihMinyak,
+              },
+            );
             if (errUpdate)
               throw new Error("Gagal update total stok minyak_jelantah!");
 
-            // Catat riwayat audit biar kelihatan kotor keluarnya berapa, bersih masuknya berapa
+            // Catat riwayat audit
             if (minyak_jelantah > 0)
               mutasiEntries.push({
                 jenis_mutasi: "Olahan",
@@ -1010,15 +1029,15 @@ const tabs = [
         btn.disabled = true;
 
         try {
-          const { data: currentData } = await window.supabase
-            .from("gudang_komoditas")
-            .select("stok")
-            .eq("id", "spinner")
-            .single();
-          await window.supabase
-            .from("gudang_komoditas")
-            .update({ stok: currentData.stok + inputQty })
-            .eq("id", "spinner");
+          // Langsung pakai RPC untuk input manual
+          const { error: errUpdate } = await window.supabase.rpc(
+            "update_stok_komoditas",
+            {
+              p_id: "spinner",
+              p_qty: inputQty,
+            },
+          );
+          if (errUpdate) throw new Error(errUpdate.message);
 
           await window.supabase.from("gudang_mutasi").insert([
             {
@@ -1208,7 +1227,7 @@ const tabs = [
     // Jalankan auto-load saat buka halaman
     window.loadGalon();
     // ==============================================================
-    // FUNGSI FILTER TABEL RIWAYAT MUTASI GUDANG
+    // FUNGSI TRIGGER TOMBOL FILTER (SERVER-SIDE)
     // ==============================================================
     window.filterTabelMutasi = function () {
       const start = document.getElementById("filter-start-mutasi").value;
@@ -1220,40 +1239,12 @@ const tabs = [
       // Peringatan jika user hanya mengisi salah satu tanggal (awal atau akhir saja)
       if ((start && !end) || (!start && end)) {
         return alert(
-          "Pilih tanggal awal dan akhir untuk filter waktu, atau kosongkan keduanya jika hanya ingin memfilter komoditas!",
+          "Pilih tanggal awal dan akhir untuk filter waktu, atau kosongkan keduanya jika ingin mencari komoditas dalam 7 hari terakhir!",
         );
       }
 
-      // Looping semua baris di dalam tabel mutasi
-      document.querySelectorAll("#tabel-mutasi tbody tr").forEach((tr) => {
-        // Abaikan baris "Memuat..." atau baris tabel kosong yang tidak memiliki atribut data
-        if (!tr.hasAttribute("data-date")) return;
-
-        const date = tr.getAttribute("data-date");
-        const komoditas = tr.getAttribute("data-komoditas");
-
-        let matchDate = true;
-        // Cek apakah rentang tanggal dipilih
-        if (start && end && date) {
-          matchDate = date >= start && date <= end;
-        }
-
-        let matchKomoditas = true;
-        // Cek apakah opsi komoditas spesifik dipilih (bukan "Semua")
-        if (filterKomoditas !== "Semua" && komoditas) {
-          // Jadikan huruf kecil semua dan gunakan .includes() agar pencarian lebih fleksibel
-          matchKomoditas = komoditas
-            .toLowerCase()
-            .includes(filterKomoditas.toLowerCase());
-        }
-
-        // Tampilkan baris HANYA JIKA lolos evaluasi kedua filter (tanggal dan komoditas)
-        if (matchDate && matchKomoditas) {
-          tr.style.display = "";
-        } else {
-          tr.style.display = "none";
-        }
-      });
+      // Tembak ulang ke Supabase menggunakan parameter filter
+      loadMutasiData(start, end, filterKomoditas);
     };
   });
 </script>

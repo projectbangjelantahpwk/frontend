@@ -1,19 +1,20 @@
 ---
 // pages/index.astro
-import Layout from '../layouts/Layout.astro';
-import KPICard from '../components/dashboard/KPICard.astro';
-import StokKomoditasChart from '../components/dashboard/StokKomoditasChart.astro';
-import TransaksiKomoditasChart from '../components/dashboard/TransaksiKomoditasChart.astro';
-import SumberTransaksiChart from '../components/dashboard/SumberTransaksiChart.astro';
-import JenisPelangganTransaksiChart from '../components/dashboard/JenisPelangganTransaksiChart.astro';
-import LeaderboardMitra from '../components/dashboard/LeaderboardMitra.astro';
-import BestEmployees from '../components/dashboard/BestEmployees.astro';
-import BukuKasHarian from '../components/dashboard/BukuKasHarian.astro';
-import SalesMetricsWithProgress from '../components/dashboard/SalesMetricsWithProgress.astro';
-import SalaryMetricsWithProgress from '../components/dashboard/SalaryMetricsWithProgress.astro';
-import ExpenditureMetricsWithProgress from '../components/dashboard/ExpenditureMetricsWithProgress.astro';
-import IncomeMetricsWithProgress from  '../components/dashboard/IncomeMetricsWithProgress.astro';
-import ProfitMingguanChart from '../components/dashboard/ProfitMingguanChart.astro';
+import Layout from "../layouts/Layout.astro";
+import KPICard from "../components/dashboard/KPICard.astro";
+import StokKomoditasChart from "../components/dashboard/StokKomoditasChart.astro";
+import TransaksiKomoditasChart from "../components/dashboard/TransaksiKomoditasChart.astro";
+import TransaksiGudangChart from "../components/dashboard/TransaksiGudangHarian.astro";
+import SumberTransaksiChart from "../components/dashboard/SumberTransaksiChart.astro";
+import JenisPelangganTransaksiChart from "../components/dashboard/JenisPelangganTransaksiChart.astro";
+import LeaderboardMitra from "../components/dashboard/LeaderboardMitra.astro";
+import BestEmployees from "../components/dashboard/BestEmployees.astro";
+import BukuKasHarian from "../components/dashboard/BukuKasHarian.astro";
+import SalesMetricsWithProgress from "../components/dashboard/SalesMetricsWithProgress.astro";
+import SalaryMetricsWithProgress from "../components/dashboard/SalaryMetricsWithProgress.astro";
+import ExpenditureMetricsWithProgress from "../components/dashboard/ExpenditureMetricsWithProgress.astro";
+import IncomeMetricsWithProgress from "../components/dashboard/IncomeMetricsWithProgress.astro";
+import ProfitMingguanChart from "../components/dashboard/ProfitMingguanChart.astro";
 
 // Data Best Employees
 const employeesData = [
@@ -27,7 +28,7 @@ const employeesData = [
     percentage: "93.3%",
     percentageColor: "text-success",
     borderColor: "border-success/20",
-    bgColor: "bg-success/5"
+    bgColor: "bg-success/5",
   },
   {
     category: "Paling Tepat Waktu",
@@ -39,7 +40,7 @@ const employeesData = [
     percentage: "90%",
     percentageColor: "text-primary",
     borderColor: "border-primary/20",
-    bgColor: "bg-primary/5"
+    bgColor: "bg-primary/5",
   },
   {
     category: "Rajin Tadarus Al-Quran",
@@ -51,116 +52,128 @@ const employeesData = [
     percentage: "83.3%",
     percentageColor: "text-secondary",
     borderColor: "border-secondary/20",
-    bgColor: "bg-secondary/5"
-  }
+    bgColor: "bg-secondary/5",
+  },
 ];
 ---
 
 <Layout title="Dashboard - Manajemen Bang Jelantah">
-    <div class="min-h-screen bg-gradient-to-br from-surface via-surface-container-lowest to-surface">
-        <div class="max-w-7xl mx-auto px-md py-lg space-y-lg">
+  <div
+    class="min-h-screen bg-gradient-to-br from-surface via-surface-container-lowest to-surface"
+  >
+    <div class="max-w-7xl mx-auto px-md py-lg space-y-lg">
+      <!-- SECTION 1: KPI CARDS (5 KOLOM) -->
+      <KPICard />
 
-            <!-- SECTION 1: KPI CARDS (5 KOLOM) -->
-            <KPICard />
+      <!-- SECTION 2: CHARTS GRID (4 AREA CHARTS) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
+        <StokKomoditasChart />
+        <TransaksiKomoditasChart />
+      </div>
 
-            <!-- SECTION 2: CHARTS GRID (4 AREA CHARTS) -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
-                <StokKomoditasChart />
-                <TransaksiKomoditasChart/>
-            </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
+        <SumberTransaksiChart />
+        <TransaksiGudangChart />
+      </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
-                <SumberTransaksiChart/>
-                <JenisPelangganTransaksiChart/>
-            </div>
+      <div class="grid grid-cols-1 lg:grid-cols-1 gap-lg">
+        <JenisPelangganTransaksiChart />
+      </div>
 
-            <!-- SECTION 3: LEADERBOARD & TOP PERFORMERS -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
-                <LeaderboardMitra /> 
-                <BestEmployees employees={employeesData} />
-            </div>
-            <div id="area-rahasia" class="hidden space-y-lg">
-                <!-- SECTION 4: BUKU KAS HARIAN -->
-                <BukuKasHarian />
+      <!-- SECTION 3: LEADERBOARD & TOP PERFORMERS -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
+        <LeaderboardMitra />
+        <BestEmployees employees={employeesData} />
+      </div>
+      <div id="area-rahasia" class="hidden space-y-lg">
+        <!-- SECTION 4: BUKU KAS HARIAN -->
+        <BukuKasHarian />
 
-                <!-- SECTION 5: METRICS DENGAN DATA REAL -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
-                    <SalaryMetricsWithProgress />
-                    <ExpenditureMetricsWithProgress />
-                    <SalesMetricsWithProgress />
-                    <IncomeMetricsWithProgress/>
-                </div>
-
-                <!-- SECTION 6: PROFIT MINGGUAN (Hidden untuk non-owner/IT) -->
-                <ProfitMingguanChart/>
-            </div>
+        <!-- SECTION 5: METRICS DENGAN DATA REAL -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
+          <SalaryMetricsWithProgress />
+          <ExpenditureMetricsWithProgress />
+          <SalesMetricsWithProgress />
+          <IncomeMetricsWithProgress />
         </div>
-    </div>
 
-    <script>
+        <!-- SECTION 6: PROFIT MINGGUAN (Hidden untuk non-owner/IT) -->
+        <ProfitMingguanChart />
+      </div>
+    </div>
+  </div>
+
+  <script>
     // 1. WAJIB IMPORT SUPABASE DI SINI (Sesuaikan letak folder lib lu)
-    import { supabase } from '../lib/supabase'; 
+    import { supabase } from "../lib/supabase";
 
     // 2. BUNGKUS DENGAN DOMContentLoaded BIAR HTML JADI DULU
-    document.addEventListener('DOMContentLoaded', async () => {
-        try {
-            // 3. TARIK SESSION USER DULU
-            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-            
-            // Kalau belum login atau error, hentikan script biar nggak crash
-            if (sessionError || !session) return; 
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        // 3. TARIK SESSION USER DULU
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
 
-            // 4. CEK ROLE DARI TABEL PROFILES
-            const { data: prof, error: roleError } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', session.user.id)
-                .single();
+        // Kalau belum login atau error, hentikan script biar nggak crash
+        if (sessionError || !session) return;
 
-            if (roleError) throw roleError;
+        // 4. CEK ROLE DARI TABEL PROFILES
+        const { data: prof, error: roleError } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single();
 
-            // 5. BUKA GEMBOK AREA RAHASIA JIKA OWNER / IT
-            if (prof?.role === 'owner' || prof?.role === 'it') {
-                const areaRahasia = document.getElementById('area-rahasia');
-                if (areaRahasia) {
-                    areaRahasia.classList.remove('hidden'); 
-                }
+        if (roleError) throw roleError;
 
-                // 6. FETCH DATA PROFIT MINGGUAN (CSR)
-                const { data: profitWeeklyRaw, error: errProfit } = await supabase
-                    .from('rekap_penjualan_mingguan')
-                    .select('minggu_ke, periode, total_penjualan')
-                    .order('minggu_ke', { ascending: true })
-                    .limit(4);
+        // 5. BUKA GEMBOK AREA RAHASIA JIKA OWNER / IT
+        if (prof?.role === "owner" || prof?.role === "it") {
+          const areaRahasia = document.getElementById("area-rahasia");
+          if (areaRahasia) {
+            areaRahasia.classList.remove("hidden");
+          }
 
-                if (errProfit) throw errProfit;
+          // 6. FETCH DATA PROFIT MINGGUAN (CSR)
+          const { data: profitWeeklyRaw, error: errProfit } = await supabase
+            .from("rekap_penjualan_mingguan")
+            .select("minggu_ke, periode, total_penjualan")
+            .order("minggu_ke", { ascending: true })
+            .limit(4);
 
-                if (profitWeeklyRaw) {
-                    const container = document.getElementById('profit-weekly-list');
-                    const totalEl = document.getElementById('profit-total-sebulan');
-                    
-                    let htmlList = '';
-                    let totalAccumulated = 0;
+          if (errProfit) throw errProfit;
 
-                    profitWeeklyRaw.forEach(item => {
-                        const val = Number(item.total_penjualan || 0);
-                        totalAccumulated += val;
-                        htmlList += `
+          if (profitWeeklyRaw) {
+            const container = document.getElementById("profit-weekly-list");
+            const totalEl = document.getElementById("profit-total-sebulan");
+
+            let htmlList = "";
+            let totalAccumulated = 0;
+
+            profitWeeklyRaw.forEach((item) => {
+              const val = Number(item.total_penjualan || 0);
+              totalAccumulated += val;
+              htmlList += `
                             <div class="flex justify-between items-center p-sm bg-success/5 rounded-lg border border-success/20">
                                 <span class="text-label-sm">Minggu ${item.minggu_ke}</span>
-                                <span class="font-bold text-success">Rp ${val.toLocaleString('id-ID')}</span>
+                                <span class="font-bold text-success">Rp ${val.toLocaleString("id-ID")}</span>
                             </div>
                         `;
-                    });
+            });
 
-                    if (container) container.innerHTML = htmlList || '<p class="text-xs text-gray-500 text-center py-4">Belum ada data profit.</p>';
-                    if (totalEl) totalEl.innerText = `Rp ${totalAccumulated.toLocaleString('id-ID')}`;
-                }
-            }
-        } catch (error) {
-            // 7. TANGKAP ERROR BIAR KELIATAN DI F12 BROWSER
-            console.error("🛑 Gagal memuat area rahasia:", error);
+            if (container)
+              container.innerHTML =
+                htmlList ||
+                '<p class="text-xs text-gray-500 text-center py-4">Belum ada data profit.</p>';
+            if (totalEl)
+              totalEl.innerText = `Rp ${totalAccumulated.toLocaleString("id-ID")}`;
+          }
         }
+      } catch (error) {
+        // 7. TANGKAP ERROR BIAR KELIATAN DI F12 BROWSER
+        console.error("🛑 Gagal memuat area rahasia:", error);
+      }
     });
-</script>
+  </script>
 </Layout>

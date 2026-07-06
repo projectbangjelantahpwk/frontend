@@ -768,6 +768,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 <script is:inline>
   let dataGlobalGaji = null;
   let dataKaryawan = [];
+  let currentUserId = null;
 
   document.addEventListener("DOMContentLoaded", async () => {
     // === 🛡️ GATEKEEPER KEUANGAN ===
@@ -778,6 +779,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       data: { session },
     } = await client.auth.getSession();
     if (!session) return window.location.replace("/");
+    currentUserId = session.user.id;
 
     const { data: prof } = await client
       .from("profiles")

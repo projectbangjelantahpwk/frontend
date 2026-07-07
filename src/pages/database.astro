@@ -2494,16 +2494,7 @@ const statusBadgeColors = {
         parseFloat(document.getElementById("manual_kasbon").value) || 0;
 
       let total =
-        pGaji +
-        pLembur +
-        pMakan +
-        pKes +
-        pBTepat +
-        pBMinggu +
-        pKes +
-        pBTepat +
-        pBMinggu -
-        pKasbon;
+        pGaji + pLembur + pMakan + pKes + pBTepat + pBMinggu - pKasbon;
       if (total < 0) total = 0;
 
       document.getElementById("manual_grandtotal").innerText =

@@ -122,12 +122,21 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           </select>
         </div>
 
-        <button
-          id="btn-filter-gaji"
-          class="bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-800 transition"
-        >
-          Saring Riwayat
-        </button>
+        <div class="flex gap-2">
+          <button
+            id="btn-filter-gaji"
+            class="bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-800 transition shadow-sm"
+          >
+            <i class="bi bi-funnel"></i> Filter
+          </button>
+          <button
+            onclick="window.exportExcelRiwayat()"
+            class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition shadow-sm"
+            title="Download Excel"
+          >
+            <i class="bi bi-file-earmark-excel"></i> Excel
+          </button>
+        </div>
       </div>
     </div>
 
@@ -809,6 +818,110 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     </div>
   </div>
 </div>
+<div class="hidden">
+  <div
+    id="template-slip-gambar"
+    style="width: 380px; background-color: #ffffff; padding: 24px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; box-sizing: border-box; line-height: 1.5; border: 1px solid #eee;"
+  >
+    <div
+      style="text-align: center; border-bottom: 2px dashed #ccc; padding-bottom: 12px; margin-bottom: 16px;"
+    >
+      <h2 style="margin: 0; color: #166534; font-size: 20px; font-weight: 800;">
+        BANG JELANTAH
+      </h2>
+      <p
+        style="margin: 4px 0 0; font-size: 12px; color: #666; font-weight: bold;"
+      >
+        SLIP GAJI KARYAWAN
+      </p>
+    </div>
+
+    <table style="width: 100%; font-size: 12px; margin-bottom: 16px;">
+      <tr
+        ><td style="color: #666; width: 35%;">Nama</td><td
+          style="font-weight: bold;"
+          id="slip-nama">: -</td
+        ></tr
+      >
+      <tr
+        ><td style="color: #666;">Periode</td><td
+          style="font-weight: bold;"
+          id="slip-periode">: -</td
+        ></tr
+      >
+      <tr
+        ><td style="color: #666;">Status</td><td
+          style="font-weight: bold; color: #166534;"
+          id="slip-status">: -</td
+        ></tr
+      >
+    </table>
+
+    <div
+      style="font-size: 11px; font-weight: bold; background: #f3f4f6; padding: 6px; margin-bottom: 8px;"
+    >
+      PENERIMAAN
+    </div>
+    <table style="width: 100%; font-size: 12px; margin-bottom: 12px;">
+      <tr
+        ><td>Gaji Pokok</td><td style="text-align: right;" id="slip-gaji"
+          >Rp 0</td
+        ></tr
+      >
+      <tr
+        ><td>Uang Lembur</td><td style="text-align: right;" id="slip-lembur"
+          >Rp 0</td
+        ></tr
+      >
+      <tr
+        ><td>Uang Makan</td><td style="text-align: right;" id="slip-makan"
+          >Rp 0</td
+        ></tr
+      >
+      <tr
+        ><td>Total Bonus</td><td style="text-align: right;" id="slip-bonus"
+          >Rp 0</td
+        ></tr
+      >
+    </table>
+
+    <div
+      style="font-size: 11px; font-weight: bold; background: #fee2e2; color: #991b1b; padding: 6px; margin-bottom: 8px;"
+    >
+      POTONGAN
+    </div>
+    <table style="width: 100%; font-size: 12px; margin-bottom: 16px;">
+      <tr
+        ><td style="color: #dc2626;">Kasbon</td><td
+          style="text-align: right; color: #dc2626;"
+          id="slip-kasbon">Rp 0</td
+        ></tr
+      >
+    </table>
+
+    <div
+      style="border-top: 2px dashed #ccc; padding-top: 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 16px;"
+    >
+      <span>TOTAL TERIMA</span>
+      <span style="color: #166534;" id="slip-total">Rp 0</span>
+    </div>
+
+    <div
+      style="text-align: center; margin-top: 24px; font-size: 10px; color: #999; font-style: italic;"
+    >
+      Dokumen ini digenerate secara otomatis oleh Sistem Keuangan Bang Jelantah.
+    </div>
+  </div>
+</div>
+<script
+  src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+  is:inline></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
+  is:inline></script>
+<script
+  src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+  is:inline></script>
 <script is:inline>
   let dataGlobalGaji = null;
   let dataKaryawan = [];
@@ -1583,6 +1696,140 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       }
     };
 
+    // ==========================================
+    // EXPORT EXCEL (.XLSX) SESUAI FILTER
+    // ==========================================
+    window.exportExcelRiwayat = function () {
+      // Mengambil data yang lolos filter saat ini
+      const dataTerfilter = window.currentFilteredRiwayat;
+
+      if (!dataTerfilter || dataTerfilter.length === 0) {
+        return alert(
+          "Tidak ada data riwayat yang cocok dengan filter untuk diexport!",
+        );
+      }
+
+      // 1. Petakan data mentah menjadi format baris & kolom Excel yang rapi
+      const rows = dataTerfilter.map((s, index) => {
+        const totalBonus =
+          Number(s.bonus_tepat_waktu || 0) +
+          Number(s.bonus_mingguan || 0) +
+          Number(s.uang_kesehatan || 0) +
+          Number(s.uang_rapat || 0) +
+          Number(s.uang_nginep || 0);
+
+        return {
+          No: index + 1,
+          "Nama Karyawan": s.profiles?.nama || "Unknown",
+          Periode: s.periode || "-",
+          Status: s.status || "Menunggu",
+          "Gaji Pokok (Rp)": s.gaji_karyawan || 0,
+          "Uang Lembur (Rp)": s.uang_lembur || 0,
+          "Uang Makan (Rp)": s.uang_makan || 0,
+          "Total Bonus (Rp)": totalBonus,
+          "Potongan Kasbon (Rp)": s.kasbon || 0,
+          "Total Diterima (Rp)": s.total_diterima || 0,
+        };
+      });
+
+      // 2. Membuat Workbook dan Worksheet baru
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "Riwayat Gaji Terfilter",
+      );
+
+      // 3. Atur Lebar Kolom Otomatis (Auto-fit Column Width)
+      const columnWidths = Object.keys(rows[0]).map((key) => {
+        // Cari karakter terpanjang di setiap kolom untuk menentukan lebar
+        const maxLength = Math.max(
+          key.length,
+          ...rows.map((row) => (row[key] ? row[key].toString().length : 0)),
+        );
+        return { wch: maxLength + 3 }; // Beri padding 3 karakter agar tidak mepet
+      });
+      worksheet["!cols"] = columnWidths;
+
+      // 4. Proses Download sebagai file .xlsx Excel Asli
+      // 4. Menentukan Nama File Sesuai Karyawan yang Dipilih
+      let namaKaryawan = "Semua Karyawan";
+      const dropdownUser = document.getElementById("filter-gaji-user");
+
+      // Jika yang dipilih bukan "Semua Karyawan", ambil nama aslinya
+      if (dropdownUser && dropdownUser.value !== "semua") {
+        namaKaryawan = dropdownUser.options[dropdownUser.selectedIndex].text;
+      }
+
+      // Proses Download sebagai file .xlsx Excel Asli
+      XLSX.writeFile(workbook, `rekap_gaji_${namaKaryawan}.xlsx`);
+    };
+
+    // ==========================================
+    // CAPTURE & DOWNLOAD GAMBAR SLIP
+    // ==========================================
+    window.downloadSlipGambar = async function (slipId) {
+      const slip = window.currentFilteredRiwayat?.find(
+        (s) => String(s.id) === String(slipId),
+      );
+      if (!slip) return alert("Data slip tidak ditemukan!");
+
+      // 1. Suntik data ke template
+      const totalBonus =
+        Number(slip.bonus_tepat_waktu || 0) +
+        Number(slip.bonus_mingguan || 0) +
+        Number(slip.uang_kesehatan || 0) +
+        Number(slip.uang_rapat || 0) +
+        Number(slip.uang_nginep || 0);
+
+      document.getElementById("slip-nama").innerText =
+        `: ${slip.profiles?.nama || "Unknown"}`;
+      document.getElementById("slip-periode").innerText = `: ${slip.periode}`;
+      document.getElementById("slip-status").innerText = `: ${slip.status}`;
+
+      document.getElementById("slip-gaji").innerText =
+        `Rp ${Number(slip.gaji_karyawan || 0).toLocaleString("id-ID")}`;
+      document.getElementById("slip-lembur").innerText =
+        `Rp ${Number(slip.uang_lembur || 0).toLocaleString("id-ID")}`;
+      document.getElementById("slip-makan").innerText =
+        `Rp ${Number(slip.uang_makan || 0).toLocaleString("id-ID")}`;
+      document.getElementById("slip-bonus").innerText =
+        `Rp ${totalBonus.toLocaleString("id-ID")}`;
+      document.getElementById("slip-kasbon").innerText =
+        `Rp ${Number(slip.kasbon || 0).toLocaleString("id-ID")}`;
+      document.getElementById("slip-total").innerText =
+        `Rp ${Number(slip.total_diterima || 0).toLocaleString("id-ID")}`;
+
+      // 2. Munculkan sementara untuk difoto
+      const templateEl = document.getElementById("template-slip-gambar");
+      const wrapper = templateEl.parentElement;
+      wrapper.classList.remove("hidden");
+      wrapper.style.position = "absolute";
+      wrapper.style.top = "-9999px";
+
+      try {
+        // 3. Jepret kanvas
+        const canvas = await html2canvas(templateEl, {
+          scale: 2,
+          backgroundColor: "#ffffff",
+        });
+
+        // 4. Download
+        const link = document.createElement("a");
+        link.download = `Slip_${slip.profiles?.nama || "Karyawan"}_${slip.periode}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      } catch (err) {
+        alert("Gagal membuat gambar slip: " + err.message);
+      } finally {
+        // Sembunyikan lagi
+        wrapper.classList.add("hidden");
+        wrapper.style.position = "";
+        wrapper.style.top = "";
+      }
+    };
+
     // RIWAYAT GAJI LOADER
     async function muatRiwayatGaji() {
       const container = document.getElementById("riwayat-gaji-container");
@@ -1611,6 +1858,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
         // 1. FILTERING BY USER
         let dataGaji = semuaDataGaji;
+
         if (filterUser !== "semua") {
           // Asumsi relasi user_id atau slip.profiles.id
           dataGaji = dataGaji.filter(
@@ -1619,6 +1867,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               String(slip.profiles?.id) === String(filterUser),
           );
         }
+
+        // ✅ PINDAHKAN KE SINI
+        // Simpan data ke variabel global SETELAH filter nama selesai diterapkan
+        window.currentFilteredRiwayat = dataGaji;
 
         // 2. MENGHITUNG TOTAL TANPA ASUMSI
         let totalAkumulasi = 0;
@@ -1706,6 +1958,9 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                                     </span>
                                     <button onclick="window.bukaEditRiwayat(${slip.id})" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded text-xs border border-blue-200 transition" title="Koreksi Slip">
                                         <i class="bi bi-pencil-square"></i> Edit
+                                    </button>
+                                    <button onclick="window.downloadSlipGambar(${slip.id})" class="text-emerald-600 hover:text-emerald-800 bg-emerald-50 px-2 py-1 rounded text-xs border border-emerald-200 transition" title="Unduh Gambar Slip">
+                                        <i class="bi bi-image"></i> Image
                                     </button>
                                 </div>
                             </div>

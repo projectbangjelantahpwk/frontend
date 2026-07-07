@@ -80,6 +80,30 @@ const tabs = [
         >
           <div class="flex items-center gap-3 mb-3">
             <div
+              class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0 p-1"
+            >
+              <img
+                src="/icon/11.png"
+                alt="Minyak Asting"
+                class="w-full h-full object-contain drop-shadow-sm"
+                onerror="this.style.display='none'"
+              />
+            </div>
+            <p class="text-sm font-semibold text-gray-700 leading-tight">
+              Minyak Asting
+            </p>
+          </div>
+          <p class="text-3xl font-bold text-gray-900">
+            <span id="stok-minyak_asting">0.00</span>
+            <span class="text-sm font-normal text-gray-500">Kg</span>
+          </p>
+        </div>
+
+        <div
+          class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant shadow-sm flex flex-col justify-between"
+        >
+          <div class="flex items-center gap-3 mb-3">
+            <div
               class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center shrink-0 p-1"
             >
               <img
@@ -335,6 +359,7 @@ const tabs = [
             <option value="minyak_jelantah" data-stok="0"
               >Minyak Jelantah</option
             >
+            <option value="minyak_asting" data-stok="0">Minyak Asting</option>
             <option value="kriuk" data-stok="0">Kriuk</option>
             <option value="ampas">Ampas (Sludge)</option>
             <option value="tepung">Tepung Ayakan</option>
@@ -458,6 +483,7 @@ const tabs = [
           >
             <option value="Semua">Semua Komoditas</option>
             <option value="minyak_jelantah">Minyak Jelantah</option>
+            <option value="minyak_asting">Minyak Asting</option>
             <option value="kriuk">Kriuk</option>
             <option value="ampas">Ampas (Sludge)</option>
             <option value="tepung">Tepung Ayakan</option>

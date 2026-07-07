@@ -146,6 +146,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         >
           <option value="Semua">Semua Komoditas</option>
           <option value="Minyak Jelantah">Minyak Jelantah</option>
+          <option value="Minyak Asting">Minyak Asting</option>
           <option value="Ampas Goreng">Ampas Goreng</option>
           <option value="Kriuk">Kriuk</option>
           <option value="Tepung Ayakan">Tepung Ayakan</option>
@@ -245,6 +246,43 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             >
           </tbody>
         </table>
+      </div>
+      <div
+        class="bg-green-50 p-5 rounded-xl border border-green-200 grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 shadow-sm"
+      >
+        <div class="flex flex-col">
+          <span
+            class="text-xs font-bold text-green-800 uppercase tracking-wider mb-1"
+            ><i class="bi bi-box-seam mr-1.5"></i>Total Berat</span
+          >
+          <span
+            id="pembelian-total-kg"
+            class="text-2xl font-black text-green-700 font-mono">0 Kg</span
+          >
+        </div>
+        <div
+          class="flex flex-col border-t md:border-t-0 md:border-x border-green-200 pt-3 md:pt-0 md:px-4"
+        >
+          <span
+            class="text-xs font-bold text-green-800 uppercase tracking-wider mb-1"
+            ><i class="bi bi-receipt mr-1.5"></i>Total Transaksi</span
+          >
+          <span
+            id="pembelian-total-transaksi"
+            class="text-2xl font-black text-green-700 font-mono"
+            >0 Transaksi</span
+          >
+        </div>
+        <div class="flex flex-col border-t md:border-t-0 pt-3 md:pt-0 md:pl-4">
+          <span
+            class="text-xs font-bold text-green-800 uppercase tracking-wider mb-1"
+            ><i class="bi bi-tags mr-1.5"></i>Rata-Rata Harga</span
+          >
+          <span
+            id="pembelian-rata-harga"
+            class="text-2xl font-black text-green-700 font-mono">Rp 0</span
+          >
+        </div>
       </div>
     </div>
   </div>
@@ -937,7 +975,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         console.error("Gagal load data:", error);
       }
     }
-    await loadData();
 
     // ==========================================
     // 2. TAB SWITCHING LOGIC
@@ -1051,53 +1088,30 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     // ==========================================
     // FUNGSI HITUNG RINGKASAN PEMBELIAN
     // ==========================================
-    window.hitungRingkasanPembelian = function () {
+    window.hitungRingkasanPembelian = function (dataPembelianFilter) {
+      const elKg = document.getElementById("pembelian-total-kg");
+      const elTransaksi = document.getElementById("pembelian-total-transaksi");
+      const elRataHarga = document.getElementById("pembelian-rata-harga");
+
+      if (!dataPembelianFilter || dataPembelianFilter.length === 0) {
+        if (elKg) elKg.innerText = "0 Kg";
+        if (elTransaksi) elTransaksi.innerText = "0 Transaksi";
+        if (elRataHarga) elRataHarga.innerText = "Rp 0";
+        return;
+      }
       let totalKg = 0;
-      let totalSubtotal = 0;
-      let totalHargaSatuan = 0;
-      let countBaris = 0;
-
-      // Loop semua baris tabel yang TERLIHAT (tidak display:none)
-      document.querySelectorAll("#tabel-pembelian tbody tr").forEach((tr) => {
-        // Abaikan baris "Memuat..." atau yang tidak punya data-date
-        if (!tr.hasAttribute("data-date") || tr.style.display === "none")
-          return;
-
-        countBaris++;
-
-        // Ambil kolom Berat (Kg) - kolom ke-4 (index 3)
-        const tdBerat = tr.querySelectorAll("td")[3];
-        const beratText = tdBerat ? tdBerat.textContent.trim() : "0";
-        const berat = parseFloat(beratText.replace(/\D/g, "")) / 100 || 0;
-
-        // Ambil kolom Harga Satuan - kolom ke-5 (index 4)
-        const tdHargaSatuan = tr.querySelectorAll("td")[4];
-        const hargaSatuanText = tdHargaSatuan
-          ? tdHargaSatuan.textContent.trim()
-          : "0";
-        const hargaSatuan = parseFloat(hargaSatuanText.replace(/\D/g, "")) || 0;
-
-        // Ambil kolom Subtotal - kolom ke-6 (index 5)
-        const tdSubtotal = tr.querySelectorAll("td")[5];
-        const subtotalText = tdSubtotal ? tdSubtotal.textContent.trim() : "0";
-        const subtotal = parseFloat(subtotalText.replace(/\D/g, "")) || 0;
-
-        totalKg += berat;
-        totalSubtotal += subtotal;
-        totalHargaSatuan += hargaSatuan;
+      let totalRupiah = 0;
+      let totalTransaksi = dataPembelianFilter.length;
+      dataPembelianFilter.forEach((item) => {
+        totalKg += Number(item.berat || item.berat_kg || 0);
+        totalRupiah += Number(item.total_harga || item.subtotal || 0);
       });
-
-      // Hitung rata-rata harga satuan
-      const rataRataHargaSatuan =
-        countBaris > 0 ? totalHargaSatuan / countBaris : 0;
-
-      // Update tampilan
-      document.getElementById("summary-total-kg").innerText =
-        totalKg.toFixed(2);
-      document.getElementById("summary-avg-harga-satuan").innerText =
-        `Rp ${Math.round(rataRataHargaSatuan).toLocaleString("id-ID")}`;
-      document.getElementById("summary-total-nominal").innerText =
-        `Rp ${Math.round(totalSubtotal).toLocaleString("id-ID")}`;
+      let rataRataHarga = totalKg > 0 ? totalRupiah / totalKg : 0;
+      if (elKg) elKg.innerText = `${totalKg.toLocaleString("id-ID")} Kg`;
+      if (elTransaksi)
+        elTransaksi.innerText = `${totalTransaksi.toLocaleString("id-ID")} Transaksi`;
+      if (elRataHarga)
+        elRataHarga.innerText = `Rp ${Math.round(rataRataHarga).toLocaleString("id-ID")}/Kg`;
     };
 
     // ==========================================
@@ -1783,5 +1797,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         wrapper.classList.add("hidden");
       }
     };
+    await loadData();
   });
 </script>

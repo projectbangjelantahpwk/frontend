@@ -124,6 +124,127 @@ const defaultMonth = `${yyyy}-${mm}`;
           Spinner
         </button>
       </div>
+      <button
+        onclick="window.bukaModalBruto()"
+        class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition shadow-sm flex items-center gap-2"
+      >
+        <i class="bi bi-tags"></i> Set Harga Modal (Bruto)
+      </button>
+    </div>
+  </div>
+</div>
+<div
+  id="modal-set-bruto"
+  class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[70] p-4 transition-opacity opacity-0 backdrop-blur-sm"
+>
+  <div
+    class="bg-white rounded-2xl w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-300 shadow-2xl"
+  >
+    <div
+      class="p-4 border-b border-gray-100 bg-blue-50 flex justify-between items-center"
+    >
+      <div>
+        <h3 class="font-bold text-lg text-blue-900">Set Harga Modal (Bruto)</h3>
+        <p class="text-[10px] font-bold text-blue-700 uppercase tracking-wider">
+          Kalkulasi Margin Otomatis
+        </p>
+      </div>
+      <button
+        onclick="window.tutupModalBruto()"
+        class="text-blue-400 hover:text-blue-900 transition"
+        ><i class="bi bi-x-lg text-xl"></i></button
+      >
+    </div>
+
+    <div class="p-5 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+      <div class="bg-gray-50 p-3 rounded-xl border border-gray-200">
+        <label class="block text-xs font-bold text-gray-700 mb-1"
+          ><i class="bi bi-calendar-event mr-1"></i> Pilih Tanggal Transaksi</label
+        >
+        <input
+          type="date"
+          id="modal_tanggal_bruto"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-600 font-medium text-gray-800"
+        />
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label
+            class="block text-[10px] font-bold text-gray-600 mb-1 uppercase"
+            >Minyak Jelantah (Rp/Kg)</label
+          >
+          <input
+            type="number"
+            id="m_bruto_minyak"
+            value="0"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+          />
+        </div>
+        <div>
+          <label
+            class="block text-[10px] font-bold text-gray-600 mb-1 uppercase"
+            >Ampas Goreng (Rp/Kg)</label
+          >
+          <input
+            type="number"
+            id="m_bruto_ampas"
+            value="0"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+          />
+        </div>
+        <div>
+          <label
+            class="block text-[10px] font-bold text-gray-600 mb-1 uppercase"
+            >Kriuk (Rp/Kg)</label
+          >
+          <input
+            type="number"
+            id="m_bruto_kriuk"
+            value="0"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+          />
+        </div>
+        <div>
+          <label
+            class="block text-[10px] font-bold text-gray-600 mb-1 uppercase"
+            >Tepung Ayakan (Rp/Kg)</label
+          >
+          <input
+            type="number"
+            id="m_bruto_tepung"
+            value="0"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+          />
+        </div>
+        <div class="col-span-2">
+          <label
+            class="block text-[10px] font-bold text-gray-600 mb-1 uppercase"
+            >Spinner (Rp/Kg)</label
+          >
+          <input
+            type="number"
+            id="m_bruto_spinner"
+            value="0"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="p-4 border-t border-gray-100 bg-gray-50 flex gap-3">
+      <button
+        onclick="window.tutupModalBruto()"
+        class="flex-1 bg-white border border-gray-300 text-gray-700 font-bold py-2.5 rounded-xl hover:bg-gray-100 transition text-sm"
+        >Batal</button
+      >
+      <button
+        onclick="window.simpanBrutoViaModal()"
+        id="btn-save-modal-bruto"
+        class="flex-1 bg-blue-700 text-white font-bold py-2.5 rounded-xl hover:bg-blue-800 transition shadow-sm text-sm flex items-center justify-center gap-2"
+      >
+        <i class="bi bi-floppy"></i> Simpan & Hitung
+      </button>
     </div>
   </div>
 </div>
@@ -150,23 +271,47 @@ const defaultMonth = `${yyyy}-${mm}`;
       num || 0,
     );
 
-  // Nama fungsi diubah biar nggak tabrakan
   async function initTabelGudang() {
     let currentCommodity: KomoditasKey = "Minyak Jelantah";
     let dataGlobal: DataGlobalT[] = [];
 
-    const kolomDatabase: Record<KomoditasKey, { rp: string; vol: string }> = {
+    // Updated with bruto and margin columns
+    const kolomDatabase: Record<
+      KomoditasKey,
+      { rp: string; vol: string; bruto: string; margin: string }
+    > = {
       "Minyak Jelantah": {
         rp: "minyak_jelantah_rp",
         vol: "minyak_jelantah_vol",
+        bruto: "bruto_minyak_jelantah",
+        margin: "margin_minyak_jelantah",
       },
-      Ampas: { rp: "ampas_rp", vol: "ampas_vol" },
-      Kriuk: { rp: "kriuk_rp", vol: "kriuk_vol" },
-      Tepung: { rp: "tepung_rp", vol: "tepung_vol" },
-      Spinner: { rp: "spinner_rp", vol: "spinner_vol" },
+      Ampas: {
+        rp: "ampas_rp",
+        vol: "ampas_vol",
+        bruto: "bruto_ampas",
+        margin: "margin_ampas",
+      },
+      Kriuk: {
+        rp: "kriuk_rp",
+        vol: "kriuk_vol",
+        bruto: "bruto_kriuk",
+        margin: "margin_kriuk",
+      },
+      Tepung: {
+        rp: "tepung_rp",
+        vol: "tepung_vol",
+        bruto: "bruto_tepung",
+        margin: "margin_tepung",
+      },
+      Spinner: {
+        rp: "spinner_rp",
+        vol: "spinner_vol",
+        bruto: "bruto_spinner",
+        margin: "margin_spinner",
+      },
     };
 
-    // Panggil ID yang baru (gudang)
     const monthInput = document.getElementById(
       "month-gudang",
     ) as HTMLInputElement | null;
@@ -195,9 +340,12 @@ const defaultMonth = `${yyyy}-${mm}`;
 
       const kolomAktif = kolomDatabase[currentCommodity];
 
+      // Update select to include the new columns
       const { data, error } = await supabase
         .from("transaksi_gudang_harian")
-        .select(`tanggal, ${kolomAktif.rp}, ${kolomAktif.vol}`)
+        .select(
+          `tanggal, ${kolomAktif.rp}, ${kolomAktif.vol}, ${kolomAktif.bruto}, ${kolomAktif.margin}`,
+        )
         .gte("tanggal", startDate)
         .lte("tanggal", endDate);
 
@@ -214,29 +362,46 @@ const defaultMonth = `${yyyy}-${mm}`;
       const kolomAktif = kolomDatabase[currentCommodity];
       let grandTotalRp = 0;
       let grandTotalVol = 0;
+      let grandTotalMargin = 0; // Keep track of margin too, just in case you need it
 
       let rekapHarian = Array.from({ length: lastDay }, () => ({
         rp: 0,
         vol: 0,
+        bruto: 0,
+        margin: 0,
       }));
 
       dataGlobal.forEach((item) => {
         const rp = Number(item[kolomAktif.rp] || 0);
         const vol = Number(item[kolomAktif.vol] || 0);
+        const margin = Number(item[kolomAktif.margin] || 0);
+
         const dayIdx = parseInt(item.tanggal.split("-")[2]) - 1;
 
         if (dayIdx >= 0 && dayIdx < lastDay) {
           rekapHarian[dayIdx].rp += rp;
           rekapHarian[dayIdx].vol += vol;
+          rekapHarian[dayIdx].margin += margin;
+
           grandTotalRp += rp;
           grandTotalVol += vol;
+          grandTotalMargin += margin;
         }
       });
 
       for (let i = 0; i < lastDay; i++) {
         const tglNum = i + 1;
         const dataHariIni = rekapHarian[i];
-        const hrg = dataHariIni.vol > 0 ? dataHariIni.rp / dataHariIni.vol : 0;
+
+        // This is your sales price per unit
+        const hrgSatuan =
+          dataHariIni.vol > 0 ? dataHariIni.rp / dataHariIni.vol : 0;
+
+        // This calculates bruto based on the formula: Margin = RP - (Bruto * Vol) -> Bruto = (RP - Margin) / Vol
+        const brutoManual =
+          dataHariIni.vol > 0
+            ? (dataHariIni.rp - dataHariIni.margin) / dataHariIni.vol
+            : 0;
 
         const bgClass = dataHariIni.vol > 0 ? "bg-green-50/50" : "";
         const textClass =
@@ -248,14 +413,32 @@ const defaultMonth = `${yyyy}-${mm}`;
                             <span class="inline-block w-6 text-center bg-gray-100 rounded text-xs font-bold mr-2">${tglNum}</span>
                         </td>
                         <td class="p-3 text-right font-medium ${textClass}">${formatVol(dataHariIni.vol)} <span class="text-[10px]">Kg</span></td>
-                        <td class="p-3 text-right text-xs text-gray-500 hidden sm:table-cell">${formatRp(hrg)}</td>
-                        <td class="p-3 text-right font-medium ${dataHariIni.rp > 0 ? "text-primary font-bold" : "text-gray-400"}">${formatRp(dataHariIni.rp)}</td>
+                        
+                        <td class="p-3 text-right text-xs text-gray-500 hidden sm:table-cell" title="Harga Jual per Kg">${formatRp(hrgSatuan)}</td>
+                        
+                        <td class="p-3 text-right text-xs text-orange-500 hidden sm:table-cell" title="Harga Modal per Kg">${formatRp(brutoManual)}</td>
+                        
+                        <td class="p-3 text-right font-medium ${dataHariIni.margin > 0 ? "text-green-600 font-bold" : dataHariIni.margin < 0 ? "text-red-600 font-bold" : "text-gray-400"}">
+                            ${formatRp(dataHariIni.margin)}
+                        </td>
                     </tr>
                 `;
       }
 
-      elTotalRp.textContent = formatRp(grandTotalRp);
+      // Display the grand total margin
+      elTotalRp.textContent = formatRp(grandTotalMargin);
       teksRingkasan.innerHTML = `Total Keseluruhan: <b>${formatVol(grandTotalVol)} Kg</b> (${currentCommodity})`;
+
+      // OPTIONAL: Update global variable so your modal function can access current data if needed
+      if (typeof window !== "undefined") {
+        (window as any).dataHarianGudang = {
+          ...(window as any).dataHarianGudang,
+          // Add current data to window object
+          [`vol_${currentCommodity.toLowerCase().split(" ")[0]}`]:
+            grandTotalVol,
+          [`rp_${currentCommodity.toLowerCase().split(" ")[0]}`]: grandTotalRp,
+        };
+      }
     }
 
     monthInput.addEventListener("change", fetchDataSebulan);

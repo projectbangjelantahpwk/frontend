@@ -61,18 +61,21 @@ const defaultMonth = `${yyyy}-${mm}`;
     <div class="max-h-[350px] overflow-y-auto hide-scrollbar bg-gray-50/30">
       <table class="w-full text-left border-collapse">
         <thead
-          class="bg-surface-variant/40 text-[10px] uppercase text-on-surface-variant sticky top-0 font-bold tracking-wider z-10 backdrop-blur-sm"
+          class="bg-surface-variant/30 border-b border-gray-100 text-on-surface-variant text-xs"
         >
           <tr>
-            <th class="p-3 border-b whitespace-nowrap">Tanggal</th>
-            <th class="p-3 border-b text-right whitespace-nowrap"
-              >Volume (Kg)</th
+            <th class="p-3 text-left font-semibold w-16">Tanggal</th>
+            <th class="p-3 text-right font-semibold">Volume (Kg)</th>
+            <th
+              class="p-3 text-right font-semibold hidden md:table-cell"
+              title="Harga Jual per Kg">Harga Jual</th
             >
             <th
-              class="p-3 border-b text-right whitespace-nowrap hidden sm:table-cell"
-              >Rata-rata Harga/Kg</th
+              class="p-3 text-right font-semibold hidden md:table-cell text-orange-600"
+              title="Harga Modal per Kg">Bruto</th
             >
-            <th class="p-3 border-b text-right whitespace-nowrap">Total (Rp)</th
+            <th class="p-3 text-right font-semibold text-green-600">Margin</th>
+            <th class="p-3 text-right font-semibold text-primary">Total (Rp)</th
             >
           </tr>
         </thead>
@@ -467,4 +470,116 @@ const defaultMonth = `${yyyy}-${mm}`;
   }
 
   document.addEventListener("DOMContentLoaded", initTabelGudang);
+</script>
+<script is:inline>
+  // Fungsi Buka Tutup Modal
+  window.bukaModalBruto = function () {
+    const m = document.getElementById("modal-set-bruto");
+    if (!m) return;
+
+    // Set tanggal hari ini
+    const waktuLokal = new Date();
+    const offset = waktuLokal.getTimezoneOffset() * 60000;
+    const hariIni = new Date(waktuLokal - offset).toISOString().split("T")[0];
+    document.getElementById("modal_tanggal_bruto").value = hariIni;
+
+    m.classList.remove("hidden");
+    m.classList.add("flex");
+    setTimeout(() => {
+      m.classList.remove("opacity-0");
+      m.querySelector("div").classList.remove("scale-95");
+    }, 10);
+    document.body.style.overflow = "hidden";
+  };
+
+  window.tutupModalBruto = function () {
+    const m = document.getElementById("modal-set-bruto");
+    if (!m) return;
+    m.classList.add("opacity-0");
+    m.querySelector("div").classList.add("scale-95");
+    setTimeout(() => {
+      m.classList.add("hidden");
+      m.classList.remove("flex");
+    }, 300);
+    document.body.style.overflow = "";
+  };
+
+  // Fungsi Eksekusi Simpan Bruto
+  window.simpanBrutoViaModal = async function () {
+    if (!window.supabase) return alert("Supabase tidak terhubung!");
+
+    const btn = document.getElementById("btn-save-modal-bruto");
+    const tglPilih = document.getElementById("modal_tanggal_bruto").value;
+    if (!tglPilih) return alert("Pilih tanggal terlebih dahulu!");
+
+    btn.innerHTML =
+      '<i class="bi bi-arrow-repeat animate-spin"></i> Memproses...';
+    btn.disabled = true;
+
+    try {
+      // Tarik nilai Bruto
+      const brMinyak =
+        parseFloat(document.getElementById("m_bruto_minyak").value) || 0;
+      const brAmpas =
+        parseFloat(document.getElementById("m_bruto_ampas").value) || 0;
+      const brKriuk =
+        parseFloat(document.getElementById("m_bruto_kriuk").value) || 0;
+      const brTepung =
+        parseFloat(document.getElementById("m_bruto_tepung").value) || 0;
+      const brSpinner =
+        parseFloat(document.getElementById("m_bruto_spinner").value) || 0;
+
+      // Tarik data harian untuk kalkulasi ulang
+      const { data: dataGudang, error: errFetch } = await window.supabase
+        .from("transaksi_gudang_harian")
+        .select("*")
+        .eq("tanggal", tglPilih)
+        .single();
+
+      if (errFetch || !dataGudang)
+        throw new Error("Data transaksi hari tersebut belum ada.");
+
+      // Kalkulasi Margin Baru (RP - (Bruto * Volume))
+      const mgMinyak =
+        (dataGudang.minyak_jelantah_rp || 0) -
+        brMinyak * (dataGudang.minyak_jelantah_vol || 0);
+      const mgAmpas =
+        (dataGudang.ampas_rp || 0) - brAmpas * (dataGudang.ampas_vol || 0);
+      const mgKriuk =
+        (dataGudang.kriuk_rp || 0) - brKriuk * (dataGudang.kriuk_vol || 0);
+      const mgTepung =
+        (dataGudang.tepung_rp || 0) - brTepung * (dataGudang.tepung_vol || 0);
+      const mgSpinner =
+        (dataGudang.spinner_rp || 0) -
+        brSpinner * (dataGudang.spinner_vol || 0);
+
+      // Update ke Database
+      const { error: errUpdate } = await window.supabase
+        .from("transaksi_gudang_harian")
+        .update({
+          bruto_minyak_jelantah: brMinyak,
+          margin_minyak_jelantah: mgMinyak,
+          bruto_ampas: brAmpas,
+          margin_ampas: mgAmpas,
+          bruto_kriuk: brKriuk,
+          margin_kriuk: mgKriuk,
+          bruto_tepung: brTepung,
+          margin_tepung: mgTepung,
+          bruto_spinner: brSpinner,
+          margin_spinner: mgSpinner,
+        })
+        .eq("tanggal", tglPilih);
+
+      if (errUpdate) throw errUpdate;
+
+      alert("✅ Sukses menyimpan harga modal (bruto)!");
+      window.tutupModalBruto();
+      window.location.reload();
+    } catch (error) {
+      alert("Gagal: " + error.message);
+    } finally {
+      btn.innerHTML = '<i class="bi bi-floppy"></i> Simpan & Hitung';
+      btn.disabled = false;
+    }
+  };
 </script>

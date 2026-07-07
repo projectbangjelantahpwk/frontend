@@ -160,7 +160,54 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         Filter Data
       </button>
     </div>
+    <!-- CARD RINGKASAN PEMBELIAN -->
+    <div class="mt-6 grid grid-cols-3 gap-4">
+      <div
+        class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 p-6 shadow-sm"
+      >
+        <p
+          class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1"
+        >
+          Total Berat
+        </p>
+        <p class="text-3xl font-bold text-blue-900" id="summary-total-kg">0</p>
+        <p class="text-xs text-blue-700 mt-2">Kilogram</p>
+      </div>
 
+      <div
+        class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200 p-6 shadow-sm"
+      >
+        <p
+          class="text-xs font-bold text-orange-600 uppercase tracking-wider mb-1"
+        >
+          Harga Satuan Rata-rata
+        </p>
+        <p
+          class="text-2xl font-bold text-orange-900"
+          id="summary-avg-harga-satuan"
+        >
+          Rp 0
+        </p>
+        <p class="text-xs text-orange-700 mt-2">Per kilogram</p>
+      </div>
+
+      <div
+        class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200 p-6 shadow-sm"
+      >
+        <p
+          class="text-xs font-bold text-purple-600 uppercase tracking-wider mb-1"
+        >
+          Total Pembelian
+        </p>
+        <p
+          class="text-2xl font-bold text-purple-900"
+          id="summary-total-nominal"
+        >
+          Rp 0
+        </p>
+        <p class="text-xs text-purple-700 mt-2">Nominal keseluruhan</p>
+      </div>
+    </div>
     <div
       class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm"
     >
@@ -673,6 +720,9 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           htmlPembelian ||
           '<tr><td colspan="6" class="text-center py-4 text-gray-500 italic">Data pembelian kosong</td></tr>';
 
+        // ⭐ Tambahkan baris ini:
+        window.hitungRingkasanPembelian();
+
         // Pisahkan Data Validasi
         const trxMenunggu =
           transaksi?.filter((t) => !t.is_paid_by_admin && t.metode_bayar) || [];
@@ -994,6 +1044,60 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           tr.style.display = "none";
         }
       });
+
+      window.hitungRingkasanPembelian();
+    };
+
+    // ==========================================
+    // FUNGSI HITUNG RINGKASAN PEMBELIAN
+    // ==========================================
+    window.hitungRingkasanPembelian = function () {
+      let totalKg = 0;
+      let totalSubtotal = 0;
+      let totalHargaSatuan = 0;
+      let countBaris = 0;
+
+      // Loop semua baris tabel yang TERLIHAT (tidak display:none)
+      document.querySelectorAll("#tabel-pembelian tbody tr").forEach((tr) => {
+        // Abaikan baris "Memuat..." atau yang tidak punya data-date
+        if (!tr.hasAttribute("data-date") || tr.style.display === "none")
+          return;
+
+        countBaris++;
+
+        // Ambil kolom Berat (Kg) - kolom ke-4 (index 3)
+        const tdBerat = tr.querySelectorAll("td")[3];
+        const beratText = tdBerat ? tdBerat.textContent.trim() : "0";
+        const berat = parseFloat(beratText.replace(/\D/g, "")) / 100 || 0;
+
+        // Ambil kolom Harga Satuan - kolom ke-5 (index 4)
+        const tdHargaSatuan = tr.querySelectorAll("td")[4];
+        const hargaSatuanText = tdHargaSatuan
+          ? tdHargaSatuan.textContent.trim()
+          : "0";
+        const hargaSatuan = parseFloat(hargaSatuanText.replace(/\D/g, "")) || 0;
+
+        // Ambil kolom Subtotal - kolom ke-6 (index 5)
+        const tdSubtotal = tr.querySelectorAll("td")[5];
+        const subtotalText = tdSubtotal ? tdSubtotal.textContent.trim() : "0";
+        const subtotal = parseFloat(subtotalText.replace(/\D/g, "")) || 0;
+
+        totalKg += berat;
+        totalSubtotal += subtotal;
+        totalHargaSatuan += hargaSatuan;
+      });
+
+      // Hitung rata-rata harga satuan
+      const rataRataHargaSatuan =
+        countBaris > 0 ? totalHargaSatuan / countBaris : 0;
+
+      // Update tampilan
+      document.getElementById("summary-total-kg").innerText =
+        totalKg.toFixed(2);
+      document.getElementById("summary-avg-harga-satuan").innerText =
+        `Rp ${Math.round(rataRataHargaSatuan).toLocaleString("id-ID")}`;
+      document.getElementById("summary-total-nominal").innerText =
+        `Rp ${Math.round(totalSubtotal).toLocaleString("id-ID")}`;
     };
 
     // ==========================================

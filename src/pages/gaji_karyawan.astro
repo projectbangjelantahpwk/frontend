@@ -90,6 +90,38 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-700"
           />
         </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1"
+            >Karyawan</label
+          >
+          <select
+            id="filter-gaji-user"
+            class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-700 min-w-[150px]"
+          >
+            <option value="semua">Semua Karyawan</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1"
+            >Item Gaji</label
+          >
+          <select
+            id="filter-gaji-item"
+            class="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-700 min-w-[150px]"
+          >
+            <option value="semua">Semua (Grand Total)</option>
+            <option value="gaji_karyawan">Gaji Pokok</option>
+            <option value="uang_lembur">Uang Lembur</option>
+            <option value="uang_makan">Uang Makan</option>
+            <option value="bonus"
+              >Total Bonus (Mingguan/Tepat Waktu/Sehat)</option
+            >
+            <option value="kasbon">Potongan Kasbon</option>
+          </select>
+        </div>
+
         <button
           id="btn-filter-gaji"
           class="bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-800 transition"
@@ -103,6 +135,18 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       <p class="text-gray-500 text-sm italic">
         Pilih filter tanggal untuk memuat riwayat.
       </p>
+    </div>
+
+    <div
+      class="bg-blue-50 p-4 rounded-xl border border-blue-200 flex justify-between items-center mt-6 shadow-sm"
+    >
+      <span class="font-bold text-blue-900 uppercase tracking-wider text-sm"
+        ><i class="bi bi-calculator mr-2"></i>Total Akumulasi Filter:</span
+      >
+      <span
+        id="riwayat-total-akumulasi"
+        class="text-2xl font-black text-blue-700 font-mono">Rp 0</span
+      >
     </div>
   </div>
 </GeneralLayout>
@@ -917,6 +961,16 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             '<p class="text-gray-500">Belum ada data karyawan.</p>';
         }
         contKaryawan.innerHTML = htmlKaryawan;
+
+        // TAMBAHAN: Isi dropdown filter riwayat otomatis
+        const filterUserEl = document.getElementById("filter-gaji-user");
+        if (filterUserEl && dataKaryawan.length > 0) {
+          let userOptions = '<option value="semua">Semua Karyawan</option>';
+          dataKaryawan.forEach((k) => {
+            userOptions += `<option value="${k.id}">${k.nama}</option>`;
+          });
+          filterUserEl.innerHTML = userOptions;
+        }
       } catch (error) {
         console.error("Gagal load data keuangan:", error);
       }
@@ -1029,12 +1083,55 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       const siklus = document.getElementById("setup_siklus_gaji").value;
       const labelGaji = document.getElementById("label_gaji_pokok");
 
+      // 1. Ubah Teks Label di UI
       if (siklus === "Bulanan") {
         labelGaji.innerText = "Gaji Pokok Bulanan (Rp)";
       } else if (siklus === "Harian") {
         labelGaji.innerText = "Gaji Pokok Harian (Rp)";
       } else {
         labelGaji.innerText = "Gaji Pokok Mingguan (Rp)";
+      }
+
+      // 2. 🔥 UPDATE DATA DI BALIK LAYAR BIAR DENO NGGAK SALAH PAHAM 🔥
+      if (window.currentSalaryData) {
+        window.currentSalaryData.siklusGaji = siklus;
+
+        const waktuLokal = new Date();
+        const offset = waktuLokal.getTimezoneOffset() * 60000;
+        const tglLokalObj = new Date(waktuLokal - offset);
+        let tglMulai, tglAkhir;
+
+        if (siklus === "Bulanan") {
+          // Tarik tanggal 1 sampai akhir bulan berjalan
+          const tahun = tglLokalObj.getFullYear();
+          const bulan = tglLokalObj.getMonth();
+          const tglSatu = new Date(tahun, bulan, 1);
+          const tglAkhirBulan = new Date(tahun, bulan + 1, 0);
+          tglMulai = new Date(tglSatu.getTime() - offset)
+            .toISOString()
+            .split("T")[0];
+          tglAkhir = new Date(tglAkhirBulan.getTime() - offset)
+            .toISOString()
+            .split("T")[0];
+        } else if (siklus === "Harian") {
+          // Tarik tanggal HARI INI saja
+          tglMulai = tglLokalObj.toISOString().split("T")[0];
+          tglAkhir = tglMulai;
+        } else {
+          // Tarik Senin sampai Sabtu minggu ini
+          const day = tglLokalObj.getDay() || 7;
+          tglLokalObj.setHours(0, 0, 0, 0);
+          const senin = new Date(tglLokalObj);
+          senin.setDate(tglLokalObj.getDate() - (day - 1));
+          const sabtu = new Date(senin);
+          sabtu.setDate(senin.getDate() + 6);
+          tglMulai = senin.toISOString().split("T")[0];
+          tglAkhir = sabtu.toISOString().split("T")[0];
+        }
+
+        // Simpan tanggal yang baru agar langsung ditembakkan ke Deno!
+        window.currentSalaryData.tglMulai = tglMulai;
+        window.currentSalaryData.tglAkhir = tglAkhir;
       }
     };
 
@@ -1489,25 +1586,77 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     // RIWAYAT GAJI LOADER
     async function muatRiwayatGaji() {
       const container = document.getElementById("riwayat-gaji-container");
+      const elTotal = document.getElementById("riwayat-total-akumulasi");
       if (!container) return;
 
       const start =
         document.getElementById("filter-gaji-start")?.value || awalTahun;
       const end = document.getElementById("filter-gaji-end")?.value || hariIni;
+
+      // Ambil value dari filter baru
+      const filterUser =
+        document.getElementById("filter-gaji-user")?.value || "semua";
+      const filterItem =
+        document.getElementById("filter-gaji-item")?.value || "semua";
+
       const cacheKey = `riwayat_gaji_${start}_${end}`;
       const cachedData = localStorage.getItem(cacheKey);
 
-      const renderHTML = (dataGaji) => {
-        if (!dataGaji || dataGaji.length === 0) {
+      const renderHTML = (semuaDataGaji) => {
+        if (!semuaDataGaji || semuaDataGaji.length === 0) {
           container.innerHTML = `<p class="text-gray-500 text-sm italic py-4">Tidak ada riwayat pengeluaran gaji dari tanggal ${start} sampai ${end}.</p>`;
+          if (elTotal) elTotal.innerText = "Rp 0";
           return;
         }
 
+        // 1. FILTERING BY USER
+        let dataGaji = semuaDataGaji;
+        if (filterUser !== "semua") {
+          // Asumsi relasi user_id atau slip.profiles.id
+          dataGaji = dataGaji.filter(
+            (slip) =>
+              String(slip.user_id) === String(filterUser) ||
+              String(slip.profiles?.id) === String(filterUser),
+          );
+        }
+
+        // 2. MENGHITUNG TOTAL TANPA ASUMSI
+        let totalAkumulasi = 0;
+        dataGaji.forEach((slip) => {
+          // Cuma hitung yang udah ACC
+          const isACC =
+            slip.status === "ACC" || slip.status_persetujuan === "ACC";
+          if (!isACC) return;
+
+          if (filterItem === "semua") {
+            totalAkumulasi += Number(slip.total_diterima || 0); // Murni grand total
+          } else if (filterItem === "bonus") {
+            totalAkumulasi +=
+              Number(slip.bonus_tepat_waktu || 0) +
+              Number(slip.bonus_mingguan || 0) +
+              Number(slip.uang_kesehatan || 0);
+          } else if (filterItem === "kasbon") {
+            totalAkumulasi += Number(slip.kasbon || 0);
+          } else {
+            // Dinamis sesuai value select (gaji_karyawan, uang_lembur, uang_makan)
+            totalAkumulasi += Number(slip[filterItem] || 0);
+          }
+        });
+
+        // Update UI Total
+        if (elTotal)
+          elTotal.innerText = `Rp ${totalAkumulasi.toLocaleString("id-ID")}`;
+
+        if (dataGaji.length === 0) {
+          container.innerHTML = `<p class="text-gray-500 text-sm italic py-4">Tidak ada data untuk kombinasi filter ini.</p>`;
+          return;
+        }
+
+        // 3. RENDER KARTU SLIP
         container.innerHTML = dataGaji
           .map((slip) => {
             const isACC =
               slip.status === "ACC" || slip.status_persetujuan === "ACC";
-            // 🔥 Pastikan inisial ngambil per kata, bukan cuma potong string
             const inisial = slip.profiles?.nama
               ? slip.profiles.nama
                   .split(" ")
@@ -1516,11 +1665,31 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                   .substring(0, 2)
                   .toUpperCase()
               : "KY";
-
-            // 🔥 Beri sentuhan warna biru agar beda dengan tabel karyawan di atas
             const avatarKomponen = slip.profiles?.foto_profil
               ? `<img src="${slip.profiles.foto_profil}" class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 shadow-sm shrink-0" />`
               : `<div class="w-10 h-10 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700 font-bold text-sm shadow-sm shrink-0">${inisial}</div>`;
+
+            // Highlight item kalau filter bukan 'semua'
+            let highlightText = "";
+            if (isACC && filterItem !== "semua") {
+              let valHighlight = 0;
+              let namaItem = "";
+              if (filterItem === "bonus") {
+                valHighlight =
+                  Number(slip.bonus_tepat_waktu || 0) +
+                  Number(slip.bonus_mingguan || 0) +
+                  Number(slip.uang_kesehatan || 0);
+                namaItem = "Total Bonus";
+              } else if (filterItem === "kasbon") {
+                valHighlight = Number(slip.kasbon || 0);
+                namaItem = "Potongan Kasbon";
+              } else {
+                valHighlight = Number(slip[filterItem] || 0);
+                namaItem = filterItem.replace("_", " ").toUpperCase();
+              }
+
+              highlightText = `<div class="mt-2 bg-blue-50 p-2 rounded text-xs font-bold text-blue-800 border border-blue-200">Kandungan ${namaItem}: Rp ${valHighlight.toLocaleString("id-ID")}</div>`;
+            }
 
             return `
                     <div class="p-4 border border-gray-200 rounded-xl mb-3 bg-white shadow-sm flex gap-3 items-center">
@@ -1547,13 +1716,14 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                                     <div class="flex justify-between"><span>Gaji Pokok:</span> <span>Rp ${Number(slip.gaji_karyawan || 0).toLocaleString("id-ID")}</span></div>
                                     <div class="flex justify-between text-gray-500"><span>Uang Lembur:</span> <span>Rp ${Number(slip.uang_lembur || 0).toLocaleString("id-ID")}</span></div>
                                     <div class="flex justify-between text-gray-500"><span>Uang Makan:</span> <span>Rp ${Number(slip.uang_makan || 0).toLocaleString("id-ID")}</span></div>
-                                    <div class="flex justify-between text-green-700"><span>Total Bonus (Tepat Waktu, Mingguan, Sehat):</span> <span>+Rp ${Number((slip.bonus_tepat_waktu || 0) + (slip.bonus_mingguan || 0) + (slip.uang_kesehatan || 0)).toLocaleString("id-ID")}</span></div>
+                                    <div class="flex justify-between text-green-700"><span>Total Bonus:</span> <span>+Rp ${Number((slip.bonus_tepat_waktu || 0) + (slip.bonus_mingguan || 0) + (slip.uang_kesehatan || 0)).toLocaleString("id-ID")}</span></div>
                                     ${Number(slip.kasbon || 0) > 0 ? `<div class="flex justify-between text-red-600 font-bold"><span>Potongan Kasbon:</span> <span>-Rp ${Number(slip.kasbon).toLocaleString("id-ID")}</span></div>` : ""}
                                     <div class="flex justify-between font-bold text-green-700 mt-1 pt-1 border-t">
                                         <span>Total Diterima (ACC):</span> 
                                         <span>Rp ${Number(slip.total_diterima || 0).toLocaleString("id-ID")}</span>
                                     </div>
                                 </div>
+                                ${highlightText}
                             `
                                 : `
                                 <div class="mt-2 text-xs text-amber-700 italic border-t pt-2 border-dashed border-gray-300">
@@ -1572,12 +1742,13 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       } else {
         container.innerHTML =
           '<p class="text-gray-500 text-sm italic animate-pulse">Memuat data riwayat gaji...</p>';
+        if (elTotal) elTotal.innerText = "Menghitung...";
       }
 
       try {
         const { data: dataGaji, error } = await supabase
           .from("slip_gaji")
-          .select(`*, profiles!inner(nama, role, foto_profil)`)
+          .select(`*, profiles!inner(id, nama, role, foto_profil)`)
           .neq("profiles.role", "owner")
           .gte("created_at", `${start} 00:00:00`)
           .lte("created_at", `${end} 23:59:59`)

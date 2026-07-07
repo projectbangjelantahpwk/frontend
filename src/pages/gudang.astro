@@ -473,6 +473,21 @@ const tabs = [
       </div>
       <!-- BATAS TAMBAHAN UI FILTER -->
 
+      <div
+        class="px-6 py-4 bg-blue-50 border-b border-blue-200 flex justify-between items-center"
+      >
+        <div class="flex items-center gap-2">
+          <i class="bi bi-calculator text-blue-700 text-xl"></i>
+          <span class="text-sm font-bold text-blue-900 uppercase tracking-wider"
+            >Total Akumulasi Filter:</span
+          >
+        </div>
+        <span
+          id="total-mutasi-display"
+          class="text-2xl font-black text-blue-700">0.00 Kg</span
+        >
+      </div>
+
       <div class="overflow-x-auto">
         <table class="w-full text-left" id="tabel-mutasi">
           <thead class="bg-gray-50 border-b border-gray-200">
@@ -745,6 +760,8 @@ const tabs = [
         };
 
         let html = "";
+        let totalMutasi = 0; // 🔥 Bikin wadah untuk ngitung total
+
         if (mutasi.length === 0) {
           html =
             '<tr><td colspan="5" class="text-center py-4 text-gray-500">Belum ada riwayat mutasi pada periode yang dipilih.</td></tr>';
@@ -755,13 +772,17 @@ const tabs = [
             const namaK = item.gudang_komoditas
               ? item.gudang_komoditas.nama_komoditas
               : item.komoditas_id;
+
             const sign = item.jumlah > 0 ? "+" : "";
             const colorNum =
               item.jumlah > 0 ? "text-green-600" : "text-red-600";
             const ket = item.keterangan ? item.keterangan : "-";
-            const jumlahFormatted = parseFloat(item.jumlah || 0).toFixed(2);
+            const jumlahAsli = parseFloat(item.jumlah || 0);
+            const jumlahFormatted = Math.abs(jumlahAsli).toFixed(2); // Pakai Math.abs biar minusnya nggak dobel sama colorNum
 
-            // Atribut data-date sudah dihapus karena filter kini diurus oleh database
+            // 🔥 Tambahkan angka ke wadah total
+            totalMutasi += jumlahAsli;
+
             html += `
                     <tr class="hover:bg-gray-50 transition">
                         <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">${tgl}</td>
@@ -775,7 +796,24 @@ const tabs = [
                     `;
           });
         }
+
         if (tbody) tbody.innerHTML = html;
+
+        // 🔥 UPDATE UI KOTAK TOTAL AKUMULASI 🔥
+        const displayTotal = document.getElementById("total-mutasi-display");
+        if (displayTotal) {
+          const signTotal = totalMutasi > 0 ? "+" : "";
+          // Warnanya otomatis: Plus = Hijau, Minus = Merah, Nol = Biru Gelap
+          const colorTotal =
+            totalMutasi > 0
+              ? "text-green-600"
+              : totalMutasi < 0
+                ? "text-red-600"
+                : "text-blue-900";
+
+          displayTotal.className = `text-2xl font-black ${colorTotal}`;
+          displayTotal.innerText = `${signTotal}${totalMutasi.toFixed(2)} Kg`;
+        }
       } else if (errMut) {
         console.error("Gagal narik mutasi:", errMut.message);
         if (tbody)

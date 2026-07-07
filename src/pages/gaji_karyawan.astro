@@ -213,7 +213,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       </div>
       <div>
         <label class="block text-sm font-bold text-gray-700 mb-1"
-          >Tarif Lembur per Jam (Rp)</label
+          >Tarif Lembur per Menit (Rp)</label
         >
         <input
           type="number"
@@ -320,7 +320,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
           <div class="col-span-2 sm:col-span-1">
             <label class="block text-xs font-bold text-gray-700 mb-1"
-              >Uang Lembur per Jam (Rp)</label
+              >Uang Lembur per Menit (Rp)</label
             >
             <input
               type="number"
@@ -374,6 +374,19 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               id="setup_potongan_absen"
               class="w-full border border-red-300 bg-red-50 text-red-900 rounded-lg p-2.5 text-sm outline-none focus:border-red-600 font-bold"
               placeholder="Misal: 5000"
+            />
+          </div>
+
+          <div class="col-span-2 sm:col-span-1">
+            <label class="block text-xs font-bold text-gray-700 mb-1"
+              >Uang Transport per Hari (Rp)</label
+            >
+            <input
+              type="number"
+              id="setup_uang_transport"
+              onchange="window.kalkulasiRealtimeGaji()"
+              class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-green-600"
+              placeholder="0"
             />
           </div>
 
@@ -516,27 +529,18 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           </div>
 
           <div
-            class="col-span-2 bg-red-50 p-3.5 rounded-xl border border-red-200 mt-2"
+            class="col-span-2 bg-blue-50 p-3.5 rounded-xl border border-blue-200 mt-2"
           >
-            <div class="flex justify-between items-center mb-2.5">
-              <label
-                class="text-xs font-bold text-red-800 uppercase flex items-center"
-                ><i class="bi bi-wallet2 mr-1"></i> Potong Kasbon Periode Ini</label
-              >
-              <div
-                class="text-[9px] font-black bg-red-200 text-red-900 px-2 py-1 rounded shadow-sm"
-              >
-                TOTAL HUTANG: <span id="info_total_kasbon" class="font-mono"
-                  >Rp 0</span
-                >
-              </div>
-            </div>
+            <label
+              class="text-xs font-bold text-blue-800 uppercase flex items-center mb-2.5"
+              ><i class="bi bi-cash-coin mr-1"></i> Uang Talangan / Reimbursement</label
+            >
             <input
               type="number"
-              id="potongan_kasbon_sekarang"
+              id="tambahan_talangan_sekarang"
               onchange="window.kalkulasiRealtimeGaji()"
-              class="w-full border border-red-300 bg-white text-red-900 font-bold font-mono rounded-lg p-2.5 text-sm outline-none focus:border-red-600 shadow-inner"
-              placeholder="Ketik nominal potongan..."
+              class="w-full border border-blue-300 bg-white text-blue-900 font-bold font-mono rounded-lg p-2.5 text-sm outline-none focus:border-blue-600 shadow-inner"
+              placeholder="Nominal Talangan (Opsional)..."
             />
           </div>
         </div>
@@ -1282,6 +1286,9 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       document.getElementById("setup_uang_makan").value = setup.uang_makan || 0;
       document.getElementById("setup_bonus_tepat").value =
         setup.bonus_tepat_waktu || 0;
+      // Tambahkan di deretan setup nilai:
+      document.getElementById("setup_uang_transport").value =
+        setup.uang_transport || 0;
       document.getElementById("setup_bonus_mingguan").value =
         setup.bonus_mingguan || 0;
       document.getElementById("setup_potongan_absen").value =
@@ -1296,6 +1303,8 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       document.getElementById("info_total_kasbon").innerText =
         "Rp " + totalHutangKasbon.toLocaleString("id-ID");
       document.getElementById("potongan_kasbon_sekarang").value = "";
+      // Reset input talangan
+      document.getElementById("tambahan_talangan_sekarang").value = "";
 
       document.getElementById("chk_bypass_jam_kerja").checked =
         setup.bypass_jam_kerja || false;
@@ -1383,7 +1392,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       const d = window.currentSalaryData;
       if (!d) return;
 
-      // Tampilkan loading muter di layar
       document.getElementById("m_total_gaji").innerText = "Menghitung...";
       document.getElementById("m_rincian_list").innerHTML =
         `<p class="text-center text-sm text-gray-500 py-4"><i class="bi bi-arrow-repeat animate-spin inline-block mr-2"></i> Sinkronisasi Kalkulator Server...</p>`;
@@ -1394,12 +1402,17 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       const potonganManual =
         potKasbonInput === "" ? null : parseFloat(potKasbonInput);
 
+      // 👉 TARUH DI SINI (1): Ambil Input Talangan
+      const talInput = document.getElementById(
+        "tambahan_talangan_sekarang",
+      ).value;
+      const talanganManual = talInput === "" ? null : parseFloat(talInput);
+
       try {
         // 🔥 MINTA DENO BUAT NGITUNGIN 🔥
         const { data, error } = await window.supabase.functions.invoke(
           "gaji-karyawan",
           {
-            // <--- UBAH DISINI
             body: {
               empId: d.empId,
               tglMulai: d.tglMulai,
@@ -1408,7 +1421,11 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               potonganKasbonManual: isNaN(potonganManual)
                 ? null
                 : potonganManual,
-              siklusGaji: d.siklusGaji, // Pastikan ini ikut terkirim
+              // 👉 TARUH DI SINI (2): Lempar variabelnya ke Deno
+              tambahanTalanganManual: isNaN(talanganManual)
+                ? null
+                : talanganManual,
+              siklusGaji: d.siklusGaji,
             },
           },
         );
@@ -1435,10 +1452,12 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             res.valBonusMingguan +
             (res.valLembur || 0) +
             (res.valMakan || 0) +
+            (res.valTransport || 0) + // 🔥 + Transport
             (res.valBonusTepat || 0) +
             (res.valKesehatan || 0) +
             (res.valRapat || 0) +
-            (res.valNginep || 0) -
+            (res.valNginep || 0) +
+            (res.valTalangan || 0) - // 🔥 + Talangan
             (res.valPotonganKasbon || 0);
         }
 
@@ -1461,7 +1480,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         d.finalState = { grandTotal: res.grandTotal };
 
         // 🔥 RENDER ULANG UI SLIP GAJI 🔥
-        // 🔥 RENDER ULANG UI SLIP GAJI 🔥
         document.getElementById("m_rincian_list").innerHTML = `
                 <div class="bg-blue-50/50 p-2.5 rounded mb-3 border border-blue-200">
                     <div class="text-[11px] font-bold text-blue-900 uppercase tracking-widest text-center"><i class="bi bi-calendar-range mr-1"></i> ${res.teksPeriode}</div>
@@ -1472,16 +1490,21 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                 
                 ${res.valGajiMinggu > 0 ? `<div class="flex justify-between text-xs text-purple-700 font-bold bg-purple-50 p-1 rounded mt-1"><span>⭐ Extra Masuk Hari Minggu (${res.hariMingguMasuk} Hari)</span> <span>+ Rp ${res.valGajiMinggu.toLocaleString("id-ID")}</span></div>` : ""}
                 
-                ${res.valLembur > 0 ? `<div class="flex justify-between text-xs mt-1"><span>Uang Lembur (${res.totalJamLembur} Jam Bulat)</span> <span class="font-bold text-gray-900">+ Rp ${res.valLembur.toLocaleString("id-ID")}</span></div>` : ""}
+                ${res.valLembur > 0 ? `<div class="flex justify-between text-xs mt-1"><span>Uang Lembur (${res.totalMenitLembur} Menit)</span> <span class="font-bold text-gray-900">+ Rp ${res.valLembur.toLocaleString("id-ID")}</span></div>` : ""}
                 ${res.valMakan > 0 ? `<div class="flex justify-between text-xs text-green-700 mt-1"><span>Uang Makan (${res.totalHariHadir} Hari)</span> <span class="font-bold">+ Rp ${res.valMakan.toLocaleString("id-ID")}</span></div>` : ""}
+                
+                <!-- 👉 TARUH UANG TRANSPORT DI SINI -->
+                ${res.valTransport > 0 ? `<div class="flex justify-between text-xs text-blue-700 mt-1"><span>Uang Transport (${res.totalHariHadir} Hari)</span> <span class="font-bold">+ Rp ${res.valTransport.toLocaleString("id-ID")}</span></div>` : ""}
+
                 ${res.valBonusTepat > 0 ? `<div class="flex justify-between text-xs text-green-700 mt-1"><span>Bonus Tepat Waktu (${res.tepatWaktuCount}x)</span> <span class="font-bold">+ Rp ${res.valBonusTepat.toLocaleString("id-ID")}</span></div>` : ""}
-                
                 ${res.valBonusMingguan > 0 ? `<div class="flex justify-between text-xs text-green-700 mt-1"><span>${labelBonus}</span> <span class="font-bold">+ Rp ${res.valBonusMingguan.toLocaleString("id-ID")}</span></div>` : ""}
-                
                 ${res.valKesehatan > 0 ? `<div class="flex justify-between text-xs text-teal-700 mt-1"><span>Tunjangan Kesehatan</span> <span class="font-bold">+ Rp ${res.valKesehatan.toLocaleString("id-ID")}</span></div>` : ""}
                 ${res.valRapat > 0 ? `<div class="flex justify-between text-xs text-teal-700 mt-1"><span>Uang Rapat</span> <span class="font-bold">+ Rp ${res.valRapat.toLocaleString("id-ID")}</span></div>` : ""}
                 ${res.valNginep > 0 ? `<div class="flex justify-between text-xs text-teal-700 mt-1"><span>Uang Nginep</span> <span class="font-bold">+ Rp ${res.valNginep.toLocaleString("id-ID")}</span></div>` : ""}
                 
+                <!-- 👉 TARUH UANG TALANGAN DI SINI (Di atas potongan kasbon) -->
+                ${res.valTalangan > 0 ? `<div class="flex justify-between text-xs text-green-700 font-bold border-t border-dashed border-gray-300 mt-2 pt-2"><span>Uang Talangan (Reimbursement)</span> <span>+ Rp ${res.valTalangan.toLocaleString("id-ID")}</span></div>` : ""}
+
                 ${res.valPotonganKasbon > 0 ? `<div class="flex justify-between text-xs text-red-600 font-bold border-t border-dashed border-gray-300 mt-2 pt-2"><span>Potongan Kasbon Periode Ini</span> <span>- Rp ${res.valPotonganKasbon.toLocaleString("id-ID")}</span></div>` : ""}
             `;
         document.getElementById("m_total_gaji").innerText =
@@ -1644,6 +1667,9 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           parseFloat(document.getElementById("setup_bonus_tepat")?.value) || 0,
         bonus_mingguan:
           parseFloat(document.getElementById("setup_bonus_mingguan")?.value) ||
+          0,
+        uang_transport:
+          parseFloat(document.getElementById("setup_uang_transport")?.value) ||
           0,
         uang_kesehatan:
           parseFloat(document.getElementById("setup_uang_kesehatan")?.value) ||

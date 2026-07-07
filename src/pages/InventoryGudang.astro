@@ -1,0 +1,577 @@
+---
+import GeneralLayout from "../layouts/Layout.astro";
+import "bootstrap-icons/font/bootstrap-icons.css";
+---
+
+<GeneralLayout title="Inventory Gudang - Manajemen Bang Jelantah">
+  <style is:global>
+    /* Mengunci layar menjadi blank sampai data siap diload */
+    body {
+      display: none;
+    }
+  </style>
+
+  <div
+    class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4"
+  >
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Inventory Gudang</h1>
+      <p class="text-gray-600">
+        Kelola stok barang, aset, dan riwayat barang masuk/keluar secara
+        dinamis.
+      </p>
+    </div>
+    <button
+      onclick="window.bukaModalTambahBarang()"
+      class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition shadow-sm flex items-center gap-2"
+    >
+      <i class="bi bi-plus-lg"></i> Tambah Jenis Barang
+    </button>
+  </div>
+
+  <div class="mb-6 border-b border-gray-200 overflow-x-auto hide-scrollbar">
+    <div class="flex gap-8 min-w-max">
+      <button
+        class="tab-btn active px-4 py-3 font-medium transition border-b-2 border-blue-700 text-blue-700"
+        data-tab="stok"
+      >
+        <i class="bi bi-box-seam mr-2"></i> Stok Saat Ini
+      </button>
+      <button
+        class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+        data-tab="mutasi"
+      >
+        <i class="bi bi-clock-history mr-2"></i> Riwayat Mutasi
+      </button>
+    </div>
+  </div>
+
+  <div class="tab-content block" id="tab-stok">
+    <div
+      class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
+    >
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead
+            class="bg-gray-50 border-b border-gray-200 text-xs uppercase text-gray-600"
+          >
+            <tr>
+              <th class="p-4 font-bold w-12">No</th>
+              <th class="p-4 font-bold">Nama Barang</th>
+              <th class="p-4 font-bold">Kategori</th>
+              <th class="p-4 font-bold text-right">Sisa Stok</th>
+              <th class="p-4 font-bold text-center">Aksi Mutasi</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-stok" class="text-sm divide-y divide-gray-100">
+            <tr>
+              <td
+                colspan="5"
+                class="p-8 text-center text-gray-500 italic animate-pulse"
+                >Memuat data inventory...</td
+              >
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content hidden" id="tab-mutasi">
+    <div
+      class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
+    >
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead
+            class="bg-gray-50 border-b border-gray-200 text-xs uppercase text-gray-600"
+          >
+            <tr>
+              <th class="p-4 font-bold">Tanggal</th>
+              <th class="p-4 font-bold">Barang</th>
+              <th class="p-4 font-bold text-center">Jenis</th>
+              <th class="p-4 font-bold text-right">Jumlah</th>
+              <th class="p-4 font-bold">Keterangan</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-mutasi" class="text-sm divide-y divide-gray-100">
+            <tr>
+              <td colspan="5" class="p-8 text-center text-gray-500 italic"
+                >Memuat riwayat mutasi...</td
+              >
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div
+    id="modal-tambah-barang"
+    class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[70] p-4 transition-opacity opacity-0 backdrop-blur-sm"
+  >
+    <div
+      class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 shadow-2xl"
+    >
+      <div
+        class="p-4 border-b border-gray-100 bg-blue-50 flex justify-between items-center"
+      >
+        <h3 class="font-bold text-lg text-blue-900">Tambah Jenis Barang</h3>
+        <button
+          onclick="window.tutupModalTambahBarang()"
+          class="text-blue-400 hover:text-blue-900"
+          ><i class="bi bi-x-lg text-xl"></i></button
+        >
+      </div>
+      <div class="p-5 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1"
+            >Nama Barang <span class="text-red-500">*</span></label
+          >
+          <input
+            type="text"
+            id="input_nama_barang"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+            placeholder="Contoh: Jerigen 5 Liter"
+          />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1"
+              >Kategori</label
+            >
+            <input
+              type="text"
+              id="input_kategori"
+              class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+              placeholder="Contoh: Wadah"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1"
+              >Satuan <span class="text-red-500">*</span></label
+            >
+            <input
+              type="text"
+              id="input_satuan"
+              class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+              placeholder="pcs / kg / unit"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1"
+            >Keterangan (Opsional)</label
+          >
+          <textarea
+            id="input_keterangan"
+            rows="2"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+          ></textarea>
+        </div>
+      </div>
+      <div class="p-4 border-t border-gray-100 bg-gray-50 flex gap-3">
+        <button
+          onclick="window.tutupModalTambahBarang()"
+          class="flex-1 bg-white border border-gray-300 text-gray-700 font-bold py-2 rounded-xl hover:bg-gray-100 text-sm"
+          >Batal</button
+        >
+        <button
+          onclick="window.simpanBarangBaru()"
+          id="btn-save-barang"
+          class="flex-1 bg-blue-700 text-white font-bold py-2 rounded-xl hover:bg-blue-800 text-sm"
+          >Simpan Barang</button
+        >
+      </div>
+    </div>
+  </div>
+
+  <div
+    id="modal-mutasi"
+    class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[70] p-4 transition-opacity opacity-0 backdrop-blur-sm"
+  >
+    <div
+      class="bg-white rounded-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 shadow-2xl"
+    >
+      <div
+        class="p-4 border-b border-gray-100 flex justify-between items-center"
+        id="modal-mutasi-header"
+      >
+        <h3 class="font-bold text-lg" id="mutasi_title">Update Stok</h3>
+        <button
+          onclick="window.tutupModalMutasi()"
+          class="text-gray-400 hover:text-gray-900"
+          ><i class="bi bi-x-lg"></i></button
+        >
+      </div>
+      <div class="p-5 space-y-4">
+        <input type="hidden" id="mutasi_id_barang" />
+        <input type="hidden" id="mutasi_jenis" />
+        <input type="hidden" id="mutasi_stok_sekarang" />
+
+        <div>
+          <p class="text-xs text-gray-500 mb-1">Barang terpilih:</p>
+          <p class="font-bold text-gray-900 text-lg" id="mutasi_nama_barang">
+            -
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1"
+            >Jumlah <span id="mutasi_satuan_label"></span>
+            <span class="text-red-500">*</span></label
+          >
+          <input
+            type="number"
+            id="mutasi_jumlah"
+            min="1"
+            class="w-full border border-gray-300 rounded-lg p-2 text-xl font-mono text-center outline-none focus:border-blue-600"
+            placeholder="0"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1"
+            >Keterangan / Alasan</label
+          >
+          <textarea
+            id="mutasi_keterangan"
+            rows="2"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+            placeholder="Misal: Pembelian baru / Rusak / Hilang"></textarea>
+        </div>
+      </div>
+      <div class="p-4 border-t border-gray-100 bg-gray-50 flex gap-3">
+        <button
+          onclick="window.tutupModalMutasi()"
+          class="flex-1 bg-white border border-gray-300 text-gray-700 font-bold py-2 rounded-xl hover:bg-gray-100 text-sm"
+          >Batal</button
+        >
+        <button
+          onclick="window.simpanMutasi()"
+          id="btn-save-mutasi"
+          class="flex-1 text-white font-bold py-2 rounded-xl shadow-sm text-sm"
+          >Simpan</button
+        >
+      </div>
+    </div>
+  </div>
+</GeneralLayout>
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", () => {
+    // Tampilkan body setelah HTML dimuat
+    document.body.style.display = "block";
+
+    // Logika Tab Navigasi
+    const tabs = document.querySelectorAll(".tab-btn");
+    const contents = document.querySelectorAll(".tab-content");
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        // Hapus styling aktif
+        tabs.forEach((t) => {
+          t.classList.remove("border-blue-700", "text-blue-700");
+          t.classList.add("border-transparent", "text-gray-500");
+        });
+        contents.forEach((c) => c.classList.add("hidden"));
+
+        // Tambah styling aktif ke tab yang diklik
+        tab.classList.add("border-blue-700", "text-blue-700");
+        tab.classList.remove("border-transparent", "text-gray-500");
+
+        const target = tab.getAttribute("data-tab");
+        document.getElementById(`tab-${target}`).classList.remove("hidden");
+
+        // Load data jika tab mutasi diklik
+        if (target === "mutasi") window.loadDataMutasi();
+      });
+    });
+
+    // Load data awal
+    window.loadDataStok();
+  });
+
+  // ==========================================
+  // FUNGSI LOAD DATA STOK (TAB 1)
+  // ==========================================
+  window.loadDataStok = async function () {
+    if (!window.supabase) return;
+    const tbody = document.getElementById("tbody-stok");
+
+    try {
+      const { data, error } = await window.supabase
+        .from("inventory_gudang")
+        .select("*")
+        .order("nama_barang", { ascending: true });
+
+      if (error) throw error;
+
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500">Belum ada barang di inventory. Silakan tambah jenis barang.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data
+        .map(
+          (item, idx) => `
+        <tr class="hover:bg-gray-50 transition">
+          <td class="p-4 text-gray-500">${idx + 1}</td>
+          <td class="p-4">
+            <p class="font-bold text-gray-900">${item.nama_barang}</p>
+            ${item.keterangan ? `<p class="text-[10px] text-gray-500">${item.keterangan}</p>` : ""}
+          </td>
+          <td class="p-4"><span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-medium">${item.kategori || "Umum"}</span></td>
+          <td class="p-4 text-right">
+            <span class="font-mono text-lg font-bold ${item.stok <= 0 ? "text-red-600" : "text-blue-700"}">${item.stok}</span>
+            <span class="text-xs text-gray-500 ml-1">${item.satuan}</span>
+          </td>
+          <td class="p-4 text-center">
+            <div class="flex justify-center gap-2">
+              <button onclick="window.bukaModalMutasi(${item.id}, '${item.nama_barang}', '${item.satuan}', ${item.stok}, 'MASUK')" class="bg-green-100 hover:bg-green-200 text-green-700 p-2 rounded-lg transition" title="Barang Masuk">
+                <i class="bi bi-box-arrow-in-down font-bold"></i> Masuk
+              </button>
+              <button onclick="window.bukaModalMutasi(${item.id}, '${item.nama_barang}', '${item.satuan}', ${item.stok}, 'KELUAR')" class="bg-red-100 hover:bg-red-200 text-red-700 p-2 rounded-lg transition" title="Barang Keluar">
+                <i class="bi bi-box-arrow-up font-bold"></i> Keluar
+              </button>
+            </div>
+          </td>
+        </tr>
+      `,
+        )
+        .join("");
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Gagal memuat data: ${err.message}</td></tr>`;
+    }
+  };
+
+  // ==========================================
+  // FUNGSI LOAD DATA MUTASI (TAB 2)
+  // ==========================================
+  window.loadDataMutasi = async function () {
+    if (!window.supabase) return;
+    const tbody = document.getElementById("tbody-mutasi");
+    tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500 italic animate-pulse">Memuat...</td></tr>`;
+
+    try {
+      const { data, error } = await window.supabase
+        .from("inventory_mutasi")
+        .select(`*, inventory_gudang(nama_barang, satuan)`)
+        .order("created_at", { ascending: false })
+        .limit(50); // Menampilkan 50 log terakhir
+
+      if (error) throw error;
+
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500">Belum ada riwayat mutasi.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data
+        .map((item) => {
+          const isMasuk = item.jenis_mutasi === "MASUK";
+          const tgl = new Date(item.created_at).toLocaleString("id-ID", {
+            dateStyle: "short",
+            timeStyle: "short",
+          });
+
+          return `
+        <tr class="hover:bg-gray-50 transition">
+          <td class="p-4 text-xs text-gray-500">${tgl}</td>
+          <td class="p-4 font-bold text-gray-900">${item.inventory_gudang?.nama_barang || "Barang Dihapus"}</td>
+          <td class="p-4 text-center">
+            <span class="px-2 py-1 rounded text-[10px] font-bold ${isMasuk ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}">
+              ${item.jenis_mutasi}
+            </span>
+          </td>
+          <td class="p-4 text-right font-mono font-bold ${isMasuk ? "text-green-600" : "text-red-600"}">
+            ${isMasuk ? "+" : "-"}${item.jumlah} <span class="text-xs text-gray-500 font-sans">${item.inventory_gudang?.satuan || ""}</span>
+          </td>
+          <td class="p-4 text-xs text-gray-600 italic">${item.keterangan || "-"}</td>
+        </tr>
+      `;
+        })
+        .join("");
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Gagal memuat mutasi: ${err.message}</td></tr>`;
+    }
+  };
+
+  // ==========================================
+  // MODAL & FUNGSI TAMBAH BARANG BARU
+  // ==========================================
+  window.bukaModalTambahBarang = function () {
+    document.getElementById("input_nama_barang").value = "";
+    document.getElementById("input_kategori").value = "";
+    document.getElementById("input_satuan").value = "";
+    document.getElementById("input_keterangan").value = "";
+
+    const m = document.getElementById("modal-tambah-barang");
+    m.classList.remove("hidden");
+    m.classList.add("flex");
+    setTimeout(() => {
+      m.classList.remove("opacity-0");
+      m.querySelector("div").classList.remove("scale-95");
+    }, 10);
+  };
+
+  window.tutupModalTambahBarang = function () {
+    const m = document.getElementById("modal-tambah-barang");
+    m.classList.add("opacity-0");
+    m.querySelector("div").classList.add("scale-95");
+    setTimeout(() => {
+      m.classList.add("hidden");
+      m.classList.remove("flex");
+    }, 300);
+  };
+
+  window.simpanBarangBaru = async function () {
+    const nama = document.getElementById("input_nama_barang").value.trim();
+    const kategori = document.getElementById("input_kategori").value.trim();
+    const satuan = document.getElementById("input_satuan").value.trim();
+    const ket = document.getElementById("input_keterangan").value.trim();
+
+    if (!nama || !satuan) return alert("Nama Barang dan Satuan wajib diisi!");
+
+    const btn = document.getElementById("btn-save-barang");
+    btn.innerHTML =
+      '<i class="bi bi-arrow-repeat animate-spin"></i> Menyimpan...';
+    btn.disabled = true;
+
+    try {
+      const { error } = await window.supabase
+        .from("inventory_gudang")
+        .insert([
+          {
+            nama_barang: nama,
+            kategori: kategori || "Umum",
+            satuan: satuan,
+            keterangan: ket,
+            stok: 0,
+          },
+        ]);
+
+      if (error) throw error;
+
+      alert("Barang berhasil ditambahkan!");
+      window.tutupModalTambahBarang();
+      window.loadDataStok();
+    } catch (err) {
+      alert("Gagal: " + err.message);
+    } finally {
+      btn.innerHTML = "Simpan Barang";
+      btn.disabled = false;
+    }
+  };
+
+  // ==========================================
+  // MODAL & FUNGSI MUTASI (MASUK / KELUAR)
+  // ==========================================
+  window.bukaModalMutasi = function (id, nama, satuan, stokSaatIni, jenis) {
+    document.getElementById("mutasi_id_barang").value = id;
+    document.getElementById("mutasi_jenis").value = jenis;
+    document.getElementById("mutasi_stok_sekarang").value = stokSaatIni;
+
+    document.getElementById("mutasi_nama_barang").innerText = nama;
+    document.getElementById("mutasi_satuan_label").innerText = `(${satuan})`;
+    document.getElementById("mutasi_jumlah").value = "";
+    document.getElementById("mutasi_keterangan").value = "";
+
+    const header = document.getElementById("modal-mutasi-header");
+    const btn = document.getElementById("btn-save-mutasi");
+    const title = document.getElementById("mutasi_title");
+
+    if (jenis === "MASUK") {
+      header.className =
+        "p-4 border-b border-gray-100 bg-green-50 flex justify-between items-center";
+      title.innerHTML = '<i class="bi bi-box-arrow-in-down"></i> Barang Masuk';
+      title.className = "font-bold text-lg text-green-800";
+      btn.className =
+        "flex-1 bg-green-600 text-white font-bold py-2 rounded-xl shadow-sm text-sm hover:bg-green-700";
+    } else {
+      header.className =
+        "p-4 border-b border-gray-100 bg-red-50 flex justify-between items-center";
+      title.innerHTML = '<i class="bi bi-box-arrow-up"></i> Barang Keluar';
+      title.className = "font-bold text-lg text-red-800";
+      btn.className =
+        "flex-1 bg-red-600 text-white font-bold py-2 rounded-xl shadow-sm text-sm hover:bg-red-700";
+    }
+
+    const m = document.getElementById("modal-mutasi");
+    m.classList.remove("hidden");
+    m.classList.add("flex");
+    setTimeout(() => {
+      m.classList.remove("opacity-0");
+      m.querySelector("div").classList.remove("scale-95");
+    }, 10);
+  };
+
+  window.tutupModalMutasi = function () {
+    const m = document.getElementById("modal-mutasi");
+    m.classList.add("opacity-0");
+    m.querySelector("div").classList.add("scale-95");
+    setTimeout(() => {
+      m.classList.add("hidden");
+      m.classList.remove("flex");
+    }, 300);
+  };
+
+  window.simpanMutasi = async function () {
+    const id = document.getElementById("mutasi_id_barang").value;
+    const jenis = document.getElementById("mutasi_jenis").value;
+    const stokSaatIni = parseFloat(
+      document.getElementById("mutasi_stok_sekarang").value,
+    );
+    const jumlah = parseFloat(document.getElementById("mutasi_jumlah").value);
+    const ket = document.getElementById("mutasi_keterangan").value.trim();
+
+    if (!jumlah || jumlah <= 0)
+      return alert("Masukkan jumlah mutasi yang valid!");
+    if (jenis === "KELUAR" && jumlah > stokSaatIni)
+      return alert("Stok tidak mencukupi untuk dikeluarkan!");
+
+    const btn = document.getElementById("btn-save-mutasi");
+    const originalText = btn.innerText;
+    btn.innerHTML =
+      '<i class="bi bi-arrow-repeat animate-spin"></i> Memproses...';
+    btn.disabled = true;
+
+    try {
+      const stokBaru =
+        jenis === "MASUK" ? stokSaatIni + jumlah : stokSaatIni - jumlah;
+
+      // 1. Update stok di tabel master
+      const { error: errUpdate } = await window.supabase
+        .from("inventory_gudang")
+        .update({ stok: stokBaru })
+        .eq("id", id);
+      if (errUpdate) throw errUpdate;
+
+      // 2. Catat riwayat di tabel mutasi
+      const { error: errLog } = await window.supabase
+        .from("inventory_mutasi")
+        .insert([
+          {
+            inventory_id: id,
+            jenis_mutasi: jenis,
+            jumlah: jumlah,
+            keterangan: ket,
+          },
+        ]);
+      if (errLog) console.error("Gagal catat log mutasi:", errLog); // Lanjut aja meskipun log gagal
+
+      alert(`✅ Berhasil! Stok berhasil diupdate.`);
+      window.tutupModalMutasi();
+      window.loadDataStok();
+
+      // Jika tab mutasi sedang aktif, refresh juga
+      if (!document.getElementById("tab-mutasi").classList.contains("hidden")) {
+        window.loadDataMutasi();
+      }
+    } catch (err) {
+      alert("Gagal: " + err.message);
+    } finally {
+      btn.innerText = originalText;
+      btn.disabled = false;
+    }
+  };
+</script>

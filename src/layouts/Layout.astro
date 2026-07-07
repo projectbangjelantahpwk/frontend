@@ -1,1152 +1,1728 @@
 ---
 interface Props {
-    title: string;
-    requireAuth?: boolean;
+  title: string;
+  requireAuth?: boolean;
 }
 
 const { title, requireAuth = true } = Astro.props;
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-    <meta charset="utf-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>{title}</title>
     <link rel="icon" type="image/png" href="/5.png" />
-    <script is:inline src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-    
+    <script
+      is:inline
+      src="https://cdn.tailwindcss.com?plugins=forms,container-queries"
+    ></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+
     <script is:inline id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    "colors": {
-                        "surface-tint": "#1b6d24",
-                        "on-tertiary-fixed": "#311300",
-                        "tertiary-fixed": "#ffdcc6",
-                        "secondary-fixed": "#acf4a4",
-                        "outline": "#707a6c",
-                        "secondary-container": "#acf4a4",
-                        "secondary": "#2a6b2c",
-                        "surface-container-lowest": "#ffffff",
-                        "inverse-on-surface": "#f2f0f0",
-                        "surface-container": "#efeded",
-                        "primary-container": "#2e7d32",
-                        "on-secondary-fixed": "#002203",
-                        "on-secondary-container": "#307231",
-                        "background": "#fbf9f9",
-                        "tertiary": "#884200",
-                        "error-container": "#ffdad6",
-                        "error": "#ba1a1a",
-                        "primary": "#0d631b",
-                        "on-tertiary": "#ffffff",
-                        "surface-container-high": "#e9e8e7",
-                        "on-primary-fixed-variant": "#005312",
-                        "on-surface-variant": "#40493d",
-                        "surface": "#fbf9f9",
-                        "on-surface": "#1b1c1c",
-                        "on-tertiary-container": "#ffeee6",
-                        "tertiary-fixed-dim": "#ffb786",
-                        "on-secondary": "#ffffff",
-                        "surface-bright": "#fbf9f9",
-                        "on-primary-container": "#cbffc2",
-                        "surface-dim": "#dbdad9",
-                        "surface-container-highest": "#e3e2e2",
-                        "on-tertiary-fixed-variant": "#723600",
-                        "inverse-primary": "#88d982",
-                        "tertiary-container": "#ad5600",
-                        "on-primary": "#ffffff",
-                        "secondary-fixed-dim": "#91d78a",
-                        "on-secondary-fixed-variant": "#0c5216",
-                        "outline-variant": "#bfcaba",
-                        "primary-fixed-dim": "#88d982",
-                        "surface-container-low": "#f5f3f3",
-                        "on-background": "#1b1c1c",
-                        "surface-variant": "#e3e2e2",
-                        "on-error-container": "#93000a",
-                        "on-error": "#ffffff",
-                        "inverse-surface": "#303031",
-                        "primary-fixed": "#a3f69c",
-                        "on-primary-fixed": "#002204"
-                    },
-                    "borderRadius": {
-                        "DEFAULT": "0.125rem",
-                        "lg": "0.25rem",
-                        "xl": "0.5rem",
-                        "full": "0.75rem"
-                    },
-                    "spacing": {
-                        "md": "16px",
-                        "lg": "24px",
-                        "xs": "4px",
-                        "container-margin": "16px",
-                        "gutter": "12px",
-                        "base": "8px",
-                        "xl": "32px",
-                        "touch-target": "48px",
-                        "sm": "8px",
-                        "safe": "env(safe-area-inset-bottom)"
-                    },
-                    "fontFamily": {
-                        "body-lg": ["Inter", "sans-serif"],
-                        "label-sm": ["Inter", "sans-serif"],
-                        "label-lg": ["Inter", "sans-serif"],
-                        "headline-lg": ["Inter", "sans-serif"],
-                        "display-data": ["Inter", "sans-serif"],
-                        "headline-md": ["Inter", "sans-serif"],
-                        "body-md": ["Inter", "sans-serif"],
-                        "headline-lg-mobile": ["Inter", "sans-serif"]
-                    }
-                }
-            }
-        }
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-tint": "#1b6d24",
+              "on-tertiary-fixed": "#311300",
+              "tertiary-fixed": "#ffdcc6",
+              "secondary-fixed": "#acf4a4",
+              outline: "#707a6c",
+              "secondary-container": "#acf4a4",
+              secondary: "#2a6b2c",
+              "surface-container-lowest": "#ffffff",
+              "inverse-on-surface": "#f2f0f0",
+              "surface-container": "#efeded",
+              "primary-container": "#2e7d32",
+              "on-secondary-fixed": "#002203",
+              "on-secondary-container": "#307231",
+              background: "#fbf9f9",
+              tertiary: "#884200",
+              "error-container": "#ffdad6",
+              error: "#ba1a1a",
+              primary: "#0d631b",
+              "on-tertiary": "#ffffff",
+              "surface-container-high": "#e9e8e7",
+              "on-primary-fixed-variant": "#005312",
+              "on-surface-variant": "#40493d",
+              surface: "#fbf9f9",
+              "on-surface": "#1b1c1c",
+              "on-tertiary-container": "#ffeee6",
+              "tertiary-fixed-dim": "#ffb786",
+              "on-secondary": "#ffffff",
+              "surface-bright": "#fbf9f9",
+              "on-primary-container": "#cbffc2",
+              "surface-dim": "#dbdad9",
+              "surface-container-highest": "#e3e2e2",
+              "on-tertiary-fixed-variant": "#723600",
+              "inverse-primary": "#88d982",
+              "tertiary-container": "#ad5600",
+              "on-primary": "#ffffff",
+              "secondary-fixed-dim": "#91d78a",
+              "on-secondary-fixed-variant": "#0c5216",
+              "outline-variant": "#bfcaba",
+              "primary-fixed-dim": "#88d982",
+              "surface-container-low": "#f5f3f3",
+              "on-background": "#1b1c1c",
+              "surface-variant": "#e3e2e2",
+              "on-error-container": "#93000a",
+              "on-error": "#ffffff",
+              "inverse-surface": "#303031",
+              "primary-fixed": "#a3f69c",
+              "on-primary-fixed": "#002204",
+            },
+            borderRadius: {
+              DEFAULT: "0.125rem",
+              lg: "0.25rem",
+              xl: "0.5rem",
+              full: "0.75rem",
+            },
+            spacing: {
+              md: "16px",
+              lg: "24px",
+              xs: "4px",
+              "container-margin": "16px",
+              gutter: "12px",
+              base: "8px",
+              xl: "32px",
+              "touch-target": "48px",
+              sm: "8px",
+              safe: "env(safe-area-inset-bottom)",
+            },
+            fontFamily: {
+              "body-lg": ["Inter", "sans-serif"],
+              "label-sm": ["Inter", "sans-serif"],
+              "label-lg": ["Inter", "sans-serif"],
+              "headline-lg": ["Inter", "sans-serif"],
+              "display-data": ["Inter", "sans-serif"],
+              "headline-md": ["Inter", "sans-serif"],
+              "body-md": ["Inter", "sans-serif"],
+              "headline-lg-mobile": ["Inter", "sans-serif"],
+            },
+          },
+        },
+      };
     </script>
     <style is:global>
-        /* 🛡️ GLOBAL AUTH BLOCKER: Sembunyikan layar jika butuh login */
-        body[data-require-auth="true"] {
-            display: none;
-        }
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-        .material-symbols-outlined[data-weight="fill"] {
-            font-variation-settings: 'FILL' 1;
-        }
-        
-        /* Animasi Transisi Sidebar & Overlay */
-        .sidebar {
-            transform: translateX(-100%);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+      /* 🛡️ GLOBAL AUTH BLOCKER: Sembunyikan layar jika butuh login */
+      body[data-require-auth="true"] {
+        display: none;
+      }
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+      .material-symbols-outlined[data-weight="fill"] {
+        font-variation-settings: "FILL" 1;
+      }
 
-        .sidebar.active {
-            transform: translateX(0);
-        }
+      /* Animasi Transisi Sidebar & Overlay */
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
 
-        .sidebar-overlay {
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+      .sidebar.active {
+        transform: translateX(0);
+      }
 
-        .sidebar-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
+      .sidebar-overlay {
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .sidebar-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
     </style>
-</head>
-<body
+  </head>
+  <body
     class="bg-background text-on-background min-h-screen font-body-lg text-body-lg overflow-x-hidden"
-    data-require-auth={requireAuth ? 'true' : 'false'}
->
-    <header class="fixed top-0 left-0 w-full z-40 flex justify-between items-center px-4 md:px-lg h-16 bg-surface-container-lowest border-b border-outline-variant shadow-sm">
-        <div class="flex items-center gap-2 md:gap-4">
-            <button id="hamburger-btn" class="hidden w-10 h-10 items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full focus:outline-none">
-                <span class="material-symbols-outlined text-[24px]">menu</span>
-            </button>
-            
-            <a href="/" class="flex items-center gap-2 group text-decoration-none">
-                <div class="w-10 h-10 rounded-lg bg-white flex items-center justify-center shadow-sm group-hover:shadow transition-all overflow-hidden p-1">
-                    <img src="/5.png" alt="Logo" class="w-full h-full object-contain" />
-                </div>
-                <div class="flex items-baseline">
-                    <h1 class="text-xl md:text-2xl font-bold text-on-surface tracking-tight">BangJelantah</h1>
-                    <span class="hidden sm:inline-block ml-1.5 text-sm font-medium text-on-surface-variant uppercase tracking-widest">CMS</span>
-                </div>
-            </a>
-        </div>
-
-        <div class="flex items-center gap-1 md:gap-2">
-            <div id="auth-logged-out" class="hidden items-center gap-2">
-                <a href="/login" class="hidden sm:flex items-center px-4 py-2 text-sm font-semibold text-primary hover:bg-surface-container-low rounded-full transition-colors">
-                    Masuk
-                </a>
-            </div>
-
-            <div id="auth-logged-in" class="hidden items-center gap-1 md:gap-2">
-                <div id="desktop-kas-widget" class="hidden items-center gap-2">
-                    <div class="flex items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-full border border-outline-variant shadow-sm">
-                        <span class="material-symbols-outlined text-[18px] text-primary">warehouse</span>
-                        <span class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold opacity-70">Gudang:</span>
-                        <span id="teks-kas-gudang" class="font-mono text-xs font-bold text-primary">Rp 0</span>
-                    </div>
-
-                    <div class="flex items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-full border border-outline-variant shadow-sm">
-                        <span class="material-symbols-outlined text-[18px] text-secondary">payments</span>
-                        <span class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold opacity-70">Keuangan:</span>
-                        <span id="teks-kas-keuangan" class="font-mono text-xs font-bold text-secondary">Rp 0</span>
-                    </div>
-
-                    <div id="box-kas-owner" class="hidden items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-full border border-outline-variant shadow-sm">
-                        <span class="material-symbols-outlined text-[18px] text-purple-600">account_balance_wallet</span>
-                        <span class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold opacity-70">Owner:</span>
-                        <span id="teks-kas-owner" class="font-mono text-xs font-bold text-purple-600">Rp 0</span>
-                    </div>
-
-                    <button id="btn-edit-kas" onclick="window.bukaModalKas()" class="w-8 h-8 flex items-center justify-center bg-surface-container-low border border-outline-variant text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-full shadow-sm transition-colors" style="display: none;" title="Edit Saldo Kas">
-                        <span class="material-symbols-outlined text-[16px]">edit</span>
-                    </button>
-                </div>
-                <div id="mobile-sticky-kas" class="hidden fixed bottom-4 left-4 right-4 z-50 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-2xl p-3 items-center justify-between">
-                    <div class="flex items-center gap-2 w-full justify-around">
-                        <div class="flex items-center gap-2 flex-1 justify-center">
-                            <span class="material-symbols-outlined text-[20px] text-primary">warehouse</span>
-                            <div class="flex flex-col">
-                                <span class="text-[9px] uppercase tracking-wider text-on-surface-variant font-bold opacity-60 leading-none mb-0.5">Gudang</span>
-                                <span id="teks-kas-gudang-mobile" class="font-mono text-xs font-bold text-primary">Rp 0</span>
-                            </div>
-                        </div>
-                        
-                        <div class="w-[1px] h-6 bg-outline-variant"></div>
-                        
-                        <div class="flex items-center gap-2 flex-1 justify-center">
-                            <span class="material-symbols-outlined text-[20px] text-secondary">payments</span>
-                            <div class="flex flex-col">
-                                <span class="text-[9px] uppercase tracking-wider text-on-surface-variant font-bold opacity-60 leading-none mb-0.5">Keuangan</span>
-                                <span id="teks-kas-keuangan-mobile" class="font-mono text-xs font-bold text-secondary">Rp 0</span>
-                            </div>
-                        </div>
-
-                        <div id="divider-kas-owner-mobile" class="hidden w-[1px] h-6 bg-outline-variant"></div>
-                        
-                        <div id="box-kas-owner-mobile" class="hidden items-center gap-2 flex-1 justify-center">
-                            <span class="material-symbols-outlined text-[20px] text-purple-600">account_balance_wallet</span>
-                            <div class="flex flex-col">
-                                <span class="text-[9px] uppercase tracking-wider text-on-surface-variant font-bold opacity-60 leading-none mb-0.5">Owner</span>
-                                <span id="teks-kas-owner-mobile" class="font-mono text-xs font-bold text-purple-600">Rp 0</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button id="btn-edit-kas-mobile" onclick="window.bukaModalKas()" class="w-8 h-8 flex items-center justify-center bg-primary text-on-primary rounded-full shadow-md ml-2 transition-transform active:scale-95" style="display: none;">
-                        <span class="material-symbols-outlined text-[16px]">edit</span>
-                    </button>
-                </div>
-    
-    <button id="btn-edit-kas-mobile" onclick="window.bukaModalKas()" class="w-8 h-8 flex items-center justify-center bg-primary text-on-primary rounded-full shadow-md ml-2 transition-transform active:scale-95" style="display: none;">
-        <span class="material-symbols-outlined text-[16px]">edit</span>
-    </button>
-</div>
-
-                <!-- BUNGKUS LONCENG DENGAN DIV RELATIVE -->
-                <div class="relative">
-                    <button id="notif-btn" class="relative w-10 h-10 hidden sm:flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full" type="button" aria-label="Notifikasi">
-                        <span class="material-symbols-outlined">notifications</span>
-                        <span id="notif-badge" class="hidden absolute top-2 right-2.5 w-2.5 h-2.5 bg-error rounded-full outline outline-2 outline-surface-container-lowest"></span>
-                    </button>
-                    
-                    <!-- KOTAK DROPDOWN NOTIFIKASI -->
-                    <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant overflow-hidden z-50">
-                        <div class="p-3 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
-                            <h3 class="font-bold text-sm text-on-surface">Notifikasi Terbaru</h3>
-                            <button id="clear-notif" class="text-xs text-primary hover:underline font-medium">Bersihkan</button>
-                        </div>
-                        <div id="notif-list" class="max-h-80 overflow-y-auto p-2 space-y-1">
-                            <p id="empty-notif" class="text-xs text-on-surface-variant text-center py-4">Belum ada notifikasi baru.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="ml-2 w-9 h-9 rounded-full overflow-hidden border-2 border-primary-container cursor-pointer hover:opacity-90 transition-opacity">
-                    <img
-                        id="user-avatar"
-                        alt="User Avatar"
-                        class="w-full h-full object-cover"
-                        src="https://ui-avatars.com/api/?name=Bang+Jelantah&background=2e7d32&color=ffffff"
-                    >
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <div class="relative">
-        <div id="sidebar-overlay" class="sidebar-overlay fixed inset-0 bg-on-surface/40 backdrop-blur-sm z-[50]"></div>
-
-        <nav id="sidebar" class="sidebar fixed left-0 top-0 w-[280px] h-screen z-[60] bg-surface-container-lowest border-r border-outline-variant shadow-2xl flex flex-col p-4 overflow-y-auto">
-            <div class="flex items-center justify-between mb-6 pt-2 px-2">
-                <div class="flex items-center gap-2">
-                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary">
-                        <img src="/3.png" alt="Logo" class="w-full h-full object-contain" />
-                    </div>
-                    <span class="font-bold text-lg text-primary tracking-tight">BJPWK-CMS</span>
-                </div>
-                <button id="close-sidebar" class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full" type="button" aria-label="Tutup sidebar">
-                    <span class="material-symbols-outlined text-[20px]">close</span>
-                </button>
-            </div>
-
-            <div class="flex-1 flex flex-col gap-1">
-                <p class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Menu Utama</p>
-                
-                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/" data-nav>
-                    <span class="material-symbols-outlined text-[22px]" data-weight="fill">dashboard</span>
-                    <span class="font-medium text-sm">Dashboard</span>
-                </a>
-                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/kemitraan" data-nav>
-                    <span class="material-symbols-outlined text-[22px]">handshake</span>
-                    <span class="font-medium text-sm">Kemitraan</span>
-                </a>
-                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/pengumuman" data-nav>
-                    <span class="material-symbols-outlined text-[22px]">info</span>
-                    <span class="font-medium text-sm">Pengumaman</span>
-                </a>
-
-                <p class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Operasional</p>
-
-                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/manajemen_armada" data-nav>
-                    <span class="material-symbols-outlined text-[22px]">garage</span>
-                    <span class="font-medium text-sm">Kendaraan</span>
-                </a>
-                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/penjemputan" data-nav>
-                    <span class="material-symbols-outlined text-[22px]">local_shipping</span>
-                    <span class="font-medium text-sm">Penjemputan</span>
-                </a>
-                <p class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Gudang</p>
-                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/gudang" data-nav>
-                    <span class="material-symbols-outlined text-[22px]">inventory_2</span>
-                    <span class="font-medium text-sm">Gudang</span>
-                </a>
-                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/pengolahan-external" data-nav>
-                    <span class="material-symbols-outlined text-[22px]">factory</span>
-                    <span class="font-medium text-sm">Pengolahan Eksternal</span>
-                </a>
-                
-                <p class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mt-4 mb-1">Karyawan</p>
-                
-                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/karyawan" data-nav>
-                    <span class="material-symbols-outlined text-[22px]">people</span>
-                    <span class="font-medium text-sm">Karyawan</span>
-                </a>
-                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/gaji_karyawan" data-nav>
-                    <span class="material-symbols-outlined text-[22px]">payments</span>
-                    <span class="font-medium text-sm">Gajian Karyawan</span>
-                </a>
-                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/benefit_karyawan" data-nav>
-                    <span class="material-symbols-outlined text-[22px]">health_and_safety</span>
-                    <span class="font-medium text-sm">Benefit Karyawan</span>
-                </a>
-
-                <p class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mt-4 mb-1">Manajemen</p>
-
-                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/pembelian" data-nav>
-                    <span class="material-symbols-outlined text-[22px]">shopping_cart_checkout</span>
-                    <span class="font-medium text-sm">Pembelian Barang</span>
-                </a>
-                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/penjualan" data-nav>
-                    <span class="material-symbols-outlined text-[22px]">trending_up</span>
-                    <span class="font-medium text-sm">Penjualan Barang</span>
-                </a>
-                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/pengeluaran" data-nav>
-                   <span class="material-symbols-outlined text-[22px]">account_balance_wallet</span>
-                    <span class="font-medium text-sm">Pengeluaran</span>
-                </a>
-                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/pemasukan" data-nav>
-                    <span class="material-symbols-outlined text-[22px]">monetization_on</span>
-                    <span class="font-medium text-sm">Pemasukan</span>
-                </a>
-
-                <p class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mt-4 mb-1">Periklanan</p>
-
-                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/periklanan" data-nav>
-                    <span class="material-symbols-outlined text-[22px]">campaign</span>
-                    <span class="font-medium text-sm">Periklanan</span>
-                </a>
-
-                <p class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mt-4 mb-1">Administrasi</p>
-                
-                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/hak-akses" data-nav>
-                    <span class="material-symbols-outlined text-[22px]">manage_accounts</span>
-                    <span class="font-medium text-sm">Hak Akses</span>
-                </a>
-                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all" href="/database" data-nav>
-                    <span class="material-symbols-outlined text-[22px]">inventory</span>
-                    <span class="font-medium text-sm">Manajemen Database</span>
-                </a>
-            </div>
-
-            <div id="sidebar-footer" class="hidden mt-6 pt-4 border-t border-outline-variant">
-                <button id="btn-logout" class="w-full flex items-center justify-center gap-2 bg-error-container text-on-error-container px-4 py-3 rounded-xl font-medium text-sm hover:opacity-90 transition-opacity active:scale-[0.98]" type="button">
-                    <span class="material-symbols-outlined text-[20px]">logout</span>
-                    <span>Akhiri Sesi</span>
-                </button>
-            </div>
-        </nav>
-    </div>
-    <div class="fixed inset-0 z-[70] bg-black/50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300" id="modal-transfer-kas">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 transform scale-95 transition-transform duration-300 relative flex flex-col max-h-[85vh]">
-
-            <button class="absolute top-4 right-4 text-gray-400 hover:text-red-600 transition" onclick="window.tutupModalTransfer()">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-
-            <h3 class="text-lg font-bold text-gray-900 mb-1"><i class="bi bi-arrow-left-right text-blue-600 mr-2"></i>Transfer Saldo Kas</h3>
-            <p class="text-xs text-gray-500 mb-4">Pindahkan dana antar dompet kas perusahaan.</p>
-
-            <form id="form-transfer-kas" onsubmit="window.eksekusiTransferKas(event)" class="space-y-4 shrink-0 bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-sm">
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Dari</label>
-                        <select id="tf_sumber" class="w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-semibold">
-                            <option value="uang_keuangan">Uang Keuangan</option>
-                            <option value="uang_gudang">Uang Gudang</option>
-                            <option value="uang_owner">Uang Owner</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Ke Tujuan</label>
-                        <select id="tf_tujuan" class="w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-semibold">
-                            <option value="uang_gudang" selected>Uang Gudang</option>
-                            <option value="uang_keuangan">Uang Keuangan</option>
-                            <option value="uang_owner">Uang Owner</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Nominal (Rp)</label>
-                    <input type="number" id="tf_nominal" class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none font-mono font-bold text-blue-700" placeholder="0" required>
-                </div>
-                <button type="submit" id="btn-submit-tf" class="w-full py-2 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 text-xs transition font-mono shadow-sm">
-                    <i class="bi bi-send-check-fill mr-1"></i> PROSES TRANSFER
-                </button>
-            </form>
-
-            <div class="mt-4 flex-1 overflow-hidden flex flex-col border-t border-gray-200 pt-3">
-                <h4 class="text-[11px] font-bold text-gray-700 uppercase mb-2 flex justify-between">
-                    <span><i class="bi bi-clock-history"></i> Riwayat 5 Transfer Terakhir</span>
-                    <button onclick="window.loadRiwayatTransfer()" class="text-blue-600 hover:underline text-[10px]"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
-                </h4>
-                <div id="list-riwayat-transfer" class="overflow-y-auto space-y-2 pr-1 flex-1 text-xs">
-                    <p class="text-gray-400 italic text-center py-4 text-[11px]">Memuat riwayat mutasi...</p>
-                </div>
-            </div>
-
-        </div>
-    </div>
-    <div class="fixed inset-0 z-[100] bg-black/50 hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300" id="modal-kas-perusahaan">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 transform scale-95 transition-transform duration-300 relative flex flex-col max-h-[90vh]">
-        
-        <button type="button" class="absolute top-4 right-4 text-gray-400 hover:text-red-600 transition" onclick="window.tutupModalKas()">
-            <span class="material-symbols-outlined">close</span>
+    data-require-auth={requireAuth ? "true" : "false"}
+  >
+    <header
+      class="fixed top-0 left-0 w-full z-40 flex justify-between items-center px-4 md:px-lg h-16 bg-surface-container-lowest border-b border-outline-variant shadow-sm"
+    >
+      <div class="flex items-center gap-2 md:gap-4">
+        <button
+          id="hamburger-btn"
+          class="hidden w-10 h-10 items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full focus:outline-none"
+        >
+          <span class="material-symbols-outlined text-[24px]">menu</span>
         </button>
 
-        <h3 class="text-lg font-bold text-gray-900 mb-1"><i class="bi bi-wallet2 text-blue-600 mr-2"></i>Manajemen Kas</h3>
-        <p class="text-xs text-gray-500 mb-4 border-b border-gray-100 pb-3">Pindahkan saldo antar dompet atau sesuaikan fisik uang.</p>
+        <a href="/" class="flex items-center gap-2 group text-decoration-none">
+          <div
+            class="w-10 h-10 rounded-lg bg-white flex items-center justify-center shadow-sm group-hover:shadow transition-all overflow-hidden p-1"
+          >
+            <img src="/5.png" alt="Logo" class="w-full h-full object-contain" />
+          </div>
+          <div class="flex items-baseline">
+            <h1
+              class="text-xl md:text-2xl font-bold text-on-surface tracking-tight"
+            >
+              BangJelantah
+            </h1>
+            <span
+              class="hidden sm:inline-block ml-1.5 text-sm font-medium text-on-surface-variant uppercase tracking-widest"
+              >CMS</span
+            >
+          </div>
+        </a>
+      </div>
 
-        <div class="overflow-y-auto pr-2 custom-scrollbar space-y-5">
-            
-            <div class="bg-blue-50/50 border border-blue-200 p-4 rounded-xl shadow-sm">
-                <h4 class="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2"><i class="bi bi-arrow-left-right"></i> Transfer Saldo Instan</h4>
-                <div class="grid grid-cols-2 gap-3 mb-3">
-                    <div>
-                        <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Dari (Sumber Asal)</label>
-                        <select id="tf_sumber" class="w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-semibold focus:border-blue-500">
-                            <option value="uang_keuangan">Uang Keuangan</option>
-                            <option value="uang_gudang">Uang Gudang</option>
-                            <option value="uang_owner">Uang Owner</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Ke (Tujuan)</label>
-                        <select id="tf_tujuan" class="w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-semibold focus:border-blue-500">
-                            <option value="uang_gudang" selected>Uang Gudang</option>
-                            <option value="uang_keuangan">Uang Keuangan</option>
-                            <option value="uang_owner">Uang Owner</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Nominal Dipindahkan (Rp)</label>
-                    <input type="number" id="tf_nominal" class="w-full border border-blue-300 rounded-lg p-2.5 text-sm outline-none font-mono font-bold text-blue-800 focus:border-blue-500" placeholder="Contoh: 500000" required>
-                </div>
-                <button type="button" id="btn-submit-tf" onclick="window.eksekusiTransferKas(event)" class="w-full mt-3 py-2.5 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 text-xs transition font-mono shadow-md">
-                    <i class="bi bi-send-check-fill mr-1"></i> EKSEKUSI TRANSFER
-                </button>
-            </div>
-
-            <div>
-                <h4 class="text-[11px] font-bold text-gray-700 uppercase mb-2 flex justify-between items-center">
-                    <span><i class="bi bi-clock-history"></i> Riwayat Transfer</span>
-                    <button type="button" onclick="window.loadRiwayatTransfer()" class="text-blue-600 hover:underline text-[10px]"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
-                </h4>
-                <div id="list-riwayat-transfer" class="space-y-2 text-xs max-h-32 overflow-y-auto pr-1">
-                    <p class="text-gray-400 italic text-center py-4 text-[11px]">Memuat riwayat...</p>
-                </div>
-            </div>
-
-            <hr class="border-gray-200">
-
-            <details class="group bg-gray-50 border border-gray-200 rounded-xl p-3">
-                <summary class="text-xs font-bold text-gray-700 cursor-pointer flex items-center justify-between outline-none">
-                    <span class="flex items-center gap-2"><i class="bi bi-pencil-square"></i> Koreksi Manual Saldo Fisik</span>
-                    <i class="bi bi-chevron-down group-open:rotate-180 transition-transform"></i>
-                </summary>
-                <div class="mt-4 pt-3 border-t border-gray-200">
-                    <p class="text-[10px] text-gray-500 mb-3 leading-relaxed">Gunakan fitur ini <b>hanya</b> jika terdapat selisih uang fisik yang mengharuskan Anda mengetik ulang total saldo dompet.</p>
-                    <form id="form-kas-perusahaan" class="flex flex-col gap-3">
-                        <div>
-                            <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Total Fisik Uang Gudang (Rp)</label>
-                            <input type="number" id="input_uang_gudang" class="w-full h-10 px-3 rounded-lg border border-gray-300 bg-white text-gray-900 focus:border-green-500 outline-none font-bold font-mono text-sm" value="0">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Total Fisik Uang Keuangan (Rp)</label>
-                            <input type="number" id="input_uang_keuangan" class="w-full h-10 px-3 rounded-lg border border-gray-300 bg-white text-gray-900 focus:border-green-500 outline-none font-bold font-mono text-sm" value="0">
-                        </div>
-                        <div id="input-container-owner" class="hidden">
-                            <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1">Total Uang Owner (Rp)</label>
-                            <input type="number" id="input_uang_owner" class="w-full h-10 px-3 rounded-lg border border-gray-300 bg-white text-gray-900 focus:border-green-500 outline-none font-bold font-mono text-sm" value="0">
-                        </div>
-                        <button class="w-full py-2.5 mt-2 bg-gray-800 text-white rounded-lg font-bold text-xs hover:bg-gray-900 transition shadow-sm" type="submit" id="btn-submit-kas">SIMPAN KOREKSI</button>
-                    </form>
-                </div>
-            </details>
-            
+      <div class="flex items-center gap-1 md:gap-2">
+        <div id="auth-logged-out" class="hidden items-center gap-2">
+          <a
+            href="/login"
+            class="hidden sm:flex items-center px-4 py-2 text-sm font-semibold text-primary hover:bg-surface-container-low rounded-full transition-colors"
+          >
+            Masuk
+          </a>
         </div>
+
+        <div id="auth-logged-in" class="hidden items-center gap-1 md:gap-2">
+          <div id="desktop-kas-widget" class="hidden items-center gap-2">
+            <div
+              class="flex items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-full border border-outline-variant shadow-sm"
+            >
+              <span class="material-symbols-outlined text-[18px] text-primary"
+                >warehouse</span
+              >
+              <span
+                class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold opacity-70"
+                >Gudang:</span
+              >
+              <span
+                id="teks-kas-gudang"
+                class="font-mono text-xs font-bold text-primary">Rp 0</span
+              >
+            </div>
+
+            <div
+              class="flex items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-full border border-outline-variant shadow-sm"
+            >
+              <span class="material-symbols-outlined text-[18px] text-secondary"
+                >payments</span
+              >
+              <span
+                class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold opacity-70"
+                >Keuangan:</span
+              >
+              <span
+                id="teks-kas-keuangan"
+                class="font-mono text-xs font-bold text-secondary">Rp 0</span
+              >
+            </div>
+
+            <div
+              id="box-kas-owner"
+              class="hidden items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-full border border-outline-variant shadow-sm"
+            >
+              <span
+                class="material-symbols-outlined text-[18px] text-purple-600"
+                >account_balance_wallet</span
+              >
+              <span
+                class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold opacity-70"
+                >Owner:</span
+              >
+              <span
+                id="teks-kas-owner"
+                class="font-mono text-xs font-bold text-purple-600">Rp 0</span
+              >
+            </div>
+
+            <button
+              id="btn-edit-kas"
+              onclick="window.bukaModalKas()"
+              class="w-8 h-8 flex items-center justify-center bg-surface-container-low border border-outline-variant text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-full shadow-sm transition-colors"
+              style="display: none;"
+              title="Edit Saldo Kas"
+            >
+              <span class="material-symbols-outlined text-[16px]">edit</span>
+            </button>
+          </div>
+          <div
+            id="mobile-sticky-kas"
+            class="hidden fixed bottom-4 left-4 right-4 z-50 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-2xl p-3 items-center justify-between"
+          >
+            <div class="flex items-center gap-2 w-full justify-around">
+              <div class="flex items-center gap-2 flex-1 justify-center">
+                <span class="material-symbols-outlined text-[20px] text-primary"
+                  >warehouse</span
+                >
+                <div class="flex flex-col">
+                  <span
+                    class="text-[9px] uppercase tracking-wider text-on-surface-variant font-bold opacity-60 leading-none mb-0.5"
+                    >Gudang</span
+                  >
+                  <span
+                    id="teks-kas-gudang-mobile"
+                    class="font-mono text-xs font-bold text-primary">Rp 0</span
+                  >
+                </div>
+              </div>
+
+              <div class="w-[1px] h-6 bg-outline-variant"></div>
+
+              <div class="flex items-center gap-2 flex-1 justify-center">
+                <span
+                  class="material-symbols-outlined text-[20px] text-secondary"
+                  >payments</span
+                >
+                <div class="flex flex-col">
+                  <span
+                    class="text-[9px] uppercase tracking-wider text-on-surface-variant font-bold opacity-60 leading-none mb-0.5"
+                    >Keuangan</span
+                  >
+                  <span
+                    id="teks-kas-keuangan-mobile"
+                    class="font-mono text-xs font-bold text-secondary"
+                    >Rp 0</span
+                  >
+                </div>
+              </div>
+
+              <div
+                id="divider-kas-owner-mobile"
+                class="hidden w-[1px] h-6 bg-outline-variant"
+              >
+              </div>
+
+              <div
+                id="box-kas-owner-mobile"
+                class="hidden items-center gap-2 flex-1 justify-center"
+              >
+                <span
+                  class="material-symbols-outlined text-[20px] text-purple-600"
+                  >account_balance_wallet</span
+                >
+                <div class="flex flex-col">
+                  <span
+                    class="text-[9px] uppercase tracking-wider text-on-surface-variant font-bold opacity-60 leading-none mb-0.5"
+                    >Owner</span
+                  >
+                  <span
+                    id="teks-kas-owner-mobile"
+                    class="font-mono text-xs font-bold text-purple-600"
+                    >Rp 0</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <button
+              id="btn-edit-kas-mobile"
+              onclick="window.bukaModalKas()"
+              class="w-8 h-8 flex items-center justify-center bg-primary text-on-primary rounded-full shadow-md ml-2 transition-transform active:scale-95"
+              style="display: none;"
+            >
+              <span class="material-symbols-outlined text-[16px]">edit</span>
+            </button>
+          </div>
+
+          <button
+            id="btn-edit-kas-mobile"
+            onclick="window.bukaModalKas()"
+            class="w-8 h-8 flex items-center justify-center bg-primary text-on-primary rounded-full shadow-md ml-2 transition-transform active:scale-95"
+            style="display: none;"
+          >
+            <span class="material-symbols-outlined text-[16px]">edit</span>
+          </button>
+        </div>
+
+        <!-- BUNGKUS LONCENG DENGAN DIV RELATIVE -->
+        <div class="relative">
+          <button
+            id="notif-btn"
+            class="relative w-10 h-10 hidden sm:flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full"
+            type="button"
+            aria-label="Notifikasi"
+          >
+            <span class="material-symbols-outlined">notifications</span>
+            <span
+              id="notif-badge"
+              class="hidden absolute top-2 right-2.5 w-2.5 h-2.5 bg-error rounded-full outline outline-2 outline-surface-container-lowest"
+            ></span>
+          </button>
+
+          <!-- KOTAK DROPDOWN NOTIFIKASI -->
+          <div
+            id="notif-dropdown"
+            class="hidden absolute right-0 mt-2 w-80 bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant overflow-hidden z-50"
+          >
+            <div
+              class="p-3 border-b border-outline-variant bg-surface-container-low flex justify-between items-center"
+            >
+              <h3 class="font-bold text-sm text-on-surface">
+                Notifikasi Terbaru
+              </h3>
+              <button
+                id="clear-notif"
+                class="text-xs text-primary hover:underline font-medium"
+                >Bersihkan</button
+              >
+            </div>
+            <div id="notif-list" class="max-h-80 overflow-y-auto p-2 space-y-1">
+              <p
+                id="empty-notif"
+                class="text-xs text-on-surface-variant text-center py-4"
+              >
+                Belum ada notifikasi baru.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="ml-2 w-9 h-9 rounded-full overflow-hidden border-2 border-primary-container cursor-pointer hover:opacity-90 transition-opacity"
+        >
+          <img
+            id="user-avatar"
+            alt="User Avatar"
+            class="w-full h-full object-cover"
+            src="https://ui-avatars.com/api/?name=Bang+Jelantah&background=2e7d32&color=ffffff"
+          />
+        </div>
+      </div>
+    </header>
+  </body>
+
+  <div class="relative">
+    <div
+      id="sidebar-overlay"
+      class="sidebar-overlay fixed inset-0 bg-on-surface/40 backdrop-blur-sm z-[50]"
+    >
     </div>
-</div>
-    <main id="app-content" class="w-full min-h-screen pt-20 pb-8 px-4 md:px-lg overflow-x-hidden">
-        <slot />
-    </main>
 
-    <script>
-        import { supabase } from '../lib/supabase.js';
+    <nav
+      id="sidebar"
+      class="sidebar fixed left-0 top-0 w-[280px] h-screen z-[60] bg-surface-container-lowest border-r border-outline-variant shadow-2xl flex flex-col p-4 overflow-y-auto"
+    >
+      <div class="flex items-center justify-between mb-6 pt-2 px-2">
+        <div class="flex items-center gap-2">
+          <div
+            class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary"
+          >
+            <img src="/3.png" alt="Logo" class="w-full h-full object-contain" />
+          </div>
+          <span class="font-bold text-lg text-primary tracking-tight"
+            >BJPWK-CMS</span
+          >
+        </div>
+        <button
+          id="close-sidebar"
+          class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full"
+          type="button"
+          aria-label="Tutup sidebar"
+        >
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
 
-        // ==========================================
-        // 🔥 LOGIKA REALTIME NOTIFICATIONS (BARU)
-        // ==========================================
-        function initRealtimeNotifications() {
-            if (!window.supabase) {
-                console.warn('⏳ Waiting for Supabase...');
-                setTimeout(() => initRealtimeNotifications(), 500);
-                return;
-            }
-        
-            console.log('🚀 Initializing Realtime Notifications...');
-        
-            let retryCount = 0;
-            const MAX_RETRIES = 3;
-            let channel = null;
-        
-            function setupChannel() {
-                try {
-                    if (channel) {
-                        console.log('🧹 Cleaning old channel...');
-                        channel.unsubscribe();
-                        channel = null;
-                    }
-                
-                    console.log('🔌 Setting up WebSocket channel...');
-                    channel = window.supabase.channel('dashboard-notifications', {
-                        config: {
-                            broadcast: { self: true },
-                            presence: { key: 'notifications' }
-                        }
-                    });
-                
-                    // ✅ TAMBAH SEMUA LISTENERS DULU (SEBELUM SUBSCRIBE!)
-                
-                    // 1️⃣ TRANSAKSI
-                    channel.on('postgres_changes', 
-                        { event: 'UPDATE', schema: 'public', table: 'transaksi' }, 
-                        async (payload) => {
-                            try {
-                                console.log('📡 [TRANSAKSI] Update:', payload);
-                                const newData = payload.new;
-                                const oldData = payload.old || {};
-                            
-                                if (newData.status === 'Selesai' && oldData.status !== 'Selesai') {
-                                    const { data: relasi } = await window.supabase
-                                        .from('transaksi')
-                                        .select('metode_bayar, penjemputan(mitra(nama_mitra))')
-                                        .eq('id', newData.id)
-                                        .single();
-                                
-                                    const namaMitra = relasi?.penjemputan?.mitra?.nama_mitra || 'Mitra';
-                                    const metode = relasi?.metode_bayar || 'Kas/Transfer';
-                                
-                                    window.addNotifToList('✅ Pembayaran Selesai!', `Setoran dari ${namaMitra} - ${metode}`);
-                                }
-                            } catch (error) {
-                                console.error('❌ Error EVENT 1:', error);
-                            }
-                        }
-                    );
+      <div class="flex-1 flex flex-col gap-1">
+        <p
+          class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1"
+        >
+          Menu Utama
+        </p>
 
-                    window.eksekusiTransferKas = async function(e) {
-                        e.preventDefault();
-                        if(!window.supabase) return;
+        <a
+          class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all"
+          href="/"
+          data-nav
+        >
+          <span class="material-symbols-outlined text-[22px]" data-weight="fill"
+            >dashboard</span
+          >
+          <span class="font-medium text-sm">Dashboard</span>
+        </a>
+        <a
+          class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all"
+          href="/kemitraan"
+          data-nav
+        >
+          <span class="material-symbols-outlined text-[22px]">handshake</span>
+          <span class="font-medium text-sm">Kemitraan</span>
+        </a>
+        <a
+          class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all"
+          href="/pengumuman"
+          data-nav
+        >
+          <span class="material-symbols-outlined text-[22px]">info</span>
+          <span class="font-medium text-sm">Pengumaman</span>
+        </a>
 
-                        // 🛡️ ANTI-CRASH & ANTI-DUPLIKAT ID
-                        // Sistem akan mencari kotak isian yang benar-benar diketik angkanya
-                        let inputNominal = null;
-                        let selSumber = null;
-                        let selTujuan = null;
+        <p
+          class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1"
+        >
+          Operasional
+        </p>
 
-                        document.querySelectorAll('#tf_nominal').forEach(el => { if(el.value) inputNominal = el; });
-                        document.querySelectorAll('#tf_sumber').forEach(el => { if(el.offsetWidth > 0) selSumber = el; });
-                        document.querySelectorAll('#tf_tujuan').forEach(el => { if(el.offsetWidth > 0) selTujuan = el; });
+        <a
+          class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all"
+          href="/manajemen_armada"
+          data-nav
+        >
+          <span class="material-symbols-outlined text-[22px]">garage</span>
+          <span class="font-medium text-sm">Kendaraan</span>
+        </a>
+        <a
+          class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all"
+          href="/penjemputan"
+          data-nav
+        >
+          <span class="material-symbols-outlined text-[22px]"
+            >local_shipping</span
+          >
+          <span class="font-medium text-sm">Penjemputan</span>
+        </a>
+        <p
+          class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1"
+        >
+          Gudang
+        </p>
+        <a
+          class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all"
+          href="/gudang"
+          data-nav
+        >
+          <span class="material-symbols-outlined text-[22px]">inventory_2</span>
+          <span class="font-medium text-sm">Gudang</span>
+        </a>
+        <a
+          class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all"
+          href="/InventoryGudang"
+          data-nav
+        >
+          <span class="material-symbols-outlined text-[22px]">inventory_2</span>
+          <span class="font-medium text-sm">Peralatan Gudang</span>
+        </a>
+        <a
+          class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all"
+          href="/pengolahan-external"
+          data-nav
+        >
+          <span class="material-symbols-outlined text-[22px]">factory</span>
+          <span class="font-medium text-sm">Pengolahan Eksternal</span>
+        </a>
 
-                        // Fallback kalau cuma ada 1 di layar
-                        if (!inputNominal) inputNominal = document.getElementById('tf_nominal');
-                        if (!selSumber) selSumber = document.getElementById('tf_sumber');
-                        if (!selTujuan) selTujuan = document.getElementById('tf_tujuan');
+        <p
+          class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mt-4 mb-1"
+        >
+          Karyawan
+        </p>
 
-                        const nominal = parseFloat(inputNominal.value) || 0;
-                        const sumber = selSumber.value;
-                        const tujuan = selTujuan.value;
+        <a
+          class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all"
+          href="/karyawan"
+          data-nav
+        >
+          <span class="material-symbols-outlined text-[22px]">people</span>
+          <span class="font-medium text-sm">Karyawan</span>
+        </a>
+        <a
+          class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all"
+          href="/gaji_karyawan"
+          data-nav
+        >
+          <span class="material-symbols-outlined text-[22px]">payments</span>
+          <span class="font-medium text-sm">Gajian Karyawan</span>
+        </a>
+        <a
+          class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all"
+          href="/benefit_karyawan"
+          data-nav
+        >
+          <span class="material-symbols-outlined text-[22px]"
+            >health_and_safety</span
+          >
+          <span class="font-medium text-sm">Benefit Karyawan</span>
+        </a>
 
-                        const labelSumber = selSumber.options[selSumber.selectedIndex].text;
-                        const labelTujuan = selTujuan.options[selTujuan.selectedIndex].text;
+        <p
+          class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mt-4 mb-1"
+        >
+          Manajemen
+        </p>
 
-                        if (sumber === tujuan) return alert("❌ Dompet asal dan tujuan tidak boleh sama!");
-                        if (nominal <= 0) return alert("❌ Nominal transfer harus lebih dari Rp 0!\n(Pastikan ketik angka tanpa titik, contoh: 500000)");
+        <a
+          class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all"
+          href="/pembelian"
+          data-nav
+        >
+          <span class="material-symbols-outlined text-[22px]"
+            >shopping_cart_checkout</span
+          >
+          <span class="font-medium text-sm">Pembelian Barang</span>
+        </a>
+        <a
+          class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all"
+          href="/penjualan"
+          data-nav
+        >
+          <span class="material-symbols-outlined text-[22px]">trending_up</span>
+          <span class="font-medium text-sm">Penjualan Barang</span>
+        </a>
+        <a
+          class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all"
+          href="/pengeluaran"
+          data-nav
+        >
+          <span class="material-symbols-outlined text-[22px]"
+            >account_balance_wallet</span
+          >
+          <span class="font-medium text-sm">Pengeluaran</span>
+        </a>
+        <a
+          class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all"
+          href="/pemasukan"
+          data-nav
+        >
+          <span class="material-symbols-outlined text-[22px]"
+            >monetization_on</span
+          >
+          <span class="font-medium text-sm">Pemasukan</span>
+        </a>
 
-                        if(!confirm(`Yakin ingin memindahkan dana sebesar Rp ${nominal.toLocaleString('id-ID')} dari ${labelSumber} ke ${labelTujuan}?`)) return;
+        <p
+          class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mt-4 mb-1"
+        >
+          Periklanan
+        </p>
 
-                        const btn = e.target.querySelector('button[type="submit"]') || document.getElementById('btn-submit-tf');
-                        const textLama = btn.innerHTML;
-                        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> MEMPROSES...';
-                        btn.disabled = true;
+        <a
+          class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all"
+          href="/periklanan"
+          data-nav
+        >
+          <span class="material-symbols-outlined text-[22px]">campaign</span>
+          <span class="font-medium text-sm">Periklanan</span>
+        </a>
 
-                        try {
-                            // 1. Tarik saldo terkini dari database
-                            const { data: kasLama, error: errCek } = await window.supabase.from('kas_perusahaan').select('*').eq('id', 1).single();
-                            if (errCek) throw errCek;
-                        
-                            const saldoSumber = parseFloat(kasLama[sumber]) || 0;
-                            const saldoTujuan = parseFloat(kasLama[tujuan]) || 0;
-                        
-                            // 2. Sensor Anti-Minus
-                            if (saldoSumber < nominal) {
-                                throw new Error(`Saldo [${labelSumber}] tidak mencukupi!\nSisa Saldo: Rp ${saldoSumber.toLocaleString('id-ID')}`);
-                            }
-                        
-                            // 3. Kalkulasi Otomatis Saldo Kas
-                            const payloadKas = {};
-                            payloadKas[sumber] = saldoSumber - nominal;
-                            payloadKas[tujuan] = saldoTujuan + nominal;
-                            payloadKas.updated_at = new Date().toISOString();
-                        
-                            // 4. Eksekusi Update Kas Perusahaan
-                            const { error: errUpdate } = await window.supabase.from('kas_perusahaan').update(payloadKas).eq('id', 1);
-                            if (errUpdate) throw errUpdate;
-                        
-                            // 5. Catat ke Tabel Riwayat
-                            const { data: { user } } = await window.supabase.auth.getUser();
-                            await window.supabase.from('riwayat_transfer_kas').insert({
-                                user_id: user?.id,
-                                sumber: labelSumber,
-                                tujuan: labelTujuan,
-                                nominal: nominal
-                            });
-                        
-                            alert(`✅ BERHASIL!\n\nDana Rp ${nominal.toLocaleString('id-ID')} telah sukses dipindahkan.`);
+        <p
+          class="px-3 py-2 text-xs font-semibold text-on-surface-variant uppercase tracking-wider mt-4 mb-1"
+        >
+          Administrasi
+        </p>
 
-                            // 🔥 Reset isian agar bisa transfer lagi
-                            inputNominal.value = '';
+        <a
+          class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all"
+          href="/hak-akses"
+          data-nav
+        >
+          <span class="material-symbols-outlined text-[22px]"
+            >manage_accounts</span
+          >
+          <span class="font-medium text-sm">Hak Akses</span>
+        </a>
+        <a
+          class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all"
+          href="/database"
+          data-nav
+        >
+          <span class="material-symbols-outlined text-[22px]">inventory</span>
+          <span class="font-medium text-sm">Manajemen Database</span>
+        </a>
+      </div>
 
-                            // 🔥 Refresh tampilan dan riwayat live
-                            if(typeof window.loadRiwayatTransfer === 'function') await window.loadRiwayatTransfer(); 
-                            if(typeof window.loadDataKas === 'function') window.loadDataKas(); 
-                        
-                        } catch (err) {
-                            alert("❌ GAGAL TRANSFER: " + err.message);
-                        } finally {
-                            btn.innerHTML = textLama;
-                            btn.disabled = false;
-                        }
-                    };
-                    
-                    // 2️⃣ PRESENSI
-                    channel.on('postgres_changes', 
-                        { event: 'UPDATE', schema: 'public', table: 'presensi' }, 
-                        async (payload) => {
-                            try {
-                                const newData = payload.new;
-                                const oldData = payload.old || {};
-                            
-                                const isWaktuPulangDiisi = newData.waktu_pulang && !oldData.waktu_pulang;
-                                const statusAlerts = ['Pulang', 'Izin', 'Izin Pulang Cepat', 'Sakit'];
-                                const isStatusTibaTrigger = statusAlerts.includes(newData.status_tiba) && newData.status_tiba !== oldData.status_tiba;
-                                const isStatusPulangTrigger = statusAlerts.includes(newData.status_pulang) && newData.status_pulang !== oldData.status_pulang;
-                            
-                                if (isWaktuPulangDiisi || isStatusTibaTrigger || isStatusPulangTrigger) {
-                                    const { data: user } = await window.supabase.from('profiles').select('nama').eq('id', newData.user_id).single();
-                                    const namaKaryawan = user?.nama || 'Karyawan';
-                                    let title = '', pesan = '';
-                                
-                                    if (newData.status_tiba === 'Sakit') {
-                                        title = '⚠️ Sakit'; pesan = `${namaKaryawan} sakit`;
-                                    } else if (newData.status_pulang === 'Pulang') {
-                                        title = '👋 Pulang'; pesan = `${namaKaryawan} pulang`;
-                                    }
-                                
-                                    if(pesan) window.addNotifToList(title, pesan);
-                                }
-                            } catch (error) {
-                                console.error('❌ Error EVENT 2:', error);
-                            }
-                        }
-                    );
-                    
-                    // 3️⃣ PENGELUARAN
-                    channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pengeluaran' }, (payload) => {
-                        window.addNotifToList('💸 Pengeluaran', `Rp ${Number(payload.new.total_harian).toLocaleString('id-ID')}`);
-                    });
-                
-                    // 4️⃣ PENJUALAN OLAHAN
-                    channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'penjualan_olahan' }, (payload) => {
-                        const pembeli = payload.new.pembeli || 'Distributor';
-                        window.addNotifToList('📦 Penjualan', `Ke ${pembeli}`);
-                    });
-                
-                    // 5️⃣ GUDANG MASUK
-                    channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'gudang_mutasi' }, (payload) => {
-                        if (payload.new.jenis_mutasi === 'Masuk') {
-                            const komoditas = payload.new.komoditas_id?.replace(/_/g, ' ') || 'Barang';
-                            window.addNotifToList('🚛 Gudang Masuk', `${komoditas} +${payload.new.jumlah}kg`);
-                        }
-                    });
-                
-                    // ✅ BARU SUBSCRIBE SETELAH SEMUA LISTENER DITAMBAH!
-                    channel.subscribe((status) => {
-                        if (status === 'SUBSCRIBED') {
-                            console.log('✅ WebSocket Connected!');
-                            retryCount = 0;
-                        } else if (status === 'CHANNEL_ERROR') {
-                            console.warn(`⚠️ Error, retry ${retryCount}/${MAX_RETRIES}`);
-                            if (retryCount < MAX_RETRIES) {
-                                retryCount++;
-                                setTimeout(() => setupChannel(), 5000);
-                            }
-                        }
-                    });
-                
-                } catch (error) {
-                    console.error('❌ Fatal error:', error);
-                    if (retryCount < MAX_RETRIES) {
-                        retryCount++;
-                        setTimeout(() => setupChannel(), 5000);
-                    }
+      <div
+        id="sidebar-footer"
+        class="hidden mt-6 pt-4 border-t border-outline-variant"
+      >
+        <button
+          id="btn-logout"
+          class="w-full flex items-center justify-center gap-2 bg-error-container text-on-error-container px-4 py-3 rounded-xl font-medium text-sm hover:opacity-90 transition-opacity active:scale-[0.98]"
+          type="button"
+        >
+          <span class="material-symbols-outlined text-[20px]">logout</span>
+          <span>Akhiri Sesi</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+  <div
+    class="fixed inset-0 z-[70] bg-black/50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300"
+    id="modal-transfer-kas"
+  >
+    <div
+      class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 transform scale-95 transition-transform duration-300 relative flex flex-col max-h-[85vh]"
+    >
+      <button
+        class="absolute top-4 right-4 text-gray-400 hover:text-red-600 transition"
+        onclick="window.tutupModalTransfer()"
+      >
+        <span class="material-symbols-outlined">close</span>
+      </button>
+
+      <h3 class="text-lg font-bold text-gray-900 mb-1">
+        <i class="bi bi-arrow-left-right text-blue-600 mr-2"></i>Transfer Saldo
+        Kas
+      </h3>
+      <p class="text-xs text-gray-500 mb-4">
+        Pindahkan dana antar dompet kas perusahaan.
+      </p>
+
+      <form
+        id="form-transfer-kas"
+        onsubmit="window.eksekusiTransferKas(event)"
+        class="space-y-4 shrink-0 bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-sm"
+      >
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label
+              class="block text-[10px] font-bold text-gray-600 uppercase mb-1"
+              >Dari</label
+            >
+            <select
+              id="tf_sumber"
+              class="w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-semibold"
+            >
+              <option value="uang_keuangan">Uang Keuangan</option>
+              <option value="uang_gudang">Uang Gudang</option>
+              <option value="uang_owner">Uang Owner</option>
+            </select>
+          </div>
+          <div>
+            <label
+              class="block text-[10px] font-bold text-gray-600 uppercase mb-1"
+              >Ke Tujuan</label
+            >
+            <select
+              id="tf_tujuan"
+              class="w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-semibold"
+            >
+              <option value="uang_gudang" selected>Uang Gudang</option>
+              <option value="uang_keuangan">Uang Keuangan</option>
+              <option value="uang_owner">Uang Owner</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label
+            class="block text-[10px] font-bold text-gray-600 uppercase mb-1"
+            >Nominal (Rp)</label
+          >
+          <input
+            type="number"
+            id="tf_nominal"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none font-mono font-bold text-blue-700"
+            placeholder="0"
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          id="btn-submit-tf"
+          class="w-full py-2 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 text-xs transition font-mono shadow-sm"
+        >
+          <i class="bi bi-send-check-fill mr-1"></i> PROSES TRANSFER
+        </button>
+      </form>
+
+      <div
+        class="mt-4 flex-1 overflow-hidden flex flex-col border-t border-gray-200 pt-3"
+      >
+        <h4
+          class="text-[11px] font-bold text-gray-700 uppercase mb-2 flex justify-between"
+        >
+          <span
+            ><i class="bi bi-clock-history"></i> Riwayat 5 Transfer Terakhir</span
+          >
+          <button
+            onclick="window.loadRiwayatTransfer()"
+            class="text-blue-600 hover:underline text-[10px]"
+            ><i class="bi bi-arrow-clockwise"></i> Refresh</button
+          >
+        </h4>
+        <div
+          id="list-riwayat-transfer"
+          class="overflow-y-auto space-y-2 pr-1 flex-1 text-xs"
+        >
+          <p class="text-gray-400 italic text-center py-4 text-[11px]">
+            Memuat riwayat mutasi...
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="fixed inset-0 z-[100] bg-black/50 hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300"
+    id="modal-kas-perusahaan"
+  >
+    <div
+      class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 transform scale-95 transition-transform duration-300 relative flex flex-col max-h-[90vh]"
+    >
+      <button
+        type="button"
+        class="absolute top-4 right-4 text-gray-400 hover:text-red-600 transition"
+        onclick="window.tutupModalKas()"
+      >
+        <span class="material-symbols-outlined">close</span>
+      </button>
+
+      <h3 class="text-lg font-bold text-gray-900 mb-1">
+        <i class="bi bi-wallet2 text-blue-600 mr-2"></i>Manajemen Kas
+      </h3>
+      <p class="text-xs text-gray-500 mb-4 border-b border-gray-100 pb-3">
+        Pindahkan saldo antar dompet atau sesuaikan fisik uang.
+      </p>
+
+      <div class="overflow-y-auto pr-2 custom-scrollbar space-y-5">
+        <div
+          class="bg-blue-50/50 border border-blue-200 p-4 rounded-xl shadow-sm"
+        >
+          <h4
+            class="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2"
+          >
+            <i class="bi bi-arrow-left-right"></i> Transfer Saldo Instan
+          </h4>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label
+                class="block text-[10px] font-bold text-gray-600 uppercase mb-1"
+                >Dari (Sumber Asal)</label
+              >
+              <select
+                id="tf_sumber"
+                class="w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-semibold focus:border-blue-500"
+              >
+                <option value="uang_keuangan">Uang Keuangan</option>
+                <option value="uang_gudang">Uang Gudang</option>
+                <option value="uang_owner">Uang Owner</option>
+              </select>
+            </div>
+            <div>
+              <label
+                class="block text-[10px] font-bold text-gray-600 uppercase mb-1"
+                >Ke (Tujuan)</label
+              >
+              <select
+                id="tf_tujuan"
+                class="w-full border border-gray-300 rounded-lg p-2 text-xs outline-none bg-white font-semibold focus:border-blue-500"
+              >
+                <option value="uang_gudang" selected>Uang Gudang</option>
+                <option value="uang_keuangan">Uang Keuangan</option>
+                <option value="uang_owner">Uang Owner</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label
+              class="block text-[10px] font-bold text-gray-600 uppercase mb-1"
+              >Nominal Dipindahkan (Rp)</label
+            >
+            <input
+              type="number"
+              id="tf_nominal"
+              class="w-full border border-blue-300 rounded-lg p-2.5 text-sm outline-none font-mono font-bold text-blue-800 focus:border-blue-500"
+              placeholder="Contoh: 500000"
+              required
+            />
+          </div>
+          <button
+            type="button"
+            id="btn-submit-tf"
+            onclick="window.eksekusiTransferKas(event)"
+            class="w-full mt-3 py-2.5 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 text-xs transition font-mono shadow-md"
+          >
+            <i class="bi bi-send-check-fill mr-1"></i> EKSEKUSI TRANSFER
+          </button>
+        </div>
+
+        <div>
+          <h4
+            class="text-[11px] font-bold text-gray-700 uppercase mb-2 flex justify-between items-center"
+          >
+            <span><i class="bi bi-clock-history"></i> Riwayat Transfer</span>
+            <button
+              type="button"
+              onclick="window.loadRiwayatTransfer()"
+              class="text-blue-600 hover:underline text-[10px]"
+              ><i class="bi bi-arrow-clockwise"></i> Refresh</button
+            >
+          </h4>
+          <div
+            id="list-riwayat-transfer"
+            class="space-y-2 text-xs max-h-32 overflow-y-auto pr-1"
+          >
+            <p class="text-gray-400 italic text-center py-4 text-[11px]">
+              Memuat riwayat...
+            </p>
+          </div>
+        </div>
+
+        <hr class="border-gray-200" />
+
+        <details class="group bg-gray-50 border border-gray-200 rounded-xl p-3">
+          <summary
+            class="text-xs font-bold text-gray-700 cursor-pointer flex items-center justify-between outline-none"
+          >
+            <span class="flex items-center gap-2"
+              ><i class="bi bi-pencil-square"></i> Koreksi Manual Saldo Fisik</span
+            >
+            <i
+              class="bi bi-chevron-down group-open:rotate-180 transition-transform"
+            ></i>
+          </summary>
+          <div class="mt-4 pt-3 border-t border-gray-200">
+            <p class="text-[10px] text-gray-500 mb-3 leading-relaxed">
+              Gunakan fitur ini <b>hanya</b> jika terdapat selisih uang fisik yang
+              mengharuskan Anda mengetik ulang total saldo dompet.
+            </p>
+            <form id="form-kas-perusahaan" class="flex flex-col gap-3">
+              <div>
+                <label
+                  class="block text-[10px] font-bold text-gray-600 uppercase mb-1"
+                  >Total Fisik Uang Gudang (Rp)</label
+                >
+                <input
+                  type="number"
+                  id="input_uang_gudang"
+                  class="w-full h-10 px-3 rounded-lg border border-gray-300 bg-white text-gray-900 focus:border-green-500 outline-none font-bold font-mono text-sm"
+                  value="0"
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-[10px] font-bold text-gray-600 uppercase mb-1"
+                  >Total Fisik Uang Keuangan (Rp)</label
+                >
+                <input
+                  type="number"
+                  id="input_uang_keuangan"
+                  class="w-full h-10 px-3 rounded-lg border border-gray-300 bg-white text-gray-900 focus:border-green-500 outline-none font-bold font-mono text-sm"
+                  value="0"
+                />
+              </div>
+              <div id="input-container-owner" class="hidden">
+                <label
+                  class="block text-[10px] font-bold text-gray-600 uppercase mb-1"
+                  >Total Uang Owner (Rp)</label
+                >
+                <input
+                  type="number"
+                  id="input_uang_owner"
+                  class="w-full h-10 px-3 rounded-lg border border-gray-300 bg-white text-gray-900 focus:border-green-500 outline-none font-bold font-mono text-sm"
+                  value="0"
+                />
+              </div>
+              <button
+                class="w-full py-2.5 mt-2 bg-gray-800 text-white rounded-lg font-bold text-xs hover:bg-gray-900 transition shadow-sm"
+                type="submit"
+                id="btn-submit-kas">SIMPAN KOREKSI</button
+              >
+            </form>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+  <main
+    id="app-content"
+    class="w-full min-h-screen pt-20 pb-8 px-4 md:px-lg overflow-x-hidden"
+  >
+    <slot />
+  </main>
+
+  <script>
+    import { supabase } from "../lib/supabase.js";
+
+    // ==========================================
+    // 🔥 LOGIKA REALTIME NOTIFICATIONS (BARU)
+    // ==========================================
+    function initRealtimeNotifications() {
+      if (!window.supabase) {
+        console.warn("⏳ Waiting for Supabase...");
+        setTimeout(() => initRealtimeNotifications(), 500);
+        return;
+      }
+
+      console.log("🚀 Initializing Realtime Notifications...");
+
+      let retryCount = 0;
+      const MAX_RETRIES = 3;
+      let channel = null;
+
+      function setupChannel() {
+        try {
+          if (channel) {
+            console.log("🧹 Cleaning old channel...");
+            channel.unsubscribe();
+            channel = null;
+          }
+
+          console.log("🔌 Setting up WebSocket channel...");
+          channel = window.supabase.channel("dashboard-notifications", {
+            config: {
+              broadcast: { self: true },
+              presence: { key: "notifications" },
+            },
+          });
+
+          // ✅ TAMBAH SEMUA LISTENERS DULU (SEBELUM SUBSCRIBE!)
+
+          // 1️⃣ TRANSAKSI
+          channel.on(
+            "postgres_changes",
+            { event: "UPDATE", schema: "public", table: "transaksi" },
+            async (payload) => {
+              try {
+                console.log("📡 [TRANSAKSI] Update:", payload);
+                const newData = payload.new;
+                const oldData = payload.old || {};
+
+                if (
+                  newData.status === "Selesai" &&
+                  oldData.status !== "Selesai"
+                ) {
+                  const { data: relasi } = await window.supabase
+                    .from("transaksi")
+                    .select("metode_bayar, penjemputan(mitra(nama_mitra))")
+                    .eq("id", newData.id)
+                    .single();
+
+                  const namaMitra =
+                    relasi?.penjemputan?.mitra?.nama_mitra || "Mitra";
+                  const metode = relasi?.metode_bayar || "Kas/Transfer";
+
+                  window.addNotifToList(
+                    "✅ Pembayaran Selesai!",
+                    `Setoran dari ${namaMitra} - ${metode}`,
+                  );
                 }
-            }
-        
-            // Setup saat session ready
-            window.supabase.auth.getSession().then(({ data: { session } }) => {
-                if (session) {
-                    console.log('✅ Session ready, starting WebSocket');
-                    setTimeout(() => setupChannel(), 1000);
-                }
+              } catch (error) {
+                console.error("❌ Error EVENT 1:", error);
+              }
+            },
+          );
+
+          window.eksekusiTransferKas = async function (e) {
+            e.preventDefault();
+            if (!window.supabase) return;
+
+            // 🛡️ ANTI-CRASH & ANTI-DUPLIKAT ID
+            // Sistem akan mencari kotak isian yang benar-benar diketik angkanya
+            let inputNominal = null;
+            let selSumber = null;
+            let selTujuan = null;
+
+            document.querySelectorAll("#tf_nominal").forEach((el) => {
+              if (el.value) inputNominal = el;
             });
-        }
+            document.querySelectorAll("#tf_sumber").forEach((el) => {
+              if (el.offsetWidth > 0) selSumber = el;
+            });
+            document.querySelectorAll("#tf_tujuan").forEach((el) => {
+              if (el.offsetWidth > 0) selTujuan = el;
+            });
 
-        function runWhenReady(callback) {
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', callback, { once: true });
-                return;
+            // Fallback kalau cuma ada 1 di layar
+            if (!inputNominal)
+              inputNominal = document.getElementById("tf_nominal");
+            if (!selSumber) selSumber = document.getElementById("tf_sumber");
+            if (!selTujuan) selTujuan = document.getElementById("tf_tujuan");
+
+            const nominal = parseFloat(inputNominal.value) || 0;
+            const sumber = selSumber.value;
+            const tujuan = selTujuan.value;
+
+            const labelSumber = selSumber.options[selSumber.selectedIndex].text;
+            const labelTujuan = selTujuan.options[selTujuan.selectedIndex].text;
+
+            if (sumber === tujuan)
+              return alert("❌ Dompet asal dan tujuan tidak boleh sama!");
+            if (nominal <= 0)
+              return alert(
+                "❌ Nominal transfer harus lebih dari Rp 0!\n(Pastikan ketik angka tanpa titik, contoh: 500000)",
+              );
+
+            if (
+              !confirm(
+                `Yakin ingin memindahkan dana sebesar Rp ${nominal.toLocaleString("id-ID")} dari ${labelSumber} ke ${labelTujuan}?`,
+              )
+            )
+              return;
+
+            const btn =
+              e.target.querySelector('button[type="submit"]') ||
+              document.getElementById("btn-submit-tf");
+            const textLama = btn.innerHTML;
+            btn.innerHTML =
+              '<i class="bi bi-hourglass-split"></i> MEMPROSES...';
+            btn.disabled = true;
+
+            try {
+              // 1. Tarik saldo terkini dari database
+              const { data: kasLama, error: errCek } = await window.supabase
+                .from("kas_perusahaan")
+                .select("*")
+                .eq("id", 1)
+                .single();
+              if (errCek) throw errCek;
+
+              const saldoSumber = parseFloat(kasLama[sumber]) || 0;
+              const saldoTujuan = parseFloat(kasLama[tujuan]) || 0;
+
+              // 2. Sensor Anti-Minus
+              if (saldoSumber < nominal) {
+                throw new Error(
+                  `Saldo [${labelSumber}] tidak mencukupi!\nSisa Saldo: Rp ${saldoSumber.toLocaleString("id-ID")}`,
+                );
+              }
+
+              // 3. Kalkulasi Otomatis Saldo Kas
+              const payloadKas = {};
+              payloadKas[sumber] = saldoSumber - nominal;
+              payloadKas[tujuan] = saldoTujuan + nominal;
+              payloadKas.updated_at = new Date().toISOString();
+
+              // 4. Eksekusi Update Kas Perusahaan
+              const { error: errUpdate } = await window.supabase
+                .from("kas_perusahaan")
+                .update(payloadKas)
+                .eq("id", 1);
+              if (errUpdate) throw errUpdate;
+
+              // 5. Catat ke Tabel Riwayat
+              const {
+                data: { user },
+              } = await window.supabase.auth.getUser();
+              await window.supabase.from("riwayat_transfer_kas").insert({
+                user_id: user?.id,
+                sumber: labelSumber,
+                tujuan: labelTujuan,
+                nominal: nominal,
+              });
+
+              alert(
+                `✅ BERHASIL!\n\nDana Rp ${nominal.toLocaleString("id-ID")} telah sukses dipindahkan.`,
+              );
+
+              // 🔥 Reset isian agar bisa transfer lagi
+              inputNominal.value = "";
+
+              // 🔥 Refresh tampilan dan riwayat live
+              if (typeof window.loadRiwayatTransfer === "function")
+                await window.loadRiwayatTransfer();
+              if (typeof window.loadDataKas === "function")
+                window.loadDataKas();
+            } catch (err) {
+              alert("❌ GAGAL TRANSFER: " + err.message);
+            } finally {
+              btn.innerHTML = textLama;
+              btn.disabled = false;
             }
-            callback();
+          };
+
+          // 2️⃣ PRESENSI
+          channel.on(
+            "postgres_changes",
+            { event: "UPDATE", schema: "public", table: "presensi" },
+            async (payload) => {
+              try {
+                const newData = payload.new;
+                const oldData = payload.old || {};
+
+                const isWaktuPulangDiisi =
+                  newData.waktu_pulang && !oldData.waktu_pulang;
+                const statusAlerts = [
+                  "Pulang",
+                  "Izin",
+                  "Izin Pulang Cepat",
+                  "Sakit",
+                ];
+                const isStatusTibaTrigger =
+                  statusAlerts.includes(newData.status_tiba) &&
+                  newData.status_tiba !== oldData.status_tiba;
+                const isStatusPulangTrigger =
+                  statusAlerts.includes(newData.status_pulang) &&
+                  newData.status_pulang !== oldData.status_pulang;
+
+                if (
+                  isWaktuPulangDiisi ||
+                  isStatusTibaTrigger ||
+                  isStatusPulangTrigger
+                ) {
+                  const { data: user } = await window.supabase
+                    .from("profiles")
+                    .select("nama")
+                    .eq("id", newData.user_id)
+                    .single();
+                  const namaKaryawan = user?.nama || "Karyawan";
+                  let title = "",
+                    pesan = "";
+
+                  if (newData.status_tiba === "Sakit") {
+                    title = "⚠️ Sakit";
+                    pesan = `${namaKaryawan} sakit`;
+                  } else if (newData.status_pulang === "Pulang") {
+                    title = "👋 Pulang";
+                    pesan = `${namaKaryawan} pulang`;
+                  }
+
+                  if (pesan) window.addNotifToList(title, pesan);
+                }
+              } catch (error) {
+                console.error("❌ Error EVENT 2:", error);
+              }
+            },
+          );
+
+          // 3️⃣ PENGELUARAN
+          channel.on(
+            "postgres_changes",
+            { event: "INSERT", schema: "public", table: "pengeluaran" },
+            (payload) => {
+              window.addNotifToList(
+                "💸 Pengeluaran",
+                `Rp ${Number(payload.new.total_harian).toLocaleString("id-ID")}`,
+              );
+            },
+          );
+
+          // 4️⃣ PENJUALAN OLAHAN
+          channel.on(
+            "postgres_changes",
+            { event: "INSERT", schema: "public", table: "penjualan_olahan" },
+            (payload) => {
+              const pembeli = payload.new.pembeli || "Distributor";
+              window.addNotifToList("📦 Penjualan", `Ke ${pembeli}`);
+            },
+          );
+
+          // 5️⃣ GUDANG MASUK
+          channel.on(
+            "postgres_changes",
+            { event: "INSERT", schema: "public", table: "gudang_mutasi" },
+            (payload) => {
+              if (payload.new.jenis_mutasi === "Masuk") {
+                const komoditas =
+                  payload.new.komoditas_id?.replace(/_/g, " ") || "Barang";
+                window.addNotifToList(
+                  "🚛 Gudang Masuk",
+                  `${komoditas} +${payload.new.jumlah}kg`,
+                );
+              }
+            },
+          );
+
+          // ✅ BARU SUBSCRIBE SETELAH SEMUA LISTENER DITAMBAH!
+          channel.subscribe((status) => {
+            if (status === "SUBSCRIBED") {
+              console.log("✅ WebSocket Connected!");
+              retryCount = 0;
+            } else if (status === "CHANNEL_ERROR") {
+              console.warn(`⚠️ Error, retry ${retryCount}/${MAX_RETRIES}`);
+              if (retryCount < MAX_RETRIES) {
+                retryCount++;
+                setTimeout(() => setupChannel(), 5000);
+              }
+            }
+          });
+        } catch (error) {
+          console.error("❌ Fatal error:", error);
+          if (retryCount < MAX_RETRIES) {
+            retryCount++;
+            setTimeout(() => setupChannel(), 5000);
+          }
         }
-        
-        // 👇 TARUH KODE STERILNYA TEPAT DI SINI (DI LUAR FUNGSI) 👇
-        //document.addEventListener('contextmenu', function(e) {
-        //    e.preventDefault();
-        //}, false);
-        //
-        //document.addEventListener('keydown', function(e) {
-        //    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
-        //        e.preventDefault();
-        //    }
-        //});
+      }
 
-        // ==========================================
-// 🔔 LOGIKA TAMPILAN (UI) NOTIFIKASI
-// ==========================================
-function initNotifUI() {
-    const notifBadge = document.getElementById('notif-badge');
-    const notifBtn = document.getElementById('notif-btn');
-    const notifDropdown = document.getElementById('notif-dropdown');
-    const notifList = document.getElementById('notif-list');
-    const clearNotif = document.getElementById('clear-notif');
+      // Setup saat session ready
+      window.supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          console.log("✅ Session ready, starting WebSocket");
+          setTimeout(() => setupChannel(), 1000);
+        }
+      });
+    }
 
-    // Toggle Buka/Tutup Dropdown
-    notifBtn?.addEventListener('click', (e) => {
+    function runWhenReady(callback) {
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", callback, { once: true });
+        return;
+      }
+      callback();
+    }
+
+    // 👇 TARUH KODE STERILNYA TEPAT DI SINI (DI LUAR FUNGSI) 👇
+    //document.addEventListener('contextmenu', function(e) {
+    //    e.preventDefault();
+    //}, false);
+    //
+    //document.addEventListener('keydown', function(e) {
+    //    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+    //        e.preventDefault();
+    //    }
+    //});
+
+    // ==========================================
+    // 🔔 LOGIKA TAMPILAN (UI) NOTIFIKASI
+    // ==========================================
+    function initNotifUI() {
+      const notifBadge = document.getElementById("notif-badge");
+      const notifBtn = document.getElementById("notif-btn");
+      const notifDropdown = document.getElementById("notif-dropdown");
+      const notifList = document.getElementById("notif-list");
+      const clearNotif = document.getElementById("clear-notif");
+
+      // Toggle Buka/Tutup Dropdown
+      notifBtn?.addEventListener("click", (e) => {
         e.stopPropagation();
-        notifBadge?.classList.add('hidden');
-        notifDropdown?.classList.toggle('hidden');
-    });
+        notifBadge?.classList.add("hidden");
+        notifDropdown?.classList.toggle("hidden");
+      });
 
-    // Tutup jika klik di luar kotak
-    window.addEventListener('click', (e) => {
-        if (!notifBtn?.contains(e.target) && !notifDropdown?.contains(e.target)) {
-            notifDropdown?.classList.add('hidden');
+      // Tutup jika klik di luar kotak
+      window.addEventListener("click", (e) => {
+        if (
+          !notifBtn?.contains(e.target) &&
+          !notifDropdown?.contains(e.target)
+        ) {
+          notifDropdown?.classList.add("hidden");
         }
-    });
+      });
 
-    // Tombol bersihkan notifikasi
-    clearNotif?.addEventListener('click', () => {
-        if(notifList) {
-            notifList.innerHTML = '<p id="empty-notif" class="text-xs text-on-surface-variant text-center py-4">Belum ada notifikasi baru.</p>';
+      // Tombol bersihkan notifikasi
+      clearNotif?.addEventListener("click", () => {
+        if (notifList) {
+          notifList.innerHTML =
+            '<p id="empty-notif" class="text-xs text-on-surface-variant text-center py-4">Belum ada notifikasi baru.</p>';
         }
-    });
-}
+      });
+    }
 
-// Fungsi global agar bisa dipanggil oleh FCM saat pesan masuk
-window.addNotifToList = function(title, body) {
-    const notifList = document.getElementById('notif-list');
-    const emptyMsg = document.getElementById('empty-notif');
-    if (emptyMsg) emptyMsg.remove();
+    // Fungsi global agar bisa dipanggil oleh FCM saat pesan masuk
+    window.addNotifToList = function (title, body) {
+      const notifList = document.getElementById("notif-list");
+      const emptyMsg = document.getElementById("empty-notif");
+      if (emptyMsg) emptyMsg.remove();
 
-    const waktu = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-    const notifItem = document.createElement('div');
-    notifItem.className = 'p-3 bg-surface-container-low hover:bg-surface-container rounded-lg cursor-pointer transition-colors border-l-4 border-primary mb-1';
-    notifItem.innerHTML = `
+      const waktu = new Date().toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      const notifItem = document.createElement("div");
+      notifItem.className =
+        "p-3 bg-surface-container-low hover:bg-surface-container rounded-lg cursor-pointer transition-colors border-l-4 border-primary mb-1";
+      notifItem.innerHTML = `
         <p class="font-bold text-sm text-on-surface">${title}</p>
         <p class="text-xs text-on-surface-variant mt-1">${body}</p>
         <p class="text-[10px] text-outline mt-2 text-right">${waktu}</p>
     `;
-    notifList?.prepend(notifItem);
-}
+      notifList?.prepend(notifItem);
+    };
 
-        function initSidebar() {
-            const hamburgerBtn = document.getElementById('hamburger-btn');
-            const sidebar = document.getElementById('sidebar');
-            const closeBtn = document.getElementById('close-sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            const navLinks = document.querySelectorAll('[data-nav]');
-            const currentPath = window.location.pathname;
+    function initSidebar() {
+      const hamburgerBtn = document.getElementById("hamburger-btn");
+      const sidebar = document.getElementById("sidebar");
+      const closeBtn = document.getElementById("close-sidebar");
+      const overlay = document.getElementById("sidebar-overlay");
+      const navLinks = document.querySelectorAll("[data-nav]");
+      const currentPath = window.location.pathname;
 
-            function openSidebar() {
-                if (!sidebar || !overlay) return;
-                sidebar.classList.add('active');
-                overlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
+      function openSidebar() {
+        if (!sidebar || !overlay) return;
+        sidebar.classList.add("active");
+        overlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeSidebar() {
+        if (!sidebar || !overlay) return;
+        sidebar.classList.remove("active");
+        overlay.classList.remove("active");
+        document.body.style.overflow = "";
+      }
+
+      // @ts-ignore
+      window.closeAppSidebar = closeSidebar;
+
+      hamburgerBtn?.addEventListener("click", openSidebar);
+      closeBtn?.addEventListener("click", closeSidebar);
+      overlay?.addEventListener("click", closeSidebar);
+
+      navLinks.forEach((link) => {
+        link.classList.remove(
+          "bg-primary-container",
+          "text-on-primary-container",
+          "font-bold",
+        );
+        link.classList.add(
+          "text-on-surface-variant",
+          "hover:bg-surface-container-low",
+        );
+
+        const href = link.getAttribute("href");
+        const isActive =
+          (currentPath === "/" && href === "/") ||
+          (currentPath !== "/" && currentPath === href);
+
+        if (isActive) {
+          link.classList.remove(
+            "text-on-surface-variant",
+            "hover:bg-surface-container-low",
+          );
+          link.classList.add(
+            "bg-primary-container",
+            "text-on-primary-container",
+            "font-bold",
+          );
+        }
+      });
+    }
+
+    async function renderAuthUI(session) {
+      const loggedOutView = document.getElementById("auth-logged-out");
+      const loggedInView = document.getElementById("auth-logged-in");
+      const sidebarFooter = document.getElementById("sidebar-footer");
+      const hamburgerBtn = document.getElementById("hamburger-btn");
+      const avatarImg = document.getElementById("user-avatar");
+
+      if (session) {
+        loggedOutView?.classList.add("hidden");
+        loggedOutView?.classList.remove("flex");
+
+        loggedInView?.classList.remove("hidden");
+        loggedInView?.classList.add("flex");
+
+        hamburgerBtn?.classList.remove("hidden");
+        hamburgerBtn?.classList.add("flex");
+
+        sidebarFooter?.classList.remove("hidden");
+
+        // LOGIKA CACHE HEMAT API (HANYA FETCH JIKA BELUM ADA)
+        if (avatarImg) {
+          const cacheKey = `profile_${session.user.id}`;
+          const cachedString = localStorage.getItem(cacheKey);
+
+          // 1. TAMPILKAN CACHE DULU: Render instan tanpa nunggu loading database
+          if (cachedString) {
+            const profile = JSON.parse(cachedString);
+            updateAvatarElement(avatarImg, profile.nama, profile.foto_profil);
+          }
+
+          // 2. CEK UPDATE DIAM-DIAM: Tarik data terbaru dari Supabase di *background*
+          try {
+            const { data: profileData, error } = await supabase
+              .from("profiles")
+              .select("nama, foto_profil")
+              .eq("id", session.user.id)
+              .single();
+
+            if (!error && profileData) {
+              // Cek apakah data dari database BERBEDA dengan memori lokal
+              const isDataChanged =
+                !cachedString ||
+                JSON.parse(cachedString).foto_profil !==
+                  profileData.foto_profil ||
+                JSON.parse(cachedString).nama !== profileData.nama;
+
+              // 3. JIKA ADA FOTO/NAMA BARU: Timpa cache lama & ubah gambar di layar!
+              if (isDataChanged) {
+                localStorage.setItem(cacheKey, JSON.stringify(profileData));
+                updateAvatarElement(
+                  avatarImg,
+                  profileData.nama,
+                  profileData.foto_profil,
+                );
+              }
             }
+          } catch (err) {
+            console.error("Gagal mengecek update profil:", err);
+          }
+        }
+        return;
+      }
 
-            function closeSidebar() {
-                if (!sidebar || !overlay) return;
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
-                document.body.style.overflow = '';
-            }
+      // Kondisi saat User Logout (Hapus Cache)
+      if (session === null) {
+        // Cari key profile lokal lalu hapus saat logout
+        const semuaKey = Object.keys(localStorage);
+        semuaKey.forEach((key) => {
+          if (key.startsWith("profile_")) localStorage.removeItem(key);
+        });
+      }
 
-            // @ts-ignore
-            window.closeAppSidebar = closeSidebar;
+      loggedOutView?.classList.remove("hidden");
+      loggedOutView?.classList.add("flex");
 
-            hamburgerBtn?.addEventListener('click', openSidebar);
-            closeBtn?.addEventListener('click', closeSidebar);
-            overlay?.addEventListener('click', closeSidebar);
+      loggedInView?.classList.add("hidden");
+      loggedInView?.classList.remove("flex");
 
-            navLinks.forEach((link) => {
-                link.classList.remove('bg-primary-container', 'text-on-primary-container', 'font-bold');
-                link.classList.add('text-on-surface-variant', 'hover:bg-surface-container-low');
-                
-                const href = link.getAttribute('href');
-                const isActive =
-                    (currentPath === '/' && href === '/') ||
-                    (currentPath !== '/' && currentPath === href);
+      hamburgerBtn?.classList.add("hidden");
+      hamburgerBtn?.classList.remove("flex");
 
-                if (isActive) {
-                    link.classList.remove('text-on-surface-variant', 'hover:bg-surface-container-low');
-                    link.classList.add('bg-primary-container', 'text-on-primary-container', 'font-bold');
-                }
+      sidebarFooter?.classList.add("hidden");
+      // @ts-ignore
+      window.closeAppSidebar?.();
+    }
+
+    // Helper fungsi pembantu untuk mengganti attribute src pada tag img
+    function updateAvatarElement(element, nama, urlFoto) {
+      if (urlFoto) {
+        element.setAttribute("src", urlFoto);
+      } else {
+        const namaUser = nama || "Karyawan";
+        element.setAttribute(
+          "src",
+          `https://ui-avatars.com/api/?name=${encodeURIComponent(namaUser)}&background=2e7d32&color=ffffff`,
+        );
+      }
+    }
+
+    async function initAuthCheck() {
+      const requireAuth = document.body.dataset.requireAuth === "true";
+      const currentPath = window.location.pathname;
+
+      const { data, error } = await supabase.auth.getSession();
+      const session = data?.session ?? null;
+
+      if (error) {
+        console.error("Gagal membaca session Supabase:", error.message);
+      }
+
+      // JIKA BELUM LOGIN: Layar tetap 'display: none', langsung tendang!
+      if (requireAuth && !session && currentPath !== "/login") {
+        window.location.replace("/login");
+        return; // Proses berhenti di sini, jadi WebSocket nggak akan terpicu!
+      }
+
+      // 🔥 JIKA LOLOS AUTH: Buka gembok layarnya!
+      if (requireAuth) {
+        document.body.style.display = "block";
+      }
+
+      renderAuthUI(session);
+
+      // 🔥 JALANKAN WEBSOCKET HANYA JIKA USER SUDAH VALID LOGIN 🔥
+      if (session) {
+        console.log("🔌 Session valid, starting realtime...");
+        setTimeout(() => {
+          if (window.supabase) {
+            initRealtimeNotifications();
+          }
+        }, 1000);
+      }
+    }
+
+    function initLogout() {
+      const logoutButton = document.getElementById("btn-logout");
+
+      logoutButton?.addEventListener("click", async () => {
+        logoutButton.setAttribute("disabled", "true");
+
+        const { error } = await supabase.auth.signOut();
+
+        if (error) {
+          console.error("Gagal logout:", error.message);
+          logoutButton.removeAttribute("disabled");
+          return;
+        }
+        window.location.replace("/login");
+      });
+    }
+
+    // ==========================================
+    // LOGIKA FETCH & UPDATE KAS PERUSAHAAN (STICKY)
+    // ==========================================
+    async function loadDataKas() {
+      try {
+        const { data, error } = await window.supabase
+          .from("kas_perusahaan")
+          .select("uang_gudang, uang_owner")
+          .eq("id", 1)
+          .single();
+
+        if (error) throw error;
+
+        const inputGudang = document.getElementById("input_uang_gudang");
+        const inputOwner = document.getElementById("input_uang_owner");
+
+        if (inputGudang) inputGudang.value = data?.uang_gudang || 0;
+        if (inputOwner) inputOwner.value = data?.uang_owner || 0;
+
+        window.kalkulasiTotalKas();
+      } catch (err) {
+        console.error("Gagal load data kas:", err);
+      }
+    }
+
+    window.loadRiwayatTransfer = async function () {
+      console.log("🔍 [DEBUG] Memulai penarikan riwayat transfer...");
+
+      // 🔥 ANTI-CRASH: Cari SEMUA kontainer, jaga-jaga kalau ada HTML duplikat!
+      const containers = document.querySelectorAll("#list-riwayat-transfer");
+      console.log(
+        "🔍 [DEBUG] Jumlah kotak riwayat yang ditemukan di HTML:",
+        containers.length,
+      );
+
+      if (containers.length === 0) {
+        return console.error(
+          "❌ [DEBUG] Elemen dengan ID 'list-riwayat-transfer' TIDAK DITEMUKAN!",
+        );
+      }
+
+      try {
+        const client =
+          window.supabase ||
+          (typeof supabase !== "undefined" ? supabase : null);
+        if (!client) throw new Error("Koneksi Supabase belum siap!");
+
+        const { data, error } = await client
+          .from("riwayat_transfer_kas")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(5);
+
+        if (error) throw error;
+        console.log("🔍 [DEBUG] Data riwayat dari database:", data);
+
+        let htmlToInject = "";
+        if (!data || data.length === 0) {
+          htmlToInject =
+            '<p class="text-gray-400 italic text-center py-4 text-[11px]">Belum ada riwayat mutasi.</p>';
+        } else {
+          data.forEach((r) => {
+            const tgl = new Date(r.created_at).toLocaleString("id-ID", {
+              dateStyle: "short",
+              timeStyle: "short",
             });
-        }
+            const strSumber = r.sumber || "";
+            const strTujuan = r.tujuan || "";
+            const formatNama = (col) =>
+              col
+                .replace("uang_", "Uang ")
+                .replace(/\b\w/g, (c) => c.toUpperCase());
 
-        async function renderAuthUI(session) {
-            const loggedOutView = document.getElementById('auth-logged-out');
-            const loggedInView = document.getElementById('auth-logged-in');
-            const sidebarFooter = document.getElementById('sidebar-footer');
-            const hamburgerBtn = document.getElementById('hamburger-btn');
-            const avatarImg = document.getElementById('user-avatar');
-
-            if (session) {
-                loggedOutView?.classList.add('hidden');
-                loggedOutView?.classList.remove('flex');
-
-                loggedInView?.classList.remove('hidden');
-                loggedInView?.classList.add('flex');
-
-                hamburgerBtn?.classList.remove('hidden');
-                hamburgerBtn?.classList.add('flex');
-
-                sidebarFooter?.classList.remove('hidden');
-
-                // LOGIKA CACHE HEMAT API (HANYA FETCH JIKA BELUM ADA)
-                if (avatarImg) {
-                    const cacheKey = `profile_${session.user.id}`;
-                    const cachedString = localStorage.getItem(cacheKey);
-
-                    // 1. TAMPILKAN CACHE DULU: Render instan tanpa nunggu loading database
-                    if (cachedString) {
-                        const profile = JSON.parse(cachedString);
-                        updateAvatarElement(avatarImg, profile.nama, profile.foto_profil);
-                    }
-
-                    // 2. CEK UPDATE DIAM-DIAM: Tarik data terbaru dari Supabase di *background*
-                    try {
-                        const { data: profileData, error } = await supabase
-                            .from('profiles')
-                            .select('nama, foto_profil')
-                            .eq('id', session.user.id)
-                            .single();
-                            
-                        if (!error && profileData) {
-                            // Cek apakah data dari database BERBEDA dengan memori lokal
-                            const isDataChanged = !cachedString || 
-                                JSON.parse(cachedString).foto_profil !== profileData.foto_profil ||
-                                JSON.parse(cachedString).nama !== profileData.nama;
-
-                            // 3. JIKA ADA FOTO/NAMA BARU: Timpa cache lama & ubah gambar di layar!
-                            if (isDataChanged) {
-                                localStorage.setItem(cacheKey, JSON.stringify(profileData));
-                                updateAvatarElement(avatarImg, profileData.nama, profileData.foto_profil);
-                            }
-                        }
-                    } catch (err) {
-                        console.error("Gagal mengecek update profil:", err);
-                    }
-                }
-                return;
-            }
-
-            // Kondisi saat User Logout (Hapus Cache)
-            if (session === null) {
-                // Cari key profile lokal lalu hapus saat logout
-                const semuaKey = Object.keys(localStorage);
-                semuaKey.forEach(key => {
-                    if (key.startsWith('profile_')) localStorage.removeItem(key);
-                });
-            }
-
-            loggedOutView?.classList.remove('hidden');
-            loggedOutView?.classList.add('flex');
-
-            loggedInView?.classList.add('hidden');
-            loggedInView?.classList.remove('flex');
-
-            hamburgerBtn?.classList.add('hidden');
-            hamburgerBtn?.classList.remove('flex');
-
-            sidebarFooter?.classList.add('hidden');
-            // @ts-ignore
-            window.closeAppSidebar?.();
-        }
-
-        // Helper fungsi pembantu untuk mengganti attribute src pada tag img
-        function updateAvatarElement(element, nama, urlFoto) {
-            if (urlFoto) {
-                element.setAttribute('src', urlFoto);
-            } else {
-                const namaUser = nama || 'Karyawan';
-                element.setAttribute('src', `https://ui-avatars.com/api/?name=${encodeURIComponent(namaUser)}&background=2e7d32&color=ffffff`);
-            }
-        }
-
-        async function initAuthCheck() {
-            const requireAuth = document.body.dataset.requireAuth === 'true';
-            const currentPath = window.location.pathname;
-
-            const { data, error } = await supabase.auth.getSession();
-            const session = data?.session ?? null;
-
-            if (error) {
-                console.error('Gagal membaca session Supabase:', error.message);
-            }
-
-            // JIKA BELUM LOGIN: Layar tetap 'display: none', langsung tendang!
-            if (requireAuth && !session && currentPath !== '/login') {
-                window.location.replace('/login');
-                return; // Proses berhenti di sini, jadi WebSocket nggak akan terpicu!
-            }
-
-            // 🔥 JIKA LOLOS AUTH: Buka gembok layarnya!
-            if (requireAuth) {
-                document.body.style.display = 'block';
-            }
-
-            renderAuthUI(session);
-
-            // 🔥 JALANKAN WEBSOCKET HANYA JIKA USER SUDAH VALID LOGIN 🔥
-            if (session) {
-                console.log('🔌 Session valid, starting realtime...');
-                setTimeout(() => {
-                    if (window.supabase) {
-                        initRealtimeNotifications();
-                    }
-                }, 1000);
-            }
-        }
-
-        function initLogout() {
-            const logoutButton = document.getElementById('btn-logout');
-
-            logoutButton?.addEventListener('click', async () => {
-                logoutButton.setAttribute('disabled', 'true');
-
-                const { error } = await supabase.auth.signOut();
-
-                if (error) {
-                    console.error('Gagal logout:', error.message);
-                    logoutButton.removeAttribute('disabled');
-                    return;
-                }
-                window.location.replace('/login');
-            });
-        }
-
-        // ==========================================
-        // LOGIKA FETCH & UPDATE KAS PERUSAHAAN (STICKY)
-        // ==========================================
-        async function loadDataKas() {
-            try {
-                const { data, error } = await window.supabase
-                    .from('kas_perusahaan')
-                    .select('uang_gudang, uang_owner')
-                    .eq('id', 1)
-                    .single();
-
-                if (error) throw error;
-
-                const inputGudang = document.getElementById('input_uang_gudang');
-                const inputOwner = document.getElementById('input_uang_owner');
-
-                if (inputGudang) inputGudang.value = data?.uang_gudang || 0;
-                if (inputOwner) inputOwner.value = data?.uang_owner || 0;
-
-                window.kalkulasiTotalKas();
-            } catch (err) {
-                console.error("Gagal load data kas:", err);
-            }
-        }
-
-        window.loadRiwayatTransfer = async function() {
-        console.log("🔍 [DEBUG] Memulai penarikan riwayat transfer...");
-        
-        // 🔥 ANTI-CRASH: Cari SEMUA kontainer, jaga-jaga kalau ada HTML duplikat!
-        const containers = document.querySelectorAll('#list-riwayat-transfer');
-        console.log("🔍 [DEBUG] Jumlah kotak riwayat yang ditemukan di HTML:", containers.length);
-
-        if(containers.length === 0) {
-            return console.error("❌ [DEBUG] Elemen dengan ID 'list-riwayat-transfer' TIDAK DITEMUKAN!");
-        }
-
-        try {
-            const client = window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
-            if (!client) throw new Error("Koneksi Supabase belum siap!");
-
-            const { data, error } = await client
-                .from('riwayat_transfer_kas')
-                .select('*') 
-                .order('created_at', { ascending: false })
-                .limit(5);
-            
-            if (error) throw error;
-            console.log("🔍 [DEBUG] Data riwayat dari database:", data);
-
-            let htmlToInject = '';
-            if (!data || data.length === 0) {
-                htmlToInject = '<p class="text-gray-400 italic text-center py-4 text-[11px]">Belum ada riwayat mutasi.</p>';
-            } else {
-                data.forEach(r => {
-                    const tgl = new Date(r.created_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
-                    const strSumber = r.sumber || '';
-                    const strTujuan = r.tujuan || '';
-                    const formatNama = (col) => col.replace('uang_', 'Uang ').replace(/\b\w/g, c => c.toUpperCase());
-                    
-                    htmlToInject += `
+            htmlToInject += `
                     <div class="bg-gray-50 border border-gray-200 p-2 rounded-lg flex justify-between items-center shadow-sm mb-2">
                         <div>
                             <p class="font-bold text-gray-800 text-[11px]">${formatNama(strSumber)} <i class="bi bi-arrow-right text-blue-600 font-black"></i> ${formatNama(strTujuan)}</p>
                             <p class="text-[9px] text-gray-400 mt-0.5">Admin • ${tgl}</p>
                         </div>
-                        <span class="font-mono text-[11px] font-black text-green-700">+ Rp ${Number(r.nominal).toLocaleString('id-ID')}</span>
+                        <span class="font-mono text-[11px] font-black text-green-700">+ Rp ${Number(r.nominal).toLocaleString("id-ID")}</span>
                     </div>`;
-                });
-            }
-
-            // 🔥 SUNTIK KE SEMUA KOTAK RIWAYAT YANG DITEMUKAN
-            containers.forEach((container, index) => {
-                container.innerHTML = htmlToInject;
-                console.log(`✅ [DEBUG] Kotak riwayat ke-${index + 1} berhasil di-update ke layar!`);
-            });
-
-        } catch (err) {
-            console.error("❌ [DEBUG] Error saat eksekusi:", err);
-            containers.forEach(container => {
-                container.innerHTML = `<p class="text-red-500 text-center py-4 text-[11px] font-bold">Gagal memuat: ${err.message}</p>`;
-            });
+          });
         }
+
+        // 🔥 SUNTIK KE SEMUA KOTAK RIWAYAT YANG DITEMUKAN
+        containers.forEach((container, index) => {
+          container.innerHTML = htmlToInject;
+          console.log(
+            `✅ [DEBUG] Kotak riwayat ke-${index + 1} berhasil di-update ke layar!`,
+          );
+        });
+      } catch (err) {
+        console.error("❌ [DEBUG] Error saat eksekusi:", err);
+        containers.forEach((container) => {
+          container.innerHTML = `<p class="text-red-500 text-center py-4 text-[11px] font-bold">Gagal memuat: ${err.message}</p>`;
+        });
+      }
     };
 
-        // Auto-Kalkulasi format Rupiah setiap kali diketik
-        window.kalkulasiTotalKas = function() {
-            const elGudang = document.getElementById('input_uang_gudang');
-            const elOwner = document.getElementById('input_uang_owner');
-            const elTeks = document.getElementById('teks_total_kas');
+    // Auto-Kalkulasi format Rupiah setiap kali diketik
+    window.kalkulasiTotalKas = function () {
+      const elGudang = document.getElementById("input_uang_gudang");
+      const elOwner = document.getElementById("input_uang_owner");
+      const elTeks = document.getElementById("teks_total_kas");
 
-            const gudang = elGudang ? (parseFloat(elGudang.value) || 0) : 0;
-            const owner = elOwner ? (parseFloat(elOwner.value) || 0) : 0;
-            const total = gudang + owner;
+      const gudang = elGudang ? parseFloat(elGudang.value) || 0 : 0;
+      const owner = elOwner ? parseFloat(elOwner.value) || 0 : 0;
+      const total = gudang + owner;
 
-            if (elTeks) {
-                elTeks.innerText = new Intl.NumberFormat('id-ID', { 
-                    style: 'currency', 
-                    currency: 'IDR', 
-                    minimumFractionDigits: 0 
-                }).format(total);
-            }
+      if (elTeks) {
+        elTeks.innerText = new Intl.NumberFormat("id-ID", {
+          style: "currency",
+          currency: "IDR",
+          minimumFractionDigits: 0,
+        }).format(total);
+      }
+    };
+
+    // Pasang event listener untuk input pengetikan realtime
+    document
+      .getElementById("input_uang_gudang")
+      ?.addEventListener("input", window.kalkulasiTotalKas);
+    document
+      .getElementById("input_uang_owner")
+      ?.addEventListener("input", window.kalkulasiTotalKas);
+
+    // Eksekusi Update ke Database saat Form di-Submit
+    document
+      .getElementById("form-kas-perusahaan")
+      ?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btn-submit-kas");
+        if (!btn) return;
+
+        const textLama = btn.innerText;
+        btn.innerText = "Menyimpan...";
+        btn.disabled = true;
+
+        try {
+          const payload = {
+            uang_gudang:
+              parseFloat(document.getElementById("input_uang_gudang").value) ||
+              0,
+            uang_owner:
+              parseFloat(document.getElementById("input_uang_owner").value) ||
+              0,
+            updated_at: new Date().toISOString(),
+          };
+
+          const { error } = await window.supabase
+            .from("kas_perusahaan")
+            .update(payload)
+            .eq("id", 1);
+          if (error) throw error;
+
+          alert("✅ Saldo Kas Perusahaan berhasil diperbarui!");
+          // Otomatis tutup/minimize body widget setelah sukses simpan
+          document.getElementById("sticky-kas-body")?.classList.add("hidden");
+        } catch (err) {
+          alert("Gagal menyimpan saldo: " + err.message);
+        } finally {
+          btn.innerText = textLama;
+          btn.disabled = false;
         }
+      });
 
-        // Pasang event listener untuk input pengetikan realtime
-        document.getElementById('input_uang_gudang')?.addEventListener('input', window.kalkulasiTotalKas);
-        document.getElementById('input_uang_owner')?.addEventListener('input', window.kalkulasiTotalKas);
-
-        // Eksekusi Update ke Database saat Form di-Submit
-        document.getElementById('form-kas-perusahaan')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn-submit-kas');
-            if (!btn) return;
-
-            const textLama = btn.innerText;
-            btn.innerText = "Menyimpan...";
-            btn.disabled = true;
-        
-            try {
-                const payload = {
-                    uang_gudang: parseFloat(document.getElementById('input_uang_gudang').value) || 0,
-                    uang_owner: parseFloat(document.getElementById('input_uang_owner').value) || 0,
-                    updated_at: new Date().toISOString()
-                };
-            
-                const { error } = await window.supabase.from('kas_perusahaan').update(payload).eq('id', 1);
-                if (error) throw error;
-            
-                alert('✅ Saldo Kas Perusahaan berhasil diperbarui!');
-                // Otomatis tutup/minimize body widget setelah sukses simpan
-                document.getElementById('sticky-kas-body')?.classList.add('hidden');
-            } catch (err) {
-                alert("Gagal menyimpan saldo: " + err.message);
-            } finally {
-                btn.innerText = textLama;
-                btn.disabled = false;
-            }
-        });
-
-        runWhenReady(() => {
-            initSidebar();
-            initAuthCheck();
-            initLogout();
-            initNotifUI();
-            //initRealtimeNotifications(); // Menjalankan Notifikasi Real-Time
-        });
-    </script>
-    <!-- Script Integrasi FCM -->
-    <script type="module">
+    runWhenReady(() => {
+      initSidebar();
+      initAuthCheck();
+      initLogout();
+      initNotifUI();
+      //initRealtimeNotifications(); // Menjalankan Notifikasi Real-Time
+    });
+  </script>
+  <!-- Script Integrasi FCM -->
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
+    import {
+      getMessaging,
+      getToken,
+      onMessage,
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBhSvulo8KRVoe7Fo09dL6t6aqmfSS1yRE",
@@ -1154,7 +1730,7 @@ window.addNotifToList = function(title, body) {
       projectId: "project-bang-jelantah",
       storageBucket: "project-bang-jelantah.firebasestorage.app",
       messagingSenderId: "422054168481",
-      appId: "1:422054168481:web:9e8159f56b2de70778ade0"
+      appId: "1:422054168481:web:9e8159f56b2de70778ade0",
     };
 
     const app = initializeApp(firebaseConfig);
@@ -1164,333 +1740,387 @@ window.addNotifToList = function(title, body) {
     // 1️⃣ MINTA IZIN & DAPATKAN FCM TOKEN
     // ==========================================
     async function requestFCMToken() {
-        try {
-            const permission = await Notification.requestPermission();
-            if (permission === 'granted') {
-                const currentToken = await getToken(messaging, { 
-                    vapidKey: 'BIIKobK9kr74tDXdL7WeThrFqbh_aG7B-X_gMS-wOYToaVqI_uAJQQo5WUmVG8uL2OUN2NU6-qMojh_j7KF1xYQ' 
-                });
-                
-                if (currentToken) {
-                    console.log('✅ FCM Token berhasil didapat');
-                    
-                    // 🔥 SIMPAN TOKEN KE SUPABASE (JANGAN BOROS!)
-                    // Hanya update jika token baru/berbeda
-                    saveFCMTokenToDatabase(currentToken);
-                }
-            }
-        } catch (error) {
-            console.error('❌ Error FCM:', error);
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+          const currentToken = await getToken(messaging, {
+            vapidKey:
+              "BIIKobK9kr74tDXdL7WeThrFqbh_aG7B-X_gMS-wOYToaVqI_uAJQQo5WUmVG8uL2OUN2NU6-qMojh_j7KF1xYQ",
+          });
+
+          if (currentToken) {
+            console.log("✅ FCM Token berhasil didapat");
+
+            // 🔥 SIMPAN TOKEN KE SUPABASE (JANGAN BOROS!)
+            // Hanya update jika token baru/berbeda
+            saveFCMTokenToDatabase(currentToken);
+          }
         }
+      } catch (error) {
+        console.error("❌ Error FCM:", error);
+      }
     }
 
     // Simpan token ke database (dengan check duplikasi)
     async function saveFCMTokenToDatabase(token) {
-        try {
-            const { data: sessionData } = await window.supabase.auth.getSession();
-            if (!sessionData?.session?.user?.id) return;
+      try {
+        const { data: sessionData } = await window.supabase.auth.getSession();
+        if (!sessionData?.session?.user?.id) return;
 
-            const userId = sessionData.session.user.id;
+        const userId = sessionData.session.user.id;
 
-            // Cek token lama
-            const { data: profile } = await window.supabase
-                .from('profiles')
-                .select('fcm_token')
-                .eq('id', userId)
-                .single();
+        // Cek token lama
+        const { data: profile } = await window.supabase
+          .from("profiles")
+          .select("fcm_token")
+          .eq("id", userId)
+          .single();
 
-            // Hanya update jika berbeda (HEMAT QUOTA!)
-            if (profile?.fcm_token !== token) {
-                await window.supabase
-                    .from('profiles')
-                    .update({ fcm_token: token })
-                    .eq('id', userId);
-                console.log('✅ Token FCM disimpan ke database');
-            }
-        } catch (error) {
-            console.error('❌ Error save token:', error);
+        // Hanya update jika berbeda (HEMAT QUOTA!)
+        if (profile?.fcm_token !== token) {
+          await window.supabase
+            .from("profiles")
+            .update({ fcm_token: token })
+            .eq("id", userId);
+          console.log("✅ Token FCM disimpan ke database");
         }
+      } catch (error) {
+        console.error("❌ Error save token:", error);
+      }
     }
 
     // ==========================================
     // 2️⃣ TANGKAP NOTIF SAAT BROWSER TERBUKA
     // ==========================================
     onMessage(messaging, (payload) => {
-        console.log('📬 Notifikasi diterima:', payload);
-        
-        const title = payload.notification?.title || 'Pemberitahuan';
-        const body = payload.notification?.body || 'Anda memiliki pesan baru';
-        const icon = payload.notification?.image || 'https://ui-avatars.com/api/?name=Bang+Jelantah&background=2e7d32&color=ffffff';
+      console.log("📬 Notifikasi diterima:", payload);
 
-        // 🔊 MAINKAN SUARA
-        playNotificationSound();
+      const title = payload.notification?.title || "Pemberitahuan";
+      const body = payload.notification?.body || "Anda memiliki pesan baru";
+      const icon =
+        payload.notification?.image ||
+        "https://ui-avatars.com/api/?name=Bang+Jelantah&background=2e7d32&color=ffffff";
 
-        // 👉 TAMBAHKAN BARIS INI: Masukkan ke kotak dropdown UI
-        if(window.addNotifToList) window.addNotifToList(title, body);
+      // 🔊 MAINKAN SUARA
+      playNotificationSound();
 
-        // 🔔 TAMPILKAN NOTIFIKASI BROWSER
-        if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification(title, {
-                body: body,
-                icon: icon,
-                tag: 'notification',
-                badge: '/3.png'
-            });
-        }
+      // 👉 TAMBAHKAN BARIS INI: Masukkan ke kotak dropdown UI
+      if (window.addNotifToList) window.addNotifToList(title, body);
 
-        // 🎨 UPDATE UI (Nyalakan titik merah di lonceng)
-        const notifBadge = document.getElementById('notif-badge');
-        if(notifBadge) notifBadge.classList.remove('hidden');
+      // 🔔 TAMPILKAN NOTIFIKASI BROWSER
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification(title, {
+          body: body,
+          icon: icon,
+          tag: "notification",
+          badge: "/3.png",
+        });
+      }
+
+      // 🎨 UPDATE UI (Nyalakan titik merah di lonceng)
+      const notifBadge = document.getElementById("notif-badge");
+      if (notifBadge) notifBadge.classList.remove("hidden");
     });
 
     // ==========================================
     // 3️⃣ FUNGSI MAINKAN SUARA NOTIFIKASI
     // ==========================================
     function playNotificationSound() {
-        try {
-            // Coba pakai audio file dulu
-            const audio = new Audio('/sound/notification.mp3');
-            audio.volume = 1.0;
-            audio.play().catch(() => {
-                // Fallback ke Web Audio jika file tidak ada
-                playWebAudioBeep();
-            });
-        } catch (error) {
-            playWebAudioBeep();
-        }
+      try {
+        // Coba pakai audio file dulu
+        const audio = new Audio("/sound/notification.mp3");
+        audio.volume = 1.0;
+        audio.play().catch(() => {
+          // Fallback ke Web Audio jika file tidak ada
+          playWebAudioBeep();
+        });
+      } catch (error) {
+        playWebAudioBeep();
+      }
     }
 
     // Web Audio API Beep sebagai fallback
     function playWebAudioBeep() {
-        try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // Beep 1
-            const osc1 = ctx.createOscillator();
-            const gain1 = ctx.createGain();
-            osc1.connect(gain1);
-            gain1.connect(ctx.destination);
-            osc1.frequency.value = 1000;
-            osc1.type = 'square';
-            gain1.gain.setValueAtTime(0.5, ctx.currentTime);
-            gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
-            osc1.start(ctx.currentTime);
-            osc1.stop(ctx.currentTime + 0.2);
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
-            // Beep 2 (delay)
-            const osc2 = ctx.createOscillator();
-            const gain2 = ctx.createGain();
-            osc2.connect(gain2);
-            gain2.connect(ctx.destination);
-            osc2.frequency.value = 1200;
-            osc2.type = 'square';
-            gain2.gain.setValueAtTime(0.5, ctx.currentTime + 0.25);
-            gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.45);
-            osc2.start(ctx.currentTime + 0.25);
-            osc2.stop(ctx.currentTime + 0.45);
-        } catch (error) {
-            console.warn('Suara tidak bisa diputar:', error);
-        }
+        // Beep 1
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.frequency.value = 1000;
+        osc1.type = "square";
+        gain1.gain.setValueAtTime(0.5, ctx.currentTime);
+        gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+        osc1.start(ctx.currentTime);
+        osc1.stop(ctx.currentTime + 0.2);
+
+        // Beep 2 (delay)
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.frequency.value = 1200;
+        osc2.type = "square";
+        gain2.gain.setValueAtTime(0.5, ctx.currentTime + 0.25);
+        gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.45);
+        osc2.start(ctx.currentTime + 0.25);
+        osc2.stop(ctx.currentTime + 0.45);
+      } catch (error) {
+        console.warn("Suara tidak bisa diputar:", error);
+      }
     }
 
     // ==========================================
     // 4️⃣ REGISTER SERVICE WORKER
     // ==========================================
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/firebase-messaging-sw.js')
-            .then((registration) => {
-                console.log('✅ Service Worker registered');
-            })
-            .catch((err) => {
-                console.error('❌ Service Worker error:', err);
-            });
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/firebase-messaging-sw.js")
+        .then((registration) => {
+          console.log("✅ Service Worker registered");
+        })
+        .catch((err) => {
+          console.error("❌ Service Worker error:", err);
+        });
     }
 
     // ==========================================
     // 5️⃣ JALANKAN SAAT PAGE LOAD
     // ==========================================
-    window.addEventListener('load', () => {
-        // Fetch Data Kas & Distribusikan ke UI Desktop + Mobile
-        window.loadDataKas = async function() {
-            try {
-                const { data, error } = await window.supabase
-                    .from('kas_perusahaan')
-                    .select('uang_gudang, uang_owner, uang_keuangan')
-                    .eq('id', 1)
-                    .single();
-                    
-                if (error) throw error;
-                
-                const uangGudang = Number(data?.uang_gudang) || 0;
-                const uangKeuangan = Number(data?.uang_keuangan) || 0;
-                const uangOwner = Number(data?.uang_owner) || 0;
-                
-                const formatter = new Intl.NumberFormat('id-ID', { 
-                    style: 'currency', 
-                    currency: 'IDR', 
-                    minimumFractionDigits: 0 
-                });
+    window.addEventListener("load", () => {
+      // Fetch Data Kas & Distribusikan ke UI Desktop + Mobile
+      window.loadDataKas = async function () {
+        try {
+          const { data, error } = await window.supabase
+            .from("kas_perusahaan")
+            .select("uang_gudang, uang_owner, uang_keuangan")
+            .eq("id", 1)
+            .single();
 
-                // 🏢 Sinkronisasi ke UI Desktop (UMUM)
-                if (document.getElementById('teks-kas-gudang')) document.getElementById('teks-kas-gudang').innerText = formatter.format(uangGudang);
-                if (document.getElementById('teks-kas-keuangan')) document.getElementById('teks-kas-keuangan').innerText = formatter.format(uangKeuangan);
-                
-                // 📱 Sinkronisasi ke UI Mobile (UMUM)
-                if (document.getElementById('teks-kas-gudang-mobile')) document.getElementById('teks-kas-gudang-mobile').innerText = formatter.format(uangGudang);
-                if (document.getElementById('teks-kas-keuangan-mobile')) document.getElementById('teks-kas-keuangan-mobile').innerText = formatter.format(uangKeuangan);
-                
-                // Set Nilai Default ke dalam Form Input Modal (UMUM)
-                if (document.getElementById('input_uang_gudang')) document.getElementById('input_uang_gudang').value = uangGudang;
-                if (document.getElementById('input_uang_keuangan')) document.getElementById('input_uang_keuangan').value = uangKeuangan;
+          if (error) throw error;
 
-                // 🔥 PROTEKSI KHUSUS OWNER 🔥
-                if (window.userRole === 'owner') {
-                    if (document.getElementById('teks-kas-owner')) document.getElementById('teks-kas-owner').innerText = formatter.format(uangOwner);
-                    if (document.getElementById('teks-kas-owner-mobile')) document.getElementById('teks-kas-owner-mobile').innerText = formatter.format(uangOwner);
-                    if (document.getElementById('input_uang_owner')) document.getElementById('input_uang_owner').value = uangOwner;
-                } else {
-                    // Paksa sembunyikan kotak dan input Uang Owner jika bukan owner yang login
-                    document.getElementById('box-kas-owner')?.classList.add('hidden');
-                    document.getElementById('box-kas-owner-mobile')?.classList.add('hidden');
-                    document.getElementById('input-container-owner')?.classList.add('hidden');
-                }
-            } catch (err) {
-                console.error("Gagal load data kas:", err);
+          const uangGudang = Number(data?.uang_gudang) || 0;
+          const uangKeuangan = Number(data?.uang_keuangan) || 0;
+          const uangOwner = Number(data?.uang_owner) || 0;
+
+          const formatter = new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
+            minimumFractionDigits: 0,
+          });
+
+          // 🏢 Sinkronisasi ke UI Desktop (UMUM)
+          if (document.getElementById("teks-kas-gudang"))
+            document.getElementById("teks-kas-gudang").innerText =
+              formatter.format(uangGudang);
+          if (document.getElementById("teks-kas-keuangan"))
+            document.getElementById("teks-kas-keuangan").innerText =
+              formatter.format(uangKeuangan);
+
+          // 📱 Sinkronisasi ke UI Mobile (UMUM)
+          if (document.getElementById("teks-kas-gudang-mobile"))
+            document.getElementById("teks-kas-gudang-mobile").innerText =
+              formatter.format(uangGudang);
+          if (document.getElementById("teks-kas-keuangan-mobile"))
+            document.getElementById("teks-kas-keuangan-mobile").innerText =
+              formatter.format(uangKeuangan);
+
+          // Set Nilai Default ke dalam Form Input Modal (UMUM)
+          if (document.getElementById("input_uang_gudang"))
+            document.getElementById("input_uang_gudang").value = uangGudang;
+          if (document.getElementById("input_uang_keuangan"))
+            document.getElementById("input_uang_keuangan").value = uangKeuangan;
+
+          // 🔥 PROTEKSI KHUSUS OWNER 🔥
+          if (window.userRole === "owner") {
+            if (document.getElementById("teks-kas-owner"))
+              document.getElementById("teks-kas-owner").innerText =
+                formatter.format(uangOwner);
+            if (document.getElementById("teks-kas-owner-mobile"))
+              document.getElementById("teks-kas-owner-mobile").innerText =
+                formatter.format(uangOwner);
+            if (document.getElementById("input_uang_owner"))
+              document.getElementById("input_uang_owner").value = uangOwner;
+          } else {
+            // Paksa sembunyikan kotak dan input Uang Owner jika bukan owner yang login
+            document.getElementById("box-kas-owner")?.classList.add("hidden");
+            document
+              .getElementById("box-kas-owner-mobile")
+              ?.classList.add("hidden");
+            document
+              .getElementById("input-container-owner")
+              ?.classList.add("hidden");
+          }
+        } catch (err) {
+          console.error("Gagal load data kas:", err);
+        }
+      };
+
+      // Otentikasi Sesi dan Filter Role Keamanan
+      // Check session & Hak Akses Role
+      window.supabase?.auth.getSession().then(async ({ data: { session } }) => {
+        if (session) {
+          requestFCMToken();
+
+          try {
+            const { data: prof } = await window.supabase
+              .from("profiles")
+              .select("role")
+              .eq("id", session.user.id)
+              .single();
+            const userRole = prof?.role;
+            window.userRole = userRole; // 🔥 SIMPAN ROLE SECARA GLOBAL BIAR BISA DIBACA FUNGSI LAIN
+            const allowedKasRoles = ["owner", "keuangan", "admin"];
+
+            if (allowedKasRoles.includes(userRole)) {
+              // Tarik data kas ke UI terlebih dahulu
+              await window.loadDataKas();
+
+              // 🔥 KUNCI UTAMA: Aktifkan responsif lewat ClassList, bukan lewat .style.display!
+
+              // 📱 Untuk HP: Hapus hidden, paksa flex, tapi sembunyikan jika masuk ukuran desktop (sm:hidden)
+              const widgetMobile = document.getElementById("mobile-sticky-kas");
+              if (widgetMobile) {
+                widgetMobile.classList.remove("hidden");
+                widgetMobile.classList.add("flex", "sm:hidden");
+              }
+
+              // 🏢 Untuk Desktop: Tetap sembunyikan di HP (hidden), tapi aktifkan flex saat ukuran desktop (sm:flex)
+              const widgetDesktop =
+                document.getElementById("desktop-kas-widget");
+              if (widgetDesktop) {
+                widgetDesktop.classList.remove("hidden");
+                widgetDesktop.classList.add("hidden", "sm:flex");
+              }
+
+              // Proteksi khusus kas owner di desktop
+              if (userRole === "owner") {
+                // Munculkan di Desktop
+                document
+                  .getElementById("box-kas-owner")
+                  ?.classList.remove("hidden");
+                document.getElementById("box-kas-owner")?.classList.add("flex");
+
+                // Munculkan di Mobile
+                document
+                  .getElementById("box-kas-owner-mobile")
+                  ?.classList.remove("hidden");
+                document
+                  .getElementById("box-kas-owner-mobile")
+                  ?.classList.add("flex");
+                document
+                  .getElementById("divider-kas-owner-mobile")
+                  ?.classList.remove("hidden");
+
+                // Munculkan input modal
+                document
+                  .getElementById("input-container-owner")
+                  ?.classList.remove("hidden");
+              }
+
+              // Tombol edit aksi
+              const btnEdit = document.getElementById("btn-edit-kas");
+              if (btnEdit) btnEdit.style.display = "flex";
+
+              const btnEditMob = document.getElementById("btn-edit-kas-mobile");
+              if (btnEditMob) btnEditMob.style.display = "flex";
             }
-        };
-
-        // Otentikasi Sesi dan Filter Role Keamanan
-        // Check session & Hak Akses Role
-        window.supabase?.auth.getSession().then(async ({ data: { session } }) => {
-            if (session) {
-                requestFCMToken();
-                
-                try {
-                    const { data: prof } = await window.supabase.from('profiles').select('role').eq('id', session.user.id).single();
-                    const userRole = prof?.role; 
-                    window.userRole = userRole; // 🔥 SIMPAN ROLE SECARA GLOBAL BIAR BISA DIBACA FUNGSI LAIN
-                    const allowedKasRoles = ['owner', 'keuangan', 'admin'];
-                    
-                    if (allowedKasRoles.includes(userRole)) {
-                        // Tarik data kas ke UI terlebih dahulu
-                        await window.loadDataKas();
-                        
-                        // 🔥 KUNCI UTAMA: Aktifkan responsif lewat ClassList, bukan lewat .style.display!
-                        
-                        // 📱 Untuk HP: Hapus hidden, paksa flex, tapi sembunyikan jika masuk ukuran desktop (sm:hidden)
-                        const widgetMobile = document.getElementById('mobile-sticky-kas');
-                        if (widgetMobile) {
-                            widgetMobile.classList.remove('hidden');
-                            widgetMobile.classList.add('flex', 'sm:hidden');
-                        }
-                        
-                        // 🏢 Untuk Desktop: Tetap sembunyikan di HP (hidden), tapi aktifkan flex saat ukuran desktop (sm:flex)
-                        const widgetDesktop = document.getElementById('desktop-kas-widget');
-                        if (widgetDesktop) {
-                            widgetDesktop.classList.remove('hidden');
-                            widgetDesktop.classList.add('hidden', 'sm:flex');
-                        }
-                        
-                        // Proteksi khusus kas owner di desktop
-                        if (userRole === 'owner') {
-                            // Munculkan di Desktop
-                            document.getElementById('box-kas-owner')?.classList.remove('hidden');
-                            document.getElementById('box-kas-owner')?.classList.add('flex');
-                            
-                            // Munculkan di Mobile
-                            document.getElementById('box-kas-owner-mobile')?.classList.remove('hidden');
-                            document.getElementById('box-kas-owner-mobile')?.classList.add('flex');
-                            document.getElementById('divider-kas-owner-mobile')?.classList.remove('hidden');
-                            
-                            // Munculkan input modal
-                            document.getElementById('input-container-owner')?.classList.remove('hidden');
-                        }
-
-                        // Tombol edit aksi
-                        const btnEdit = document.getElementById('btn-edit-kas');
-                        if (btnEdit) btnEdit.style.display = 'flex'; 
-                        
-                        const btnEditMob = document.getElementById('btn-edit-kas-mobile');
-                        if (btnEditMob) btnEditMob.style.display = 'flex'; 
-                    }
-                } catch (err) {
-                    console.error("Gagal verifikasi role:", err);
-                }
-            }
-        });
+          } catch (err) {
+            console.error("Gagal verifikasi role:", err);
+          }
+        }
+      });
     });
 
     // ==========================================
     // LOGIKA MODAL EDIT KAS & TRANSFER (GABUNGAN)
     // ==========================================
-    window.bukaModalKas = async function() {
-        const modal = document.getElementById('modal-kas-perusahaan');
-        if (!modal) return;
-        
-        modal.classList.remove('hidden'); 
-        modal.classList.add('flex');
-        void modal.offsetWidth;
-        modal.classList.remove('opacity-0'); 
-        
-        const isiModal = modal.querySelector('div');
-        if (isiModal) isiModal.classList.remove('scale-95');
+    window.bukaModalKas = async function () {
+      const modal = document.getElementById("modal-kas-perusahaan");
+      if (!modal) return;
 
-        // 🔥 TARIK DATA OTOMATIS SAAT MODAL DIBUKA
-        if(typeof window.loadRiwayatTransfer === 'function') {
-            await window.loadRiwayatTransfer();
-        }
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      void modal.offsetWidth;
+      modal.classList.remove("opacity-0");
+
+      const isiModal = modal.querySelector("div");
+      if (isiModal) isiModal.classList.remove("scale-95");
+
+      // 🔥 TARIK DATA OTOMATIS SAAT MODAL DIBUKA
+      if (typeof window.loadRiwayatTransfer === "function") {
+        await window.loadRiwayatTransfer();
+      }
     };
 
-    window.tutupModalKas = function() {
-        const modal = document.getElementById('modal-kas-perusahaan');
-        if (!modal) return; // 🛡️ Abaikan jika tidak ada modal
-        
-        modal.classList.add('opacity-0'); 
-        const isiModal = modal.querySelector('div');
-        if (isiModal) isiModal.classList.add('scale-95');
-        
-        setTimeout(() => { 
-            modal.classList.add('hidden'); 
-            modal.classList.remove('flex');
-        }, 300);
+    window.tutupModalKas = function () {
+      const modal = document.getElementById("modal-kas-perusahaan");
+      if (!modal) return; // 🛡️ Abaikan jika tidak ada modal
+
+      modal.classList.add("opacity-0");
+      const isiModal = modal.querySelector("div");
+      if (isiModal) isiModal.classList.add("scale-95");
+
+      setTimeout(() => {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      }, 300);
     };
 
     // ==========================================
     // INTERAKSI DATA SUBMIT KAS KE DATABASE
     // ==========================================
-    document.getElementById('form-kas-perusahaan')?.addEventListener('submit', async (e) => {
+    document
+      .getElementById("form-kas-perusahaan")
+      ?.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const btn = document.getElementById('btn-submit-kas');
+        const btn = document.getElementById("btn-submit-kas");
         const textLama = btn.innerText;
         btn.innerText = "Menyimpan...";
         btn.disabled = true;
 
         try {
-            const payload = {
-                uang_gudang: parseFloat(document.getElementById('input_uang_gudang').value) || 0,
-                uang_keuangan: parseFloat(document.getElementById('input_uang_keuangan').value) || 0,
-                updated_at: new Date().toISOString()
-            };
+          const payload = {
+            uang_gudang:
+              parseFloat(document.getElementById("input_uang_gudang").value) ||
+              0,
+            uang_keuangan:
+              parseFloat(
+                document.getElementById("input_uang_keuangan").value,
+              ) || 0,
+            updated_at: new Date().toISOString(),
+          };
 
-            // Hanya update kolom uang_owner jika inputnya tidak sedang disembunyikan (artinya dia owner)
-            const inputContainerOwner = document.getElementById('input-container-owner');
-            if (inputContainerOwner && !inputContainerOwner.classList.contains('hidden')) {
-                payload.uang_owner = parseFloat(document.getElementById('input_uang_owner').value) || 0;
-            }
+          // Hanya update kolom uang_owner jika inputnya tidak sedang disembunyikan (artinya dia owner)
+          const inputContainerOwner = document.getElementById(
+            "input-container-owner",
+          );
+          if (
+            inputContainerOwner &&
+            !inputContainerOwner.classList.contains("hidden")
+          ) {
+            payload.uang_owner =
+              parseFloat(document.getElementById("input_uang_owner").value) ||
+              0;
+          }
 
-            const { error } = await window.supabase.from('kas_perusahaan').update(payload).eq('id', 1);
-            if (error) throw error;
+          const { error } = await window.supabase
+            .from("kas_perusahaan")
+            .update(payload)
+            .eq("id", 1);
+          if (error) throw error;
 
-            alert('✅ Berhasil memperbarui saldo kas perusahaan!');
-            window.loadDataKas(); // Perbarui seluruh tampilan UI secara real-time
-            window.tutupModalKas();
+          alert("✅ Berhasil memperbarui saldo kas perusahaan!");
+          window.loadDataKas(); // Perbarui seluruh tampilan UI secara real-time
+          window.tutupModalKas();
         } catch (err) {
-            alert("Gagal menyimpan saldo: " + err.message);
+          alert("Gagal menyimpan saldo: " + err.message);
         } finally {
-            btn.innerText = textLama;
-            btn.disabled = false;
+          btn.innerText = textLama;
+          btn.disabled = false;
         }
-    });
-</script>
-</body>
+      });
+  </script>
 </html>

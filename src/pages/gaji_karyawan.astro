@@ -528,6 +528,33 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           >
           </div>
 
+          <!-- KEMBALIKAN BLOK KASBON YANG HILANG DI SINI -->
+          <div
+            class="col-span-2 bg-red-50 p-3.5 rounded-xl border border-red-200 mt-2"
+          >
+            <div class="flex justify-between items-center mb-2.5">
+              <label
+                class="text-xs font-bold text-red-800 uppercase flex items-center"
+                ><i class="bi bi-wallet2 mr-1"></i> Potong Kasbon Periode Ini</label
+              >
+              <div
+                class="text-[9px] font-black bg-red-200 text-red-900 px-2 py-1 rounded shadow-sm"
+              >
+                TOTAL HUTANG: <span id="info_total_kasbon" class="font-mono"
+                  >Rp 0</span
+                >
+              </div>
+            </div>
+            <input
+              type="number"
+              id="potongan_kasbon_sekarang"
+              onchange="window.kalkulasiRealtimeGaji()"
+              class="w-full border border-red-300 bg-white text-red-900 font-bold font-mono rounded-lg p-2.5 text-sm outline-none focus:border-red-600 shadow-inner"
+              placeholder="Ketik nominal potongan..."
+            />
+          </div>
+
+          <!-- BLOK UANG TALANGAN (TETAP ADA DI BAWAH KASBON) -->
           <div
             class="col-span-2 bg-blue-50 p-3.5 rounded-xl border border-blue-200 mt-2"
           >

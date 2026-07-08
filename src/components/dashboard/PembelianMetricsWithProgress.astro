@@ -1,0 +1,299 @@
+---
+// components/dashboard/PembelianMetricsWithProgress.astro
+---
+
+<style>
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #e5e7eb;
+    border-radius: 10px;
+  }
+  .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+    background-color: #d1d5db;
+  }
+</style>
+<div
+  class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow"
+>
+  <div
+    class="flex justify-between items-center mb-md border-b border-outline-variant pb-3"
+  >
+    <h3 class="font-headline-md text-on-surface flex items-center gap-2">
+      <i class="bi bi-cart-check text-blue-600"></i> Rekap Pembelian Lunas
+    </h3>
+    <div
+      class="bg-surface-container-low p-1 rounded-lg border border-outline-variant flex text-xs font-bold"
+    >
+      <button
+        id="btn-beli-harian"
+        class="px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all"
+        onclick="window.togglePembelian('harian')">Harian</button
+      >
+      <button
+        id="btn-beli-bulanan"
+        class="px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all"
+        onclick="window.togglePembelian('bulanan')">Bulanan</button
+      >
+    </div>
+  </div>
+
+  <div>
+    <div
+      class="flex justify-between items-center mb-4 bg-gray-50 p-2 rounded-lg border border-gray-100"
+    >
+      <span
+        id="beli-lbl-periode"
+        class="text-xs font-bold text-gray-500 uppercase ml-1"
+        >Pilih Periode:</span
+      >
+
+      <div id="wrapper-picker-beli-harian">
+        <input
+          type="date"
+          id="beli-date-picker"
+          class="border border-blue-300 rounded-md px-2 py-1 text-xs font-bold text-blue-700 bg-blue-50 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer max-w-[150px]"
+        />
+      </div>
+
+      <div id="wrapper-picker-beli-bulanan" class="hidden">
+        <input
+          type="month"
+          id="beli-month-picker"
+          class="border border-sky-300 rounded-md px-2 py-1 text-xs font-bold text-sky-700 bg-sky-50 outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer max-w-[150px]"
+        />
+      </div>
+    </div>
+
+    <div
+      id="beli-metrics-list"
+      class="space-y-3 min-h-[150px] max-h-[240px] overflow-y-auto pr-2 custom-scrollbar"
+    >
+      <p class="text-xs text-center text-gray-400 italic py-8">
+        Memuat data rekap pembelian...
+      </p>
+    </div>
+
+    <div
+      class="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center"
+    >
+      <span id="beli-total-label" class="text-xs font-bold text-gray-500"
+        >Total Pembelian</span
+      >
+      <span
+        id="beli-total-harga"
+        class="text-lg font-black text-blue-600 font-mono">Rp 0</span
+      >
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const client = window.supabase;
+    if (!client)
+      return console.error("🛑 Supabase client tidak ditemukan di window!");
+
+    const datePicker = document.getElementById("beli-date-picker");
+    const monthPicker = document.getElementById("beli-month-picker");
+    const txtTotalHarga = document.getElementById("beli-total-harga");
+    const txtTotalLabel = document.getElementById("beli-total-label");
+
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    const todayStr = new Date(now - offset).toISOString().split("T")[0];
+
+    if (datePicker) {
+      if (!datePicker.value) datePicker.value = todayStr;
+    }
+
+    if (monthPicker) {
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, "0");
+      if (!monthPicker.value) monthPicker.value = `${yyyy}-${mm}`;
+    }
+
+    const formatRupiah = (num) =>
+      "Rp " + Number(num).toLocaleString("id-ID", { minimumFractionDigits: 0 });
+    const getPercentage = (value, total) =>
+      !total || total === 0 ? 0 : Math.round((value / total) * 100);
+
+    // Palette warna nuansa Biru/Sky/Indigo untuk membedakan dengan Pengeluaran & Penjualan
+    const colorPalette = [
+      "bg-blue-600",
+      "bg-sky-500",
+      "bg-indigo-500",
+      "bg-cyan-600",
+      "bg-blue-800",
+      "bg-sky-700",
+      "bg-indigo-700",
+    ];
+
+    function renderProgressBarsBeli(metricsPayload, totalPembelian) {
+      const listContainer = document.getElementById("beli-metrics-list");
+      let htmlList = "";
+
+      metricsPayload.forEach((m) => {
+        const pct = getPercentage(m.value, totalPembelian);
+        htmlList += `
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[11px] font-bold text-gray-700 uppercase">
+                            <span>${m.label}</span>
+                            <span>${formatRupiah(m.value)}</span>
+                        </div>
+                        <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div class="h-full ${m.color} rounded-full" style="width: ${pct}%"></div>
+                        </div>
+                    </div>`;
+      });
+
+      listContainer.innerHTML =
+        htmlList ||
+        '<p class="text-xs text-center text-gray-400 py-8 italic">Tidak ada transaksi lunas pada periode ini</p>';
+      txtTotalHarga.innerText = formatRupiah(totalPembelian);
+    }
+
+    // 🧠 FUNGSI UTAMA KALKULASI & FILTER DATA PEMBELIAN
+    function processDataPembelian(dataPembelian, targetTgl, type) {
+      const rekap = {};
+      let grandTotal = 0;
+
+      if (dataPembelian && dataPembelian.length > 0) {
+        dataPembelian.forEach((trx) => {
+          // 1. Ambil Tanggal Fleksibel (Dari Penjemputan atau Tanggal Transaksi)
+          const tglTrx =
+            trx.penjemputan?.tanggal ||
+            trx.tanggal_transaksi ||
+            (trx.created_at ? trx.created_at.split("T")[0] : "");
+
+          // Filter berdasarkan Harian atau Bulanan langsung di JavaScript
+          if (type === "harian") {
+            if (tglTrx !== targetTgl) return;
+          } else if (type === "bulanan") {
+            if (!tglTrx.startsWith(targetTgl)) return; // targetTgl format YYYY-MM
+          }
+
+          // 2. Format Nama Mitra & Metode Bayar
+          const namaMitra =
+            trx.penjemputan?.mitra?.nama_mitra ||
+            trx.nama_mitra_tidak_terdaftar ||
+            "Tanpa Nama Mitra";
+
+          let metodeText = trx.metode_bayar || "Belum Set";
+          if (trx.metode_bayar_2) {
+            metodeText += ` & ${trx.metode_bayar_2}`;
+          }
+
+          // Gabungkan menjadi kunci unik: "Budi (Transfer)"
+          const keyLabel = `${namaMitra} (${metodeText})`;
+          const nominal = parseFloat(trx.grand_total) || 0;
+
+          // 3. Masukkan ke Rekapitulasi
+          if (!rekap[keyLabel]) {
+            rekap[keyLabel] = 0;
+          }
+          rekap[keyLabel] += nominal;
+          grandTotal += nominal;
+        });
+      }
+
+      // Ubah object rekap menjadi array agar bisa dirender dan disortir dari nilai terbesar
+      const metricsArray = Object.keys(rekap)
+        .map((key, index) => ({
+          label: key,
+          value: rekap[key],
+          color: colorPalette[index % colorPalette.length],
+        }))
+        .sort((a, b) => b.value - a.value);
+
+      return { metricsPayload: metricsArray, total: grandTotal };
+    }
+
+    // Fetch Data Global Harian & Bulanan
+    // Di sini kita mengambil 1000 data lunas terakhir untuk di-filter karena query relasi Supabase lebih optimal diolah di JS
+    window.loadPembelianData = async function (tipe) {
+      const targetTgl =
+        tipe === "harian" ? datePicker.value : monthPicker.value;
+      if (!targetTgl) return;
+
+      const listContainer = document.getElementById("beli-metrics-list");
+      listContainer.innerHTML =
+        '<p class="text-xs text-center text-gray-400 py-8 italic">Menarik data Lunas...</p>';
+
+      try {
+        const { data, error } = await client
+          .from("transaksi")
+          .select("*, penjemputan(tanggal, mitra(nama_mitra))")
+          .eq("is_paid_by_admin", true)
+          .order("created_at", { ascending: false })
+          .limit(1000);
+
+        if (error) throw error;
+
+        const { metricsPayload, total } = processDataPembelian(
+          data,
+          targetTgl,
+          tipe,
+        );
+
+        renderProgressBarsBeli(metricsPayload, total);
+
+        txtTotalHarga.className =
+          tipe === "harian"
+            ? "text-lg font-black text-blue-600 font-mono"
+            : "text-lg font-black text-sky-700 font-mono";
+      } catch (err) {
+        console.error("🛑 Gagal kalkulasi pembelian:", err);
+        listContainer.innerHTML =
+          '<p class="text-xs text-center text-red-400 py-8 italic">Gagal memuat data</p>';
+      }
+    };
+
+    // Kontrol Tombol Switch Harian/Bulanan
+    window.togglePembelian = function (tipe) {
+      const btnHarian = document.getElementById("btn-beli-harian");
+      const btnBulanan = document.getElementById("btn-beli-bulanan");
+      const wrapperHarian = document.getElementById(
+        "wrapper-picker-beli-harian",
+      );
+      const wrapperBulanan = document.getElementById(
+        "wrapper-picker-beli-bulanan",
+      );
+
+      if (tipe === "harian") {
+        btnHarian.className =
+          "px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all";
+        btnBulanan.className =
+          "px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all";
+        wrapperHarian.classList.remove("hidden");
+        wrapperBulanan.classList.add("hidden");
+        txtTotalLabel.innerText = "Total Lunas Hari Ini";
+        window.loadPembelianData("harian");
+      } else {
+        btnBulanan.className =
+          "px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all";
+        btnHarian.className =
+          "px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all";
+        wrapperHarian.classList.add("hidden");
+        wrapperBulanan.classList.remove("hidden");
+        txtTotalLabel.innerText = "Total Akumulasi Bulanan";
+        window.loadPembelianData("bulanan");
+      }
+    };
+
+    // Inisialisasi awal
+    window.togglePembelian("harian");
+
+    // Listener jika picker diubah
+    datePicker?.addEventListener("change", () =>
+      window.loadPembelianData("harian"),
+    );
+    monthPicker?.addEventListener("change", () =>
+      window.loadPembelianData("bulanan"),
+    );
+  });
+</script>

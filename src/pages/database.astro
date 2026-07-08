@@ -424,9 +424,10 @@ const statusBadgeColors = {
                     type="text"
                     id="manual_periode"
                     required
-                    disabled
                     placeholder="Pilih Karyawan Dulu..."
-                    class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-blue-600 bg-white disabled:bg-gray-200 disabled:cursor-not-allowed"
+                    readonly
+                    class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-blue-600 bg-white cursor-pointer"
+                    style="pointer-events: auto !important;"
                   />
                 </div>
               </div>

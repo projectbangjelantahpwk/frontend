@@ -12,6 +12,8 @@ import BestEmployees from "../components/dashboard/BestEmployees.astro";
 import BukuKasHarian from "../components/dashboard/BukuKasHarian.astro";
 import SalesMetricsWithProgress from "../components/dashboard/SalesMetricsWithProgress.astro";
 import SalaryMetricsWithProgress from "../components/dashboard/SalaryMetricsWithProgress.astro";
+import PembelianMetricsWithProgress from "../components/dashboard/PembelianMetricsWithProgress.astro";
+import PengeluaranMetricsWithProgress from "../components/dashboard/PengeluaranMetricsWithProgress.astro";
 import ExpenditureMetricsWithProgress from "../components/dashboard/ExpenditureMetricsWithProgress.astro";
 import IncomeMetricsWithProgress from "../components/dashboard/IncomeMetricsWithProgress.astro";
 import ProfitMingguanChart from "../components/dashboard/ProfitMingguanChart.astro";
@@ -93,6 +95,8 @@ const employeesData = [
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
           <SalaryMetricsWithProgress />
           <ExpenditureMetricsWithProgress />
+          <PembelianMetricsWithProgress />
+          <PengeluaranMetricsWithProgress />
           <SalesMetricsWithProgress />
           <IncomeMetricsWithProgress />
         </div>

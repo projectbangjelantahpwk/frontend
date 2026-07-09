@@ -106,8 +106,6 @@
 
     // Setup Batas Kalender & Default Hari ini / Bulan ini
     const now = new Date();
-
-    // Setup Default Value
     const offset = now.getTimezoneOffset() * 60000;
     const todayStr = new Date(now - offset).toISOString().split("T")[0];
 
@@ -161,8 +159,8 @@
       txtTotalHarga.innerText = formatRupiah(totalPengeluaran);
     }
 
-    // 🧠 FUNGSI UTAMA KALKULASI & FILTER DATA
-    function processDataPengeluaran(dataPengeluaran) {
+    // 🧠 FUNGSI UTAMA KALKULASI & FILTER DATA (Sekarang menerima ekstra parameter totalGaji)
+    function processDataPengeluaran(dataPengeluaran, totalGaji = 0) {
       const rekap = {};
       let grandTotal = 0;
 
@@ -172,11 +170,12 @@
         "uang jalan",
         "kasbon",
         "talangan karyawan",
+        "gaji", // 🔥 Ini ditambahkan biar gaji lama di rincian_pengeluaran 100% musnah
       ];
 
       if (dataPengeluaran && dataPengeluaran.length > 0) {
         dataPengeluaran.forEach((peng) => {
-          if (peng.status_approval === "Ditolak") return; // Lewati yang ditolak (opsional, amannya dilewati)
+          if (peng.status_approval === "Ditolak") return;
           if (!peng.rincian_pengeluaran) return;
 
           peng.rincian_pengeluaran.forEach((rincian) => {
@@ -189,14 +188,9 @@
             const isExcluded = excludedWords.some((word) =>
               namaLower.includes(word),
             );
-            if (isExcluded) return; // Skip iterasi ini
+            if (isExcluded) return;
 
-            // 2. Normalisasi "Gaji"
-            if (namaLower.includes("gaji")) {
-              namaAsli = "Gaji";
-            }
-
-            // 3. Kalkulasi dan Pengelompokkan
+            // 2. Kalkulasi dan Pengelompokkan
             if (!rekap[namaAsli]) {
               rekap[namaAsli] = 0;
             }
@@ -206,6 +200,12 @@
             grandTotal += nominal;
           });
         });
+      }
+
+      // 🔥 3. MASUKKAN TOTAL GAJI DARI TABEL SLIP GAJI SEBAGAI METRIK BARU
+      if (totalGaji > 0) {
+        rekap["Beban Gaji Karyawan"] = totalGaji;
+        grandTotal += totalGaji;
       }
 
       // Ubah object rekap menjadi array agar bisa dirender dan disortir dari pengeluaran terbesar
@@ -225,14 +225,32 @@
       const tgl = datePicker.value;
       if (!tgl) return;
 
-      const { data, error } = await client
+      // Ambil Pengeluaran Operasional
+      const { data: dataOp, error: errOp } = await client
         .from("pengeluaran")
         .select("*, rincian_pengeluaran(*)")
         .eq("tanggal", tgl);
 
-      if (error) console.error("🛑 Gagal fetch data harian:", error);
+      if (errOp) console.error("🛑 Gagal fetch operasional harian:", errOp);
 
-      const { metricsPayload, total } = processDataPengeluaran(data);
+      // 🔥 Ambil Data Gaji Langsung dari slip_gaji
+      const { data: dataGaji, error: errGaji } = await client
+        .from("slip_gaji")
+        .select("total_diterima")
+        .eq("status", "ACC")
+        .eq("periode", tgl);
+
+      if (errGaji) console.error("🛑 Gagal fetch gaji harian:", errGaji);
+
+      const totalGaji = (dataGaji || []).reduce(
+        (sum, row) => sum + (row.total_diterima || 0),
+        0,
+      );
+
+      const { metricsPayload, total } = processDataPengeluaran(
+        dataOp,
+        totalGaji,
+      );
 
       renderProgressBarsPeng(metricsPayload, total);
       txtTotalHarga.className = "text-lg font-black text-red-600 font-mono";
@@ -247,18 +265,37 @@
         // Konversi YYYY-MM menjadi range tanggal awal & akhir bulan
         const [yyyy, mm] = blnRaw.split("-");
         const startDate = `${yyyy}-${mm}-01`;
-        const lastDay = new Date(yyyy, mm, 0).getDate(); // Mendapatkan hari terakhir di bulan tersebut
+        const lastDay = new Date(yyyy, mm, 0).getDate();
         const endDate = `${yyyy}-${mm}-${lastDay}`;
 
-        const { data, error } = await client
+        // Ambil Pengeluaran Operasional
+        const { data: dataOp, error: errOp } = await client
           .from("pengeluaran")
           .select("*, rincian_pengeluaran(*)")
           .gte("tanggal", startDate)
           .lte("tanggal", endDate);
 
-        if (error) throw error;
+        if (errOp) throw errOp;
 
-        const { metricsPayload, total } = processDataPengeluaran(data);
+        // 🔥 Ambil Data Gaji Langsung dari slip_gaji
+        const { data: dataGaji, error: errGaji } = await client
+          .from("slip_gaji")
+          .select("total_diterima")
+          .eq("status", "ACC")
+          .gte("periode", startDate)
+          .lte("periode", endDate);
+
+        if (errGaji) throw errGaji;
+
+        const totalGaji = (dataGaji || []).reduce(
+          (sum, row) => sum + (row.total_diterima || 0),
+          0,
+        );
+
+        const { metricsPayload, total } = processDataPengeluaran(
+          dataOp,
+          totalGaji,
+        );
 
         renderProgressBarsPeng(metricsPayload, total);
         txtTotalHarga.className =

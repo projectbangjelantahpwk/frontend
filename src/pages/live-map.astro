@@ -1,6 +1,7 @@
 ---
 // ===== AREA SSG (Static Site Generation) =====
 import Layout from "../layouts/Layout.astro";
+import "leaflet/dist/leaflet.css"; // 🔥 IMPORT CSS LEAFLET VIA NPM
 
 const title = "Live Map Armada - Bang Jelantah";
 ---
@@ -160,49 +161,63 @@ const title = "Live Map Armada - Bang Jelantah";
     </div>
   </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" is:inline
-  ></script>
+  <script>
+    import { supabaseLT } from "../lib/supabase";
+    import L from "leaflet"; // 🔥 IMPORT JS LEAFLET VIA NPM
 
-  <script is:inline>
-    // 1. STATE MANAGEMENT (CSR)
-    let driverProfiles = {};
-    let driverLocations = new Map();
-    let markers = new Map();
-    let map;
-    let realtimeChannel = null;
-    let currentSelectedDriverId = null;
+    declare global {
+      interface Window {
+        toggleFullscreenMap: () => void;
+        openDriverDetail: (userId: string) => void;
+        closeDriverDetail: () => void;
+      }
+    }
 
-    // 2. INITIALIZE LEAFLET MAP DIRECTLY ON DOM
-    // 2. INITIALIZE LEAFLET MAP DIRECTLY ON DOM
+    // 3. STATE MANAGEMENT
+    // (Lanjutkan sisa kode lu ke bawah seperti biasa...)
+    let driverProfiles: Record<string, any> = {};
+    let driverLocations = new Map<string, any>();
+    let markers = new Map<string, any>();
+    let map: any;
+    let realtimeChannel: any = null;
+    let currentSelectedDriverId: string | null = null;
+
+    // 4. INITIALIZE LEAFLET MAP DIRECTLY ON DOM
     function initMap() {
       map = L.map("map").setView([-6.5569, 107.4433], 12);
 
-      // MENGGUNAKAN CARTO VOYAGER (Jauh lebih cepat dari OSM biasa)
       L.tileLayer(
         "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
         {
           attribution: "© OpenStreetMap, © CARTO",
           maxZoom: 19,
-          crossOrigin: true, // WAJIB: Mengizinkan browser melakukan caching offline
-          keepBuffer: 8, // Trik agar saat di-geser/expand, peta tidak kedip (menyimpan buffer memori)
+          crossOrigin: true,
+          keepBuffer: 8,
         },
       ).addTo(map);
 
-      // Invalidate size untuk mencegah peta blank kelabu saat rendering awal
-      setTimeout(() => {
-        if (map) map.invalidateSize();
-      }, 400);
+      // FIX MAP SETENGAH ABU-ABU: Menggunakan ResizeObserver yang Type-Safe
+      const mapContainer = document.getElementById("map");
+      if (mapContainer) {
+        const resizeObserver = new ResizeObserver(() => {
+          if (map) map.invalidateSize();
+        });
+        resizeObserver.observe(mapContainer);
+      }
     }
 
     // Toggle Fullscreen untuk memperluas peta secara native di browser
     window.toggleFullscreenMap = function () {
-      const mapWrapper = document.getElementById("map").parentElement;
-      if (!document.fullscreenElement) {
-        mapWrapper.requestFullscreen().catch((err) => {
-          alert(`Gagal expand peta: ${err.message}`);
-        });
-      } else {
-        document.exitFullscreen();
+      const mapContainer = document.getElementById("map");
+      const mapWrapper = mapContainer?.parentElement;
+      if (mapWrapper) {
+        if (!document.fullscreenElement) {
+          mapWrapper.requestFullscreen().catch((err) => {
+            alert(`Gagal expand peta: ${err.message}`);
+          });
+        } else {
+          document.exitFullscreen();
+        }
       }
     };
 
@@ -210,66 +225,71 @@ const title = "Live Map Armada - Bang Jelantah";
       if (map) setTimeout(() => map.invalidateSize(), 200);
     });
 
-    // 3. UTC STANDARD TIME GENERATOR
+    // Helper Generator Waktu Standard UTC
     function getStartOfTodayInUTC() {
       const now = new Date();
       now.setHours(0, 0, 0, 0);
       return now.toISOString();
     }
 
-    // 4. DATA FETCHING (PROFILES + LIVE GPS)
+    // 5. DATA FETCHING (PROFILES + LIVE GPS) VIA CSR
     async function fetchInitialData() {
-      const client = window.supabase;
+      const client = supabaseLT;
       if (!client) {
-        console.error("Supabase tidak ditemukan di scope window.");
+        console.error("SupabaseLT gagal dimuat.");
         return;
       }
 
-      // A. Tarik Profil Karyawan/Driver
+      // A. Tarik Profil Driver (Hanya mengambil kolom yang valid dari profiles_rows.csv)
       const { data: profilesData, error: profErr } = await client
         .from("profiles")
-        .select("id, nama, nomor_hp, foto_profil, kendaraan, nama_kendaraan");
+        .select("id, nama, nomor_hp, kendaraan, nama_kendaraan");
 
       if (!profErr && profilesData) {
-        profilesData.forEach((p) => {
+        profilesData.forEach((p: any) => {
           driverProfiles[p.id] = p;
         });
       }
 
-      // B. Tarik Posisi GPS Terakhir Hari Ini
+      // B. Tarik Posisi GPS Terakhir Hari Ini (Filter Fleksibel via JavaScript)
       const startOfTodayUTC = getStartOfTodayInUTC();
       const { data: gpsData, error: gpsErr } = await client
         .from("live_tracking")
         .select("*")
-        .eq("is_active", true)
         .gte("updated_at", startOfTodayUTC);
 
       if (!gpsErr && gpsData) {
-        gpsData.forEach((row) => {
-          const userId = row.user_id?.toString();
-          const lat = parseFloat(row.latitude);
-          const lng = parseFloat(row.longitude);
-          const speed = row.speed || 0;
-          const heading = row.heading || 0;
+        gpsData.forEach((row: any) => {
+          const isActive =
+            row.is_active === true ||
+            String(row.is_active).toLowerCase() === "true";
 
-          if (!isNaN(lat) && !isNaN(lng)) {
-            driverLocations.set(userId, {
-              lat,
-              lng,
-              speed,
-              heading,
-              updated_at: row.updated_at,
-            });
-            updateMarker(userId, lat, lng);
+          if (isActive) {
+            const userId = row.user_id?.toString();
+            const lat = parseFloat(row.latitude);
+            const lng = parseFloat(row.longitude);
+            const speed = row.speed || 0;
+            const heading = row.heading || 0;
+
+            if (!isNaN(lat) && !isNaN(lng)) {
+              driverLocations.set(userId, {
+                lat,
+                lng,
+                speed,
+                heading,
+                updated_at: row.updated_at,
+              });
+              updateMarker(userId, lat, lng);
+            }
           }
         });
         updateDriversList();
       }
     }
 
-    // 5. REAL-TIME WEBSOCKET LISTENER WITH RECONNECT LOGIC
+    // 6. REAL-TIME WEBSOCKET LISTENER WITH RECONNECT LOGIC
     function startRealtimeTracking() {
-      const client = window.supabase;
+      const client = supabaseLT;
       if (!client) return;
 
       if (realtimeChannel) {
@@ -283,13 +303,14 @@ const title = "Live Map Armada - Bang Jelantah";
         .on(
           "postgres_changes",
           { event: "*", schema: "public", table: "live_tracking" },
-          (payload) => {
+          (payload: any) => {
             const data = payload.new;
             if (!data || !data.user_id) return;
 
             const userId = data.user_id.toString();
             const isActive =
-              data.is_active === true || data.is_active === "true";
+              data.is_active === true ||
+              String(data.is_active).toLowerCase() === "true";
 
             if (isActive && data.updated_at >= startOfTodayUTC) {
               try {
@@ -317,19 +338,18 @@ const title = "Live Map Armada - Bang Jelantah";
                 console.error("Gagal memproses pergerakan live GPS:", e);
               }
             } else {
-              // Jika status driver berubah menjadi offline
               driverLocations.delete(userId);
               removeMarker(userId);
               updateDriversList();
 
               if (currentSelectedDriverId === userId) {
-                closeDriverDetail();
+                window.closeDriverDetail();
               }
             }
           },
         );
 
-      realtimeChannel.subscribe((status) => {
+      realtimeChannel.subscribe((status: string) => {
         console.log("🛰️ GPS WebSocket Status:", status);
         if (status === "CLOSED" || status === "CHANNEL_ERROR") {
           setTimeout(() => {
@@ -340,8 +360,8 @@ const title = "Live Map Armada - Bang Jelantah";
       });
     }
 
-    // 6. MAP MARKER CONTROLLER
-    function updateMarker(userId, lat, lng) {
+    // 7. MAP MARKER CONTROLLER
+    function updateMarker(userId: string, lat: number, lng: number) {
       const profile = driverProfiles[userId] || {};
       const isMotor = profile?.kendaraan?.toLowerCase() !== "mobil";
       const namaDriver = profile.nama || "Driver Unknown";
@@ -359,21 +379,21 @@ const title = "Live Map Armada - Bang Jelantah";
           .addTo(map);
 
         marker.on("click", () => {
-          openDriverDetail(userId);
+          window.openDriverDetail(userId);
         });
 
         markers.set(userId, marker);
       }
     }
 
-    function removeMarker(userId) {
+    function removeMarker(userId: string) {
       if (markers.has(userId)) {
         map.removeLayer(markers.get(userId));
         markers.delete(userId);
       }
     }
 
-    function createCustomIcon(isMotor) {
+    function createCustomIcon(isMotor: boolean) {
       const html = `
         <div style="
           width: 38px;
@@ -397,7 +417,7 @@ const title = "Live Map Armada - Bang Jelantah";
       });
     }
 
-    // 7. SIDEBAR & DETAIL PANEL GENERATOR
+    // 8. SIDEBAR LIST CONTROLLER
     function updateDriversList() {
       const listEl = document.getElementById("drivers-list");
       const countEl = document.getElementById("driver-count");
@@ -413,7 +433,7 @@ const title = "Live Map Armada - Bang Jelantah";
         return;
       }
 
-      countEl.textContent = driverLocations.size;
+      countEl.textContent = driverLocations.size.toString();
 
       const html = Array.from(driverLocations.entries())
         .map(([userId, locationData]) => {
@@ -423,14 +443,10 @@ const title = "Live Map Armada - Bang Jelantah";
           const inisial = nama.substring(0, 2).toUpperCase();
 
           return `
-            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col hover:shadow-md transition shadow-sm relative cursor-pointer" onclick="openDriverDetail('${userId}')">
+            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col hover:shadow-md transition shadow-sm relative cursor-pointer" onclick="window.openDriverDetail('${userId}')">
               <div class="absolute left-0 top-0 bottom-0 w-1 bg-green-600"></div>
               <div class="p-3 flex items-center gap-3 hover:bg-surface-container-low transition">
-                ${
-                  profile.foto_profil
-                    ? `<img src="${profile.foto_profil}" class="w-10 h-10 rounded-full object-cover border border-outline-variant shrink-0" alt="${nama}" />`
-                    : `<div class="w-10 h-10 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-bold text-xs shrink-0">${inisial}</div>`
-                }
+                <div class="w-10 h-10 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-bold text-xs shrink-0">${inisial}</div>
                 <div class="flex-1 min-w-0">
                   <h3 class="text-xs text-on-surface truncate font-bold mb-0.5">${nama}</h3>
                   <p class="text-[11px] text-on-surface-variant truncate capitalize flex items-center gap-1">
@@ -449,6 +465,7 @@ const title = "Live Map Armada - Bang Jelantah";
       listEl.innerHTML = html;
     }
 
+    // 9. OPEN DRAWER PANEL DETAIL DRIVER
     window.openDriverDetail = function (userId) {
       currentSelectedDriverId = userId;
       const profile = driverProfiles[userId] || {};
@@ -466,11 +483,7 @@ const title = "Live Map Armada - Bang Jelantah";
 
       detailContent.innerHTML = `
         <div class="flex flex-col items-center gap-sm border-b border-outline-variant pb-lg mb-lg">
-            ${
-              profile.foto_profil
-                ? `<img src="${profile.foto_profil}" class="w-16 h-16 rounded-full object-cover border border-outline-variant shrink-0" />`
-                : `<div class="w-16 h-16 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-md shrink-0 text-xl">${inisial}</div>`
-            }
+            <div class="w-16 h-16 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-md shrink-0 text-xl">${inisial}</div>
             <h3 class="font-headline-sm text-on-surface font-bold text-center mt-2">${nama}</h3>
             <span class="bg-green-100 text-green-800 border border-green-200 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider mt-1">
               🟢 Live Streaming GPS
@@ -513,13 +526,20 @@ const title = "Live Map Armada - Bang Jelantah";
       const panel = document.getElementById("driver-detail-panel");
       const backdrop = document.getElementById("driver-detail-backdrop");
 
-      backdrop.classList.remove("hidden");
-      setTimeout(() => backdrop.classList.remove("opacity-0"), 10);
-      panel.classList.remove("translate-x-full");
-      panel.classList.add("translate-x-0");
+      if (panel && backdrop) {
+        backdrop.classList.remove("hidden");
+        setTimeout(() => backdrop.classList.remove("opacity-0"), 10);
+        panel.classList.remove("translate-x-full");
+        panel.classList.add("translate-x-0");
+      }
     };
 
-    function updateDetailPanelLive(userId, lat, lng, speed) {
+    function updateDetailPanelLive(
+      userId: string,
+      lat: number,
+      lng: number,
+      speed: number,
+    ) {
       const latEl = document.getElementById("live-lat");
       const lngEl = document.getElementById("live-lng");
       const speedEl = document.getElementById("live-speed");
@@ -533,19 +553,22 @@ const title = "Live Map Armada - Bang Jelantah";
       }
     }
 
+    // 10. CLOSE DRAWER PANEL DETAIL DRIVER
     window.closeDriverDetail = function () {
       currentSelectedDriverId = null;
       const panel = document.getElementById("driver-detail-panel");
       const backdrop = document.getElementById("driver-detail-backdrop");
 
-      panel.classList.remove("translate-x-0");
-      panel.classList.add("translate-x-full");
+      if (panel && backdrop) {
+        panel.classList.remove("translate-x-0");
+        panel.classList.add("translate-x-full");
 
-      backdrop.classList.add("opacity-0");
-      setTimeout(() => backdrop.classList.add("hidden"), 300);
+        backdrop.classList.add("opacity-0");
+        setTimeout(() => backdrop.classList.add("hidden"), 300);
+      }
     };
 
-    // 8. INITIAL LIFECYCLE
+    // 11. INITIAL LIFECYCLE START
     document.addEventListener("DOMContentLoaded", () => {
       initMap();
       fetchInitialData();

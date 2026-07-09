@@ -115,8 +115,14 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             <option value="gaji_karyawan">Gaji Pokok</option>
             <option value="uang_lembur">Uang Lembur</option>
             <option value="uang_makan">Uang Makan</option>
+            <option value="uang_transport">Uang Transport</option>
+            <option value="uang_talangan">Uang Talangan</option>
+            <option value="uang_rapat">Uang Rapat</option>
             <option value="bonus"
               >Total Bonus (Mingguan/Tepat Waktu/Sehat)</option
+            >
+            <option value="potongan_bonus_mingguan"
+              >Potongan Bonus/Hari Absen</option
             >
             <option value="kasbon">Potongan Kasbon</option>
           </select>
@@ -135,6 +141,13 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             title="Download Excel"
           >
             <i class="bi bi-file-earmark-excel"></i> Excel
+          </button>
+          <button
+            onclick="window.exportSlipAkumulasiFilter()"
+            class="bg-cyan-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-cyan-700 transition shadow-sm ml-2"
+            title="Download Slip PNG - Data Terakumulasi Sesuai Filter"
+          >
+            <i class="bi bi-images"></i> Image (Akumulasi)
           </button>
         </div>
       </div>
@@ -857,11 +870,19 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     <div
       style="text-align: center; border-bottom: 2px dashed #ccc; padding-bottom: 12px; margin-bottom: 16px;"
     >
+      <!-- LOGO GAMBAR -->
+      <img
+        id="slip-logo"
+        src="3.png"
+        style="width: 40px; height: 40px; object-fit: cover; margin: 0 auto; display: block;"
+        alt="Logo Bang Jelantah"
+      />
+
       <h2 style="margin: 0; color: #166534; font-size: 20px; font-weight: 800;">
-        BANG JELANTAH
+        BANG JELANTAH PURWAKARTA
       </h2>
       <p
-        style="margin: 4px 0 0; font-size: 12px; color: #666; font-weight: bold;"
+        style="margin: 4px 0; font-size: 11px; color: #666; font-weight: bold;"
       >
         SLIP GAJI KARYAWAN
       </p>
@@ -878,6 +899,12 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         ><td style="color: #666;">Periode</td><td
           style="font-weight: bold;"
           id="slip-periode">: -</td
+        ></tr
+      >
+      <tr
+        ><td style="color: #666;">Dari - Sampai</td><td
+          style="font-weight: bold; color: #0066cc;"
+          id="slip-tanggal-range">: -</td
         ></tr
       >
       <tr
@@ -1520,8 +1547,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                 ${res.valLembur > 0 ? `<div class="flex justify-between text-xs mt-1"><span>Uang Lembur (${res.totalMenitLembur} Menit)</span> <span class="font-bold text-gray-900">+ Rp ${res.valLembur.toLocaleString("id-ID")}</span></div>` : ""}
                 ${res.valMakan > 0 ? `<div class="flex justify-between text-xs text-green-700 mt-1"><span>Uang Makan (${res.totalHariHadir} Hari)</span> <span class="font-bold">+ Rp ${res.valMakan.toLocaleString("id-ID")}</span></div>` : ""}
                 
-                <!-- 👉 TARUH UANG TRANSPORT DI SINI -->
                 ${res.valTransport > 0 ? `<div class="flex justify-between text-xs text-blue-700 mt-1"><span>Uang Transport (${res.totalHariHadir} Hari)</span> <span class="font-bold">+ Rp ${res.valTransport.toLocaleString("id-ID")}</span></div>` : ""}
+                
+                <!-- 🔴 TAMBAHAN: TAMPILKAN POTONGAN BONUS/HARI ABSEN -->
+                ${res.valPotonganAbsen > 0 ? `<div class="flex justify-between text-xs text-red-600 font-bold mt-1"><span>Potongan Bonus/Hari Absen (${res.totalHariAbsen} Hari)</span> <span>- Rp ${res.valPotonganAbsen.toLocaleString("id-ID")}</span></div>` : ""}
 
                 ${res.valBonusTepat > 0 ? `<div class="flex justify-between text-xs text-green-700 mt-1"><span>Bonus Tepat Waktu (${res.tepatWaktuCount}x)</span> <span class="font-bold">+ Rp ${res.valBonusTepat.toLocaleString("id-ID")}</span></div>` : ""}
                 ${res.valBonusMingguan > 0 ? `<div class="flex justify-between text-xs text-green-700 mt-1"><span>${labelBonus}</span> <span class="font-bold">+ Rp ${res.valBonusMingguan.toLocaleString("id-ID")}</span></div>` : ""}
@@ -1880,6 +1909,146 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         wrapper.classList.add("hidden");
         wrapper.style.position = "";
         wrapper.style.top = "";
+      }
+    };
+
+    // ================================
+    // EXPORT SLIP PNG - DATA AKUMULASI SESUAI FILTER
+    // ================================
+    window.exportSlipAkumulasiFilter = async function () {
+      try {
+        const dataTerfilter = window.currentFilteredRiwayat;
+        if (!dataTerfilter || dataTerfilter.length === 0) {
+          return alert(
+            "Tidak ada data riwayat yang cocok dengan filter untuk diunduh sebagai gambar!",
+          );
+        }
+
+        // ✅ SUM/AKUMULASI SEMUA NILAI DARI DATA YANG DIFILTER
+        let totalGaji = 0;
+        let totalLembur = 0;
+        let totalMakan = 0;
+        let totalTransport = 0;
+        let totalTalangan = 0;
+        let totalRapat = 0;
+        let totalNginep = 0;
+        let totalBonusTepat = 0;
+        let totalBonusMingguan = 0;
+        let totalKesehatan = 0;
+        let totalKasbon = 0;
+        let namaKaryawan = "";
+
+        // Hanya hitung yang status ACC
+        dataTerfilter.forEach((slip) => {
+          const isACC =
+            slip.status === "ACC" || slip.status_persetujuan === "ACC";
+          if (!isACC) return;
+
+          totalGaji += Number(slip.gaji_karyawan || 0);
+          totalLembur += Number(slip.uang_lembur || 0);
+          totalMakan += Number(slip.uang_makan || 0);
+          totalTransport += Number(slip.uang_transport || 0);
+          totalTalangan += Number(slip.uang_talangan || 0);
+          totalRapat += Number(slip.uang_rapat || 0);
+          totalNginep += Number(slip.uang_nginep || 0);
+          totalBonusTepat += Number(slip.bonus_tepat_waktu || 0);
+          totalBonusMingguan += Number(slip.bonus_mingguan || 0);
+          totalKesehatan += Number(slip.uang_kesehatan || 0);
+          totalKasbon += Number(slip.kasbon || 0);
+
+          // Ambil nama karyawan dari data pertama (asumsi filter 1 karyawan)
+          if (!namaKaryawan && slip.profiles?.nama) {
+            namaKaryawan = slip.profiles.nama;
+          }
+        });
+
+        // Hitung Total Bonus Gabungan
+        const totalBonus =
+          totalBonusTepat +
+          totalBonusMingguan +
+          totalKesehatan +
+          totalRapat +
+          totalNginep;
+
+        // ✅ GRAND TOTAL AKUMULASI (Boleh NEGATIF jika kasbon besar)
+        const grandTotal =
+          totalGaji +
+          totalLembur +
+          totalMakan +
+          totalTransport +
+          totalTalangan +
+          totalBonus -
+          totalKasbon;
+
+        // Suntik nilai ke template
+        // Suntik nilai ke template
+        document.getElementById("slip-nama").innerText =
+          `: ${namaKaryawan || "Akumulasi Filter"}`;
+        document.getElementById("slip-periode").innerText =
+          `: AKUMULASI (${dataTerfilter.length} Periode)`;
+
+        // ✅ TAMBAHAN: Ambil tanggal awal & akhir dari filter
+        const startDate =
+          document.getElementById("filter-gaji-start").value || "-";
+        const endDate = document.getElementById("filter-gaji-end").value || "-";
+        document.getElementById("slip-tanggal-range").innerText =
+          `: ${startDate} s/d ${endDate}`;
+
+        document.getElementById("slip-status").innerText = `: ACC`;
+
+        document.getElementById("slip-gaji").innerText =
+          `Rp ${totalGaji.toLocaleString("id-ID")}`;
+        document.getElementById("slip-lembur").innerText =
+          `Rp ${totalLembur.toLocaleString("id-ID")}`;
+        document.getElementById("slip-makan").innerText =
+          `Rp ${totalMakan.toLocaleString("id-ID")}`;
+        document.getElementById("slip-bonus").innerText =
+          `Rp ${totalBonus.toLocaleString("id-ID")}`;
+        document.getElementById("slip-kasbon").innerText =
+          `Rp ${totalKasbon.toLocaleString("id-ID")}`;
+        document.getElementById("slip-total").innerText =
+          `Rp ${grandTotal.toLocaleString("id-ID")}`;
+
+        // Tampilkan sementara template
+        const templateEl = document.getElementById("template-slip-gambar");
+        const wrapper = templateEl.parentElement;
+        wrapper.classList.remove("hidden");
+        wrapper.style.position = "absolute";
+        wrapper.style.top = "-9999px";
+
+        try {
+          // Render ke canvas
+          const canvas = await html2canvas(templateEl, {
+            scale: 2,
+            backgroundColor: "#ffffff",
+            useCORS: true,
+          });
+
+          // Download file PNG
+          const link = document.createElement("a");
+          const safeName = (namaKaryawan || "Akumulasi").replace(
+            /[^a-z0-9_\- ]/gi,
+            "",
+          );
+          link.download = `Slip_${safeName}_AKUMULASI.png`;
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+
+          alert(
+            `✅ Berhasil download Slip PNG Akumulasi!\n\nNama: ${namaKaryawan || "Filter"}\nTotal Periode: ${dataTerfilter.length}\nGrand Total: Rp ${grandTotal.toLocaleString("id-ID")}`,
+          );
+        } catch (err) {
+          console.error("Gagal render slip ke gambar:", err);
+          alert("Gagal membuat gambar slip: " + err.message);
+        } finally {
+          // Sembunyikan wrapper kembali
+          wrapper.classList.add("hidden");
+          wrapper.style.position = "";
+          wrapper.style.top = "";
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Gagal mengekspor slip akumulasi: " + (err.message || err));
       }
     };
 

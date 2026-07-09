@@ -539,6 +539,18 @@ const statusBadgeColors = {
                     class="w-full border border-blue-300 bg-blue-50 text-blue-900 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
                   />
                 </div>
+                <!-- 🔴 TAMBAHAN: UANG RAPAT -->
+                <div>
+                  <label class="block text-xs font-bold text-gray-700 mb-1"
+                    >Uang Rapat (Rp)</label
+                  >
+                  <input
+                    type="number"
+                    id="manual_uang_rapat"
+                    value="0"
+                    class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+                  />
+                </div>
               </div>
 
               <div
@@ -2335,7 +2347,7 @@ const statusBadgeColors = {
         const { data: semuaSlip } = await client
           .from("slip_gaji")
           .select(
-            "id, user_id, periode, gaji_karyawan, uang_lembur, uang_makan, uang_kesehatan, bonus_tepat_waktu, bonus_mingguan, uang_transport, uang_talangan, kasbon, total_diterima, status",
+            "id, user_id, periode, gaji_karyawan, uang_lembur, uang_makan, uang_kesehatan, bonus_tepat_waktu, bonus_mingguan, uang_transport, uang_talangan, uang_rapat, kasbon, total_diterima, status",
           )
           .order("periode", { ascending: false });
 
@@ -2449,6 +2461,7 @@ const statusBadgeColors = {
         slip.uang_transport || 0;
       document.getElementById("manual_talangan").value =
         slip.uang_talangan || 0;
+      document.getElementById("manual_uang_rapat").value = slip.uang_rapat || 0;
       document.getElementById("manual_kasbon").value = slip.kasbon || 0;
 
       hitungGrandTotalManual();
@@ -2486,6 +2499,8 @@ const statusBadgeColors = {
         parseFloat(document.getElementById("manual_transport").value) || 0;
       const pTalangan =
         parseFloat(document.getElementById("manual_talangan").value) || 0;
+      const pRapat =
+        parseFloat(document.getElementById("manual_uang_rapat").value) || 0;
       const pKes =
         parseFloat(document.getElementById("manual_kesehatan").value) || 0;
       const pBTepat =
@@ -2495,9 +2510,18 @@ const statusBadgeColors = {
       const pKasbon =
         parseFloat(document.getElementById("manual_kasbon").value) || 0;
 
-      let total =
-        pGaji + pLembur + pMakan + pKes + pBTepat + pBMinggu - pKasbon;
-      if (total < 0) total = 0;
+      // ✅ MASUKKAN TRANSPORT, TALANGAN, RAPAT (Boleh NEGATIF jika kasbon besar)
+      const total =
+        pGaji +
+        pLembur +
+        pMakan +
+        pTransport +
+        pTalangan +
+        pRapat +
+        pKes +
+        pBTepat +
+        pBMinggu -
+        pKasbon;
 
       document.getElementById("manual_grandtotal").innerText =
         `Rp ${total.toLocaleString("id-ID")}`;
@@ -2510,6 +2534,7 @@ const statusBadgeColors = {
       "manual_makan",
       "manual_transport",
       "manual_talangan",
+      "manual_uang_rapat",
       "manual_kesehatan",
       "manual_bonus_tepat",
       "manual_bonus_mingguan",
@@ -2563,6 +2588,9 @@ const statusBadgeColors = {
               0,
             uang_talangan:
               parseFloat(document.getElementById("manual_talangan").value) || 0,
+            uang_rapat:
+              parseFloat(document.getElementById("manual_uang_rapat").value) ||
+              0,
             uang_kesehatan:
               parseFloat(document.getElementById("manual_kesehatan").value) ||
               0,

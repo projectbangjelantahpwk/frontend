@@ -1,0 +1,555 @@
+---
+// ===== AREA SSG (Static Site Generation) =====
+import Layout from "../layouts/Layout.astro";
+
+const title = "Live Map Armada - Bang Jelantah";
+---
+
+<Layout title={title}>
+  <style is:global>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    #map {
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+    }
+    /* Mempercantik tampilan Popup Leaflet agar senada dengan UI Tailwind */
+    .leaflet-popup-content-wrapper {
+      border-radius: 12px !important;
+      padding: 4px !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+      border: 1px solid #e5e7eb;
+    }
+    .leaflet-popup-tip {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    }
+    /* Sembunyikan scrollbar bawaan sidebar tapi fungsi scroll aktif */
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    slot="head"
+  />
+
+  <div
+    class="max-w-7xl mx-auto flex flex-col h-[calc(100vh-2rem)] relative p-4"
+  >
+    <div
+      class="flex flex-col md:flex-row justify-between items-start md:items-center gap-md mb-lg shrink-0"
+    >
+      <div>
+        <h1
+          class="font-headline-lg text-headline-lg-mobile md:text-headline-lg font-bold text-primary flex items-center gap-2"
+        >
+          🗺️ Live Map Armada
+        </h1>
+        <p class="font-body-md text-body-md text-on-surface-variant mt-xs">
+          Pantau posisi real-time dan pergerakan GPS tim operasional lapangan.
+        </p>
+      </div>
+
+      <div class="w-full md:w-auto flex items-center gap-3 mt-4 md:mt-0">
+        <div
+          class="bg-green-50 text-green-700 border border-green-200 px-4 py-2 rounded-full text-sm font-bold shadow-sm flex items-center gap-2 whitespace-nowrap"
+        >
+          <span class="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"
+          ></span>
+          <span id="driver-count">0</span> Driver Online
+        </div>
+      </div>
+    </div>
+
+    <div class="flex-1 flex flex-col md:flex-row gap-6 min-h-0 relative mb-4">
+      <div
+        class="flex-1 bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden shadow-sm flex flex-col min-h-[45vh] md:min-h-0 relative"
+      >
+        <div
+          class="bg-surface-container-low px-4 py-2.5 border-b border-outline-variant flex justify-between items-center shrink-0 relative z-20 shadow-sm"
+        >
+          <span
+            class="text-xs font-bold text-on-surface-variant uppercase tracking-wider flex items-center gap-1.5"
+          >
+            🛰️ GPS Live Streaming Feed
+          </span>
+          <button
+            onclick="toggleFullscreenMap()"
+            class="text-on-surface-variant hover:text-primary p-1 rounded-md transition-colors flex items-center gap-1 text-xs font-bold"
+          >
+            <span class="material-symbols-outlined text-[18px]">fullscreen</span
+            > Expand Peta
+          </button>
+        </div>
+
+        <div class="flex-1 relative z-10 bg-[#e5e3df]">
+          <div id="map" class="absolute inset-0"></div>
+        </div>
+      </div>
+
+      <div
+        class="w-full md:w-80 shrink-0 flex flex-col bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-sm max-h-[30vh] md:max-h-none"
+      >
+        <div
+          class="bg-surface-container-low px-4 py-3 border-b border-outline-variant shrink-0"
+        >
+          <h3 class="text-sm font-bold text-on-surface">
+            Armada Aktif Saat Ini
+          </h3>
+        </div>
+
+        <div
+          id="drivers-list"
+          class="flex-1 overflow-y-auto p-4 space-y-3 bg-surface-container-lowest hide-scrollbar"
+        >
+          <div
+            class="text-center p-md text-on-surface-variant font-body-md italic text-xs mt-4"
+          >
+            📍 Menunggu driver mengaktifkan GPS...
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    id="driver-detail-backdrop"
+    class="fixed inset-0 bg-on-background/50 z-[60] hidden transition-opacity opacity-0"
+    onclick="closeDriverDetail()"
+  >
+  </div>
+
+  <div
+    id="driver-detail-panel"
+    class="fixed inset-y-0 right-0 w-full md:w-[480px] bg-surface shadow-[0_0_24px_rgba(0,0,0,0.1)] border-l border-outline-variant z-[70] flex flex-col transform transition-transform duration-300 translate-x-full"
+  >
+    <div
+      class="flex items-center justify-between px-lg py-md border-b border-outline-variant bg-surface-container-lowest"
+    >
+      <h2 class="font-headline-md text-headline-md font-bold text-on-surface">
+        Detail Tracking Armada
+      </h2>
+      <button
+        class="w-10 h-10 rounded-full hover:bg-surface-container-low flex items-center justify-center text-on-surface-variant transition-colors"
+        onclick="closeDriverDetail()"
+      >
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div
+      class="flex-1 overflow-y-auto bg-surface-container-lowest hide-scrollbar"
+    >
+      <div id="detail-content" class="p-lg flex flex-col">
+        <p class="text-on-surface-variant font-body-md">
+          Pilih salah satu armada aktif untuk melihat detail telemetri GPS.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" is:inline
+  ></script>
+
+  <script is:inline>
+    // 1. STATE MANAGEMENT (CSR)
+    let driverProfiles = {};
+    let driverLocations = new Map();
+    let markers = new Map();
+    let map;
+    let realtimeChannel = null;
+    let currentSelectedDriverId = null;
+
+    // 2. INITIALIZE LEAFLET MAP DIRECTLY ON DOM
+    // 2. INITIALIZE LEAFLET MAP DIRECTLY ON DOM
+    function initMap() {
+      map = L.map("map").setView([-6.5569, 107.4433], 12);
+
+      // MENGGUNAKAN CARTO VOYAGER (Jauh lebih cepat dari OSM biasa)
+      L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+        {
+          attribution: "© OpenStreetMap, © CARTO",
+          maxZoom: 19,
+          crossOrigin: true, // WAJIB: Mengizinkan browser melakukan caching offline
+          keepBuffer: 8, // Trik agar saat di-geser/expand, peta tidak kedip (menyimpan buffer memori)
+        },
+      ).addTo(map);
+
+      // Invalidate size untuk mencegah peta blank kelabu saat rendering awal
+      setTimeout(() => {
+        if (map) map.invalidateSize();
+      }, 400);
+    }
+
+    // Toggle Fullscreen untuk memperluas peta secara native di browser
+    window.toggleFullscreenMap = function () {
+      const mapWrapper = document.getElementById("map").parentElement;
+      if (!document.fullscreenElement) {
+        mapWrapper.requestFullscreen().catch((err) => {
+          alert(`Gagal expand peta: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    };
+
+    document.addEventListener("fullscreenchange", () => {
+      if (map) setTimeout(() => map.invalidateSize(), 200);
+    });
+
+    // 3. UTC STANDARD TIME GENERATOR
+    function getStartOfTodayInUTC() {
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      return now.toISOString();
+    }
+
+    // 4. DATA FETCHING (PROFILES + LIVE GPS)
+    async function fetchInitialData() {
+      const client = window.supabase;
+      if (!client) {
+        console.error("Supabase tidak ditemukan di scope window.");
+        return;
+      }
+
+      // A. Tarik Profil Karyawan/Driver
+      const { data: profilesData, error: profErr } = await client
+        .from("profiles")
+        .select("id, nama, nomor_hp, foto_profil, kendaraan, nama_kendaraan");
+
+      if (!profErr && profilesData) {
+        profilesData.forEach((p) => {
+          driverProfiles[p.id] = p;
+        });
+      }
+
+      // B. Tarik Posisi GPS Terakhir Hari Ini
+      const startOfTodayUTC = getStartOfTodayInUTC();
+      const { data: gpsData, error: gpsErr } = await client
+        .from("live_tracking")
+        .select("*")
+        .eq("is_active", true)
+        .gte("updated_at", startOfTodayUTC);
+
+      if (!gpsErr && gpsData) {
+        gpsData.forEach((row) => {
+          const userId = row.user_id?.toString();
+          const lat = parseFloat(row.latitude);
+          const lng = parseFloat(row.longitude);
+          const speed = row.speed || 0;
+          const heading = row.heading || 0;
+
+          if (!isNaN(lat) && !isNaN(lng)) {
+            driverLocations.set(userId, {
+              lat,
+              lng,
+              speed,
+              heading,
+              updated_at: row.updated_at,
+            });
+            updateMarker(userId, lat, lng);
+          }
+        });
+        updateDriversList();
+      }
+    }
+
+    // 5. REAL-TIME WEBSOCKET LISTENER WITH RECONNECT LOGIC
+    function startRealtimeTracking() {
+      const client = window.supabase;
+      if (!client) return;
+
+      if (realtimeChannel) {
+        client.removeChannel(realtimeChannel);
+      }
+
+      const startOfTodayUTC = getStartOfTodayInUTC();
+
+      realtimeChannel = client
+        .channel("public:live_tracking")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "live_tracking" },
+          (payload) => {
+            const data = payload.new;
+            if (!data || !data.user_id) return;
+
+            const userId = data.user_id.toString();
+            const isActive =
+              data.is_active === true || data.is_active === "true";
+
+            if (isActive && data.updated_at >= startOfTodayUTC) {
+              try {
+                const lat = parseFloat(data.latitude.toString());
+                const lng = parseFloat(data.longitude.toString());
+                const speed = data.speed || 0;
+                const heading = data.heading || 0;
+
+                if (!isNaN(lat) && !isNaN(lng)) {
+                  driverLocations.set(userId, {
+                    lat,
+                    lng,
+                    speed,
+                    heading,
+                    updated_at: data.updated_at,
+                  });
+                  updateMarker(userId, lat, lng);
+                  updateDriversList();
+
+                  if (currentSelectedDriverId === userId) {
+                    updateDetailPanelLive(userId, lat, lng, speed);
+                  }
+                }
+              } catch (e) {
+                console.error("Gagal memproses pergerakan live GPS:", e);
+              }
+            } else {
+              // Jika status driver berubah menjadi offline
+              driverLocations.delete(userId);
+              removeMarker(userId);
+              updateDriversList();
+
+              if (currentSelectedDriverId === userId) {
+                closeDriverDetail();
+              }
+            }
+          },
+        );
+
+      realtimeChannel.subscribe((status) => {
+        console.log("🛰️ GPS WebSocket Status:", status);
+        if (status === "CLOSED" || status === "CHANNEL_ERROR") {
+          setTimeout(() => {
+            startRealtimeTracking();
+            fetchInitialData();
+          }, 5000);
+        }
+      });
+    }
+
+    // 6. MAP MARKER CONTROLLER
+    function updateMarker(userId, lat, lng) {
+      const profile = driverProfiles[userId] || {};
+      const isMotor = profile?.kendaraan?.toLowerCase() !== "mobil";
+      const namaDriver = profile.nama || "Driver Unknown";
+      const armada = profile.kendaraan?.toUpperCase() || "N/A";
+
+      if (markers.has(userId)) {
+        markers.get(userId).setLatLng([lat, lng]);
+      } else {
+        const marker = L.marker([lat, lng], {
+          icon: createCustomIcon(isMotor),
+        })
+          .bindPopup(
+            `<b>${namaDriver}</b><br><span style="font-size:11px; color:#666;">${armada}</span>`,
+          )
+          .addTo(map);
+
+        marker.on("click", () => {
+          openDriverDetail(userId);
+        });
+
+        markers.set(userId, marker);
+      }
+    }
+
+    function removeMarker(userId) {
+      if (markers.has(userId)) {
+        map.removeLayer(markers.get(userId));
+        markers.delete(userId);
+      }
+    }
+
+    function createCustomIcon(isMotor) {
+      const html = `
+        <div style="
+          width: 38px;
+          height: 38px;
+          background: #ffffff;
+          border: 2px solid #0d631b;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+          font-size: 18px;
+        ">
+          ${isMotor ? "🏍️" : "🚚"}
+        </div>
+      `;
+      return L.divIcon({
+        html,
+        iconSize: [38, 38],
+        iconAnchor: [19, 19],
+      });
+    }
+
+    // 7. SIDEBAR & DETAIL PANEL GENERATOR
+    function updateDriversList() {
+      const listEl = document.getElementById("drivers-list");
+      const countEl = document.getElementById("driver-count");
+      if (!listEl || !countEl) return;
+
+      if (driverLocations.size === 0) {
+        listEl.innerHTML = `
+          <div class="text-center p-md text-on-surface-variant italic text-xs mt-4">
+            📍 Tidak ada armada aktif yang mengirimkan GPS saat ini.
+          </div>
+        `;
+        countEl.textContent = "0";
+        return;
+      }
+
+      countEl.textContent = driverLocations.size;
+
+      const html = Array.from(driverLocations.entries())
+        .map(([userId, locationData]) => {
+          const profile = driverProfiles[userId] || {};
+          const isMotor = profile.kendaraan?.toLowerCase() !== "mobil";
+          const nama = profile.nama || "Driver Tidak Dikenal";
+          const inisial = nama.substring(0, 2).toUpperCase();
+
+          return `
+            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col hover:shadow-md transition shadow-sm relative cursor-pointer" onclick="openDriverDetail('${userId}')">
+              <div class="absolute left-0 top-0 bottom-0 w-1 bg-green-600"></div>
+              <div class="p-3 flex items-center gap-3 hover:bg-surface-container-low transition">
+                ${
+                  profile.foto_profil
+                    ? `<img src="${profile.foto_profil}" class="w-10 h-10 rounded-full object-cover border border-outline-variant shrink-0" alt="${nama}" />`
+                    : `<div class="w-10 h-10 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-bold text-xs shrink-0">${inisial}</div>`
+                }
+                <div class="flex-1 min-w-0">
+                  <h3 class="text-xs text-on-surface truncate font-bold mb-0.5">${nama}</h3>
+                  <p class="text-[11px] text-on-surface-variant truncate capitalize flex items-center gap-1">
+                    ${isMotor ? "🏍️ Motor" : "🚚 Mobil"}
+                  </p>
+                </div>
+                <div class="bg-green-100 text-green-700 font-bold text-[10px] px-2 py-0.5 rounded-full shrink-0 uppercase tracking-wider">
+                  ${locationData.speed > 0 ? locationData.speed + " KM/J" : "LIVE"}
+                </div>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+
+      listEl.innerHTML = html;
+    }
+
+    window.openDriverDetail = function (userId) {
+      currentSelectedDriverId = userId;
+      const profile = driverProfiles[userId] || {};
+      const location = driverLocations.get(userId) || {};
+      const nama = profile.nama || "Driver Tidak Dikenal";
+      const inisial = nama.substring(0, 2).toUpperCase();
+
+      if (location.lat && location.lng) {
+        map.setView([location.lat, location.lng], 16, { animate: true });
+        if (markers.has(userId)) markers.get(userId).openPopup();
+      }
+
+      const detailContent = document.getElementById("detail-content");
+      if (!detailContent) return;
+
+      detailContent.innerHTML = `
+        <div class="flex flex-col items-center gap-sm border-b border-outline-variant pb-lg mb-lg">
+            ${
+              profile.foto_profil
+                ? `<img src="${profile.foto_profil}" class="w-16 h-16 rounded-full object-cover border border-outline-variant shrink-0" />`
+                : `<div class="w-16 h-16 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-headline-md shrink-0 text-xl">${inisial}</div>`
+            }
+            <h3 class="font-headline-sm text-on-surface font-bold text-center mt-2">${nama}</h3>
+            <span class="bg-green-100 text-green-800 border border-green-200 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider mt-1">
+              🟢 Live Streaming GPS
+            </span>
+        </div>
+
+        <div class="flex flex-col gap-md border-b border-outline-variant pb-lg mb-lg">
+            <h4 class="font-label-lg text-primary font-bold mb-2">Informasi Kendaraan</h4>
+            <div class="grid grid-cols-3 gap-y-2 font-body-md text-sm">
+                <div class="text-on-surface-variant">Tipe Armada</div>
+                <div class="col-span-2 text-on-surface font-medium">: ${profile.kendaraan?.toUpperCase() || "-"}</div>
+                
+                <div class="text-on-surface-variant">Nama Unit</div>
+                <div class="col-span-2 text-on-surface font-medium">: ${profile.nama_kendaraan || "-"}</div>
+
+                <div class="text-on-surface-variant">Kontak HP</div>
+                <div class="col-span-2 text-on-surface font-medium">: ${profile.nomor_hp || "-"}</div>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-md">
+            <h4 class="font-label-lg text-primary font-bold mb-2">Koordinat Telemetri GPS</h4>
+            <div class="bg-surface-container rounded-xl p-4 border border-outline-variant space-y-2">
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-on-surface-variant font-medium">Latitude:</span>
+                <span id="live-lat" class="font-mono font-bold text-green-700">${location.lat?.toFixed(6) || "-"}</span>
+              </div>
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-on-surface-variant font-medium">Longitude:</span>
+                <span id="live-lng" class="font-mono font-bold text-green-700">${location.lng?.toFixed(6) || "-"}</span>
+              </div>
+              <div class="flex justify-between items-center text-xs border-t border-outline-variant pt-2 mt-2">
+                <span class="text-on-surface-variant font-bold">Kecepatan:</span>
+                <span id="live-speed" class="font-mono font-bold text-blue-700 text-sm">${location.speed || "0"} km/h</span>
+              </div>
+            </div>
+        </div>
+      `;
+
+      const panel = document.getElementById("driver-detail-panel");
+      const backdrop = document.getElementById("driver-detail-backdrop");
+
+      backdrop.classList.remove("hidden");
+      setTimeout(() => backdrop.classList.remove("opacity-0"), 10);
+      panel.classList.remove("translate-x-full");
+      panel.classList.add("translate-x-0");
+    };
+
+    function updateDetailPanelLive(userId, lat, lng, speed) {
+      const latEl = document.getElementById("live-lat");
+      const lngEl = document.getElementById("live-lng");
+      const speedEl = document.getElementById("live-speed");
+
+      if (latEl && lngEl) {
+        latEl.innerText = lat.toFixed(6);
+        lngEl.innerText = lng.toFixed(6);
+      }
+      if (speedEl) {
+        speedEl.innerText = speed + " km/h";
+      }
+    }
+
+    window.closeDriverDetail = function () {
+      currentSelectedDriverId = null;
+      const panel = document.getElementById("driver-detail-panel");
+      const backdrop = document.getElementById("driver-detail-backdrop");
+
+      panel.classList.remove("translate-x-0");
+      panel.classList.add("translate-x-full");
+
+      backdrop.classList.add("opacity-0");
+      setTimeout(() => backdrop.classList.add("hidden"), 300);
+    };
+
+    // 8. INITIAL LIFECYCLE
+    document.addEventListener("DOMContentLoaded", () => {
+      initMap();
+      fetchInitialData();
+      startRealtimeTracking();
+    });
+  </script>
+</Layout>

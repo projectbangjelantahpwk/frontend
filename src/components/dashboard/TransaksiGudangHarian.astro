@@ -34,7 +34,7 @@ const defaultMonth = `${yyyy}-${mm}`;
       >
         <span
           class="text-label-xs text-primary/80 uppercase tracking-wider block mb-0 sm:mb-1 font-bold"
-          >Total Penjualan</span
+          >Total Pembelian</span
         >
         <span id="total-rp-gudang" class="text-title-md font-black text-primary"
           >Rp 0</span
@@ -67,15 +67,17 @@ const defaultMonth = `${yyyy}-${mm}`;
             <th class="p-3 text-right font-semibold">Volume (Kg)</th>
             <th
               class="p-3 text-right font-semibold hidden md:table-cell"
-              title="Harga Jual per Kg">Harga Jual</th
+              title="Harga Beli per Kg">Harga Satuan Beli</th
+            >
+            <th class="p-3 text-right font-semibold text-primary"
+              >Total Pembelian (Rp)</th
             >
             <th
               class="p-3 text-right font-semibold hidden md:table-cell text-orange-600"
-              title="Harga Modal per Kg">Bruto</th
+              title="Harga Jual per Kg">Harga Satuan Jual</th
             >
+            <th class="p-3 text-right font-semibold text-blue-600">Bruto</th>
             <th class="p-3 text-right font-semibold text-green-600">Margin</th>
-            <th class="p-3 text-right font-semibold text-primary">Total (Rp)</th
-            >
           </tr>
         </thead>
         <tbody id="tbody-gudang" class="text-sm bg-white"> </tbody>
@@ -170,6 +172,7 @@ const defaultMonth = `${yyyy}-${mm}`;
         <input
           type="date"
           id="modal_tanggal_bruto"
+          onchange="window.fetchBrutoByDate(this.value)"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-600 font-medium text-gray-800"
         />
       </div>
@@ -392,6 +395,7 @@ const defaultMonth = `${yyyy}-${mm}`;
         rp: 0,
         vol: 0,
         bruto: 0,
+        bruto_hasil: 0,
         margin: 0,
       }));
 
@@ -403,11 +407,6 @@ const defaultMonth = `${yyyy}-${mm}`;
 
         // 🔥 TRIGGER FRONTEND: Deteksi jika margin null, langsung kalkulasi otomatis!
         let margin = item[kolomAktif.margin];
-        if (margin === null || margin === undefined) {
-          margin = rp - bruto * vol;
-        } else {
-          margin = Number(margin) || 0;
-        }
 
         const dayIdx = parseInt(item.tanggal.split("-")[2]) - 1;
 
@@ -415,6 +414,7 @@ const defaultMonth = `${yyyy}-${mm}`;
           rekapHarian[dayIdx].rp += rp;
           rekapHarian[dayIdx].vol += vol;
           rekapHarian[dayIdx].bruto += bruto;
+          rekapHarian[dayIdx].bruto_hasil += bruto * vol;
           rekapHarian[dayIdx].margin += margin;
 
           grandTotalRp += rp;
@@ -433,26 +433,33 @@ const defaultMonth = `${yyyy}-${mm}`;
         const textClass =
           dataHariIni.vol > 0 ? "text-gray-900 font-bold" : "text-gray-400";
 
-        tbody.innerHTML += `
-            <tr class="border-b border-gray-100 transition-colors hover:bg-surface-variant/20 ${bgClass}">
-                <td class="p-3 whitespace-nowrap">
-                    <span class="inline-block w-6 text-center bg-gray-100 rounded text-xs font-bold mr-2">${tglNum}</span>
-                </td>
-                <td class="p-3 text-right font-medium ${textClass}">${formatVol(dataHariIni.vol)} <span class="text-[10px]">Kg</span></td>
-                
-                <td class="p-3 text-right text-xs text-gray-500 hidden md:table-cell">${formatRp(hrgSatuan)}</td>
-                
-                <td class="p-3 text-right text-xs text-orange-600 hidden md:table-cell font-medium">${formatRp(dataHariIni.bruto)}</td>
-                
-                <td class="p-3 text-right font-bold ${dataHariIni.margin > 0 ? "text-green-600" : dataHariIni.margin < 0 ? "text-red-600" : "text-gray-400"}">
-                    ${formatRp(dataHariIni.margin)}
-                </td>
+        // ✅ Hitung Bruto Baru: Harga Satuan Jual * Volume
+        const brutoBaru = dataHariIni.bruto * dataHariIni.vol;
 
-                <td class="p-3 text-right font-bold ${dataHariIni.rp > 0 ? "text-primary" : "text-gray-400"}">
-                    ${formatRp(dataHariIni.rp)}
-                </td>
-            </tr>
-        `;
+        tbody.innerHTML += `
+    <tr class="border-b border-gray-100 transition-colors hover:bg-surface-variant/20 ${bgClass}">
+        <td class="p-3 whitespace-nowrap">
+            <span class="inline-block w-6 text-center bg-gray-100 rounded text-xs font-bold mr-2">${tglNum}</span>
+        </td>
+        <td class="p-3 text-right font-medium ${textClass}">${formatVol(dataHariIni.vol)} <span class="text-[10px]">Kg</span></td>
+        
+        <td class="p-3 text-right text-xs text-gray-500 hidden md:table-cell">${formatRp(hrgSatuan)}</td>
+        
+        <td class="p-3 text-right font-bold ${dataHariIni.rp > 0 ? "text-primary" : "text-gray-400"}">
+            ${formatRp(dataHariIni.rp)}
+        </td>
+        
+        <td class="p-3 text-right text-xs text-orange-600 hidden md:table-cell font-medium">${formatRp(dataHariIni.bruto)}</td>
+        
+        <td class="p-3 text-right font-bold text-blue-600">
+            ${formatRp(brutoBaru)}
+        </td>
+
+        <td class="p-3 text-right font-bold ${dataHariIni.margin > 0 ? "text-green-600" : dataHariIni.margin < 0 ? "text-red-600" : "text-gray-400"}">
+            ${formatRp(dataHariIni.margin)}
+        </td>
+    </tr>
+`;
       }
 
       elTotalRp.textContent = formatRp(grandTotalRp);
@@ -528,7 +535,6 @@ const defaultMonth = `${yyyy}-${mm}`;
   };
 
   // Fungsi Eksekusi Simpan Bruto dan Kalkulasi Margin via Frontend
-  // Fungsi Eksekusi Simpan Bruto dan Kalkulasi Margin via Frontend
   window.simpanBrutoViaModal = async function () {
     if (!window.supabase) return alert("Supabase tidak terhubung!");
 
@@ -542,7 +548,7 @@ const defaultMonth = `${yyyy}-${mm}`;
     btn.disabled = true;
 
     try {
-      // 1. Helper aman untuk menarik nilai Bruto (Jika kosong / null otomatis 0)
+      // 1. Helper aman untuk menarik nilai Bruto (Jika kosong otomatis 0)
       const getBrutoAman = (id) => {
         const val = document.getElementById(id)?.value;
         return val ? parseFloat(val) : 0;
@@ -555,88 +561,71 @@ const defaultMonth = `${yyyy}-${mm}`;
       const brTepung = getBrutoAman("m_bruto_tepung");
       const brSpinner = getBrutoAman("m_bruto_spinner");
 
-      // 2. Tarik data harian untuk kalkulasi ulang margin
-      const { data: dataGudang, error: errFetch } = await window.supabase
-        .from("transaksi_gudang_harian")
-        .select("*")
-        .eq("tanggal", tglPilih)
-        .single();
-
-      if (errFetch || !dataGudang)
-        throw new Error("Data transaksi hari tersebut belum ada di database.");
-
-      // 3. Helper aman untuk Kalkulasi Margin (Toleransi jika database merespon Null)
-      const hitungMarginAman = (rp, vol, bruto) => {
-        const safeRp = Number(rp) || 0;
-        const safeVol = Number(vol) || 0;
-        return safeRp - bruto * safeVol;
-      };
-
-      const mgMinyak = hitungMarginAman(
-        dataGudang.minyak_jelantah_rp,
-        dataGudang.minyak_jelantah_vol,
-        brMinyak,
-      );
-      const mgAsting = hitungMarginAman(
-        dataGudang.minyak_asting_rp,
-        dataGudang.minyak_asting_vol,
-        brAsting,
-      );
-      const mgAmpas = hitungMarginAman(
-        dataGudang.ampas_rp,
-        dataGudang.ampas_vol,
-        brAmpas,
-      );
-      const mgKriuk = hitungMarginAman(
-        dataGudang.kriuk_rp,
-        dataGudang.kriuk_vol,
-        brKriuk,
-      );
-      const mgTepung = hitungMarginAman(
-        dataGudang.tepung_rp,
-        dataGudang.tepung_vol,
-        brTepung,
-      );
-      const mgSpinner = hitungMarginAman(
-        dataGudang.spinner_rp,
-        dataGudang.spinner_vol,
-        brSpinner,
-      );
-
-      // 4. Update ke Database Supabase
+      // 2. Update HANYA kolom Bruto ke Database Supabase
       const { error: errUpdate } = await window.supabase
         .from("transaksi_gudang_harian")
         .update({
           bruto_minyak_jelantah: brMinyak,
-          margin_minyak_jelantah: mgMinyak,
-
           bruto_minyak_asting: brAsting,
-          margin_minyak_asting: mgAsting,
-
           bruto_ampas: brAmpas,
-          margin_ampas: mgAmpas,
-
           bruto_kriuk: brKriuk,
-          margin_kriuk: mgKriuk,
-
           bruto_tepung: brTepung,
-          margin_tepung: mgTepung,
-
           bruto_spinner: brSpinner,
-          margin_spinner: mgSpinner,
         })
         .eq("tanggal", tglPilih);
 
       if (errUpdate) throw errUpdate;
 
-      alert("✅ Sukses menghitung margin dan menyimpan harga modal (bruto)!");
+      alert(
+        "✅ Sukses menyimpan harga modal (bruto)! Margin otomatis terupdate.",
+      );
       window.tutupModalBruto();
       window.location.reload();
-    } catch (error) {
-      alert("Gagal: " + error.message);
+    } catch (err) {
+      alert("❌ Gagal menyimpan bruto: " + err.message);
     } finally {
-      btn.innerHTML = '<i class="bi bi-floppy"></i> Simpan & Hitung';
+      btn.innerHTML = "💾 Simpan Harga Modal (Bruto)";
       btn.disabled = false;
+    }
+  };
+  // Fungsi untuk narik data Bruto pas tanggal dipilih
+  window.fetchBrutoByDate = async function (tanggal) {
+    if (!tanggal || !window.supabase) return;
+
+    try {
+      const { data, error } = await window.supabase
+        .from("transaksi_gudang_harian")
+        .select(
+          "bruto_minyak_jelantah, bruto_minyak_asting, bruto_ampas, bruto_kriuk, bruto_tepung, bruto_spinner",
+        )
+        .eq("tanggal", tanggal)
+        .single();
+
+      // Helper buat ngisi inputan
+      const setInput = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val || "";
+      };
+
+      if (data && !error) {
+        // Kalau data ada, isi formnya
+        setInput("m_bruto_minyak", data.bruto_minyak_jelantah);
+        setInput("m_bruto_asting", data.bruto_minyak_asting);
+        setInput("m_bruto_ampas", data.bruto_ampas);
+        setInput("m_bruto_kriuk", data.bruto_kriuk);
+        setInput("m_bruto_tepung", data.bruto_tepung);
+        setInput("m_bruto_spinner", data.bruto_spinner);
+      } else {
+        // Kalau kosong/belum ada data, reset formnya
+        setInput("m_bruto_minyak", "");
+        setInput("m_bruto_asting", "");
+        setInput("m_bruto_ampas", "");
+        setInput("m_bruto_kriuk", "");
+        setInput("m_bruto_tepung", "");
+        setInput("m_bruto_spinner", "");
+      }
+    } catch (err) {
+      console.error("Gagal menarik data harga bruto:", err.message);
     }
   };
 </script>

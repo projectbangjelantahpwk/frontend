@@ -357,12 +357,38 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
           <div class="col-span-2 sm:col-span-1">
             <label class="block text-xs font-bold text-gray-700 mb-1"
+              >Uang Makan Malam (Rp)</label
+            >
+            <input
+              type="number"
+              id="setup_uang_makan_malam"
+              onchange="window.kalkulasiRealtimeGaji()"
+              class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-green-600"
+              placeholder="0"
+            />
+          </div>
+
+          <div class="col-span-2 sm:col-span-1">
+            <label class="block text-xs font-bold text-gray-700 mb-1"
               >Bonus Tepat Waktu /Hari (Rp)</label
             >
             <input
               type="number"
               id="setup_bonus_tepat"
               class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-green-600"
+            />
+          </div>
+
+          <div class="col-span-2 sm:col-span-1">
+            <label class="block text-xs font-bold text-gray-700 mb-1"
+              >Bonus Penjemputan (Rp)</label
+            >
+            <input
+              type="number"
+              id="setup_bonus_penjemputan"
+              onchange="window.kalkulasiRealtimeGaji()"
+              class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-green-600"
+              placeholder="0"
             />
           </div>
 
@@ -448,39 +474,16 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             <label class="flex items-center justify-between cursor-pointer">
               <div class="pr-4">
                 <span
-                  class="text-xs font-black text-purple-900 uppercase tracking-wide block"
-                  ><i class="bi bi-lightning-charge-fill mr-1"></i> Mode Gaji Flat
-                  / Jam Fleksibel</span
-                >
-                <span
-                  class="text-[10px] text-purple-700 block font-semibold mt-0.5 leading-relaxed"
-                  >Aktifkan untuk karyawan khusus. Jam kerja berantakan/lintas
-                  hari tetap dihitung hadir normal & lembur otomatis dimatikan
-                  (0 Jam).</span
-                >
-              </div>
-              <input
-                type="checkbox"
-                id="chk_bypass_jam_kerja"
-                onchange="window.kalkulasiRealtimeGaji()"
-                class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500 cursor-pointer shrink-0"
-              />
-            </label>
-          </div>
-          <div
-            class="col-span-2 bg-orange-50 p-3.5 rounded-xl border border-orange-200 mt-2"
-          >
-            <label class="flex items-center justify-between cursor-pointer">
-              <div class="pr-4">
-                <span
                   class="text-xs font-black text-orange-900 uppercase tracking-wide block"
-                  ><i class="bi bi-inbox-fill mr-1"></i> Mode Gaji Per Jerigen</span
                 >
+                  <i class="bi bi-inbox-fill mr-1"></i> Mode Gaji Per Jerigen
+                </span>
                 <span
                   class="text-[10px] text-orange-700 block font-semibold mt-0.5 leading-relaxed"
-                  >Gaji otomatis dihitung dari jumlah jerigen di gudang minggu
-                  ini. Gaji pokok harian dimatikan.</span
                 >
+                  Gaji otomatis dihitung dari jumlah jerigen di gudang minggu
+                  ini. Gaji pokok harian dimatikan.
+                </span>
               </div>
               <input
                 type="checkbox"
@@ -495,11 +498,12 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               class="hidden mt-3 pt-3 border-t border-orange-200"
             >
               <div class="grid grid-cols-2 gap-3">
-                <div>
+                <div class="col-span-2 sm:col-span-1">
                   <label
                     class="block text-[10px] font-bold text-orange-800 mb-1"
-                    >Tarif per Jerigen (Rp)</label
                   >
+                    Tarif per Jerigen (Rp)
+                  </label>
                   <input
                     type="number"
                     id="setup_tarif_jerigen"
@@ -508,46 +512,17 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                     placeholder="Misal: 5000"
                   />
                 </div>
-                <div>
-                  <label
-                    class="block text-[10px] font-bold text-orange-800 mb-1"
-                    >Bonus Jerigen Pribadi (Rp)</label
-                  >
-                  <input
-                    type="number"
-                    id="setup_bonus_jerigen"
-                    onchange="window.kalkulasiRealtimeGaji()"
-                    class="w-full border border-orange-300 rounded-lg p-2 text-sm font-bold text-orange-900 outline-none focus:border-orange-600 shadow-inner"
-                    placeholder="Misal: 50000"
-                  />
-                </div>
-              </div>
 
-              <div class="grid grid-cols-2 gap-3 mt-3">
-                <div>
-                  <label
-                    class="block text-[10px] font-bold text-orange-800 mb-1"
+                <div class="col-span-2 sm:col-span-1">
+                  <label class="block text-xs font-bold text-orange-700 mb-1"
                     >Input Jerigen Manual (Pcs)</label
                   >
                   <input
                     type="number"
                     id="input_jerigen_manual"
-                    onchange="window.kalkulasiRealtimeGaji()"
-                    class="w-full border border-orange-300 rounded-lg p-2 text-sm font-bold text-orange-900 outline-none focus:border-orange-600 shadow-inner"
-                    placeholder="Otomatis dr DB..."
-                  />
-                </div>
-                <div>
-                  <label
-                    class="block text-[10px] font-bold text-orange-800 mb-1"
-                    >Volume Manual (Kg)</label
-                  >
-                  <input
-                    type="number"
-                    id="input_volume_manual"
-                    onchange="window.kalkulasiRealtimeGaji()"
-                    class="w-full border border-orange-300 rounded-lg p-2 text-sm font-bold text-orange-900 outline-none focus:border-orange-600 shadow-inner"
-                    placeholder="Otomatis dr DB..."
+                    oninput="window.kalkulasiRealtimeGaji()"
+                    class="w-full border border-orange-300 bg-orange-50 rounded-lg p-2 text-sm outline-none focus:border-orange-600"
+                    placeholder="Opsional..."
                   />
                 </div>
               </div>
@@ -556,11 +531,11 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                 class="mt-3 text-xs font-bold bg-orange-100 text-orange-900 p-2.5 rounded-lg flex justify-between items-center border border-orange-200"
               >
                 <span
-                  ><i class="bi bi-box-seam mr-1"></i> Jerigen & Minyak Periode Ini:</span
+                  ><i class="bi bi-box-seam mr-1"></i> Total Jerigen Periode Ini:</span
                 >
                 <span
                   id="info_total_jerigen_minggu"
-                  class="text-lg font-black font-mono">0 Pcs / 0 Kg</span
+                  class="text-lg font-black font-mono">0 Pcs</span
                 >
               </div>
             </div>
@@ -806,332 +781,419 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       <input type="hidden" id="er_status" />
       <input type="hidden" id="er_total_lama" />
 
-      <div>
-        <label class="block text-xs font-bold text-gray-700 mb-1"
-          >Gaji Pokok Bulanan (Rp)</label
-        >
-        <input
-          type="number"
-          id="er_gaji"
-          oninput="window.hitungTotalEditRiwayat()"
-          class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
-        />
-      </div>
       <div class="grid grid-cols-2 gap-3">
-        <div>
+        <div class="col-span-2">
           <label class="block text-xs font-bold text-gray-700 mb-1"
-            >Uang Lembur per Menit (Rp)</label
+            ><div class="col-span-2">
+              <label class="block text-xs font-bold text-gray-700 mb-1"
+                >Gaji Pokok / Total Gaji Jerigen (Rp)</label
+              >
+              <input
+                type="number"
+                id="er_gaji"
+                oninput="window.hitungTotalEditRiwayat()"
+                class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+              />
+            </div>
+
+            <div class="col-span-2 sm:col-span-1">
+              <label class="block text-xs font-bold text-orange-700 mb-1"
+                >Tarif per Jerigen (Rp)</label
+              >
+              <input
+                type="number"
+                id="er_tarif_jerigen"
+                oninput="window.kalkulasiGajiJerigenEdit()"
+                class="w-full border border-orange-300 bg-orange-50 rounded-lg p-2 text-sm font-bold outline-none focus:border-orange-600 shadow-inner"
+                placeholder="0"
+              />
+            </div>
+
+            <div class="col-span-2 sm:col-span-1">
+              <label class="block text-xs font-bold text-orange-700 mb-1"
+                >Input Jerigen Manual (Pcs)</label
+              >
+              <input
+                type="number"
+                id="er_jumlah_jerigen"
+                oninput="window.kalkulasiGajiJerigenEdit()"
+                class="w-full border border-orange-300 bg-orange-50 rounded-lg p-2 text-sm outline-none focus:border-orange-600"
+                placeholder="0"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1"
+                >Uang Lembur (Rp)</label
+              >
+              <input
+                type="number"
+                id="er_lembur"
+                oninput="window.hitungTotalEditRiwayat()"
+                class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1"
+                >Uang Makan (Rp)</label
+              >
+              <input
+                type="number"
+                id="er_makan"
+                oninput="window.hitungTotalEditRiwayat()"
+                class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1"
+                >Makan Malam (Rp)</label
+              >
+              <input
+                type="number"
+                id="er_makan_malam"
+                oninput="window.hitungTotalEditRiwayat()"
+                class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1"
+                >Bonus Penjemputan (Rp)</label
+              >
+              <input
+                type="number"
+                id="er_bonus_penjemputan"
+                oninput="window.hitungTotalEditRiwayat()"
+                class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-green-700 mb-1"
+                >Bonus Tepat Waktu (Rp)</label
+              >
+              <input
+                type="number"
+                id="er_bonus_tepat_waktu"
+                oninput="window.hitungTotalEditRiwayat()"
+                class="w-full border border-green-300 bg-green-50 rounded-lg p-2 text-sm outline-none focus:border-green-600"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-green-700 mb-1"
+                >Bonus Mingguan (Rp)</label
+              >
+              <input
+                type="number"
+                id="er_bonus_mingguan"
+                oninput="window.hitungTotalEditRiwayat()"
+                class="w-full border border-green-300 bg-green-50 rounded-lg p-2 text-sm outline-none focus:border-green-600"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-green-700 mb-1"
+                >Uang Kesehatan (Rp)</label
+              >
+              <input
+                type="number"
+                id="er_uang_kesehatan"
+                oninput="window.hitungTotalEditRiwayat()"
+                class="w-full border border-green-300 bg-green-50 rounded-lg p-2 text-sm outline-none focus:border-green-600"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-red-700 mb-1"
+                >Potongan Kasbon (Rp)</label
+              >
+              <input
+                type="number"
+                id="er_kasbon"
+                oninput="window.hitungTotalEditRiwayat()"
+                class="w-full border border-red-300 bg-red-50 rounded-lg p-2 text-sm outline-none focus:border-red-600"
+              />
+            </div>
+          </label>
+
+          <div
+            class="mt-4 bg-gray-100 p-3 rounded-xl border border-gray-200 text-center shadow-inner"
           >
-          <input
-            type="number"
-            id="er_lembur"
-            oninput="window.hitungTotalEditRiwayat()"
-            class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
-          />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1"
-            >Uang Makan per Hari (Rp)</label
+            <p class="text-xs text-gray-500 font-bold uppercase mb-1">
+              Total Final Diubah Menjadi
+            </p>
+            <p
+              class="text-2xl font-black text-gray-900 font-mono"
+              id="er_total_baru"
+            >
+              Rp 0
+            </p>
+            <p class="text-[9px] text-orange-600 font-bold mt-1 italic">
+              *Jika status sudah LUNAS, selisih nominal otomatis
+              ditarik/dikembalikan ke Kas Keuangan.
+            </p>
+          </div>
+
+          <button
+            id="btn-save-er"
+            onclick="window.simpanEditRiwayat()"
+            class="w-full mt-2 bg-blue-700 text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition shadow-sm font-mono text-sm uppercase tracking-wide"
           >
-          <input
-            type="number"
-            id="er_makan"
-            oninput="window.hitungTotalEditRiwayat()"
-            class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
-          />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-green-700 mb-1"
-            >Total Bonus (Rp)</label
-          >
-          <input
-            type="number"
-            id="er_bonus"
-            oninput="window.hitungTotalEditRiwayat()"
-            class="w-full border border-green-300 bg-green-50 rounded-lg p-2 text-sm outline-none focus:border-green-600"
-          />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-red-700 mb-1"
-            >Potongan Kasbon (Rp)</label
-          >
-          <input
-            type="number"
-            id="er_kasbon"
-            oninput="window.hitungTotalEditRiwayat()"
-            class="w-full border border-red-300 bg-red-50 rounded-lg p-2 text-sm outline-none focus:border-red-600"
-          />
+            <i class="bi bi-floppy mr-2"></i> Simpan Koreksi Slip
+          </button>
         </div>
       </div>
-
+    </div>
+    <div class="hidden">
       <div
-        class="mt-4 bg-gray-100 p-3 rounded-xl border border-gray-200 text-center shadow-inner"
+        id="template-slip-gambar"
+        style="width: 380px; background-color: #ffffff; padding: 24px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; box-sizing: border-box; line-height: 1.5; border: 1px solid #eee;"
       >
-        <p class="text-xs text-gray-500 font-bold uppercase mb-1">
-          Total Final Diubah Menjadi
-        </p>
-        <p
-          class="text-2xl font-black text-gray-900 font-mono"
-          id="er_total_baru"
+        <div
+          style="text-align: center; border-bottom: 2px dashed #ccc; padding-bottom: 12px; margin-bottom: 16px;"
         >
-          Rp 0
-        </p>
-        <p class="text-[9px] text-orange-600 font-bold mt-1 italic">
-          *Jika status sudah LUNAS, selisih nominal otomatis
-          ditarik/dikembalikan ke Kas Keuangan.
-        </p>
+          <!-- LOGO GAMBAR -->
+          <img
+            id="slip-logo"
+            src="3.png"
+            style="width: 40px; height: 40px; object-fit: cover; margin: 0 auto; display: block;"
+            alt="Logo Bang Jelantah"
+          />
+
+          <h2
+            style="margin: 0; color: #166534; font-size: 20px; font-weight: 800;"
+          >
+            BANG JELANTAH PURWAKARTA
+          </h2>
+          <p
+            style="margin: 4px 0; font-size: 11px; color: #666; font-weight: bold;"
+          >
+            SLIP GAJI KARYAWAN
+          </p>
+        </div>
+
+        <table style="width: 100%; font-size: 12px; margin-bottom: 16px;">
+          <tr
+            ><td style="color: #666; width: 35%;">Nama</td><td
+              style="font-weight: bold;"
+              id="slip-nama">: -</td
+            ></tr
+          >
+          <tr
+            ><td style="color: #666;">Periode</td><td
+              style="font-weight: bold;"
+              id="slip-periode">: -</td
+            ></tr
+          >
+          <tr
+            ><td style="color: #666;">Dari - Sampai</td><td
+              style="font-weight: bold; color: #0066cc;"
+              id="slip-tanggal-range">: -</td
+            ></tr
+          >
+          <tr
+            ><td style="color: #666;">Status</td><td
+              style="font-weight: bold; color: #166534;"
+              id="slip-status">: -</td
+            ></tr
+          >
+        </table>
+
+        <div
+          style="font-size: 11px; font-weight: bold; background: #f3f4f6; padding: 6px; margin-bottom: 8px;"
+        >
+          PENERIMAAN
+        </div>
+        <table style="width: 100%; font-size: 12px; margin-bottom: 12px;">
+          <tr
+            ><td>Gaji Pokok</td><td style="text-align: right;" id="slip-gaji"
+              >Rp 0</td
+            ></tr
+          >
+          <tr
+            ><td>Uang Lembur</td><td style="text-align: right;" id="slip-lembur"
+              >Rp 0</td
+            ></tr
+          >
+          <tr
+            ><td>Uang Makan</td><td style="text-align: right;" id="slip-makan"
+              >Rp 0</td
+            ></tr
+          >
+          <tr
+            ><td>Total Bonus</td><td style="text-align: right;" id="slip-bonus"
+              >Rp 0</td
+            ></tr
+          >
+        </table>
+
+        <div
+          style="font-size: 11px; font-weight: bold; background: #fee2e2; color: #991b1b; padding: 6px; margin-bottom: 8px;"
+        >
+          POTONGAN
+        </div>
+        <table style="width: 100%; font-size: 12px; margin-bottom: 16px;">
+          <tr
+            ><td style="color: #dc2626;">Kasbon</td><td
+              style="text-align: right; color: #dc2626;"
+              id="slip-kasbon">Rp 0</td
+            ></tr
+          >
+        </table>
+
+        <div
+          style="border-top: 2px dashed #ccc; padding-top: 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 16px;"
+        >
+          <span>TOTAL TERIMA</span>
+          <span style="color: #166534;" id="slip-total">Rp 0</span>
+        </div>
+
+        <div
+          style="text-align: center; margin-top: 24px; font-size: 10px; color: #999; font-style: italic;"
+        >
+          Dokumen ini digenerate secara otomatis oleh Sistem Keuangan Bang
+          Jelantah.
+        </div>
       </div>
-
-      <button
-        id="btn-save-er"
-        onclick="window.simpanEditRiwayat()"
-        class="w-full mt-2 bg-blue-700 text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition shadow-sm font-mono text-sm uppercase tracking-wide"
-      >
-        <i class="bi bi-floppy mr-2"></i> Simpan Koreksi Slip
-      </button>
     </div>
-  </div>
-</div>
-<div class="hidden">
-  <div
-    id="template-slip-gambar"
-    style="width: 380px; background-color: #ffffff; padding: 24px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; box-sizing: border-box; line-height: 1.5; border: 1px solid #eee;"
-  >
-    <div
-      style="text-align: center; border-bottom: 2px dashed #ccc; padding-bottom: 12px; margin-bottom: 16px;"
-    >
-      <!-- LOGO GAMBAR -->
-      <img
-        id="slip-logo"
-        src="3.png"
-        style="width: 40px; height: 40px; object-fit: cover; margin: 0 auto; display: block;"
-        alt="Logo Bang Jelantah"
-      />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+      is:inline></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
+      is:inline></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+      is:inline></script>
+    <script is:inline>
+      let dataGlobalGaji = null;
+      let dataKaryawan = [];
+      let currentUserId = null;
 
-      <h2 style="margin: 0; color: #166534; font-size: 20px; font-weight: 800;">
-        BANG JELANTAH PURWAKARTA
-      </h2>
-      <p
-        style="margin: 4px 0; font-size: 11px; color: #666; font-weight: bold;"
-      >
-        SLIP GAJI KARYAWAN
-      </p>
-    </div>
+      document.addEventListener("DOMContentLoaded", async () => {
+        // === 🛡️ GATEKEEPER KEUANGAN ===
+        const allowedRoles = ["owner", "hrd", "keuangan", "it"];
+        const client = window.supabase || supabase;
 
-    <table style="width: 100%; font-size: 12px; margin-bottom: 16px;">
-      <tr
-        ><td style="color: #666; width: 35%;">Nama</td><td
-          style="font-weight: bold;"
-          id="slip-nama">: -</td
-        ></tr
-      >
-      <tr
-        ><td style="color: #666;">Periode</td><td
-          style="font-weight: bold;"
-          id="slip-periode">: -</td
-        ></tr
-      >
-      <tr
-        ><td style="color: #666;">Dari - Sampai</td><td
-          style="font-weight: bold; color: #0066cc;"
-          id="slip-tanggal-range">: -</td
-        ></tr
-      >
-      <tr
-        ><td style="color: #666;">Status</td><td
-          style="font-weight: bold; color: #166534;"
-          id="slip-status">: -</td
-        ></tr
-      >
-    </table>
+        const {
+          data: { session },
+        } = await client.auth.getSession();
+        if (!session) return window.location.replace("/");
+        currentUserId = session.user.id;
 
-    <div
-      style="font-size: 11px; font-weight: bold; background: #f3f4f6; padding: 6px; margin-bottom: 8px;"
-    >
-      PENERIMAAN
-    </div>
-    <table style="width: 100%; font-size: 12px; margin-bottom: 12px;">
-      <tr
-        ><td>Gaji Pokok</td><td style="text-align: right;" id="slip-gaji"
-          >Rp 0</td
-        ></tr
-      >
-      <tr
-        ><td>Uang Lembur</td><td style="text-align: right;" id="slip-lembur"
-          >Rp 0</td
-        ></tr
-      >
-      <tr
-        ><td>Uang Makan</td><td style="text-align: right;" id="slip-makan"
-          >Rp 0</td
-        ></tr
-      >
-      <tr
-        ><td>Total Bonus</td><td style="text-align: right;" id="slip-bonus"
-          >Rp 0</td
-        ></tr
-      >
-    </table>
-
-    <div
-      style="font-size: 11px; font-weight: bold; background: #fee2e2; color: #991b1b; padding: 6px; margin-bottom: 8px;"
-    >
-      POTONGAN
-    </div>
-    <table style="width: 100%; font-size: 12px; margin-bottom: 16px;">
-      <tr
-        ><td style="color: #dc2626;">Kasbon</td><td
-          style="text-align: right; color: #dc2626;"
-          id="slip-kasbon">Rp 0</td
-        ></tr
-      >
-    </table>
-
-    <div
-      style="border-top: 2px dashed #ccc; padding-top: 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 16px;"
-    >
-      <span>TOTAL TERIMA</span>
-      <span style="color: #166534;" id="slip-total">Rp 0</span>
-    </div>
-
-    <div
-      style="text-align: center; margin-top: 24px; font-size: 10px; color: #999; font-style: italic;"
-    >
-      Dokumen ini digenerate secara otomatis oleh Sistem Keuangan Bang Jelantah.
-    </div>
-  </div>
-</div>
-<script
-  src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
-  is:inline></script>
-<script
-  src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
-  is:inline></script>
-<script
-  src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
-  is:inline></script>
-<script is:inline>
-  let dataGlobalGaji = null;
-  let dataKaryawan = [];
-  let currentUserId = null;
-
-  document.addEventListener("DOMContentLoaded", async () => {
-    // === 🛡️ GATEKEEPER KEUANGAN ===
-    const allowedRoles = ["owner", "hrd", "keuangan", "it"];
-    const client = window.supabase || supabase;
-
-    const {
-      data: { session },
-    } = await client.auth.getSession();
-    if (!session) return window.location.replace("/");
-    currentUserId = session.user.id;
-
-    const { data: prof } = await client
-      .from("profiles")
-      .select("role")
-      .eq("id", session.user.id)
-      .single();
-
-    if (!allowedRoles.includes(prof?.role)) {
-      alert(
-        `Akses Ditolak! Role Anda (${prof?.role || "Guest"}) dilarang masuk ke Keuangan.`,
-      );
-      return window.location.replace("/");
-    }
-    document.body.style.display = "block";
-
-    // Setup Batasan Tanggal Otomatis
-    const tahunAktif = new Date().getFullYear();
-    const awalTahun = `${tahunAktif}-01-01`;
-    const waktuLokal = new Date();
-    const offset = waktuLokal.getTimezoneOffset() * 60000;
-    const hariIni = new Date(waktuLokal - offset).toISOString().split("T")[0];
-
-    const inputStart = document.getElementById("filter-gaji-start");
-    const inputEnd = document.getElementById("filter-gaji-end");
-    if (inputStart && inputEnd) {
-      inputStart.min = awalTahun;
-      inputStart.max = hariIni;
-      inputStart.value = awalTahun;
-
-      inputEnd.min = awalTahun;
-      inputEnd.max = hariIni;
-      inputEnd.value = hariIni;
-    }
-
-    // ==========================================
-    // 1. FETCH DATA KEUANGAN (CLIENT-SIDE)
-    // ==========================================
-    async function loadKeuanganData() {
-      if (!window.supabase) return;
-      try {
-        const { data: listMitra } = await window.supabase
-          .from("mitra")
-          .select("id, nama_mitra")
-          .order("nama_mitra", { ascending: true });
-        window.allMitraGlobal = listMitra || [];
-        const { data: globalGaji } = await window.supabase
-          .from("pengaturan_gaji_global")
-          .select("*")
-          .single();
-        dataGlobalGaji = globalGaji;
-        if (globalGaji) {
-          document.getElementById("g_kesehatan").value =
-            globalGaji.uang_kesehatan || 0;
-          document.getElementById("g_tepatwaktu").value =
-            globalGaji.bonus_tepat_waktu || 0;
-          document.getElementById("g_mingguan").value =
-            globalGaji.bonus_mingguan || 0;
-          document.getElementById("g_lembur").value =
-            globalGaji.tarif_lembur_perjam || 0;
-        }
-
-        const { data: karyawan, error: errKaryawan } = await window.supabase
+        const { data: prof } = await client
           .from("profiles")
-          .select(
-            "id, nama, role, foto_profil, setup_gaji(*), presensi(tanggal, status_tiba, waktu_tiba, waktu_pulang), slip_gaji(*)",
-          )
-          .neq("role", "owner");
+          .select("role")
+          .eq("id", session.user.id)
+          .single();
 
-        if (errKaryawan) {
-          alert("Error Supabase (Data Karyawan): " + errKaryawan.message);
-          console.error("Detail Error:", errKaryawan);
+        if (!allowedRoles.includes(prof?.role)) {
+          alert(
+            `Akses Ditolak! Role Anda (${prof?.role || "Guest"}) dilarang masuk ke Keuangan.`,
+          );
+          return window.location.replace("/");
+        }
+        document.body.style.display = "block";
+
+        // Setup Batasan Tanggal Otomatis
+        const tahunAktif = new Date().getFullYear();
+        const awalTahun = `${tahunAktif}-01-01`;
+        const waktuLokal = new Date();
+        const offset = waktuLokal.getTimezoneOffset() * 60000;
+        const hariIni = new Date(waktuLokal - offset)
+          .toISOString()
+          .split("T")[0];
+
+        const inputStart = document.getElementById("filter-gaji-start");
+        const inputEnd = document.getElementById("filter-gaji-end");
+        if (inputStart && inputEnd) {
+          inputStart.min = awalTahun;
+          inputStart.max = hariIni;
+          inputStart.value = awalTahun;
+
+          inputEnd.min = awalTahun;
+          inputEnd.max = hariIni;
+          inputEnd.value = hariIni;
         }
 
-        dataKaryawan = karyawan || [];
-        const contKaryawan = document.getElementById("gaji-karyawan-container");
-        let htmlKaryawan = "";
-        if (dataKaryawan.length > 0) {
-          dataKaryawan.forEach((k) => {
-            const jumlahHadir = k.presensi?.length || 0;
-            // 🔥 Ambil 2 huruf depan untuk inisial (misal: "Budi Santoso" -> "BS")
-            const inisial = k.nama
-              ? k.nama
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .substring(0, 2)
-                  .toUpperCase()
-              : "U";
+        // ==========================================
+        // 1. FETCH DATA KEUANGAN (CLIENT-SIDE)
+        // ==========================================
+        async function loadKeuanganData() {
+          if (!window.supabase) return;
+          try {
+            const { data: listMitra } = await window.supabase
+              .from("mitra")
+              .select("id, nama_mitra")
+              .order("nama_mitra", { ascending: true });
+            window.allMitraGlobal = listMitra || [];
+            const { data: globalGaji } = await window.supabase
+              .from("pengaturan_gaji_global")
+              .select("*")
+              .single();
+            dataGlobalGaji = globalGaji;
+            if (globalGaji) {
+              document.getElementById("g_kesehatan").value =
+                globalGaji.uang_kesehatan || 0;
+              document.getElementById("g_tepatwaktu").value =
+                globalGaji.bonus_tepat_waktu || 0;
+              document.getElementById("g_mingguan").value =
+                globalGaji.bonus_mingguan || 0;
+              document.getElementById("g_lembur").value =
+                globalGaji.tarif_lembur_perjam || 0;
+            }
 
-            // 🔥 Beri warna hijau elegan khas Keuangan jika pakai inisial
-            const avatarKomponen = k.foto_profil
-              ? `<img src="${k.foto_profil}" class="w-12 h-12 rounded-full object-cover border-2 border-green-200 shadow-sm shrink-0" />`
-              : `<div class="w-12 h-12 rounded-full bg-green-100 border border-green-200 flex items-center justify-center text-green-700 font-bold text-lg shadow-sm shrink-0">${inisial}</div>`;
+            const { data: karyawan, error: errKaryawan } = await window.supabase
+              .from("profiles")
+              .select(
+                "id, nama, role, foto_profil, setup_gaji(*), presensi(tanggal, status_tiba, waktu_tiba, waktu_pulang), slip_gaji(*)",
+              )
+              .neq("role", "owner");
 
-            const peran = k.tipe_kendaraan
-              ? k.tipe_kendaraan.replace("_", " ")
-              : k.role || "Karyawan";
-            const setup =
-              k.setup_gaji && k.setup_gaji.length > 0 ? k.setup_gaji[0] : {};
-            const tarif = Number(setup.gaji_menit || 0).toLocaleString("id-ID");
+            if (errKaryawan) {
+              alert("Error Supabase (Data Karyawan): " + errKaryawan.message);
+              console.error("Detail Error:", errKaryawan);
+            }
 
-            // 🔥 TAHAP 2: BIKIN BADGE INDIKATOR GAJI FLAT / BYPASS
-            const badgeBypass = setup.bypass_jam_kerja
-              ? `<span class="px-2 py-0.5 rounded text-[9px] font-black bg-purple-100 text-purple-700 border border-purple-200 uppercase tracking-wider shadow-sm flex items-center gap-0.5 font-sans"><i class="bi bi-lightning-charge-fill"></i> Gaji Flat</span>`
-              : "";
+            dataKaryawan = karyawan || [];
+            const contKaryawan = document.getElementById(
+              "gaji-karyawan-container",
+            );
+            let htmlKaryawan = "";
+            if (dataKaryawan.length > 0) {
+              dataKaryawan.forEach((k) => {
+                const jumlahHadir = k.presensi?.length || 0;
+                // 🔥 Ambil 2 huruf depan untuk inisial (misal: "Budi Santoso" -> "BS")
+                const inisial = k.nama
+                  ? k.nama
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .substring(0, 2)
+                      .toUpperCase()
+                  : "U";
 
-            htmlKaryawan += `
+                // 🔥 Beri warna hijau elegan khas Keuangan jika pakai inisial
+                const avatarKomponen = k.foto_profil
+                  ? `<img src="${k.foto_profil}" class="w-12 h-12 rounded-full object-cover border-2 border-green-200 shadow-sm shrink-0" />`
+                  : `<div class="w-12 h-12 rounded-full bg-green-100 border border-green-200 flex items-center justify-center text-green-700 font-bold text-lg shadow-sm shrink-0">${inisial}</div>`;
+
+                const peran = k.tipe_kendaraan
+                  ? k.tipe_kendaraan.replace("_", " ")
+                  : k.role || "Karyawan";
+                const setup =
+                  k.setup_gaji && k.setup_gaji.length > 0
+                    ? k.setup_gaji[0]
+                    : {};
+                const tarif = Number(setup.gaji_menit || 0).toLocaleString(
+                  "id-ID",
+                );
+
+                // 🔥 TAHAP 2: BIKIN BADGE INDIKATOR GAJI FLAT / BYPASS
+                const badgeBypass = setup.bypass_jam_kerja
+                  ? `<span class="px-2 py-0.5 rounded text-[9px] font-black bg-purple-100 text-purple-700 border border-purple-200 uppercase tracking-wider shadow-sm flex items-center gap-0.5 font-sans"><i class="bi bi-lightning-charge-fill"></i> Gaji Flat</span>`
+                  : "";
+
+                htmlKaryawan += `
                     <div class="karyawan-card bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col transition-all" data-periode="Bulanan">
                         <div class="bg-gradient-to-r from-green-50 to-green-100 px-6 py-4 flex items-center justify-between border-b border-green-200">
                             <div class="flex items-center gap-4">
@@ -1156,392 +1218,420 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                             </button>
                         </div>
                     </div>`;
-          });
-        } else {
-          htmlKaryawan =
-            '<p class="text-gray-500">Belum ada data karyawan.</p>';
+              });
+            } else {
+              htmlKaryawan =
+                '<p class="text-gray-500">Belum ada data karyawan.</p>';
+            }
+            contKaryawan.innerHTML = htmlKaryawan;
+
+            // TAMBAHAN: Isi dropdown filter riwayat otomatis
+            const filterUserEl = document.getElementById("filter-gaji-user");
+            if (filterUserEl && dataKaryawan.length > 0) {
+              let userOptions = '<option value="semua">Semua Karyawan</option>';
+              dataKaryawan.forEach((k) => {
+                userOptions += `<option value="${k.id}">${k.nama}</option>`;
+              });
+              filterUserEl.innerHTML = userOptions;
+            }
+          } catch (error) {
+            console.error("Gagal load data keuangan:", error);
+          }
         }
-        contKaryawan.innerHTML = htmlKaryawan;
 
-        // TAMBAHAN: Isi dropdown filter riwayat otomatis
-        const filterUserEl = document.getElementById("filter-gaji-user");
-        if (filterUserEl && dataKaryawan.length > 0) {
-          let userOptions = '<option value="semua">Semua Karyawan</option>';
-          dataKaryawan.forEach((k) => {
-            userOptions += `<option value="${k.id}">${k.nama}</option>`;
+        await loadKeuanganData();
+
+        // ==========================================
+        // 2. TAB SWITCHING LOGIC
+        // ==========================================
+        const tabButtons = document.querySelectorAll(".tab-btn");
+        const tabContents = document.querySelectorAll(".tab-content");
+        tabButtons.forEach((button) => {
+          button.addEventListener("click", function () {
+            let tabName = this.getAttribute("data-tab");
+
+            const tabIdMap = {
+              gaji: "gaji",
+              "riwayat-gaji": "riwayat-gaji-tab",
+            };
+
+            tabName = tabIdMap[tabName] || tabName;
+
+            tabButtons.forEach((btn) => {
+              btn.classList.remove(
+                "active",
+                "border-green-700",
+                "text-green-700",
+              );
+              btn.classList.add("border-transparent", "text-gray-600");
+            });
+            tabContents.forEach((content) => {
+              content.classList.add("hidden");
+              content.classList.remove("block");
+            });
+
+            this.classList.add("active", "border-green-700", "text-green-700");
+            this.classList.remove("border-transparent", "text-gray-600");
+
+            const activeTab = document.getElementById(tabName);
+            if (activeTab) {
+              activeTab.classList.remove("hidden");
+              activeTab.classList.add("block");
+            } else {
+              console.warn(`Tab dengan ID '${tabName}' tidak ditemukan!`);
+            }
           });
-          filterUserEl.innerHTML = userOptions;
-        }
-      } catch (error) {
-        console.error("Gagal load data keuangan:", error);
-      }
-    }
+        });
 
-    await loadKeuanganData();
+        // ==========================================
+        // 3. MODAL CONTROLS & FUNCTIONS
+        // ==========================================
+        window.openModal = function (id) {
+          const m = document.getElementById(id);
+          if (!m) return;
+          m.classList.remove("hidden");
+          m.classList.add("flex");
+          setTimeout(() => {
+            m.classList.remove("opacity-0");
+            const c = m.querySelector("div");
+            if (c) c.classList.remove("scale-95");
+          }, 10);
 
-    // ==========================================
-    // 2. TAB SWITCHING LOGIC
-    // ==========================================
-    const tabButtons = document.querySelectorAll(".tab-btn");
-    const tabContents = document.querySelectorAll(".tab-content");
-    tabButtons.forEach((button) => {
-      button.addEventListener("click", function () {
-        let tabName = this.getAttribute("data-tab");
-
-        const tabIdMap = {
-          gaji: "gaji",
-          "riwayat-gaji": "riwayat-gaji-tab",
+          // 🔥 Kunci body layar belakang biar gak bisa di-scroll
+          document.body.style.overflow = "hidden";
         };
 
-        tabName = tabIdMap[tabName] || tabName;
+        window.closeModal = function (id) {
+          const m = document.getElementById(id);
+          if (!m) return;
+          m.classList.add("opacity-0");
+          const c = m.querySelector("div");
+          if (c) c.classList.add("scale-95");
+          setTimeout(() => {
+            m.classList.add("hidden");
+            m.classList.remove("flex");
+          }, 300);
 
-        tabButtons.forEach((btn) => {
-          btn.classList.remove("active", "border-green-700", "text-green-700");
-          btn.classList.add("border-transparent", "text-gray-600");
-        });
-        tabContents.forEach((content) => {
-          content.classList.add("hidden");
-          content.classList.remove("block");
-        });
+          // 🔥 Lepas kunci scroll saat modal ditutup
+          document.body.style.overflow = "";
+        };
 
-        this.classList.add("active", "border-green-700", "text-green-700");
-        this.classList.remove("border-transparent", "text-gray-600");
+        // UPDATE PENGATURAN GLOBAL
+        document
+          .getElementById("form-global-gaji")
+          ?.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            if (!window.supabase) return;
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerText = "Menyimpan...";
 
-        const activeTab = document.getElementById(tabName);
-        if (activeTab) {
-          activeTab.classList.remove("hidden");
-          activeTab.classList.add("block");
-        } else {
-          console.warn(`Tab dengan ID '${tabName}' tidak ditemukan!`);
-        }
-      });
-    });
+            try {
+              await window.supabase
+                .from("pengaturan_gaji_global")
+                .update({
+                  uang_kesehatan: document.getElementById("g_kesehatan").value,
+                  bonus_tepat_waktu:
+                    document.getElementById("g_tepatwaktu").value,
+                  bonus_mingguan: document.getElementById("g_mingguan").value,
+                  tarif_lembur_perjam:
+                    document.getElementById("g_lembur").value,
+                })
+                .eq("id", 1);
+              alert("Pengaturan Global berhasil diperbarui!");
+              window.location.reload();
+            } catch (err) {
+              alert(err.message);
+              btn.innerText = "Simpan Pengaturan";
+            }
+          });
 
-    // ==========================================
-    // 3. MODAL CONTROLS & FUNCTIONS
-    // ==========================================
-    window.openModal = function (id) {
-      const m = document.getElementById(id);
-      if (!m) return;
-      m.classList.remove("hidden");
-      m.classList.add("flex");
-      setTimeout(() => {
-        m.classList.remove("opacity-0");
-        const c = m.querySelector("div");
-        if (c) c.classList.remove("scale-95");
-      }, 10);
+        window.currentSalaryData = null;
 
-      // 🔥 Kunci body layar belakang biar gak bisa di-scroll
-      document.body.style.overflow = "hidden";
-    };
+        // FUNGSI UNTUK MENGUBAH LABEL UI BERDASARKAN SIKLUS
+        window.ubahSiklusUI = function () {
+          const siklus = document.getElementById("setup_siklus_gaji").value;
+          const labelGaji = document.getElementById("label_gaji_pokok");
 
-    window.closeModal = function (id) {
-      const m = document.getElementById(id);
-      if (!m) return;
-      m.classList.add("opacity-0");
-      const c = m.querySelector("div");
-      if (c) c.classList.add("scale-95");
-      setTimeout(() => {
-        m.classList.add("hidden");
-        m.classList.remove("flex");
-      }, 300);
+          if (siklus === "Bulanan")
+            labelGaji.innerText = "Gaji Pokok Bulanan (Rp)";
+          else if (siklus === "Harian")
+            labelGaji.innerText = "Gaji Pokok Harian (Rp)";
+          else labelGaji.innerText = "Gaji Pokok Mingguan (Rp)";
 
-      // 🔥 Lepas kunci scroll saat modal ditutup
-      document.body.style.overflow = "";
-    };
+          if (window.currentSalaryData) {
+            window.currentSalaryData.siklusGaji = siklus;
 
-    // UPDATE PENGATURAN GLOBAL
-    document
-      .getElementById("form-global-gaji")
-      ?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (!window.supabase) return;
-        const btn = e.target.querySelector('button[type="submit"]');
-        btn.innerText = "Menyimpan...";
+            // 🔥 CARA AMAN AMBIL TANGGAL HARI INI (Tanpa hitung-hitungan offset yang bikin eror)
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, "0");
+            const day = String(today.getDate()).padStart(2, "0");
+            const strHariIni = `${year}-${month}-${day}`;
 
-        try {
-          await window.supabase
-            .from("pengaturan_gaji_global")
-            .update({
-              uang_kesehatan: document.getElementById("g_kesehatan").value,
-              bonus_tepat_waktu: document.getElementById("g_tepatwaktu").value,
-              bonus_mingguan: document.getElementById("g_mingguan").value,
-              tarif_lembur_perjam: document.getElementById("g_lembur").value,
-            })
-            .eq("id", 1);
-          alert("Pengaturan Global berhasil diperbarui!");
-          window.location.reload();
-        } catch (err) {
-          alert(err.message);
-          btn.innerText = "Simpan Pengaturan";
-        }
-      });
+            let tglMulai, tglAkhir;
 
-    window.currentSalaryData = null;
+            if (siklus === "Bulanan") {
+              tglMulai = `${year}-${month}-01`;
+              // Tembak akhir bulan dengan trik hari ke-0 bulan depan
+              const dAkhir = new Date(year, today.getMonth() + 1, 0);
+              tglAkhir = `${year}-${month}-${String(dAkhir.getDate()).padStart(2, "0")}`;
+            } else if (siklus === "Harian") {
+              // Fix Mutlak Hari Ini
+              tglMulai = strHariIni;
+              tglAkhir = strHariIni;
+            } else {
+              // Siklus Mingguan
+              const h = today.getDay() || 7; // Hari ini (1-7, 1=Senin)
+              const senin = new Date(today);
+              senin.setDate(today.getDate() - (h - 1));
 
-    // FUNGSI UNTUK MENGUBAH LABEL UI BERDASARKAN SIKLUS
-    window.ubahSiklusUI = function () {
-      const siklus = document.getElementById("setup_siklus_gaji").value;
-      const labelGaji = document.getElementById("label_gaji_pokok");
+              const mSenin = String(senin.getMonth() + 1).padStart(2, "0");
+              const dSenin = String(senin.getDate()).padStart(2, "0");
+              tglMulai = `${senin.getFullYear()}-${mSenin}-${dSenin}`;
 
-      // 1. Ubah Teks Label di UI
-      if (siklus === "Bulanan") {
-        labelGaji.innerText = "Gaji Pokok Bulanan (Rp)";
-      } else if (siklus === "Harian") {
-        labelGaji.innerText = "Gaji Pokok Harian (Rp)";
-      } else {
-        labelGaji.innerText = "Gaji Pokok Mingguan (Rp)";
-      }
+              const minggu = new Date(senin);
+              minggu.setDate(senin.getDate() + 6); // Tarik 6 hari ke depan (Sampai Minggu)
 
-      // 2. 🔥 UPDATE DATA DI BALIK LAYAR BIAR DENO NGGAK SALAH PAHAM 🔥
-      if (window.currentSalaryData) {
-        window.currentSalaryData.siklusGaji = siklus;
+              const mMinggu = String(minggu.getMonth() + 1).padStart(2, "0");
+              const dMinggu = String(minggu.getDate()).padStart(2, "0");
+              tglAkhir = `${minggu.getFullYear()}-${mMinggu}-${dMinggu}`;
+            }
 
-        const waktuLokal = new Date();
-        const offset = waktuLokal.getTimezoneOffset() * 60000;
-        const tglLokalObj = new Date(waktuLokal - offset);
-        let tglMulai, tglAkhir;
+            window.currentSalaryData.tglMulai = tglMulai;
+            window.currentSalaryData.tglAkhir = tglAkhir;
+          }
+        };
 
-        if (siklus === "Bulanan") {
-          // Tarik tanggal 1 sampai akhir bulan berjalan
-          const tahun = tglLokalObj.getFullYear();
-          const bulan = tglLokalObj.getMonth();
-          const tglSatu = new Date(tahun, bulan, 1);
-          const tglAkhirBulan = new Date(tahun, bulan + 1, 0);
-          tglMulai = new Date(tglSatu.getTime() - offset)
-            .toISOString()
-            .split("T")[0];
-          tglAkhir = new Date(tglAkhirBulan.getTime() - offset)
-            .toISOString()
-            .split("T")[0];
-        } else if (siklus === "Harian") {
-          // Tarik tanggal HARI INI saja
-          tglMulai = tglLokalObj.toISOString().split("T")[0];
-          tglAkhir = tglMulai;
-        } else {
-          // Tarik Senin sampai Sabtu minggu ini
-          const day = tglLokalObj.getDay() || 7;
-          tglLokalObj.setHours(0, 0, 0, 0);
-          const senin = new Date(tglLokalObj);
-          senin.setDate(tglLokalObj.getDate() - (day - 1));
-          const sabtu = new Date(senin);
-          sabtu.setDate(senin.getDate() + 6);
-          tglMulai = senin.toISOString().split("T")[0];
-          tglAkhir = sabtu.toISOString().split("T")[0];
-        }
+        // PERBARUI FUNGSI MESIN WAKTU
+        window.openModalGaji = async function (empId) {
+          const emp = dataKaryawan.find((k) => String(k.id) === String(empId));
+          if (!emp) return alert("Data karyawan tidak ditemukan!");
 
-        // Simpan tanggal yang baru agar langsung ditembakkan ke Deno!
-        window.currentSalaryData.tglMulai = tglMulai;
-        window.currentSalaryData.tglAkhir = tglAkhir;
-      }
-    };
+          document.getElementById("m_karyawan_id").value = emp.id;
+          document.getElementById("m_nama_karyawan").innerText = emp.nama;
 
-    // PERBARUI FUNGSI MESIN WAKTU
-    window.openModalGaji = async function (empId) {
-      const emp = dataKaryawan.find((k) => String(k.id) === String(empId));
-      if (!emp) return alert("Data karyawan tidak ditemukan!");
+          let setup = {};
+          try {
+            const { data: liveSetup } = await window.supabase
+              .from("setup_gaji")
+              .select("*")
+              .eq("user_id", emp.id)
+              .maybeSingle();
+            if (liveSetup) setup = liveSetup;
+          } catch (e) {
+            console.error("Gagal narik setup:", e);
+          }
 
-      document.getElementById("m_karyawan_id").value = emp.id;
-      document.getElementById("m_nama_karyawan").innerText = emp.nama;
+          document.getElementById("m_setup_id").value = setup.id || "";
 
-      let setup = {};
-      try {
-        const { data: liveSetup } = await window.supabase
-          .from("setup_gaji")
-          .select("*")
-          .eq("user_id", emp.id)
-          .maybeSingle();
-        if (liveSetup) setup = liveSetup;
-      } catch (e) {
-        console.error("Gagal narik setup:", e);
-      }
+          // SUNTIK SIKLUS & GAJI POKOK
+          document.getElementById("setup_siklus_gaji").value =
+            setup.siklus_gaji || "Mingguan";
+          document.getElementById("setup_gaji_pokok").value =
+            setup.gaji_menit || setup.gaji_pokok || 0;
+          window.ubahSiklusUI(); // Panggil fungsi ubah label
 
-      document.getElementById("m_setup_id").value = setup.id || "";
+          document.getElementById("setup_lembur_menit").value =
+            setup.uang_lembur_menit || 0;
+          document.getElementById("setup_uang_makan").value =
+            setup.uang_makan || 0;
+          document.getElementById("setup_bonus_tepat").value =
+            setup.bonus_tepat_waktu || 0;
+          document.getElementById("setup_uang_transport").value =
+            setup.uang_transport || 0;
+          document.getElementById("setup_bonus_mingguan").value =
+            setup.bonus_mingguan || 0;
+          document.getElementById("setup_potongan_absen").value =
+            setup.potongan_bonus_mingguan || 0;
+          document.getElementById("setup_uang_kesehatan").value =
+            setup.uang_kesehatan || 0;
+          document.getElementById("setup_uang_rapat").value =
+            setup.uang_rapat || 0;
+          document.getElementById("setup_uang_nginep").value =
+            setup.uang_nginep || 0;
 
-      // SUNTIK SIKLUS & GAJI POKOK
-      document.getElementById("setup_siklus_gaji").value =
-        setup.siklus_gaji || "Mingguan";
-      document.getElementById("setup_gaji_pokok").value =
-        setup.gaji_menit || setup.gaji_pokok || 0;
-      window.ubahSiklusUI(); // Panggil fungsi ubah label
+          // 🔥 PENEMPATAN KODE MAKAN MALAM & PENJEMPUTAN DI SINI 🔥
+          const InpMakanMalam = document.getElementById(
+            "setup_uang_makan_malam",
+          );
+          if (InpMakanMalam) InpMakanMalam.value = setup.uang_makan_malam || 0;
 
-      document.getElementById("setup_lembur_menit").value =
-        setup.uang_lembur_menit || 0;
-      document.getElementById("setup_uang_makan").value = setup.uang_makan || 0;
-      document.getElementById("setup_bonus_tepat").value =
-        setup.bonus_tepat_waktu || 0;
-      // Tambahkan di deretan setup nilai:
-      document.getElementById("setup_uang_transport").value =
-        setup.uang_transport || 0;
-      document.getElementById("setup_bonus_mingguan").value =
-        setup.bonus_mingguan || 0;
-      document.getElementById("setup_potongan_absen").value =
-        setup.potongan_bonus_mingguan || 0;
-      document.getElementById("setup_uang_kesehatan").value =
-        setup.uang_kesehatan || 0;
-      document.getElementById("setup_uang_rapat").value = setup.uang_rapat || 0;
-      document.getElementById("setup_uang_nginep").value =
-        setup.uang_nginep || 0;
+          const InpPenjemputan = document.getElementById(
+            "setup_bonus_penjemputan",
+          );
+          if (InpPenjemputan)
+            InpPenjemputan.value = setup.bonus_penjemputan || 0;
 
-      const totalHutangKasbon = parseFloat(setup.kasbon) || 0;
-      document.getElementById("info_total_kasbon").innerText =
-        "Rp " + totalHutangKasbon.toLocaleString("id-ID");
-      document.getElementById("potongan_kasbon_sekarang").value = "";
-      // Reset input talangan
-      document.getElementById("tambahan_talangan_sekarang").value = "";
+          // KASBON & TALANGAN
+          const totalHutangKasbon = parseFloat(setup.kasbon) || 0;
+          document.getElementById("info_total_kasbon").innerText =
+            "Rp " + totalHutangKasbon.toLocaleString("id-ID");
+          document.getElementById("potongan_kasbon_sekarang").value = "";
+          document.getElementById("tambahan_talangan_sekarang").value = "";
 
-      document.getElementById("chk_bypass_jam_kerja").checked =
-        setup.bypass_jam_kerja || false;
-      document.getElementById("chk_gaji_jerigen").checked =
-        setup.is_gaji_jerigen || false;
-      document.getElementById("setup_tarif_jerigen").value =
-        setup.tarif_jerigen || 0;
-      document.getElementById("setup_bonus_jerigen").value =
-        setup.bonus_jerigen_manual || 0;
+          // CHECKBOX BYPASS & JERIGEN (Sudah Aman)
+          const chkBypass = document.getElementById("chk_bypass_jam_kerja");
+          if (chkBypass) chkBypass.checked = setup.bypass_jam_kerja || false;
 
-      // 1. Definisikan dulu fungsinya (dengan ID input yang sudah diupdate ke setup_gaji_pokok)
-      window.toggleGajiJerigen = function () {
-        const chkJerigen = document.getElementById("chk_gaji_jerigen");
-        const opsiJerigen = document.getElementById("opsi_jerigen");
-        const inpGaji = document.getElementById("setup_gaji_pokok"); // ID sudah disesuaikan
+          const chkJerigen = document.getElementById("chk_gaji_jerigen");
+          if (chkJerigen) chkJerigen.checked = setup.is_gaji_jerigen || false;
 
-        if (chkJerigen && opsiJerigen && inpGaji) {
-          const isJ = chkJerigen.checked;
-          opsiJerigen.style.display = isJ ? "block" : "none";
-          inpGaji.disabled = isJ;
-          isJ
-            ? inpGaji.classList.add("opacity-50", "bg-gray-100")
-            : inpGaji.classList.remove("opacity-50", "bg-gray-100");
-        }
-      };
+          // 🔥 PERBAIKAN ERROR VALUE JERIGEN 🔥
+          // Pakai pengaman IF karena beberapa form jerigen sudah kita hapus dari HTML
+          const InpTarifJerigen = document.getElementById(
+            "setup_tarif_jerigen",
+          );
+          if (InpTarifJerigen) InpTarifJerigen.value = setup.tarif_jerigen || 0;
 
-      // 2. Baru panggil fungsinya
-      window.toggleGajiJerigen();
+          const InpBonusJerigen = document.getElementById(
+            "setup_bonus_jerigen",
+          );
+          if (InpBonusJerigen)
+            InpBonusJerigen.value = setup.bonus_jerigen_manual || 0;
 
-      // 🔥 LOGIKA MESIN WAKTU DINAMIS BERDASARKAN SIKLUS 🔥
-      const siklusAktif = document.getElementById("setup_siklus_gaji").value;
-      const tglLokalObj = new Date(waktuLokal - offset);
-      let tglMulai, tglAkhir;
+          // 1. Definisikan dulu fungsinya (dengan ID input yang sudah diupdate ke setup_gaji_pokok)
+          window.toggleGajiJerigen = function () {
+            const chkJerigen = document.getElementById("chk_gaji_jerigen");
+            const opsiJerigen = document.getElementById("opsi_jerigen");
+            const inpGaji = document.getElementById("setup_gaji_pokok"); // ID sudah disesuaikan
 
-      if (siklusAktif === "Bulanan") {
-        // SET KE TANGGAL 1 SAMPAI AKHIR BULAN INI
-        const tahun = tglLokalObj.getFullYear();
-        const bulan = tglLokalObj.getMonth();
-        const tglSatu = new Date(tahun, bulan, 1);
-        const tglAkhirBulan = new Date(tahun, bulan + 1, 0); // Hari terakhir bulan ini
+            if (chkJerigen && opsiJerigen && inpGaji) {
+              const isJ = chkJerigen.checked;
+              opsiJerigen.style.display = isJ ? "block" : "none";
+              inpGaji.disabled = isJ;
+              isJ
+                ? inpGaji.classList.add("opacity-50", "bg-gray-100")
+                : inpGaji.classList.remove("opacity-50", "bg-gray-100");
+            }
+          };
 
-        // Format ulang dengan timezone offset agar tidak meleset
-        tglMulai = new Date(tglSatu.getTime() - offset)
-          .toISOString()
-          .split("T")[0];
-        tglAkhir = new Date(tglAkhirBulan.getTime() - offset)
-          .toISOString()
-          .split("T")[0];
-      } else if (siklusAktif === "Harian") {
-        // HARI INI SAJA
-        tglMulai = tglLokalObj.toISOString().split("T")[0];
-        tglAkhir = tglMulai;
-      } else {
-        // DEFAULT: MINGGUAN (Senin ke Sabtu/Minggu)
-        const day = tglLokalObj.getDay() || 7;
-        tglLokalObj.setHours(0, 0, 0, 0);
-        const senin = new Date(tglLokalObj);
-        senin.setDate(tglLokalObj.getDate() - (day - 1));
-        const sabtu = new Date(senin);
-        sabtu.setDate(senin.getDate() + 6); // Set sampai hari Minggu
+          // 2. Baru panggil fungsinya
+          window.toggleGajiJerigen();
 
-        tglMulai = senin.toISOString().split("T")[0];
-        tglAkhir = sabtu.toISOString().split("T")[0];
-      }
+          // 🔥 LOGIKA MESIN WAKTU DINAMIS BERDASARKAN SIKLUS 🔥
+          const siklusAktif =
+            document.getElementById("setup_siklus_gaji").value;
+          const tglLokalObj = new Date(waktuLokal - offset);
+          let tglMulai, tglAkhir;
 
-      window.currentSalaryData = {
-        empId: emp.id,
-        tglMulai,
-        tglAkhir,
-        sisaKasbonDb: totalHutangKasbon,
-        siklusGaji: siklusAktif, // Kirim data siklus ke Deno
-      };
+          if (siklusAktif === "Bulanan") {
+            // SET KE TANGGAL 1 SAMPAI AKHIR BULAN INI
+            const tahun = tglLokalObj.getFullYear();
+            const bulan = tglLokalObj.getMonth();
+            const tglSatu = new Date(tahun, bulan, 1);
+            const tglAkhirBulan = new Date(tahun, bulan + 1, 0); // Hari terakhir bulan ini
 
-      // Cek slip draft
-      const slip = (emp.slip_gaji || []).find(
-        (s) => s.periode === tglAkhir && s.status === "Menunggu",
-      );
-      document.getElementById("m_slip_id").value = slip ? slip.id : "";
+            // Format ulang dengan timezone offset agar tidak meleset
+            tglMulai = new Date(tglSatu.getTime() - offset)
+              .toISOString()
+              .split("T")[0];
+            tglAkhir = new Date(tglAkhirBulan.getTime() - offset)
+              .toISOString()
+              .split("T")[0];
+          } else if (siklusAktif === "Harian") {
+            // HARI INI SAJA
+            tglMulai = tglLokalObj.toISOString().split("T")[0];
+            tglAkhir = tglMulai;
+          } else {
+            // DEFAULT: MINGGUAN (Senin ke Sabtu/Minggu)
+            const day = tglLokalObj.getDay() || 7;
+            tglLokalObj.setHours(0, 0, 0, 0);
+            const senin = new Date(tglLokalObj);
+            senin.setDate(tglLokalObj.getDate() - (day - 1));
+            const sabtu = new Date(senin);
+            sabtu.setDate(senin.getDate() + 6); // Set sampai hari Minggu
 
-      window.kalkulasiRealtimeGaji();
-      window.openModal("modal-detail-gaji");
-    };
+            tglMulai = senin.toISOString().split("T")[0];
+            tglAkhir = sabtu.toISOString().split("T")[0];
+          }
 
-    window.kalkulasiRealtimeGaji = async function () {
-      const d = window.currentSalaryData;
-      if (!d) return;
-      document.getElementById("m_total_gaji").innerText = "Menghitung...";
-      document.getElementById("m_rincian_list").innerHTML =
-        `<p class="text-center text-sm text-gray-500 py-4"><i class="bi bi-arrow-repeat animate-spin inline-block mr-2"></i> Sinkronisasi Kalkulator Server...</p>`;
+          window.currentSalaryData = {
+            empId: emp.id,
+            tglMulai,
+            tglAkhir,
+            sisaKasbonDb: totalHutangKasbon,
+            siklusGaji: siklusAktif, // Kirim data siklus ke Deno
+          };
 
-      const potKasbonInput = document.getElementById(
-        "potongan_kasbon_sekarang",
-      ).value;
-      const potonganManual =
-        potKasbonInput === "" ? null : parseFloat(potKasbonInput);
+          // Cek slip draft
+          const slip = (emp.slip_gaji || []).find(
+            (s) => s.periode === tglAkhir && s.status === "Menunggu",
+          );
+          document.getElementById("m_slip_id").value = slip ? slip.id : "";
 
-      const talInput = document.getElementById(
-        "tambahan_talangan_sekarang",
-      ).value;
-      const talanganManual = talInput === "" ? null : parseFloat(talInput);
+          window.kalkulasiRealtimeGaji();
+          window.openModal("modal-detail-gaji");
+        };
 
-      // 🔥 AMBIL INPUT JERIGEN MANUAL
-      const jm = document.getElementById("input_jerigen_manual")?.value;
-      const vm = document.getElementById("input_volume_manual")?.value;
+        window.kalkulasiRealtimeGaji = async function () {
+          const d = window.currentSalaryData;
+          if (!d) return;
+          document.getElementById("m_total_gaji").innerText = "Menghitung...";
+          document.getElementById("m_rincian_list").innerHTML =
+            `<p class="text-center text-sm text-gray-500 py-4"><i class="bi bi-arrow-repeat animate-spin inline-block mr-2"></i> Sinkronisasi Kalkulator Server...</p>`;
 
-      try {
-        const { data, error } = await window.supabase.functions.invoke(
-          "gaji-karyawan",
-          {
-            body: {
-              empId: d.empId,
-              tglMulai: d.tglMulai,
-              tglAkhir: d.tglAkhir,
-              action: "kalkulasi",
-              potonganKasbonManual: isNaN(potonganManual)
-                ? null
-                : potonganManual,
-              tambahanTalanganManual: isNaN(talanganManual)
-                ? null
-                : talanganManual,
-              siklusGaji: d.siklusGaji,
-              jumlahJerigenManual: jm === "" ? null : parseFloat(jm),
-              volumeMinyakKgManual: vm === "" ? null : parseFloat(vm),
-            },
-          },
-        );
-        if (error) throw error;
-        const res = data.data;
+          const potKasbonInput = document.getElementById(
+            "potongan_kasbon_sekarang",
+          ).value;
+          const potonganManual =
+            potKasbonInput === "" ? null : parseFloat(potKasbonInput);
 
-        // Tampilkan info jerigen di UI
-        const isJerigen = document.getElementById("chk_gaji_jerigen").checked;
-        if (isJerigen) {
-          document.getElementById("info_total_jerigen_minggu").innerText =
-            `${res.jumlahJerigen || 0} Pcs / ${res.volumeMinyakKg || 0} Kg`;
-        }
+          const talInput = document.getElementById(
+            "tambahan_talangan_sekarang",
+          ).value;
+          const talanganManual = talInput === "" ? null : parseFloat(talInput);
 
-        // Simpan state final
-        d.finalState = { grandTotal: res.grandTotal };
+          // 🔥 AMBIL INPUT JERIGEN MANUAL
+          const jm = document.getElementById("input_jerigen_manual")?.value;
 
-        // Modifikasi Label UI
-        const labelGajiPokok = isJerigen
-          ? `Gaji Jerigen (${res.jumlahJerigen} Pcs x Rp ${parseFloat(document.getElementById("setup_tarif_jerigen").value || 0).toLocaleString("id-ID")})`
-          : `Gaji Pokok Proporsional (${res.hariKerjaNormal} Hari)`;
+          try {
+            const { data, error } = await window.supabase.functions.invoke(
+              "gaji-karyawan",
+              {
+                body: {
+                  empId: d.empId,
+                  tglMulai: d.tglMulai,
+                  tglAkhir: d.tglAkhir,
+                  action: "kalkulasi",
+                  potonganKasbonManual: isNaN(potonganManual)
+                    ? null
+                    : potonganManual,
+                  tambahanTalanganManual: isNaN(talanganManual)
+                    ? null
+                    : talanganManual,
+                  siklusGaji: d.siklusGaji,
+                  jumlahJerigenManual: jm === "" ? null : parseFloat(jm),
+                },
+              },
+            );
+            if (error) throw error;
+            const res = data.data;
 
-        const labelBonus = isJerigen
-          ? `Bonus Jerigen (Mode Khusus)`
-          : `Bonus Tambahan`;
+            // Tampilkan info jerigen di UI
+            const isJerigen =
+              document.getElementById("chk_gaji_jerigen").checked;
+            if (isJerigen) {
+              document.getElementById("info_total_jerigen_minggu").innerText =
+                `${res.jumlahJerigen || 0} Pcs`;
+            }
 
-        // Simpan Grand Total buat dipake modal Kasir nanti
-        d.finalState = { grandTotal: res.grandTotal };
+            // Simpan state final
+            d.finalState = { grandTotal: res.grandTotal };
 
-        // 🔥 RENDER ULANG UI SLIP GAJI 🔥
-        document.getElementById("m_rincian_list").innerHTML = `
+            // Modifikasi Label UI
+            const labelGajiPokok = isJerigen
+              ? `Gaji Jerigen (${res.jumlahJerigen} Pcs x Rp ${parseFloat(document.getElementById("setup_tarif_jerigen").value || 0).toLocaleString("id-ID")})`
+              : `Gaji Pokok Proporsional (${res.hariKerjaNormal} Hari)`;
+
+            const labelBonus = isJerigen
+              ? `Bonus Jerigen (Mode Khusus)`
+              : `Bonus Tambahan`;
+
+            // Simpan Grand Total buat dipake modal Kasir nanti
+            d.finalState = { grandTotal: res.grandTotal };
+
+            // 🔥 RENDER ULANG UI SLIP GAJI 🔥
+            document.getElementById("m_rincian_list").innerHTML = `
                 <div class="bg-blue-50/50 p-2.5 rounded mb-3 border border-blue-200">
                     <div class="text-[11px] font-bold text-blue-900 uppercase tracking-widest text-center"><i class="bi bi-calendar-range mr-1"></i> ${res.teksPeriode}</div>
                     <div class="text-[10px] font-semibold text-blue-700 text-center mt-1">Total Kehadiran: ${res.totalHariHadir} Hari (Termasuk ${res.hariMingguMasuk} Hr Minggu)</div>
@@ -1570,609 +1660,642 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
                 ${res.valPotonganKasbon > 0 ? `<div class="flex justify-between text-xs text-red-600 font-bold border-t border-dashed border-gray-300 mt-2 pt-2"><span>Potongan Kasbon Periode Ini</span> <span>- Rp ${res.valPotonganKasbon.toLocaleString("id-ID")}</span></div>` : ""}
             `;
-        document.getElementById("m_total_gaji").innerText =
-          `Rp ${res.grandTotal.toLocaleString("id-ID")}`;
-      } catch (e) {
-        document.getElementById("m_total_gaji").innerText = "Error Server!";
-        document.getElementById("m_rincian_list").innerHTML =
-          `<p class="text-red-500 text-xs text-center font-bold">${e.message || "Gagal terhubung ke Deno."}</p>`;
-      }
-    };
-
-    // FUNGSI PENJEMBATAN (Simpan Draf ATAU Lempar ke Kasir)
-    window.simpanSlipGaji = async function (statusTarget) {
-      if (statusTarget === "ACC") {
-        // LEMPAR KE KASIR SPLIT PAYMENT
-        document.getElementById("kasir_total_tagihan").innerText =
-          `Rp ${window.currentSalaryData.finalState.grandTotal.toLocaleString("id-ID")}`;
-        document.getElementById("kasir_keuangan").value =
-          window.currentSalaryData.finalState.grandTotal; // Default isi semua ke Keuangan
-        document.getElementById("kasir_gudang").value = 0;
-        document.getElementById("kasir_owner").value = 0;
-        window.kalkulasiKasir();
-        window.openModal("modal-kasir-gaji");
-      } else {
-        // SIMPAN SEBAGAI DRAF MENUNGGU
-        if (!confirm("Simpan Slip Periode ini sebagai Draf (Menunggu)?"))
-          return;
-        window.eksekusiBayarGaji("Menunggu");
-      }
-    };
-
-    // LOGIKA KASIR SPLIT PAYMENT (UI)
-    window.kalkulasiKasir = function () {
-      const uK =
-        parseFloat(document.getElementById("kasir_keuangan").value) || 0;
-      const uG = parseFloat(document.getElementById("kasir_gudang").value) || 0;
-      const uO = parseFloat(document.getElementById("kasir_owner").value) || 0;
-
-      const totalTagihan = window.currentSalaryData.finalState.grandTotal;
-      const totalSplit = uK + uG + uO;
-      const sisa = totalTagihan - totalSplit;
-
-      const elSisa = document.getElementById("kasir_sisa");
-      const boxSisa = document.getElementById("kasir_sisa_box");
-      const btnBayar = document.getElementById("btn-eksekusi-bayar");
-
-      elSisa.innerText = `Rp ${sisa.toLocaleString("id-ID")}`;
-
-      if (sisa === 0) {
-        boxSisa.classList.replace("bg-red-50", "bg-green-50");
-        boxSisa.classList.replace("border-red-200", "border-green-200");
-        elSisa.classList.replace("text-red-700", "text-green-700");
-        btnBayar.disabled = false;
-      } else {
-        boxSisa.classList.replace("bg-green-50", "bg-red-50");
-        boxSisa.classList.replace("border-green-200", "border-red-200");
-        elSisa.classList.replace("text-green-700", "text-red-700");
-        btnBayar.disabled = true;
-      }
-    };
-
-    // EKSEKUSI PEMBAYARAN FINAL KE DATABASE
-    window.eksekusiBayarGaji = async function (overrideStatus = "ACC") {
-      if (!window.supabase) return;
-      const d = window.currentSalaryData;
-      const btnBayar = document.getElementById("btn-eksekusi-bayar");
-      btnBayar.innerText = "Memproses Ke Server...";
-      btnBayar.disabled = true;
-
-      const potKasbonInput = document.getElementById(
-        "potongan_kasbon_sekarang",
-      ).value;
-      const potonganManual =
-        potKasbonInput === "" ? null : parseFloat(potKasbonInput);
-
-      try {
-        // 🔥 TEMBAK DENO DENGAN BERBAGAI PECAHAN RINCIAN DAN ID ADMIN
-        // 🔥 TEMBAK DENO DENGAN BERBAGAI PECAHAN RINCIAN
-        const { data, error } = await window.supabase.functions.invoke(
-          "gaji-karyawan",
-          {
-            // <--- UBAH DISINI
-            body: {
-              empId: d.empId,
-              tglMulai: d.tglMulai,
-              tglAkhir: d.tglAkhir,
-              action: "bayar",
-              statusTarget: overrideStatus,
-              adminId: currentUserId,
-              potonganKasbonManual: isNaN(potonganManual)
-                ? null
-                : potonganManual,
-              siklusGaji: d.siklusGaji, // Pastikan ini ikut terkirim
-            },
-          },
-        );
-
-        if (error) throw error;
-
-        alert(
-          `✅ SUKSES LUNAS!\n\nGaji berhasil dibayar dari Uang Keuangan. Rincian gaji pokok, lembur, kesehatan, total bonus, dan kasbon otomatis pecah di modul Pengeluaran.`,
-        );
-        window.location.reload();
-      } catch (err) {
-        alert(
-          "Gagal memproses pembayaran gaji: " +
-            (err.message || "Terjadi kesalahan di server Deno."),
-        );
-        btnBayar.innerText = "POTONG KAS & BAYAR";
-        btnBayar.disabled = false;
-      }
-    };
-
-    window.updateJamAbsenManual = () => {
-      const valTiba = document.getElementById("edit_absen_tiba").value;
-      const valPulang = document.getElementById("edit_absen_pulang").value;
-      if (!valTiba) return;
-
-      window.currentSalaryData.jamTibaStr = valTiba + ":00";
-      window.currentSalaryData.jamPulangStr = valPulang
-        ? valPulang + ":00"
-        : "-";
-
-      let masukMenit = parseJamMenit(window.currentSalaryData.jamTibaStr);
-      let pulangMenit = valPulang
-        ? parseJamMenit(window.currentSalaryData.jamPulangStr)
-        : masukMenit;
-
-      let totalNormalMenit = 0;
-      let totalLemburMenit = 0;
-      const batasPulangNormalMenit = 17 * 60;
-      let actualPulangNormal = Math.min(pulangMenit, batasPulangNormalMenit);
-      totalNormalMenit = Math.max(0, actualPulangNormal - masukMenit);
-      if (pulangMenit > batasPulangNormalMenit) {
-        totalLemburMenit = pulangMenit - batasPulangNormalMenit;
-      }
-
-      window.currentSalaryData.totalNormalMenit = totalNormalMenit;
-      window.currentSalaryData.totalLemburMenit = totalLemburMenit;
-      window.kalkulasiRealtimeGaji();
-    };
-
-    // FUNGSI SIMPAN SETUP KE DATABASE
-    window.simpanSetupGaji = async function () {
-      if (!window.supabase) return;
-      const empId = document.getElementById("m_karyawan_id").value;
-      const setupId = document.getElementById("m_setup_id").value;
-
-      // ✅ SEKARANG MURNI MINGGUAN & ID ELEMEN DIPASTIKAN VALID
-      const payloadSetup = {
-        user_id: empId,
-        siklus_gaji: document.getElementById("setup_siklus_gaji").value, // TAMBAHAN BARU
-        gaji_menit:
-          parseFloat(document.getElementById("setup_gaji_pokok")?.value) || 0,
-        uang_lembur_menit:
-          parseFloat(document.getElementById("setup_lembur_menit")?.value) || 0,
-        uang_makan:
-          parseFloat(document.getElementById("setup_uang_makan")?.value) || 0,
-        bonus_tepat_waktu:
-          parseFloat(document.getElementById("setup_bonus_tepat")?.value) || 0,
-        bonus_mingguan:
-          parseFloat(document.getElementById("setup_bonus_mingguan")?.value) ||
-          0,
-        uang_transport:
-          parseFloat(document.getElementById("setup_uang_transport")?.value) ||
-          0,
-        uang_kesehatan:
-          parseFloat(document.getElementById("setup_uang_kesehatan")?.value) ||
-          0,
-        uang_rapat:
-          parseFloat(document.getElementById("setup_uang_rapat")?.value) || 0,
-        uang_nginep:
-          parseFloat(document.getElementById("setup_uang_nginep")?.value) || 0,
-        kasbon:
-          parseFloat(
-            document.getElementById("setup_kasbon")?.value ||
-              window.currentSalaryData?.sisaKasbonDb,
-          ) || 0,
-        potongan_bonus_mingguan:
-          parseFloat(document.getElementById("setup_potongan_absen")?.value) ||
-          0,
-        bypass_jam_kerja:
-          document.getElementById("chk_bypass_jam_kerja")?.checked || false,
-        is_gaji_jerigen:
-          document.getElementById("chk_gaji_jerigen")?.checked || false,
-        tarif_jerigen:
-          parseFloat(document.getElementById("setup_tarif_jerigen")?.value) ||
-          0,
-        bonus_jerigen_manual:
-          parseFloat(document.getElementById("setup_bonus_jerigen")?.value) ||
-          0,
-      };
-
-      try {
-        if (setupId) {
-          const { error } = await window.supabase
-            .from("setup_gaji")
-            .update(payloadSetup)
-            .eq("id", setupId);
-          if (error) throw error;
-        } else {
-          const { data, error } = await window.supabase
-            .from("setup_gaji")
-            .insert([payloadSetup])
-            .select()
-            .single();
-          if (error) throw error;
-          if (data) document.getElementById("m_setup_id").value = data.id;
-        }
-        alert("Mantap! Parameter Setup Gaji Bulanan Berhasil Disimpan!");
-        window.kalkulasiRealtimeGaji();
-      } catch (err) {
-        console.error("Error Detail Supabase:", err);
-        alert("Gagal simpan setup! Periksa kesalahan: " + err.message);
-      }
-    };
-
-    // ==========================================
-    // EXPORT EXCEL (.XLSX) SESUAI FILTER
-    // ==========================================
-    window.exportExcelRiwayat = function () {
-      // Mengambil data yang lolos filter saat ini
-      const dataTerfilter = window.currentFilteredRiwayat;
-
-      if (!dataTerfilter || dataTerfilter.length === 0) {
-        return alert(
-          "Tidak ada data riwayat yang cocok dengan filter untuk diexport!",
-        );
-      }
-
-      // 1. Petakan data mentah menjadi format baris & kolom Excel yang rapi
-      const rows = dataTerfilter.map((s, index) => {
-        const totalBonus =
-          Number(s.bonus_tepat_waktu || 0) +
-          Number(s.bonus_mingguan || 0) +
-          Number(s.uang_kesehatan || 0) +
-          Number(s.uang_rapat || 0) +
-          Number(s.uang_nginep || 0);
-
-        return {
-          No: index + 1,
-          "Nama Karyawan": s.profiles?.nama || "Unknown",
-          Periode: s.periode || "-",
-          Status: s.status || "Menunggu",
-          "Gaji Pokok (Rp)": s.gaji_karyawan || 0,
-          "Uang Lembur (Rp)": s.uang_lembur || 0,
-          "Uang Makan (Rp)": s.uang_makan || 0,
-          "Total Bonus (Rp)": totalBonus,
-          "Potongan Kasbon (Rp)": s.kasbon || 0,
-          "Total Diterima (Rp)": s.total_diterima || 0,
-        };
-      });
-
-      // 2. Membuat Workbook dan Worksheet baru
-      const worksheet = XLSX.utils.json_to_sheet(rows);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(
-        workbook,
-        worksheet,
-        "Riwayat Gaji Terfilter",
-      );
-
-      // 3. Atur Lebar Kolom Otomatis (Auto-fit Column Width)
-      const columnWidths = Object.keys(rows[0]).map((key) => {
-        // Cari karakter terpanjang di setiap kolom untuk menentukan lebar
-        const maxLength = Math.max(
-          key.length,
-          ...rows.map((row) => (row[key] ? row[key].toString().length : 0)),
-        );
-        return { wch: maxLength + 3 }; // Beri padding 3 karakter agar tidak mepet
-      });
-      worksheet["!cols"] = columnWidths;
-
-      // 4. Proses Download sebagai file .xlsx Excel Asli
-      // 4. Menentukan Nama File Sesuai Karyawan yang Dipilih
-      let namaKaryawan = "Semua Karyawan";
-      const dropdownUser = document.getElementById("filter-gaji-user");
-
-      // Jika yang dipilih bukan "Semua Karyawan", ambil nama aslinya
-      if (dropdownUser && dropdownUser.value !== "semua") {
-        namaKaryawan = dropdownUser.options[dropdownUser.selectedIndex].text;
-      }
-
-      // Proses Download sebagai file .xlsx Excel Asli
-      XLSX.writeFile(workbook, `rekap_gaji_${namaKaryawan}.xlsx`);
-    };
-
-    // ==========================================
-    // CAPTURE & DOWNLOAD GAMBAR SLIP
-    // ==========================================
-    window.downloadSlipGambar = async function (slipId) {
-      const slip = window.currentFilteredRiwayat?.find(
-        (s) => String(s.id) === String(slipId),
-      );
-      if (!slip) return alert("Data slip tidak ditemukan!");
-
-      // 1. Suntik data ke template
-      const totalBonus =
-        Number(slip.bonus_tepat_waktu || 0) +
-        Number(slip.bonus_mingguan || 0) +
-        Number(slip.uang_kesehatan || 0) +
-        Number(slip.uang_rapat || 0) +
-        Number(slip.uang_nginep || 0);
-
-      document.getElementById("slip-nama").innerText =
-        `: ${slip.profiles?.nama || "Unknown"}`;
-      document.getElementById("slip-periode").innerText = `: ${slip.periode}`;
-      document.getElementById("slip-status").innerText = `: ${slip.status}`;
-
-      document.getElementById("slip-gaji").innerText =
-        `Rp ${Number(slip.gaji_karyawan || 0).toLocaleString("id-ID")}`;
-      document.getElementById("slip-lembur").innerText =
-        `Rp ${Number(slip.uang_lembur || 0).toLocaleString("id-ID")}`;
-      document.getElementById("slip-makan").innerText =
-        `Rp ${Number(slip.uang_makan || 0).toLocaleString("id-ID")}`;
-      document.getElementById("slip-bonus").innerText =
-        `Rp ${totalBonus.toLocaleString("id-ID")}`;
-      document.getElementById("slip-kasbon").innerText =
-        `Rp ${Number(slip.kasbon || 0).toLocaleString("id-ID")}`;
-      document.getElementById("slip-total").innerText =
-        `Rp ${Number(slip.total_diterima || 0).toLocaleString("id-ID")}`;
-
-      // 2. Munculkan sementara untuk difoto
-      const templateEl = document.getElementById("template-slip-gambar");
-      const wrapper = templateEl.parentElement;
-      wrapper.classList.remove("hidden");
-      wrapper.style.position = "absolute";
-      wrapper.style.top = "-9999px";
-
-      try {
-        // 3. Jepret kanvas
-        const canvas = await html2canvas(templateEl, {
-          scale: 2,
-          backgroundColor: "#ffffff",
-        });
-
-        // 4. Download
-        const link = document.createElement("a");
-        link.download = `Slip_${slip.profiles?.nama || "Karyawan"}_${slip.periode}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-      } catch (err) {
-        alert("Gagal membuat gambar slip: " + err.message);
-      } finally {
-        // Sembunyikan lagi
-        wrapper.classList.add("hidden");
-        wrapper.style.position = "";
-        wrapper.style.top = "";
-      }
-    };
-
-    // ================================
-    // EXPORT SLIP PNG - DATA AKUMULASI SESUAI FILTER
-    // ================================
-    window.exportSlipAkumulasiFilter = async function () {
-      try {
-        const dataTerfilter = window.currentFilteredRiwayat;
-        if (!dataTerfilter || dataTerfilter.length === 0) {
-          return alert(
-            "Tidak ada data riwayat yang cocok dengan filter untuk diunduh sebagai gambar!",
-          );
-        }
-
-        // ✅ SUM/AKUMULASI SEMUA NILAI DARI DATA YANG DIFILTER
-        let totalGaji = 0;
-        let totalLembur = 0;
-        let totalMakan = 0;
-        let totalTransport = 0;
-        let totalTalangan = 0;
-        let totalRapat = 0;
-        let totalNginep = 0;
-        let totalBonusTepat = 0;
-        let totalBonusMingguan = 0;
-        let totalKesehatan = 0;
-        let totalKasbon = 0;
-        let namaKaryawan = "";
-
-        // Hanya hitung yang status ACC
-        dataTerfilter.forEach((slip) => {
-          const isACC =
-            slip.status === "ACC" || slip.status_persetujuan === "ACC";
-          if (!isACC) return;
-
-          totalGaji += Number(slip.gaji_karyawan || 0);
-          totalLembur += Number(slip.uang_lembur || 0);
-          totalMakan += Number(slip.uang_makan || 0);
-          totalTransport += Number(slip.uang_transport || 0);
-          totalTalangan += Number(slip.uang_talangan || 0);
-          totalRapat += Number(slip.uang_rapat || 0);
-          totalNginep += Number(slip.uang_nginep || 0);
-          totalBonusTepat += Number(slip.bonus_tepat_waktu || 0);
-          totalBonusMingguan += Number(slip.bonus_mingguan || 0);
-          totalKesehatan += Number(slip.uang_kesehatan || 0);
-          totalKasbon += Number(slip.kasbon || 0);
-
-          // Ambil nama karyawan dari data pertama (asumsi filter 1 karyawan)
-          if (!namaKaryawan && slip.profiles?.nama) {
-            namaKaryawan = slip.profiles.nama;
+            document.getElementById("m_total_gaji").innerText =
+              `Rp ${res.grandTotal.toLocaleString("id-ID")}`;
+          } catch (e) {
+            document.getElementById("m_total_gaji").innerText = "Error Server!";
+            document.getElementById("m_rincian_list").innerHTML =
+              `<p class="text-red-500 text-xs text-center font-bold">${e.message || "Gagal terhubung ke Deno."}</p>`;
           }
-        });
+        };
 
-        // Hitung Total Bonus Gabungan
-        const totalBonus =
-          totalBonusTepat +
-          totalBonusMingguan +
-          totalKesehatan +
-          totalRapat +
-          totalNginep;
+        // FUNGSI PENJEMBATAN (Simpan Draf ATAU Lempar ke Kasir)
+        window.simpanSlipGaji = async function (statusTarget) {
+          if (statusTarget === "ACC") {
+            // LEMPAR KE KASIR SPLIT PAYMENT
+            document.getElementById("kasir_total_tagihan").innerText =
+              `Rp ${window.currentSalaryData.finalState.grandTotal.toLocaleString("id-ID")}`;
+            document.getElementById("kasir_keuangan").value =
+              window.currentSalaryData.finalState.grandTotal; // Default isi semua ke Keuangan
+            document.getElementById("kasir_gudang").value = 0;
+            document.getElementById("kasir_owner").value = 0;
+            window.kalkulasiKasir();
+            window.openModal("modal-kasir-gaji");
+          } else {
+            // SIMPAN SEBAGAI DRAF MENUNGGU
+            if (!confirm("Simpan Slip Periode ini sebagai Draf (Menunggu)?"))
+              return;
+            window.eksekusiBayarGaji("Menunggu");
+          }
+        };
 
-        // ✅ GRAND TOTAL AKUMULASI (Boleh NEGATIF jika kasbon besar)
-        const grandTotal =
-          totalGaji +
-          totalLembur +
-          totalMakan +
-          totalTransport +
-          totalTalangan +
-          totalBonus -
-          totalKasbon;
+        // LOGIKA KASIR SPLIT PAYMENT (UI)
+        window.kalkulasiKasir = function () {
+          const uK =
+            parseFloat(document.getElementById("kasir_keuangan").value) || 0;
+          const uG =
+            parseFloat(document.getElementById("kasir_gudang").value) || 0;
+          const uO =
+            parseFloat(document.getElementById("kasir_owner").value) || 0;
 
-        // Suntik nilai ke template
-        // Suntik nilai ke template
-        document.getElementById("slip-nama").innerText =
-          `: ${namaKaryawan || "Akumulasi Filter"}`;
-        document.getElementById("slip-periode").innerText =
-          `: AKUMULASI (${dataTerfilter.length} Periode)`;
+          const totalTagihan = window.currentSalaryData.finalState.grandTotal;
+          const totalSplit = uK + uG + uO;
+          const sisa = totalTagihan - totalSplit;
 
-        // ✅ TAMBAHAN: Ambil tanggal awal & akhir dari filter
-        const startDate =
-          document.getElementById("filter-gaji-start").value || "-";
-        const endDate = document.getElementById("filter-gaji-end").value || "-";
-        document.getElementById("slip-tanggal-range").innerText =
-          `: ${startDate} s/d ${endDate}`;
+          const elSisa = document.getElementById("kasir_sisa");
+          const boxSisa = document.getElementById("kasir_sisa_box");
+          const btnBayar = document.getElementById("btn-eksekusi-bayar");
 
-        document.getElementById("slip-status").innerText = `: ACC`;
+          elSisa.innerText = `Rp ${sisa.toLocaleString("id-ID")}`;
 
-        document.getElementById("slip-gaji").innerText =
-          `Rp ${totalGaji.toLocaleString("id-ID")}`;
-        document.getElementById("slip-lembur").innerText =
-          `Rp ${totalLembur.toLocaleString("id-ID")}`;
-        document.getElementById("slip-makan").innerText =
-          `Rp ${totalMakan.toLocaleString("id-ID")}`;
-        document.getElementById("slip-bonus").innerText =
-          `Rp ${totalBonus.toLocaleString("id-ID")}`;
-        document.getElementById("slip-kasbon").innerText =
-          `Rp ${totalKasbon.toLocaleString("id-ID")}`;
-        document.getElementById("slip-total").innerText =
-          `Rp ${grandTotal.toLocaleString("id-ID")}`;
+          if (sisa === 0) {
+            boxSisa.classList.replace("bg-red-50", "bg-green-50");
+            boxSisa.classList.replace("border-red-200", "border-green-200");
+            elSisa.classList.replace("text-red-700", "text-green-700");
+            btnBayar.disabled = false;
+          } else {
+            boxSisa.classList.replace("bg-green-50", "bg-red-50");
+            boxSisa.classList.replace("border-green-200", "border-red-200");
+            elSisa.classList.replace("text-green-700", "text-red-700");
+            btnBayar.disabled = true;
+          }
+        };
 
-        // Tampilkan sementara template
-        const templateEl = document.getElementById("template-slip-gambar");
-        const wrapper = templateEl.parentElement;
-        wrapper.classList.remove("hidden");
-        wrapper.style.position = "absolute";
-        wrapper.style.top = "-9999px";
+        // EKSEKUSI PEMBAYARAN FINAL KE DATABASE
+        window.eksekusiBayarGaji = async function (overrideStatus = "ACC") {
+          if (!window.supabase) return;
+          const d = window.currentSalaryData;
+          const btnBayar = document.getElementById("btn-eksekusi-bayar");
+          if (btnBayar) {
+            btnBayar.innerText = "Memproses Ke Server...";
+            btnBayar.disabled = true;
+          }
 
-        try {
-          // Render ke canvas
-          const canvas = await html2canvas(templateEl, {
-            scale: 2,
-            backgroundColor: "#ffffff",
-            useCORS: true,
+          const potKasbonInput = document.getElementById(
+            "potongan_kasbon_sekarang",
+          )?.value;
+          const potonganManual =
+            potKasbonInput === "" || !potKasbonInput
+              ? null
+              : parseFloat(potKasbonInput);
+
+          // 🔥 WAJIB TAMBAH INI: Biar jumlah jerigen nggak hilang/nol saat tombol bayar ditekan
+          const jm = document.getElementById("input_jerigen_manual")?.value;
+
+          try {
+            const { data, error } = await window.supabase.functions.invoke(
+              "gaji-karyawan",
+              {
+                body: {
+                  empId: d.empId,
+                  tglMulai: d.tglMulai,
+                  tglAkhir: d.tglAkhir,
+                  action: "bayar",
+                  statusTarget: overrideStatus,
+                  adminId: currentUserId,
+                  potonganKasbonManual: isNaN(potonganManual)
+                    ? null
+                    : potonganManual,
+                  siklusGaji: d.siklusGaji,
+                  // Lempar data jerigen ke Deno saat bayar
+                  jumlahJerigenManual: jm === "" || !jm ? null : parseFloat(jm),
+                },
+              },
+            );
+
+            // 🔥 JEBAKAN ERROR: Baca error asli dari Deno dan ledakkan di layar!
+            if (error) throw error;
+            if (data && data.success === false) throw new Error(data.error);
+
+            alert(
+              `✅ SUKSES LUNAS!\n\nGaji berhasil dibayar dari Uang Keuangan. Rincian gaji pokok, lembur, kesehatan, total bonus, dan kasbon otomatis pecah di modul Pengeluaran.`,
+            );
+            window.location.reload();
+          } catch (err) {
+            // ERROR ASLINYA MUNCUL DI SINI NANTI!
+            alert(
+              "🚨 GAGAL MEMPROSES:\n\n" +
+                (err.message || "Terjadi kesalahan di server Deno."),
+            );
+            if (btnBayar) {
+              btnBayar.innerText = "POTONG KAS & BAYAR";
+              btnBayar.disabled = false;
+            }
+          }
+        };
+
+        window.updateJamAbsenManual = () => {
+          const valTiba = document.getElementById("edit_absen_tiba").value;
+          const valPulang = document.getElementById("edit_absen_pulang").value;
+          if (!valTiba) return;
+
+          window.currentSalaryData.jamTibaStr = valTiba + ":00";
+          window.currentSalaryData.jamPulangStr = valPulang
+            ? valPulang + ":00"
+            : "-";
+
+          let masukMenit = parseJamMenit(window.currentSalaryData.jamTibaStr);
+          let pulangMenit = valPulang
+            ? parseJamMenit(window.currentSalaryData.jamPulangStr)
+            : masukMenit;
+
+          let totalNormalMenit = 0;
+          let totalLemburMenit = 0;
+          const batasPulangNormalMenit = 17 * 60;
+          let actualPulangNormal = Math.min(
+            pulangMenit,
+            batasPulangNormalMenit,
+          );
+          totalNormalMenit = Math.max(0, actualPulangNormal - masukMenit);
+          if (pulangMenit > batasPulangNormalMenit) {
+            totalLemburMenit = pulangMenit - batasPulangNormalMenit;
+          }
+
+          window.currentSalaryData.totalNormalMenit = totalNormalMenit;
+          window.currentSalaryData.totalLemburMenit = totalLemburMenit;
+          window.kalkulasiRealtimeGaji();
+        };
+
+        // FUNGSI SIMPAN SETUP KE DATABASE
+        window.simpanSetupGaji = async function () {
+          if (!window.supabase) return;
+          const empId = document.getElementById("m_karyawan_id").value;
+          const setupId = document.getElementById("m_setup_id").value;
+
+          // ✅ SEKARANG MURNI MINGGUAN & ID ELEMEN DIPASTIKAN VALID
+          const payloadSetup = {
+            user_id: empId,
+            siklus_gaji: document.getElementById("setup_siklus_gaji").value, // TAMBAHAN BARU
+            gaji_menit:
+              parseFloat(document.getElementById("setup_gaji_pokok")?.value) ||
+              0,
+            uang_lembur_menit:
+              parseFloat(
+                document.getElementById("setup_lembur_menit")?.value,
+              ) || 0,
+            uang_makan:
+              parseFloat(document.getElementById("setup_uang_makan")?.value) ||
+              0,
+            bonus_tepat_waktu:
+              parseFloat(document.getElementById("setup_bonus_tepat")?.value) ||
+              0,
+            bonus_mingguan:
+              parseFloat(
+                document.getElementById("setup_bonus_mingguan")?.value,
+              ) || 0,
+            uang_transport:
+              parseFloat(
+                document.getElementById("setup_uang_transport")?.value,
+              ) || 0,
+            uang_kesehatan:
+              parseFloat(
+                document.getElementById("setup_uang_kesehatan")?.value,
+              ) || 0,
+            uang_rapat:
+              parseFloat(document.getElementById("setup_uang_rapat")?.value) ||
+              0,
+            uang_nginep:
+              parseFloat(document.getElementById("setup_uang_nginep")?.value) ||
+              0,
+            kasbon:
+              parseFloat(
+                document.getElementById("setup_kasbon")?.value ||
+                  window.currentSalaryData?.sisaKasbonDb,
+              ) || 0,
+            potongan_bonus_mingguan:
+              parseFloat(
+                document.getElementById("setup_potongan_absen")?.value,
+              ) || 0,
+            bypass_jam_kerja:
+              document.getElementById("chk_bypass_jam_kerja")?.checked || false,
+            is_gaji_jerigen:
+              document.getElementById("chk_gaji_jerigen")?.checked || false,
+            tarif_jerigen:
+              parseFloat(
+                document.getElementById("setup_tarif_jerigen")?.value,
+              ) || 0,
+            bonus_jerigen_manual:
+              parseFloat(
+                document.getElementById("setup_bonus_jerigen")?.value,
+              ) || 0,
+          };
+
+          try {
+            if (setupId) {
+              const { error } = await window.supabase
+                .from("setup_gaji")
+                .update(payloadSetup)
+                .eq("id", setupId);
+              if (error) throw error;
+            } else {
+              const { data, error } = await window.supabase
+                .from("setup_gaji")
+                .insert([payloadSetup])
+                .select()
+                .single();
+              if (error) throw error;
+              if (data) document.getElementById("m_setup_id").value = data.id;
+            }
+            alert("Mantap! Parameter Setup Gaji Bulanan Berhasil Disimpan!");
+            window.kalkulasiRealtimeGaji();
+          } catch (err) {
+            console.error("Error Detail Supabase:", err);
+            alert("Gagal simpan setup! Periksa kesalahan: " + err.message);
+          }
+        };
+
+        // ==========================================
+        // EXPORT EXCEL (.XLSX) SESUAI FILTER
+        // ==========================================
+        window.exportExcelRiwayat = function () {
+          // Mengambil data yang lolos filter saat ini
+          const dataTerfilter = window.currentFilteredRiwayat;
+
+          if (!dataTerfilter || dataTerfilter.length === 0) {
+            return alert(
+              "Tidak ada data riwayat yang cocok dengan filter untuk diexport!",
+            );
+          }
+
+          // 1. Petakan data mentah menjadi format baris & kolom Excel yang rapi
+          const rows = dataTerfilter.map((s, index) => {
+            const totalBonus =
+              Number(s.bonus_tepat_waktu || 0) +
+              Number(s.bonus_mingguan || 0) +
+              Number(s.uang_kesehatan || 0) +
+              Number(s.uang_rapat || 0) +
+              Number(s.uang_nginep || 0);
+
+            return {
+              No: index + 1,
+              "Nama Karyawan": s.profiles?.nama || "Unknown",
+              Periode: s.periode || "-",
+              Status: s.status || "Menunggu",
+              "Gaji Pokok (Rp)": s.gaji_karyawan || 0,
+              "Uang Lembur (Rp)": s.uang_lembur || 0,
+              "Uang Makan (Rp)": s.uang_makan || 0,
+              "Total Bonus (Rp)": totalBonus,
+              "Potongan Kasbon (Rp)": s.kasbon || 0,
+              "Total Diterima (Rp)": s.total_diterima || 0,
+            };
           });
 
-          // Download file PNG
-          const link = document.createElement("a");
-          const safeName = (namaKaryawan || "Akumulasi").replace(
-            /[^a-z0-9_\- ]/gi,
-            "",
+          // 2. Membuat Workbook dan Worksheet baru
+          const worksheet = XLSX.utils.json_to_sheet(rows);
+          const workbook = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(
+            workbook,
+            worksheet,
+            "Riwayat Gaji Terfilter",
           );
-          link.download = `Slip_${safeName}_AKUMULASI.png`;
-          link.href = canvas.toDataURL("image/png");
-          link.click();
 
-          alert(
-            `✅ Berhasil download Slip PNG Akumulasi!\n\nNama: ${namaKaryawan || "Filter"}\nTotal Periode: ${dataTerfilter.length}\nGrand Total: Rp ${grandTotal.toLocaleString("id-ID")}`,
-          );
-        } catch (err) {
-          console.error("Gagal render slip ke gambar:", err);
-          alert("Gagal membuat gambar slip: " + err.message);
-        } finally {
-          // Sembunyikan wrapper kembali
-          wrapper.classList.add("hidden");
-          wrapper.style.position = "";
-          wrapper.style.top = "";
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Gagal mengekspor slip akumulasi: " + (err.message || err));
-      }
-    };
+          // 3. Atur Lebar Kolom Otomatis (Auto-fit Column Width)
+          const columnWidths = Object.keys(rows[0]).map((key) => {
+            // Cari karakter terpanjang di setiap kolom untuk menentukan lebar
+            const maxLength = Math.max(
+              key.length,
+              ...rows.map((row) => (row[key] ? row[key].toString().length : 0)),
+            );
+            return { wch: maxLength + 3 }; // Beri padding 3 karakter agar tidak mepet
+          });
+          worksheet["!cols"] = columnWidths;
 
-    // RIWAYAT GAJI LOADER
-    async function muatRiwayatGaji() {
-      const container = document.getElementById("riwayat-gaji-container");
-      const elTotal = document.getElementById("riwayat-total-akumulasi");
-      if (!container) return;
+          // 4. Proses Download sebagai file .xlsx Excel Asli
+          // 4. Menentukan Nama File Sesuai Karyawan yang Dipilih
+          let namaKaryawan = "Semua Karyawan";
+          const dropdownUser = document.getElementById("filter-gaji-user");
 
-      const start =
-        document.getElementById("filter-gaji-start")?.value || awalTahun;
-      const end = document.getElementById("filter-gaji-end")?.value || hariIni;
-
-      // Ambil value dari filter baru
-      const filterUser =
-        document.getElementById("filter-gaji-user")?.value || "semua";
-      const filterItem =
-        document.getElementById("filter-gaji-item")?.value || "semua";
-
-      const cacheKey = `riwayat_gaji_${start}_${end}`;
-      const cachedData = localStorage.getItem(cacheKey);
-
-      const renderHTML = (semuaDataGaji) => {
-        if (!semuaDataGaji || semuaDataGaji.length === 0) {
-          container.innerHTML = `<p class="text-gray-500 text-sm italic py-4">Tidak ada riwayat pengeluaran gaji dari tanggal ${start} sampai ${end}.</p>`;
-          if (elTotal) elTotal.innerText = "Rp 0";
-          return;
-        }
-
-        // 1. FILTERING BY USER
-        let dataGaji = semuaDataGaji;
-
-        if (filterUser !== "semua") {
-          // Asumsi relasi user_id atau slip.profiles.id
-          dataGaji = dataGaji.filter(
-            (slip) =>
-              String(slip.user_id) === String(filterUser) ||
-              String(slip.profiles?.id) === String(filterUser),
-          );
-        }
-
-        // ✅ PINDAHKAN KE SINI
-        // Simpan data ke variabel global SETELAH filter nama selesai diterapkan
-        window.currentFilteredRiwayat = dataGaji;
-
-        // 2. MENGHITUNG TOTAL TANPA ASUMSI
-        let totalAkumulasi = 0;
-        dataGaji.forEach((slip) => {
-          // Cuma hitung yang udah ACC
-          const isACC =
-            slip.status === "ACC" || slip.status_persetujuan === "ACC";
-          if (!isACC) return;
-
-          if (filterItem === "semua") {
-            totalAkumulasi += Number(slip.total_diterima || 0); // Murni grand total
-          } else if (filterItem === "bonus") {
-            totalAkumulasi +=
-              Number(slip.bonus_tepat_waktu || 0) +
-              Number(slip.bonus_mingguan || 0) +
-              Number(slip.uang_kesehatan || 0);
-          } else if (filterItem === "kasbon") {
-            totalAkumulasi += Number(slip.kasbon || 0);
-          } else {
-            // Dinamis sesuai value select (gaji_karyawan, uang_lembur, uang_makan)
-            totalAkumulasi += Number(slip[filterItem] || 0);
+          // Jika yang dipilih bukan "Semua Karyawan", ambil nama aslinya
+          if (dropdownUser && dropdownUser.value !== "semua") {
+            namaKaryawan =
+              dropdownUser.options[dropdownUser.selectedIndex].text;
           }
-        });
 
-        // Update UI Total
-        if (elTotal)
-          elTotal.innerText = `Rp ${totalAkumulasi.toLocaleString("id-ID")}`;
+          // Proses Download sebagai file .xlsx Excel Asli
+          XLSX.writeFile(workbook, `rekap_gaji_${namaKaryawan}.xlsx`);
+        };
 
-        if (dataGaji.length === 0) {
-          container.innerHTML = `<p class="text-gray-500 text-sm italic py-4">Tidak ada data untuk kombinasi filter ini.</p>`;
-          return;
-        }
+        // ==========================================
+        // CAPTURE & DOWNLOAD GAMBAR SLIP
+        // ==========================================
+        window.downloadSlipGambar = async function (slipId) {
+          const slip = window.currentFilteredRiwayat?.find(
+            (s) => String(s.id) === String(slipId),
+          );
+          if (!slip) return alert("Data slip tidak ditemukan!");
 
-        // 3. RENDER KARTU SLIP
-        container.innerHTML = dataGaji
-          .map((slip) => {
-            const isACC =
-              slip.status === "ACC" || slip.status_persetujuan === "ACC";
-            const inisial = slip.profiles?.nama
-              ? slip.profiles.nama
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .substring(0, 2)
-                  .toUpperCase()
-              : "KY";
-            const avatarKomponen = slip.profiles?.foto_profil
-              ? `<img src="${slip.profiles.foto_profil}" class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 shadow-sm shrink-0" />`
-              : `<div class="w-10 h-10 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700 font-bold text-sm shadow-sm shrink-0">${inisial}</div>`;
+          // 1. Suntik data ke template
+          const totalBonus =
+            Number(slip.bonus_tepat_waktu || 0) +
+            Number(slip.bonus_mingguan || 0) +
+            Number(slip.uang_kesehatan || 0) +
+            Number(slip.uang_rapat || 0) +
+            Number(slip.uang_nginep || 0);
 
-            // Highlight item kalau filter bukan 'semua'
-            let highlightText = "";
-            if (isACC && filterItem !== "semua") {
-              let valHighlight = 0;
-              let namaItem = "";
-              if (filterItem === "bonus") {
-                valHighlight =
+          document.getElementById("slip-nama").innerText =
+            `: ${slip.profiles?.nama || "Unknown"}`;
+          document.getElementById("slip-periode").innerText =
+            `: ${slip.periode}`;
+          document.getElementById("slip-status").innerText = `: ${slip.status}`;
+
+          document.getElementById("slip-gaji").innerText =
+            `Rp ${Number(slip.gaji_karyawan || 0).toLocaleString("id-ID")}`;
+          document.getElementById("slip-lembur").innerText =
+            `Rp ${Number(slip.uang_lembur || 0).toLocaleString("id-ID")}`;
+          document.getElementById("slip-makan").innerText =
+            `Rp ${Number(slip.uang_makan || 0).toLocaleString("id-ID")}`;
+          document.getElementById("slip-bonus").innerText =
+            `Rp ${totalBonus.toLocaleString("id-ID")}`;
+          document.getElementById("slip-kasbon").innerText =
+            `Rp ${Number(slip.kasbon || 0).toLocaleString("id-ID")}`;
+          document.getElementById("slip-total").innerText =
+            `Rp ${Number(slip.total_diterima || 0).toLocaleString("id-ID")}`;
+
+          // 2. Munculkan sementara untuk difoto
+          const templateEl = document.getElementById("template-slip-gambar");
+          const wrapper = templateEl.parentElement;
+          wrapper.classList.remove("hidden");
+          wrapper.style.position = "absolute";
+          wrapper.style.top = "-9999px";
+
+          try {
+            // 3. Jepret kanvas
+            const canvas = await html2canvas(templateEl, {
+              scale: 2,
+              backgroundColor: "#ffffff",
+            });
+
+            // 4. Download
+            const link = document.createElement("a");
+            link.download = `Slip_${slip.profiles?.nama || "Karyawan"}_${slip.periode}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+          } catch (err) {
+            alert("Gagal membuat gambar slip: " + err.message);
+          } finally {
+            // Sembunyikan lagi
+            wrapper.classList.add("hidden");
+            wrapper.style.position = "";
+            wrapper.style.top = "";
+          }
+        };
+
+        // ================================
+        // EXPORT SLIP PNG - DATA AKUMULASI SESUAI FILTER
+        // ================================
+        window.exportSlipAkumulasiFilter = async function () {
+          try {
+            const dataTerfilter = window.currentFilteredRiwayat;
+            if (!dataTerfilter || dataTerfilter.length === 0) {
+              return alert(
+                "Tidak ada data riwayat yang cocok dengan filter untuk diunduh sebagai gambar!",
+              );
+            }
+
+            // ✅ SUM/AKUMULASI SEMUA NILAI DARI DATA YANG DIFILTER
+            let totalGaji = 0;
+            let totalLembur = 0;
+            let totalMakan = 0;
+            let totalTransport = 0;
+            let totalTalangan = 0;
+            let totalRapat = 0;
+            let totalNginep = 0;
+            let totalBonusTepat = 0;
+            let totalBonusMingguan = 0;
+            let totalKesehatan = 0;
+            let totalKasbon = 0;
+            let namaKaryawan = "";
+
+            // Hanya hitung yang status ACC
+            dataTerfilter.forEach((slip) => {
+              const isACC =
+                slip.status === "ACC" || slip.status_persetujuan === "ACC";
+              if (!isACC) return;
+
+              totalGaji += Number(slip.gaji_karyawan || 0);
+              totalLembur += Number(slip.uang_lembur || 0);
+              totalMakan += Number(slip.uang_makan || 0);
+              totalTransport += Number(slip.uang_transport || 0);
+              totalTalangan += Number(slip.uang_talangan || 0);
+              totalRapat += Number(slip.uang_rapat || 0);
+              totalNginep += Number(slip.uang_nginep || 0);
+              totalBonusTepat += Number(slip.bonus_tepat_waktu || 0);
+              totalBonusMingguan += Number(slip.bonus_mingguan || 0);
+              totalKesehatan += Number(slip.uang_kesehatan || 0);
+              totalKasbon += Number(slip.kasbon || 0);
+
+              // Ambil nama karyawan dari data pertama (asumsi filter 1 karyawan)
+              if (!namaKaryawan && slip.profiles?.nama) {
+                namaKaryawan = slip.profiles.nama;
+              }
+            });
+
+            // Hitung Total Bonus Gabungan
+            const totalBonus =
+              totalBonusTepat +
+              totalBonusMingguan +
+              totalKesehatan +
+              totalRapat +
+              totalNginep;
+
+            // ✅ GRAND TOTAL AKUMULASI (Boleh NEGATIF jika kasbon besar)
+            const grandTotal =
+              totalGaji +
+              totalLembur +
+              totalMakan +
+              totalTransport +
+              totalTalangan +
+              totalBonus -
+              totalKasbon;
+
+            // Suntik nilai ke template
+            // Suntik nilai ke template
+            document.getElementById("slip-nama").innerText =
+              `: ${namaKaryawan || "Akumulasi Filter"}`;
+            document.getElementById("slip-periode").innerText =
+              `: AKUMULASI (${dataTerfilter.length} Periode)`;
+
+            // ✅ TAMBAHAN: Ambil tanggal awal & akhir dari filter
+            const startDate =
+              document.getElementById("filter-gaji-start").value || "-";
+            const endDate =
+              document.getElementById("filter-gaji-end").value || "-";
+            document.getElementById("slip-tanggal-range").innerText =
+              `: ${startDate} s/d ${endDate}`;
+
+            document.getElementById("slip-status").innerText = `: ACC`;
+
+            document.getElementById("slip-gaji").innerText =
+              `Rp ${totalGaji.toLocaleString("id-ID")}`;
+            document.getElementById("slip-lembur").innerText =
+              `Rp ${totalLembur.toLocaleString("id-ID")}`;
+            document.getElementById("slip-makan").innerText =
+              `Rp ${totalMakan.toLocaleString("id-ID")}`;
+            document.getElementById("slip-bonus").innerText =
+              `Rp ${totalBonus.toLocaleString("id-ID")}`;
+            document.getElementById("slip-kasbon").innerText =
+              `Rp ${totalKasbon.toLocaleString("id-ID")}`;
+            document.getElementById("slip-total").innerText =
+              `Rp ${grandTotal.toLocaleString("id-ID")}`;
+
+            // Tampilkan sementara template
+            const templateEl = document.getElementById("template-slip-gambar");
+            const wrapper = templateEl.parentElement;
+            wrapper.classList.remove("hidden");
+            wrapper.style.position = "absolute";
+            wrapper.style.top = "-9999px";
+
+            try {
+              // Render ke canvas
+              const canvas = await html2canvas(templateEl, {
+                scale: 2,
+                backgroundColor: "#ffffff",
+                useCORS: true,
+              });
+
+              // Download file PNG
+              const link = document.createElement("a");
+              const safeName = (namaKaryawan || "Akumulasi").replace(
+                /[^a-z0-9_\- ]/gi,
+                "",
+              );
+              link.download = `Slip_${safeName}_AKUMULASI.png`;
+              link.href = canvas.toDataURL("image/png");
+              link.click();
+
+              alert(
+                `✅ Berhasil download Slip PNG Akumulasi!\n\nNama: ${namaKaryawan || "Filter"}\nTotal Periode: ${dataTerfilter.length}\nGrand Total: Rp ${grandTotal.toLocaleString("id-ID")}`,
+              );
+            } catch (err) {
+              console.error("Gagal render slip ke gambar:", err);
+              alert("Gagal membuat gambar slip: " + err.message);
+            } finally {
+              // Sembunyikan wrapper kembali
+              wrapper.classList.add("hidden");
+              wrapper.style.position = "";
+              wrapper.style.top = "";
+            }
+          } catch (err) {
+            console.error(err);
+            alert("Gagal mengekspor slip akumulasi: " + (err.message || err));
+          }
+        };
+
+        // RIWAYAT GAJI LOADER
+        async function muatRiwayatGaji() {
+          const container = document.getElementById("riwayat-gaji-container");
+          const elTotal = document.getElementById("riwayat-total-akumulasi");
+          if (!container) return;
+
+          const start =
+            document.getElementById("filter-gaji-start")?.value || awalTahun;
+          const end =
+            document.getElementById("filter-gaji-end")?.value || hariIni;
+
+          // Ambil value dari filter baru
+          const filterUser =
+            document.getElementById("filter-gaji-user")?.value || "semua";
+          const filterItem =
+            document.getElementById("filter-gaji-item")?.value || "semua";
+
+          const cacheKey = `riwayat_gaji_${start}_${end}`;
+          const cachedData = localStorage.getItem(cacheKey);
+
+          const renderHTML = (semuaDataGaji) => {
+            if (!semuaDataGaji || semuaDataGaji.length === 0) {
+              container.innerHTML = `<p class="text-gray-500 text-sm italic py-4">Tidak ada riwayat pengeluaran gaji dari tanggal ${start} sampai ${end}.</p>`;
+              if (elTotal) elTotal.innerText = "Rp 0";
+              return;
+            }
+
+            // 1. FILTERING BY USER
+            let dataGaji = semuaDataGaji;
+
+            if (filterUser !== "semua") {
+              // Asumsi relasi user_id atau slip.profiles.id
+              dataGaji = dataGaji.filter(
+                (slip) =>
+                  String(slip.user_id) === String(filterUser) ||
+                  String(slip.profiles?.id) === String(filterUser),
+              );
+            }
+
+            // ✅ PINDAHKAN KE SINI
+            // Simpan data ke variabel global SETELAH filter nama selesai diterapkan
+            window.currentFilteredRiwayat = dataGaji;
+
+            // 2. MENGHITUNG TOTAL TANPA ASUMSI
+            let totalAkumulasi = 0;
+            dataGaji.forEach((slip) => {
+              // Cuma hitung yang udah ACC
+              const isACC =
+                slip.status === "ACC" || slip.status_persetujuan === "ACC";
+              if (!isACC) return;
+
+              if (filterItem === "semua") {
+                totalAkumulasi += Number(slip.total_diterima || 0); // Murni grand total
+              } else if (filterItem === "bonus") {
+                totalAkumulasi +=
                   Number(slip.bonus_tepat_waktu || 0) +
                   Number(slip.bonus_mingguan || 0) +
                   Number(slip.uang_kesehatan || 0);
-                namaItem = "Total Bonus";
               } else if (filterItem === "kasbon") {
-                valHighlight = Number(slip.kasbon || 0);
-                namaItem = "Potongan Kasbon";
+                totalAkumulasi += Number(slip.kasbon || 0);
               } else {
-                valHighlight = Number(slip[filterItem] || 0);
-                namaItem = filterItem.replace("_", " ").toUpperCase();
+                // Dinamis sesuai value select (gaji_karyawan, uang_lembur, uang_makan)
+                totalAkumulasi += Number(slip[filterItem] || 0);
               }
+            });
 
-              highlightText = `<div class="mt-2 bg-blue-50 p-2 rounded text-xs font-bold text-blue-800 border border-blue-200">Kandungan ${namaItem}: Rp ${valHighlight.toLocaleString("id-ID")}</div>`;
+            // Update UI Total
+            if (elTotal)
+              elTotal.innerText = `Rp ${totalAkumulasi.toLocaleString("id-ID")}`;
+
+            if (dataGaji.length === 0) {
+              container.innerHTML = `<p class="text-gray-500 text-sm italic py-4">Tidak ada data untuk kombinasi filter ini.</p>`;
+              return;
             }
 
-            return `
+            // 3. RENDER KARTU SLIP
+            container.innerHTML = dataGaji
+              .map((slip) => {
+                const isACC =
+                  slip.status === "ACC" || slip.status_persetujuan === "ACC";
+                const inisial = slip.profiles?.nama
+                  ? slip.profiles.nama
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .substring(0, 2)
+                      .toUpperCase()
+                  : "KY";
+                const avatarKomponen = slip.profiles?.foto_profil
+                  ? `<img src="${slip.profiles.foto_profil}" class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 shadow-sm shrink-0" />`
+                  : `<div class="w-10 h-10 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700 font-bold text-sm shadow-sm shrink-0">${inisial}</div>`;
+
+                // Highlight item kalau filter bukan 'semua'
+                let highlightText = "";
+                if (isACC && filterItem !== "semua") {
+                  let valHighlight = 0;
+                  let namaItem = "";
+                  if (filterItem === "bonus") {
+                    valHighlight =
+                      Number(slip.bonus_tepat_waktu || 0) +
+                      Number(slip.bonus_mingguan || 0) +
+                      Number(slip.uang_kesehatan || 0);
+                    namaItem = "Total Bonus";
+                  } else if (filterItem === "kasbon") {
+                    valHighlight = Number(slip.kasbon || 0);
+                    namaItem = "Potongan Kasbon";
+                  } else {
+                    valHighlight = Number(slip[filterItem] || 0);
+                    namaItem = filterItem.replace("_", " ").toUpperCase();
+                  }
+
+                  highlightText = `<div class="mt-2 bg-blue-50 p-2 rounded text-xs font-bold text-blue-800 border border-blue-200">Kandungan ${namaItem}: Rp ${valHighlight.toLocaleString("id-ID")}</div>`;
+                }
+
+                return `
                     <div class="p-4 border border-gray-200 rounded-xl mb-3 bg-white shadow-sm flex gap-3 items-center">
                         ${avatarKomponen}
                         <div class="flex-1">
@@ -2217,215 +2340,318 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                             }
                         </div>
                     </div>`;
-          })
-          .join("");
-      };
+              })
+              .join("");
+          };
 
-      if (cachedData) {
-        renderHTML(JSON.parse(cachedData));
-      } else {
-        container.innerHTML =
-          '<p class="text-gray-500 text-sm italic animate-pulse">Memuat data riwayat gaji...</p>';
-        if (elTotal) elTotal.innerText = "Menghitung...";
-      }
+          if (cachedData) {
+            renderHTML(JSON.parse(cachedData));
+          } else {
+            container.innerHTML =
+              '<p class="text-gray-500 text-sm italic animate-pulse">Memuat data riwayat gaji...</p>';
+            if (elTotal) elTotal.innerText = "Menghitung...";
+          }
 
-      try {
-        const { data: dataGaji, error } = await supabase
-          .from("slip_gaji")
-          .select(`*, profiles!inner(id, nama, role, foto_profil)`)
-          .neq("profiles.role", "owner")
-          .gte("created_at", `${start} 00:00:00`)
-          .lte("created_at", `${end} 23:59:59`)
-          .order("created_at", { ascending: false });
-        if (error) throw error;
+          try {
+            const { data: dataGaji, error } = await supabase
+              .from("slip_gaji")
+              .select(`*, profiles!inner(id, nama, role, foto_profil)`)
+              .neq("profiles.role", "owner")
+              .gte("created_at", `${start} 00:00:00`)
+              .lte("created_at", `${end} 23:59:59`)
+              .order("created_at", { ascending: false });
+            if (error) throw error;
 
-        localStorage.setItem(cacheKey, JSON.stringify(dataGaji));
-        renderHTML(dataGaji);
-      } catch (error) {
-        console.error("Supabase Error:", error);
-        if (!cachedData) {
-          container.innerHTML = `
+            localStorage.setItem(cacheKey, JSON.stringify(dataGaji));
+            renderHTML(dataGaji);
+          } catch (error) {
+            console.error("Supabase Error:", error);
+            if (!cachedData) {
+              container.innerHTML = `
                     <div class="p-4 bg-red-50 text-red-700 rounded-xl text-xs">
                         <p class="font-bold">Gagal sinkronisasi data dengan server:</p>
                         <p class="italic mt-1">${error.message}</p>
                     </div>`;
-        }
-      }
-    }
-    document
-      .getElementById("btn-filter-gaji")
-      ?.addEventListener("click", muatRiwayatGaji);
-    window.filterTipeGaji = function (tipe) {
-      document.querySelectorAll(".filter-gaji-btn").forEach((btn) => {
-        if (
-          btn.innerText.includes(tipe) ||
-          (tipe === "Semua" && btn.innerText === "Semua")
-        ) {
-          btn.classList.add(
-            "active",
-            "bg-white",
-            "shadow-sm",
-            "text-green-700",
-          );
-          btn.classList.remove("text-gray-500");
-        } else {
-          btn.classList.remove(
-            "active",
-            "bg-white",
-            "shadow-sm",
-            "text-green-700",
-          );
-          btn.classList.add("text-gray-500");
-        }
-      });
-
-      document.querySelectorAll(".karyawan-card").forEach((card) => {
-        if (tipe === "Semua" || card.getAttribute("data-periode") === tipe) {
-          card.style.display = "";
-        } else {
-          card.style.display = "none";
-        }
-      });
-    };
-    // ==========================================
-    // 🔥 FITUR KOREKSI RIWAYAT GAJI 🔥
-    // ==========================================
-    window.bukaEditRiwayat = async function (id) {
-      if (!window.supabase) return;
-
-      try {
-        const { data: slip, error } = await window.supabase
-          .from("slip_gaji")
-          .select("*, profiles(nama)")
-          .eq("id", id)
-          .single();
-        if (error || !slip) throw new Error("Data slip tidak ditemukan!");
-
-        document.getElementById("er_slip_id").value = slip.id;
-        document.getElementById("edit_riwayat_nama").innerText =
-          `Karyawan: ${slip.profiles?.nama || "Unknown"} | ${slip.periode}`;
-        document.getElementById("er_status").value = slip.status;
-
-        // Total bonus gabungan (Biar gampang diedit)
-        const totalBonus =
-          (slip.bonus_tepat_waktu || 0) +
-          (slip.bonus_mingguan || 0) +
-          (slip.uang_kesehatan || 0) +
-          (slip.uang_rapat || 0) +
-          (slip.uang_nginep || 0);
-
-        document.getElementById("er_gaji").value = slip.gaji_karyawan || 0;
-        document.getElementById("er_lembur").value = slip.uang_lembur || 0;
-        document.getElementById("er_makan").value = slip.uang_makan || 0;
-        document.getElementById("er_bonus").value = totalBonus;
-        document.getElementById("er_kasbon").value = slip.kasbon || 0;
-
-        document.getElementById("er_total_lama").value =
-          slip.total_diterima || 0;
-
-        window.hitungTotalEditRiwayat();
-        window.openModal("modal-edit-riwayat");
-      } catch (err) {
-        alert(err.message);
-      }
-    };
-
-    window.hitungTotalEditRiwayat = function () {
-      const gaji = parseFloat(document.getElementById("er_gaji").value) || 0;
-      const lembur =
-        parseFloat(document.getElementById("er_lembur").value) || 0;
-      const makan = parseFloat(document.getElementById("er_makan").value) || 0;
-      const bonus = parseFloat(document.getElementById("er_bonus").value) || 0;
-      const kasbon =
-        parseFloat(document.getElementById("er_kasbon").value) || 0;
-
-      let total = gaji + lembur + makan + bonus - kasbon;
-      if (total < 0) total = 0;
-
-      document.getElementById("er_total_baru").innerText =
-        `Rp ${total.toLocaleString("id-ID")}`;
-      return total;
-    };
-
-    window.simpanEditRiwayat = async function () {
-      if (!confirm("Yakin ingin menyimpan koreksi gaji ini?")) return;
-      if (!window.supabase) return;
-
-      const btn = document.getElementById("btn-save-er");
-      btn.innerText = "Memproses...";
-      btn.disabled = true;
-
-      try {
-        const slipId = document.getElementById("er_slip_id").value;
-        const status = document.getElementById("er_status").value;
-        const totalLama =
-          parseFloat(document.getElementById("er_total_lama").value) || 0;
-        const totalBaru = window.hitungTotalEditRiwayat();
-
-        // Siapkan Data Update Slip
-        const payload = {
-          gaji_karyawan:
-            parseFloat(document.getElementById("er_gaji").value) || 0,
-          uang_lembur:
-            parseFloat(document.getElementById("er_lembur").value) || 0,
-          uang_makan:
-            parseFloat(document.getElementById("er_makan").value) || 0,
-          bonus_mingguan:
-            parseFloat(document.getElementById("er_bonus").value) || 0, // Pukul rata bonus masuk ke sini
-          bonus_tepat_waktu: 0,
-          uang_kesehatan: 0,
-          uang_rapat: 0,
-          uang_nginep: 0, // Reset pecahan bonus
-          kasbon: parseFloat(document.getElementById("er_kasbon").value) || 0,
-          total_diterima: totalBaru,
-        };
-
-        // 🔥 LOGIKA KEUANGAN: Jika slip sudah LUNAS (ACC), kita sesuaikan Kas Perusahaan
-        if (status === "ACC" || status === "Disetujui") {
-          const selisih = totalBaru - totalLama;
-          if (selisih !== 0) {
-            // Ambil saldo kas saat ini
-            const { data: kasData } = await window.supabase
-              .from("kas_perusahaan")
-              .select("uang_keuangan")
-              .eq("id", 1)
-              .single();
-            let saldoKeuangan = parseFloat(kasData?.uang_keuangan) || 0;
-
-            if (selisih > 0 && saldoKeuangan < selisih) {
-              throw new Error(
-                `Saldo Uang Keuangan tidak cukup untuk nombokin selisih Rp ${selisih.toLocaleString("id-ID")}`,
-              );
             }
-
-            // Sesuaikan dompet (Jika tagihan nambah, kas berkurang. Jika tagihan berkurang, kas nambah)
-            await window.supabase
-              .from("kas_perusahaan")
-              .update({
-                uang_keuangan: saldoKeuangan - selisih,
-              })
-              .eq("id", 1);
-
-            // Update catatan dompet terpakai di slip_gaji
-            payload.kas_keuangan_terpakai = totalBaru;
-            payload.kas_gudang_terpakai = 0;
-            payload.kas_owner_terpakai = 0;
           }
         }
+        document
+          .getElementById("btn-filter-gaji")
+          ?.addEventListener("click", muatRiwayatGaji);
+        window.filterTipeGaji = function (tipe) {
+          document.querySelectorAll(".filter-gaji-btn").forEach((btn) => {
+            if (
+              btn.innerText.includes(tipe) ||
+              (tipe === "Semua" && btn.innerText === "Semua")
+            ) {
+              btn.classList.add(
+                "active",
+                "bg-white",
+                "shadow-sm",
+                "text-green-700",
+              );
+              btn.classList.remove("text-gray-500");
+            } else {
+              btn.classList.remove(
+                "active",
+                "bg-white",
+                "shadow-sm",
+                "text-green-700",
+              );
+              btn.classList.add("text-gray-500");
+            }
+          });
 
-        // Update database Slip Gaji
-        await window.supabase
-          .from("slip_gaji")
-          .update(payload)
-          .eq("id", slipId);
+          document.querySelectorAll(".karyawan-card").forEach((card) => {
+            if (
+              tipe === "Semua" ||
+              card.getAttribute("data-periode") === tipe
+            ) {
+              card.style.display = "";
+            } else {
+              card.style.display = "none";
+            }
+          });
+        };
 
-        alert("✅ Mantap! Riwayat Slip Gaji berhasil dikoreksi.");
-        window.location.reload();
-      } catch (err) {
-        alert("Gagal koreksi gaji: " + err.message);
-        btn.innerText = "SIMPAN KOREKSI SLIP";
-        btn.disabled = false;
-      }
-    };
-  });
-</script>
+        // ==========================================
+        // 🔥 FITUR KOREKSI RIWAYAT GAJI 🔥
+        // ==========================================
+        window.bukaEditRiwayat = async function (id) {
+          if (!window.supabase) return;
+          try {
+            const { data: slip, error } = await window.supabase
+              .from("slip_gaji")
+              .select("*, profiles(nama)")
+              .eq("id", id)
+              .single();
+            if (error || !slip) throw new Error("Data slip tidak ditemukan!");
+
+            // 🔥 1. HITUNG RENTANG TANGGAL MINGGUAN (Senin s/d Minggu) DARI slip.periode 🔥
+            const tglAkhir = slip.periode;
+            const dEnd = new Date(tglAkhir);
+            const dStart = new Date(dEnd);
+            dStart.setDate(dEnd.getDate() - 6);
+            const tglMulai = dStart.toISOString().split("T")[0];
+
+            // 🔥 2. AMBIL DATA JERIGEN SEMINGGU PENUH SESUAI USER_ID & RENTANG TANGGAL 🔥
+            const { data: jerigenData } = await window.supabase
+              .from("tata_kelola_jerigen")
+              .select("jumlah_jerigen")
+              .eq("user_id", slip.user_id)
+              .gte("tanggal", tglMulai)
+              .lte("tanggal", tglAkhir);
+
+            let totalJerigenPcs = 0;
+            if (jerigenData && jerigenData.length > 0) {
+              totalJerigenPcs = jerigenData.reduce(
+                (sum, item) => sum + (parseInt(item.jumlah_jerigen) || 0),
+                0,
+              );
+            } else {
+              totalJerigenPcs = slip.jumlah_jerigen || 0;
+            }
+
+            // 🔥 3. AMBIL TARIF LANGSUNG MUTLAK DARI setup_gaji 🔥
+            const { data: setup } = await window.supabase
+              .from("setup_gaji")
+              .select("tarif_jerigen")
+              .eq("user_id", slip.user_id)
+              .maybeSingle();
+
+            // Murni dari setup_gaji, abaikan slip.tarif_jerigen
+            const tarifJerigenFinal = setup?.tarif_jerigen || 0;
+
+            document.getElementById("er_slip_id").value = slip.id;
+            document.getElementById("edit_riwayat_nama").innerText =
+              `Karyawan: ${slip.profiles?.nama || "Unknown"} | ${slip.periode}`;
+            document.getElementById("er_status").value = slip.status;
+
+            // 🔥 4. SUNTIKKAN SEMUA DATA YANG SUDAH VALID KE INPUT FORM MODAL 🔥
+            document.getElementById("er_gaji").value = slip.gaji_karyawan || 0;
+            document.getElementById("er_jumlah_jerigen").value =
+              totalJerigenPcs;
+
+            // Tarif sekarang dipastikan 100% dari setup_gaji
+            document.getElementById("er_tarif_jerigen").value =
+              tarifJerigenFinal;
+
+            document.getElementById("er_lembur").value = slip.uang_lembur || 0;
+            document.getElementById("er_makan").value = slip.uang_makan || 0;
+            document.getElementById("er_makan_malam").value =
+              slip.uang_makan_malam || 0;
+            document.getElementById("er_bonus_penjemputan").value =
+              slip.bonus_penjemputan || 0;
+            document.getElementById("er_bonus_tepat_waktu").value =
+              slip.bonus_tepat_waktu || 0;
+            document.getElementById("er_bonus_mingguan").value =
+              slip.bonus_mingguan || 0;
+            document.getElementById("er_uang_kesehatan").value =
+              slip.uang_kesehatan || 0;
+            document.getElementById("er_kasbon").value = slip.kasbon || 0;
+            document.getElementById("er_total_lama").value =
+              slip.total_diterima || 0;
+
+            // Opsional: Jika ingin Gaji Pokok langsung menghitung ulang berdasarkan tarif jerigen setup terbaru
+            // Anda bisa memanggil window.kalkulasiGajiJerigenEdit(); di sini
+            window.hitungTotalEditRiwayat();
+            window.openModal("modal-edit-riwayat");
+          } catch (err) {
+            alert(err.message);
+          }
+        };
+
+        window.hitungTotalEditRiwayat = function () {
+          // Ambil nilai dari semua field yang sekarang udah dipisah
+          const gaji =
+            parseFloat(document.getElementById("er_gaji").value) || 0;
+          const lembur =
+            parseFloat(document.getElementById("er_lembur").value) || 0;
+          const makan =
+            parseFloat(document.getElementById("er_makan").value) || 0;
+          const makanMalam =
+            parseFloat(document.getElementById("er_makan_malam").value) || 0;
+          const jemput =
+            parseFloat(document.getElementById("er_bonus_penjemputan").value) ||
+            0;
+          const tepatWaktu =
+            parseFloat(document.getElementById("er_bonus_tepat_waktu").value) ||
+            0;
+          const mingguan =
+            parseFloat(document.getElementById("er_bonus_mingguan").value) || 0;
+          const kesehatan =
+            parseFloat(document.getElementById("er_uang_kesehatan").value) || 0;
+          const kasbon =
+            parseFloat(document.getElementById("er_kasbon").value) || 0;
+
+          // Jumlahkan semuanya
+          let total =
+            gaji +
+            lembur +
+            makan +
+            makanMalam +
+            jemput +
+            tepatWaktu +
+            mingguan +
+            kesehatan -
+            kasbon;
+          if (total < 0) total = 0;
+
+          document.getElementById("er_total_baru").innerText =
+            `Rp ${total.toLocaleString("id-ID")}`;
+          return total;
+        };
+
+        window.kalkulasiGajiJerigenEdit = function () {
+          const jumlahJerigen =
+            parseInt(document.getElementById("er_jumlah_jerigen").value) || 0;
+          const tarifJerigen =
+            parseFloat(document.getElementById("er_tarif_jerigen").value) || 0;
+
+          // Jika ada input jerigen atau tarif, otomatis kalikan dan masukkan ke Gaji Pokok
+          if (jumlahJerigen > 0 || tarifJerigen > 0) {
+            document.getElementById("er_gaji").value =
+              jumlahJerigen * tarifJerigen;
+          }
+
+          // Update grand total
+          window.hitungTotalEditRiwayat();
+        };
+
+        window.simpanEditRiwayat = async function () {
+          if (!confirm("Yakin ingin menyimpan koreksi gaji ini?")) return;
+          if (!window.supabase) return;
+
+          const btn = document.getElementById("btn-save-er");
+          btn.innerText = "Memproses...";
+          btn.disabled = true;
+
+          try {
+            const slipId = document.getElementById("er_slip_id").value;
+            const status = document.getElementById("er_status").value;
+            const totalLama =
+              parseFloat(document.getElementById("er_total_lama").value) || 0;
+            const totalBaru = window.hitungTotalEditRiwayat();
+
+            // 🔥 3. SIAPKAN PAYLOAD UNTUK UPDATE KE DATABASE 🔥
+            const payload = {
+              gaji_karyawan:
+                parseFloat(document.getElementById("er_gaji").value) || 0,
+              jumlah_jerigen:
+                parseInt(document.getElementById("er_jumlah_jerigen").value) ||
+                0, // Simpan jerigen ke slip_gaji
+              tarif_jerigen:
+                parseFloat(document.getElementById("er_tarif_jerigen").value) ||
+                0,
+              uang_lembur:
+                parseFloat(document.getElementById("er_lembur").value) || 0,
+              uang_makan:
+                parseFloat(document.getElementById("er_makan").value) || 0,
+              uang_makan_malam:
+                parseFloat(document.getElementById("er_makan_malam").value) ||
+                0,
+              bonus_penjemputan:
+                parseFloat(
+                  document.getElementById("er_bonus_penjemputan").value,
+                ) || 0,
+              bonus_tepat_waktu:
+                parseFloat(
+                  document.getElementById("er_bonus_tepat_waktu").value,
+                ) || 0,
+              bonus_mingguan:
+                parseFloat(
+                  document.getElementById("er_bonus_mingguan").value,
+                ) || 0,
+              uang_kesehatan:
+                parseFloat(
+                  document.getElementById("er_uang_kesehatan").value,
+                ) || 0,
+              kasbon:
+                parseFloat(document.getElementById("er_kasbon").value) || 0,
+              total_diterima: totalBaru,
+            };
+
+            // 🔥 LOGIKA KEUANGAN (Tetap sama seperti aslinya)
+            if (status === "ACC" || status === "Disetujui") {
+              const selisih = totalBaru - totalLama;
+              if (selisih !== 0) {
+                const { data: kasData } = await window.supabase
+                  .from("kas_perusahaan")
+                  .select("uang_keuangan")
+                  .eq("id", 1)
+                  .single();
+                let saldoKeuangan = parseFloat(kasData?.uang_keuangan) || 0;
+
+                if (selisih > 0 && saldoKeuangan < selisih) {
+                  throw new Error(
+                    `Saldo Uang Keuangan tidak cukup untuk nombokin selisih Rp ${selisih.toLocaleString("id-ID")}`,
+                  );
+                }
+
+                await window.supabase
+                  .from("kas_perusahaan")
+                  .update({ uang_keuangan: saldoKeuangan - selisih })
+                  .eq("id", 1);
+
+                payload.kas_keuangan_terpakai = totalBaru;
+              }
+            }
+
+            // Update database Slip Gaji
+            await window.supabase
+              .from("slip_gaji")
+              .update(payload)
+              .eq("id", slipId);
+
+            alert("✅ Mantap! Riwayat Slip Gaji berhasil dikoreksi.");
+            window.location.reload();
+          } catch (err) {
+            alert("Gagal koreksi gaji: " + err.message);
+            btn.innerText = "SIMPAN KOREKSI SLIP";
+            btn.disabled = false;
+          }
+        };
+      });
+    </script>
+  </div>
+</div>

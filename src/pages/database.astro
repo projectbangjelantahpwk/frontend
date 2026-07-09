@@ -503,17 +503,6 @@ const statusBadgeColors = {
                   />
                 </div>
 
-                <div class="col-span-2 mt-1">
-                  <label class="block text-xs font-bold text-red-700 mb-1"
-                    >Potongan Kasbon (Rp)</label
-                  >
-                  <input
-                    type="number"
-                    id="manual_kasbon"
-                    value="0"
-                    class="w-full border border-red-300 bg-red-50 text-red-900 font-bold rounded-lg p-2 text-sm outline-none focus:border-red-600"
-                  />
-                </div>
                 <!-- 👉 TAMBAHAN: UANG TRANSPORT -->
                 <div>
                   <label class="block text-xs font-bold text-gray-700 mb-1"
@@ -549,6 +538,42 @@ const statusBadgeColors = {
                     id="manual_uang_rapat"
                     value="0"
                     class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-orange-800 mb-1"
+                    >Jumlah Jerigen (Pcs)</label
+                  >
+                  <input
+                    type="number"
+                    id="manual_jumlah_jerigen"
+                    value="0"
+                    class="w-full border border-orange-300 bg-orange-50 text-orange-900 rounded-lg p-2 text-sm outline-none focus:border-orange-600"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-orange-800 mb-1"
+                    >Volume Minyak (Kg)</label
+                  >
+                  <input
+                    type="number"
+                    step="0.01"
+                    id="manual_volume_minyak"
+                    value="0"
+                    class="w-full border border-orange-300 bg-orange-50 text-orange-900 rounded-lg p-2 text-sm outline-none focus:border-orange-600"
+                  />
+                </div>
+
+                <div class="col-span-2 mt-1">
+                  <label class="block text-xs font-bold text-red-700 mb-1"
+                    >Potongan Kasbon (Rp)</label
+                  >
+                  <input
+                    type="number"
+                    id="manual_kasbon"
+                    value="0"
+                    class="w-full border border-red-300 bg-red-50 text-red-900 font-bold rounded-lg p-2 text-sm outline-none focus:border-red-600"
                   />
                 </div>
               </div>
@@ -2323,6 +2348,7 @@ const statusBadgeColors = {
     // ==========================================
     let historyGajiMap = {};
     let slipGajiLengkap = [];
+    let tataKelolaJerigenLengkap = [];
     let manualDatePicker = null;
 
     window.initGajiManual = async function () {
@@ -2352,6 +2378,14 @@ const statusBadgeColors = {
           .order("periode", { ascending: false });
 
         slipGajiLengkap = semuaSlip || [];
+
+        // 🔥 3. TARIK JUGA DATA JERIGEN DARI TABEL tata_kelola_jerigen
+        const { data: semuaJerigen } = await client
+          .from("tata_kelola_jerigen")
+          .select("user_id, tanggal, jumlah_jerigen, volume_minyak_kg");
+
+        tataKelolaJerigenLengkap = semuaJerigen || [];
+
         historyGajiMap = {};
 
         slipGajiLengkap.forEach((slip) => {
@@ -2464,6 +2498,16 @@ const statusBadgeColors = {
       document.getElementById("manual_uang_rapat").value = slip.uang_rapat || 0;
       document.getElementById("manual_kasbon").value = slip.kasbon || 0;
 
+      // 🔥 CARI DATA JERIGEN YANG COCOK (Berdasarkan Karyawan & Tanggal Periode)
+      const dataJerigen = tataKelolaJerigenLengkap.find(
+        (j) => j.user_id === slip.user_id && j.tanggal === slip.periode,
+      );
+
+      document.getElementById("manual_jumlah_jerigen").value =
+        dataJerigen?.jumlah_jerigen || 0;
+      document.getElementById("manual_volume_minyak").value =
+        dataJerigen?.volume_minyak_kg || 0;
+
       hitungGrandTotalManual();
 
       // 4. Ubah Tombol Submit jadi Mode Update
@@ -2488,11 +2532,109 @@ const statusBadgeColors = {
     }
 
     // Kalkulator Realtime UI
+    // Kalkulator Realtime UI & Sistem Kunci
     const hitungGrandTotalManual = () => {
-      const pGaji =
-        parseFloat(document.getElementById("manual_gaji").value) || 0;
-      const pLembur =
-        parseFloat(document.getElementById("manual_lembur").value) || 0;
+      // 1. Ambil elemen form yang saling berkaitan
+      const elGaji = document.getElementById("manual_gaji");
+      const elLembur = document.getElementById("manual_lembur");
+      const elJerigen = document.getElementById("manual_jumlah_jerigen");
+      const elVolume = document.getElementById("manual_volume_minyak");
+
+      // 2. Ambil nilai (pastikan jadi 0 kalau kosong)
+      let pGaji = parseFloat(elGaji?.value) || 0;
+      let pLembur = parseFloat(elLembur?.value) || 0;
+      let pJerigen = parseFloat(elJerigen?.value) || 0;
+      let pVolume = parseFloat(elVolume?.value) || 0;
+
+      // ========================================================
+      // 🔥 LOGIKA KUNCI OTOMATIS: JERIGEN VS GAJI POKOK/LEMBUR
+      // ========================================================
+      if (pJerigen > 0 || pVolume > 0) {
+        // JIKA JERIGEN DIISI -> MATIKAN GAJI & LEMBUR
+        if (elGaji) {
+          elGaji.readOnly = true;
+          elGaji.value = 0;
+          pGaji = 0;
+          elGaji.classList.add(
+            "bg-gray-200",
+            "opacity-50",
+            "cursor-not-allowed",
+          );
+        }
+        if (elLembur) {
+          elLembur.readOnly = true;
+          elLembur.value = 0;
+          pLembur = 0;
+          elLembur.classList.add(
+            "bg-gray-200",
+            "opacity-50",
+            "cursor-not-allowed",
+          );
+        }
+      } else if (pGaji > 0 || pLembur > 0) {
+        // JIKA GAJI/LEMBUR DIISI -> MATIKAN JERIGEN
+        if (elJerigen) {
+          elJerigen.readOnly = true;
+          elJerigen.value = 0;
+          pJerigen = 0;
+          elJerigen.classList.add(
+            "bg-gray-200",
+            "opacity-50",
+            "cursor-not-allowed",
+          );
+          elJerigen.classList.replace("bg-orange-50", "bg-gray-200");
+        }
+        if (elVolume) {
+          elVolume.readOnly = true;
+          elVolume.value = 0;
+          pVolume = 0;
+          elVolume.classList.add(
+            "bg-gray-200",
+            "opacity-50",
+            "cursor-not-allowed",
+          );
+          elVolume.classList.replace("bg-orange-50", "bg-gray-200");
+        }
+      } else {
+        // JIKA KOSONG SEMUA -> BUKA KUNCIANNYA
+        if (elGaji) {
+          elGaji.readOnly = false;
+          elGaji.classList.remove(
+            "bg-gray-200",
+            "opacity-50",
+            "cursor-not-allowed",
+          );
+        }
+        if (elLembur) {
+          elLembur.readOnly = false;
+          elLembur.classList.remove(
+            "bg-gray-200",
+            "opacity-50",
+            "cursor-not-allowed",
+          );
+        }
+        if (elJerigen) {
+          elJerigen.readOnly = false;
+          elJerigen.classList.remove(
+            "bg-gray-200",
+            "opacity-50",
+            "cursor-not-allowed",
+          );
+          elJerigen.classList.replace("bg-gray-200", "bg-orange-50");
+        }
+        if (elVolume) {
+          elVolume.readOnly = false;
+          elVolume.classList.remove(
+            "bg-gray-200",
+            "opacity-50",
+            "cursor-not-allowed",
+          );
+          elVolume.classList.replace("bg-gray-200", "bg-orange-50");
+        }
+      }
+      // ========================================================
+
+      // 3. Ambil nilai form sisanya
       const pMakan =
         parseFloat(document.getElementById("manual_makan").value) || 0;
       const pTransport =
@@ -2510,7 +2652,7 @@ const statusBadgeColors = {
       const pKasbon =
         parseFloat(document.getElementById("manual_kasbon").value) || 0;
 
-      // ✅ MASUKKAN TRANSPORT, TALANGAN, RAPAT (Boleh NEGATIF jika kasbon besar)
+      // 4. Kalkulasi Grand Total
       const total =
         pGaji +
         pLembur +
@@ -2539,10 +2681,61 @@ const statusBadgeColors = {
       "manual_bonus_tepat",
       "manual_bonus_mingguan",
       "manual_kasbon",
+      "manual_jumlah_jerigen",
+      "manual_volume_minyak",
     ].forEach((id) => {
       document
         .getElementById(id)
         ?.addEventListener("input", hitungGrandTotalManual);
+    });
+
+    // ========================================================
+    // 🔥 SENSOR PERINGATAN DOBEL INPUT (GAJI POKOK VS JERIGEN)
+    // ========================================================
+    const sensorBentrokGaji = (e) => {
+      const pGaji =
+        parseFloat(document.getElementById("manual_gaji").value) || 0;
+      const pJerigen =
+        parseFloat(document.getElementById("manual_jumlah_jerigen").value) || 0;
+      const pVolume =
+        parseFloat(document.getElementById("manual_volume_minyak").value) || 0;
+
+      const ngetikGaji = e.target.id === "manual_gaji";
+      const ngetikJerigen =
+        e.target.id === "manual_jumlah_jerigen" ||
+        e.target.id === "manual_volume_minyak";
+
+      // Kalau klik/ngetik Gaji, tapi Jerigen udah ada isinya
+      if (
+        ngetikGaji &&
+        (pJerigen > 0 || pVolume > 0) &&
+        !sudahPeringatkanBentrok
+      ) {
+        alert(
+          "⚠️ PERINGATAN BENTROK!\n\nAnda sebelumnya sudah mengisi data Jerigen. Yakin ingin mengisi Gaji Pokok juga?\n(Biasanya karyawan hanya menggunakan salah satu: Gaji Pokok saja atau Gaji Jerigen saja)",
+        );
+        sudahPeringatkanBentrok = true;
+      }
+      // Kalau klik/ngetik Jerigen, tapi Gaji udah ada isinya
+      else if (ngetikJerigen && pGaji > 0 && !sudahPeringatkanBentrok) {
+        alert(
+          "⚠️ PERINGATAN BENTROK!\n\nAnda sebelumnya sudah mengisi Gaji Pokok. Yakin ingin menginput Jerigen juga?\n(Biasanya karyawan hanya menggunakan salah satu: Gaji Pokok saja atau Gaji Jerigen saja)",
+        );
+        sudahPeringatkanBentrok = true;
+      }
+    };
+
+    // Deteksi saat admin nge-klik (focus) atau ngetik (input) di form
+    ["focus", "input"].forEach((eventTipe) => {
+      document
+        .getElementById("manual_gaji")
+        ?.addEventListener(eventTipe, sensorBentrokGaji);
+      document
+        .getElementById("manual_jumlah_jerigen")
+        ?.addEventListener(eventTipe, sensorBentrokGaji);
+      document
+        .getElementById("manual_volume_minyak")
+        ?.addEventListener(eventTipe, sensorBentrokGaji);
     });
 
     // EKSEKUSI INSERT ATAU UPDATE KE DATABASE SUPABASE
@@ -2610,6 +2803,48 @@ const statusBadgeColors = {
             kas_gudang_terpakai: 0,
             kas_owner_terpakai: 0,
           };
+
+          // ========================================================
+          // 🔥 TAHAP 3: SIMPAN DATA KE TABEL tata_kelola_jerigen 🔥
+          // ========================================================
+          const valJerigen =
+            parseFloat(
+              document.getElementById("manual_jumlah_jerigen").value,
+            ) || 0;
+          const valVolume =
+            parseFloat(document.getElementById("manual_volume_minyak").value) ||
+            0;
+
+          // Cek apakah di tanggal ini karyawan tersebut sudah punya record jerigen
+          const existingJerigen = tataKelolaJerigenLengkap.find(
+            (j) => String(j.user_id) === String(empId) && j.tanggal === periode,
+          );
+
+          if (existingJerigen) {
+            // Jika sudah ada -> UPDATE
+            const { error: errJerigen } = await client
+              .from("tata_kelola_jerigen")
+              .update({
+                jumlah_jerigen: valJerigen,
+                volume_minyak_kg: valVolume,
+              })
+              .eq("user_id", empId)
+              .eq("tanggal", periode);
+            if (errJerigen) console.error("Gagal update jerigen:", errJerigen);
+          } else if (valJerigen > 0 || valVolume > 0) {
+            // Jika belum ada tapi formnya diisi -> INSERT
+            const { error: errJerigen } = await client
+              .from("tata_kelola_jerigen")
+              .insert([
+                {
+                  user_id: empId,
+                  tanggal: periode,
+                  jumlah_jerigen: valJerigen,
+                  volume_minyak_kg: valVolume,
+                },
+              ]);
+            if (errJerigen) console.error("Gagal insert jerigen:", errJerigen);
+          }
 
           if (editSlipId) {
             // JIKA MODE EDIT (UPDATE)

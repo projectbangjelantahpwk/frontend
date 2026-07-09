@@ -522,15 +522,45 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                   />
                 </div>
               </div>
+
+              <div class="grid grid-cols-2 gap-3 mt-3">
+                <div>
+                  <label
+                    class="block text-[10px] font-bold text-orange-800 mb-1"
+                    >Input Jerigen Manual (Pcs)</label
+                  >
+                  <input
+                    type="number"
+                    id="input_jerigen_manual"
+                    onchange="window.kalkulasiRealtimeGaji()"
+                    class="w-full border border-orange-300 rounded-lg p-2 text-sm font-bold text-orange-900 outline-none focus:border-orange-600 shadow-inner"
+                    placeholder="Otomatis dr DB..."
+                  />
+                </div>
+                <div>
+                  <label
+                    class="block text-[10px] font-bold text-orange-800 mb-1"
+                    >Volume Manual (Kg)</label
+                  >
+                  <input
+                    type="number"
+                    id="input_volume_manual"
+                    onchange="window.kalkulasiRealtimeGaji()"
+                    class="w-full border border-orange-300 rounded-lg p-2 text-sm font-bold text-orange-900 outline-none focus:border-orange-600 shadow-inner"
+                    placeholder="Otomatis dr DB..."
+                  />
+                </div>
+              </div>
+
               <div
                 class="mt-3 text-xs font-bold bg-orange-100 text-orange-900 p-2.5 rounded-lg flex justify-between items-center border border-orange-200"
               >
                 <span
-                  ><i class="bi bi-box-seam mr-1"></i> Jerigen Terkumpul Minggu Ini:</span
+                  ><i class="bi bi-box-seam mr-1"></i> Jerigen & Minyak Periode Ini:</span
                 >
                 <span
                   id="info_total_jerigen_minggu"
-                  class="text-lg font-black font-mono">0 Pcs</span
+                  class="text-lg font-black font-mono">0 Pcs / 0 Kg</span
                 >
               </div>
             </div>
@@ -1445,7 +1475,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     window.kalkulasiRealtimeGaji = async function () {
       const d = window.currentSalaryData;
       if (!d) return;
-
       document.getElementById("m_total_gaji").innerText = "Menghitung...";
       document.getElementById("m_rincian_list").innerHTML =
         `<p class="text-center text-sm text-gray-500 py-4"><i class="bi bi-arrow-repeat animate-spin inline-block mr-2"></i> Sinkronisasi Kalkulator Server...</p>`;
@@ -1456,14 +1485,16 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       const potonganManual =
         potKasbonInput === "" ? null : parseFloat(potKasbonInput);
 
-      // 👉 TARUH DI SINI (1): Ambil Input Talangan
       const talInput = document.getElementById(
         "tambahan_talangan_sekarang",
       ).value;
       const talanganManual = talInput === "" ? null : parseFloat(talInput);
 
+      // 🔥 AMBIL INPUT JERIGEN MANUAL
+      const jm = document.getElementById("input_jerigen_manual")?.value;
+      const vm = document.getElementById("input_volume_manual")?.value;
+
       try {
-        // 🔥 MINTA DENO BUAT NGITUNGIN 🔥
         const { data, error } = await window.supabase.functions.invoke(
           "gaji-karyawan",
           {
@@ -1475,59 +1506,35 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               potonganKasbonManual: isNaN(potonganManual)
                 ? null
                 : potonganManual,
-              // 👉 TARUH DI SINI (2): Lempar variabelnya ke Deno
               tambahanTalanganManual: isNaN(talanganManual)
                 ? null
                 : talanganManual,
               siklusGaji: d.siklusGaji,
+              jumlahJerigenManual: jm === "" ? null : parseFloat(jm),
+              volumeMinyakKgManual: vm === "" ? null : parseFloat(vm),
             },
           },
         );
-
         if (error) throw error;
-        const res = data.data; // Tangkap hasil matang dari server
+        const res = data.data;
 
-        // 🔥 HIJACK KALKULASI JIKA MODE JERIGEN AKTIF 🔥
+        // Tampilkan info jerigen di UI
         const isJerigen = document.getElementById("chk_gaji_jerigen").checked;
-        const tarifJ =
-          parseFloat(document.getElementById("setup_tarif_jerigen").value) || 0;
-        const bonusJ =
-          parseFloat(document.getElementById("setup_bonus_jerigen").value) || 0;
-        const totalJ = window.currentSalaryData.totalJerigenMinggu || 0;
-
         if (isJerigen) {
-          // 1. Ganti Gaji Pokok menjadi Total Jerigen x Tarif
-          res.valGajiNormal = totalJ * tarifJ;
-          // 2. Timpa Bonus Mingguan otomatis dengan Bonus Pribadi
-          res.valBonusMingguan = bonusJ;
-          // 3. Kalkulasi ulang Grand Total
-          res.grandTotal =
-            res.valGajiNormal +
-            res.valBonusMingguan +
-            (res.valLembur || 0) +
-            (res.valMakan || 0) +
-            (res.valTransport || 0) + // 🔥 + Transport
-            (res.valBonusTepat || 0) +
-            (res.valKesehatan || 0) +
-            (res.valRapat || 0) +
-            (res.valNginep || 0) +
-            (res.valTalangan || 0) - // 🔥 + Talangan
-            (res.valPotonganKasbon || 0);
+          document.getElementById("info_total_jerigen_minggu").innerText =
+            `${res.jumlahJerigen || 0} Pcs / ${res.volumeMinyakKg || 0} Kg`;
         }
 
-        // Simpan state final yang udah di-hijack
-        d.finalState = {
-          grandTotal: res.grandTotal,
-          valGajiNormal: res.valGajiNormal,
-          valBonusMingguan: res.valBonusMingguan,
-        };
+        // Simpan state final
+        d.finalState = { grandTotal: res.grandTotal };
 
         // Modifikasi Label UI
         const labelGajiPokok = isJerigen
-          ? `Gaji Jerigen (${totalJ} Pcs x Rp ${tarifJ.toLocaleString("id-ID")})`
+          ? `Gaji Jerigen (${res.jumlahJerigen} Pcs x Rp ${parseFloat(document.getElementById("setup_tarif_jerigen").value || 0).toLocaleString("id-ID")})`
           : `Gaji Pokok Proporsional (${res.hariKerjaNormal} Hari)`;
+
         const labelBonus = isJerigen
-          ? `Bonus Jerigen (Set Manual)`
+          ? `Bonus Jerigen (Mode Khusus)`
           : `Bonus Tambahan`;
 
         // Simpan Grand Total buat dipake modal Kasir nanti

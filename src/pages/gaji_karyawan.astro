@@ -469,6 +469,43 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           </div>
 
           <div
+            class="col-span-2 mt-4 p-4 bg-blue-50 rounded-xl border border-blue-100"
+          >
+            <h4
+              class="text-sm font-black text-blue-900 mb-2 flex items-center gap-2"
+            >
+              <i class="bi bi-database-add"></i> Tambah Master Komponen Gaji
+            </h4>
+            <p class="text-[10px] text-blue-700 mb-3">
+              Tambahkan nama potongan/tunjangan baru ke dalam sistem agar muncul
+              di pilihan dropdown karyawan.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-2">
+              <input
+                type="text"
+                id="input-master-nama"
+                placeholder="Contoh: Tunjangan Istri"
+                class="w-full sm:w-1/2 border border-blue-200 rounded-lg p-2 text-xs outline-none focus:border-blue-500"
+              />
+              <select
+                id="input-master-tipe"
+                class="w-full sm:w-1/4 border border-blue-200 rounded-lg p-2 text-xs outline-none bg-white focus:border-blue-500"
+              >
+                <option value="penambahan">+ Penambahan</option>
+                <option value="potongan">- Potongan</option>
+              </select>
+              <button
+                type="button"
+                onclick="window.simpanMasterKomponen()"
+                class="w-full sm:w-1/4 bg-blue-600 text-white font-bold text-xs rounded-lg p-2 hover:bg-blue-700 transition-all shadow-sm"
+              >
+                Simpan ke Database
+              </button>
+            </div>
+          </div>
+
+          <div
             class="col-span-2 bg-purple-50 p-3.5 rounded-xl border border-purple-200 mt-2"
           >
             <label class="flex items-center justify-between cursor-pointer">
@@ -587,6 +624,34 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               class="w-full border border-blue-300 bg-white text-blue-900 font-bold font-mono rounded-lg p-2.5 text-sm outline-none focus:border-blue-600 shadow-inner"
               placeholder="Nominal Talangan (Opsional)..."
             />
+          </div>
+        </div>
+
+        <div
+          class="col-span-2 bg-white p-3.5 rounded-xl border border-gray-200 mt-2 shadow-sm"
+        >
+          <div
+            class="flex justify-between items-center mb-3 border-b border-gray-100 pb-2"
+          >
+            <label
+              class="text-xs font-bold text-gray-800 uppercase flex items-center"
+            >
+              <i class="bi bi-list-check text-blue-600 mr-2 text-lg"></i> Komponen
+              Lain-lain
+            </label>
+            <button
+              type="button"
+              onclick="window.tambahBarisLainLain()"
+              class="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm hover:bg-blue-100 border border-blue-200 transition"
+            >
+              <i class="bi bi-plus-lg"></i> Tambah Baris
+            </button>
+          </div>
+
+          <div id="container-lain-lain" class="space-y-2">
+            <p class="text-[10px] text-gray-400 italic text-center py-4">
+              Memuat data komponen...
+            </p>
           </div>
         </div>
 
@@ -834,253 +899,511 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             oninput="window.hitungTotalEditSlip()"
           />
         </div>
+        <div
+          class="bg-white p-3.5 rounded-xl border border-gray-200 mt-4 shadow-sm col-span-2"
+        >
+          <div
+            class="flex justify-between items-center mb-3 border-b border-gray-100 pb-2"
+          >
+            <label
+              class="text-xs font-bold text-gray-800 uppercase flex items-center"
+            >
+              <i class="bi bi-list-check text-blue-600 mr-2 text-lg"></i> Komponen
+              Lain-lain (Riwayat)
+            </label>
+            <button
+              type="button"
+              onclick="window.tambahBarisLainLainRiwayat()"
+              class="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm hover:bg-blue-100 border border-blue-200 transition"
+            >
+              <i class="bi bi-plus-lg"></i> Tambah Baris
+            </button>
+          </div>
+
+          <div id="container-lain-lain-riwayat" class="space-y-2">
+            <p class="text-[10px] text-gray-400 italic text-center py-4">
+              Memuat data komponen...
+            </p>
+          </div>
+        </div>
+
+        <div
+          id="edit_bonus_breakdown"
+          class="bg-amber-50/50 p-3 rounded-xl border border-amber-100"
+        >
+        </div>
       </div>
 
       <div
-        id="edit_bonus_breakdown"
-        class="bg-amber-50/50 p-3 rounded-xl border border-amber-100"
+        class="p-4 border-t border-gray-100 bg-gray-50 flex justify-between items-center"
       >
-      </div>
-    </div>
-
-    <div
-      class="p-4 border-t border-gray-100 bg-gray-50 flex justify-between items-center"
-    >
-      <div>
-        <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">
-          Total Diterima
-        </p>
-        <p
-          class="text-2xl font-black text-green-600 font-mono tracking-tighter"
-          id="edit_grand_total_preview"
+        <div>
+          <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">
+            Total Diterima
+          </p>
+          <p
+            class="text-2xl font-black text-green-600 font-mono tracking-tighter"
+            id="edit_grand_total_preview"
+          >
+            Rp 0
+          </p>
+        </div>
+        <button
+          onclick="window.submitEditSlip()"
+          class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg transition transform active:scale-95"
+          >Simpan Draf</button
         >
-          Rp 0
-        </p>
       </div>
-      <button
-        onclick="window.submitEditSlip()"
-        class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg transition transform active:scale-95"
-        >Simpan Draf</button
-      >
     </div>
   </div>
-</div>
 
-<div class="hidden">
+  <div class="hidden">
+    <div
+      id="template-slip-gambar"
+      style="width: 380px; background-color: #ffffff; padding: 24px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; box-sizing: border-box; line-height: 1.5; border: 1px solid #eee;"
+    >
+      <div
+        style="text-align: center; border-bottom: 2px dashed #ccc; padding-bottom: 12px; margin-bottom: 16px;"
+      >
+        <!-- LOGO GAMBAR -->
+        <img
+          id="slip-logo"
+          src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAIAAAAiOjnJAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFZWlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA1LTI3PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhKLWZ3YXBRSSZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBRVdIam9FRkZ3JnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O0dyb3VweSAgQ2FudmEgUHJvIDE0LzAxLzI1JnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD5iZjAyYzhmNS1hNTgwLTQ3MTEtOTlhMy02ZTRlZDU4YWUyODA8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyc+CiAgPGRjOnRpdGxlPgogICA8cmRmOkFsdD4KICAgIDxyZGY6bGkgeG1sOmxhbmc9J3gtZGVmYXVsdCc+VW50aXRsZWQgZGVzaWduIC0gMzwvcmRmOmxpPgogICA8L3JkZjpBbHQ+CiAgPC9kYzp0aXRsZT4KIDwvcmRmOkRlc2NyaXB0aW9uPgoKIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PScnCiAgeG1sbnM6cGRmPSdodHRwOi8vbnMuYWRvYmUuY29tL3BkZi8xLjMvJz4KICA8cGRmOkF1dGhvcj5SIFJaPC9wZGY6QXV0aG9yPgogPC9yZGY6RGVzY3JpcHRpb24+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczp4bXA9J2h0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8nPgogIDx4bXA6Q3JlYXRvclRvb2w+Q2FudmEgKFJlbmRlcmVyKSBkb2M9REFISi1md2FwUUkgdXNlcj1VQUVXSGpvRUZGdyBicmFuZD1Hcm91cHkgfCBDYW52YSBQcm8gMTQvMDEvMjU8L3htcDpDcmVhdG9yVG9vbD4KIDwvcmRmOkRlc2NyaXB0aW9uPgo8L3JkZjpSREY+CjwveDp4bXBtZXRhPgo8P3hwYWNrZXQgZW5kPSdyJz8+9zqlXgAAAE5lWElmTU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAAITAAMAAAABAAEAAAAAAAAAAABgAAAAAQAAAGAAAAABdwXf5wAAbrtJREFUeJzsvXmYZVddLvy+a+1zTs1TV3f1lHQ6o0mICUKYUUARQURFQPAqOD8KDoizKKIX9XHEC+j1Cn6IwoOAE6JRQIiAQAghExk6Uyednqq7uubxnLP3er8/1lp77zNUdVXSnYSY9VRXn9pn7zW+6zev36YkPFGeKGe6mEe7A0+Ux2d5AlhPlLNSngDWE+WslCeA9UQ5K+UJYD1Rzkp5AlhPlLNSngDWE+WslCeA9UQ5K+UJYD1RzkpJHu0OPBaLIAggIABwLkuVZlkzU+aUZS7NXCo5AIbWGmtMYmgTk1hTSUxiaERAICmI4KM8nkejPAEsFE4tAsJyY2F+5dTs8uTU8rGF+szy6tzi6vxqc66RraZsNNNmltWbrgGKMqS1NrG2krBatbWq7e2rDQz2jA33bh+pTowP7hrqHR+sjfZW+0ACAank4x9q/J/pK4yjllO20liZXDx0ePaeY/P3nJx/YHZ5EmYNyFwqAJlzkCTQ0CkjSFiQEkg6QJIhARACIMDBCXDKbJIYJHTJSO/4zuHzdg1fdM7IJbtHLhjoGTTGekr2eAXZ/yxg+cHW09XppeOHZg4cmblncuHuqeXjmeoADQXn5EDCmCRBFYChASDBuTSDc3CScy6TROPRJEiARMg3IahojpJEOUlwBjSojQ3s2DV4/r4dl+0buWzn0LkDPcMAH2cIe/wDKx+goJOLh286fO09J66fWZms11d6Kv2jfdtH+3aN9G3vr430Vgd6q/29lYFq0ttTGajaHsKQxstaknNKM6Vp1qinK43m2lq2slqfX6zPzCwfn1ubnF46vrA2lykVBNj4mAUh54mZB6EEOchRVVaGe7edO3LppTufftmeZw70jODxQsMe58CStJauHJs7eHjmwKHZO6cWDg33j+0auGj/+OU7h88f7Bmp2B5/J8lIYnJJqFwT8wqLv1T6UpCyxfrsyYVDR6bvOjR326GZA0vpgstSwkIgGOkaJIGEBFI0kjLjetj7pF3PePK+b9k//qS+6sDXOg173AJLUj1dOzx9zx3HrltLF3cN7ztn9JLxoT0DtRGSOgtCtCQQXnKSsNpcnJw/eN/UjQenbptcOLi4NiuAoqERELRFAaTCGgiQgxvunbh84ulXnvO8feOX1yo9kr4WEfY4BJZzWSNrEKw3V6xJKkk1sRXC4JHmMgIoKHPpSn3h2Ny9d09ef8fx66aWj2ZOlrRkJH1UpIWSAyikhpVtA7uu3PvNTz//JWP9Ezlkv1bK4xBYzbQhuGrSA+Axs93DNDtlx2YP3nbkv26b/O+Ti4czJwMaGMApggyQcwAyZ+jgaqbylD3f9qyLvnPX6H5rksfGcE5fHg/AkgToLDG4M14EEainq4enD9z84KduO/7F+bUpiiZ03I/C44wkBUqZZe3i7U/5xku+58KdVxnax/gY8fgAVuYykt4u8DVUJElars/dceyLn73n74/N3wNZY7xJDJREbxojydRJcMaYS7Y95aVX/cTusQvw2N5CX9vAOqOcrlAIvdJWXENUAAnlCqOK/x5eq4KQufS+Ezdf/+A1ByZvWKnPk7SFHurpluS8xUwG9urzvu15X/eqieF9j1lsfW0D62GUYtSSg1t26bzSablZl00zWzVYopaAJtQABFqgBtaEXod+cADJgLEjxg4hGaMdIisAIjQfymJ7+9bUwpEvH/qP6+//2GJ9zoKEkVDg3MOQFFx/dejqc779my57xXDftsegXP8/ClieGglqunRG9fuytQNo3KrVO106mbDutCY1pQxyoonmLP+kdywTIEWRJGmsMRWpB3bI1i5Q7Qr2PNXULmGynUy8rrdViuLhtbg6c+1dH/jiwY/V09WECWRK31IUQcJk1GBt5EWXve7p5784sZXHFLz+JwBLAORWs/pR1W9pLt/M+s1u7T6LlcyteRkZEAiIBERvWvKQ8tYmqghTICJRinMnkZQjaK0VBkzvBahdZfu+gdXLTfVcmr6t0jBPmCbnDv3nne/76tHPpllmyMCIY+dI4zmjpP1jT3rJFT9ywY4rjLFnfPoeWnm8AisMymVL6crNWv5vLX8+az6AbMEhZcGsFLEiRNqknEsSuTG+ELSIgoi1NYZol6IBMsIYO8jKPjtwNXqfn/Q+jXYg3rbZkmXp/aduu+bWvzw4/VUSpA1oBwRDMuwIuaTS89TzXviSJ/1If21oq5N1NsrjD1iSnLK5bPXWbPHf3NKnkJ1wWabo8jOAg/8LURSX/1UgKODJP+JIeGYkFnPVgaq8mCjYU0HzY4UGle124IVm6GW25yqafmxah5XkXPbZuz7yyTvfv9JcMMZQJmoZkdWKgkup8d49r37aL12w4wrPqx/K/J2h8rgBlgC6bNmt3JQuXqPlT7vmYSgTJIIF6yIpD7DggAFBF2vIf3vXnkpLQygHlsdMu8MwFtOqSRpEBySdpbGm52I7+EIz+BJT+zqysklhX9LJhSP/futf3XrsM5KzpO+N91Iy+IWYOdQqvc+/5FUvuOx7q7bnUcTW4wBYApA1p5uzf58t/ItrHCBWYgAoAYccFPlCMLcoGAiAY7QjgCJzsDjP2AozRPgzlFZgFYIaQgMeuJEyBR5rJBhjmAzansvNyGuTgRfRVNFa83olzZq3Hv7c39/4x0v1hQptkAgl0Eg+iIIiJFyy4ynf+/RfHO3f8Whh62saWJKyrHEonf0HN/cBZVM+dADW5TfkIVGAEVUiDvl0U3IxtEE0QZOTPECY27SUQwvIrfx5NRKLP1sYJuMnH84ADzVv/ExA9l5mR15nB7/VJNvK928w6unFyQ99+Y8OnLjBGhnSOIDWCZ7Jg4SQIhut7XzNM37pwp1X2UdDov8aBZYgpGt3NGbe6xY/Djfj4ExgXiIzAYCNN3rVzXNEdAt5cQU/CozSmxX8DTlMPZ6EMrDKZMzL1TKRYgXdDd6Qm5O0AoygKDhDw9r5yfCr7fCrTWVbqZPrDF5qpvVPH/jwJw68Vy6zgSia8lKKcBmsrb3o0h94weWvsjZ5hI0RX3vAkuTSqfqpP8vmP6hskV64Lksb4baChXURhNousss9kXpsMD9EHlzVwiJLQv4G56ACgQ0tGFrbs8eMvSEZehXZg9OxMOfcwalb33/d2+bXThgYwkZPtwA6vz1EwTx9/0u+56lvqNjqI8kWv7aApSydSef+vjn9Vy49SjkYkJmPDA5kJkhJQNT5AORUpxCfEBe1bDZA612SYdv1dboFIPj1ynfmv8Mat1QQACVAwf4pS8IYoOfrK+NvtP3Po6mdZjqk6aXjH77h9+86fqOx1sSwe5KZotYICubrJp76qqe9aax/x8YVnsHytQIsydXrcx9Np/9CjXsR+FEGODADELS+zvULxQGtjkU6b184DX/ImWfZaRhNX6WW1GILi/0J93ld1OsOJTMYpMB5RXijVFRXE9Nrhr7Zjr/J1i6Ota1bVhvL19zyns/d+0+kTMR3UHS9iwDMgN0jF/3Qs39j++DuR4YnPvaBJcmlKzc3TvyOW71B0bzp3bKCvLQT3cGmLGYAwZboDQoKfwCIZits1STeUkqcJbKgluo8iHKJKvLH4hyYCrmrxS5mvKxnbb/d9sZk9HXGnsZ2n7n003d86D/ufE+WuYQEAsUKlpbY4Fjvnh/7pt+dGD7nEcDWYxxYyppT9el3udn3K1sTATgvRDFaAdbvfVxneWKR84mH36ugNgKtglA7Uy0zRN+w6UIj22wYxWVJ1sLYwecm299sey9D9xtDcXJfuf8Tf3/Tn6w16okxallXb+wlYMYG9r72WW8+d+zCh7WlNlEes8ASgMbS5xuTv56t3UN6k5IraXZx2bqgKy65HMpgetgkqnthYDmFMA4Eaa/1lthttjwb+8zgaZZXF33wImQA2sq2yo5ftCOvIe1Gop504PiX//rzv7WWLlrv/IFcqJOEoZCB2wZ2//Czf2v32P6zSrcem8CS3Nrq1HvT6bcjWwMzUoTzhs54T1dtq00H1LoE4cx1NbCzEqZKZtLCbhq+KEiWaZX1XQSWrzQj6Q/xB6mLtKPfl+z4FZOMbjyeeyZves9/v2WtuWBJE6V434yJfenvGf+x5/7OOWMXnj098bEHLCltPFif/M3m4qdJR4jMIkRMsCy287NWPHldu3VJz2ohO+ewRJlKtnkA0dzP0pcsaale/A5KI2E8HSQAGNtzZWX379reKzdUUfXAydv/6nO/ttiYs4a5fSvAmfSzN9y367XP/I192y85S3TrsQUsSenqLauH3+DSgyYeYV9/EsvuPLUA6xEvHdhie7cLIT0Kfl64F3Lq227Mj6cPAa9tkLC2MpZMvC0ZetkGhi5J95646d2f+9V6c8Va660xJorwFH2Lg33bf/J5f7RjeM/ZwJZ961vfesYrfWhFShtzH107+galxy38BLSaqlv0fqCQnVW2j2/KgrDVsn6d4djpaZamGIKXCj0QPSmJBxIRFUkBzCOSQRU+b0LZilv4OKwxPVeR3XO6kBzr3znWN3H78S84J2NM2aQWfFXgWnPlrskbL9v19L7a4JYmYzPlMQIsSenayXc2Jt8mt0SCRqTLc2/E20wHAYtMkDFi73R7jw/pJzwZ+tpCLKJpivHzOm22CF2lr0IbwaBFIsjaoapAs02oO0aGrVwnN216n7GeEZXkzpH9/ZXBOye/7A1pQckJdIsESKzU5w+duu/yPc+oJrUzK289Fk62SHJrx3+vMfXH0Jq3whS28mK0XIfaaGMqpFzzLt2o0z7WvRVF6qhuP5utCD7yM9i2RIZ8IiHAHcXvEpghEnSgEzOp6Wb+pnn0R1w6tV7ThuZZF33XCy5+lY+oQdCUg6HE0QFy1AOzt3zoS3+auqa2NB+nK48+xVK2unL8t5qzf+mP0NGkJCLiS2aFjWnR6ThRYXLPDVxb2p+FmWNjrtd12zPnQv7vkvrIGOGDyAdjEWN1RMjjkMVJ8bvOqH4Y9S+z7xm0I13HY2j2b79iZuno0fkHGCzLeUc96SXFqaX7l1eXL9n1VGPOGKF5dCmW5Oorx389m30fAMCRKYDyROd3dj57GmqRmxrytSbAwg6QX9kcL2yDeBdWiXVZYan4zRODo4U8xlCk508+QCNXDAsNMUc3ZIN7kUqXbsiO/rhrHF6vwYqtveLqn79w++WZU0liVTzRH6j5F+7/l+sPfvwManKPJrDkGqvH3pLNflDIGJ0v8ctOiSkHUOsHdtgUtLGdwa+g/zGEafkcQnrDT/mp9SG1pcUgwNLyMd8aCgwwhDN7rgd48cgfY/WIK8Dh4dhcvT079qOueaRrT0j2Vgb+1zPePNI3kQpAPkhGNAuklP3Lze8+Nnv/mcLWowYsufra5O9m838L0gDGhHkM33YZnlohFW/uEHVa8Fh6IlqJ6K2OMYaYLZ+Vc0oDoANeXeWqLqRrg3EHJhdHSoJwhNhSJ/Jvkd8cvxQFujADdAZqrtyeHvtp1zzetUmS2wZ2/8DTf6WW1NDCyyWFekitZnPv/fxvL6zNbmIUpy+PDrAk1U/8n3TmPUJGL5CiZWmictSyhPLHgQt7lcI5iHXWtu1KhEhcq3VE3lLQet5OC7akll6VCeAmB18GUBCgCMABWStkFalXfqXcvYA2QUSWLl3XPPp6l82tR0Ev3PnkF1/+Ay7qMpHJlp2KPLV06B++/K40a25uJBuVRwFYUlY/9VeNqT8FM5JgSjoW4k8+a4ExlE9kba0hQD6OxgR9vYTXrtjtoEb+nlbjZ4etYVMdCXpg/qD/XWaKBRtmVAIiqyqcpIXI5XlirEAE0qXrGkffJLe0Tjf4gktf8+RzvjFFJjrS5eKjJH9MF0a3HvvMdff9+8NniI88sJTNX5Oe/D0aEYbIWIzPwJkSnwo/RMj1mc93SyldUOmDgtROwkD+pw27iMpa/MD4g1YIMIg3ftXLZfOjjr8JGh83xsJE1zZkRptV+VsGcxcjsIqwVX+3aKGlT6TT/1fKOnvgZ+NlV71hx8Ae57z2YChjvBEiVG8I/eutf3lk5t5ND617eaSBla3cWT/+a8ISCDAFMsTY4riipZ98DgtQFJ/z1Y9sI//ssQjF6IAS+wiycxSRo8QsJ0TiWObKAmQhG0UgPowZC4e0YpSiD5wvs931CGc0mynXEX1xCvJSUC0Zwrb/X7r4ia6cnuRo/8R3XfVTNMaFQJp85j3lcgDW0uUPXv/7a82V9bjqZsojCSy5xomVB38G2SQhBlSVt30ZQ8VPQUjYYpmM2IqCNhE3dxiaJyoRKAKMZLwHBgV3bUOsQbHYRW0hC/emxPN1hx+EMzkTEVPyMG7Akb3sFUMd4CkwAdPmi3eB567o2C+7+h1dO0HySXuf/bwLX+7kRNCYkofaP54ROjp/36fv+IhzXwvAklutH/8lNm+BCDhGQTWK5C7qKyVyRdfOmHxVZem3RTtD6QMl78k3EVXyNn2/wAYRrC2tuBwBZSE9dqijMx2cM1zOyaHoiVRJgto6OqPrQAVdVumX/8ohRO8wS081j71Z2dx6GsqLr/iR87ddKuelt9IXzF3j+uy9/3Bs7uBDFrYeMWBJ6QmXTcIlkDNwUbtuE3rUCpT1VD0DGETblz/8V9r7bcGTOf/JeatHnf++xGZD/chppODkBef17QmdE9+xGCy1l/PlznEZBTnaIygU+rPckuhcKc7RhPgqI1jSENZESVFktnJ9c+qdLb75oiXWKv0vu/InK0k187u3UJkDbg3ManPhYze9+yH7eR4xlw5pRypDL0ftIpdOqXkyl2RbNUHkYhCLayZcLtYj2J0ZZdrS9dyqoHi0vuhDjp4Yl+c7EGykZWNHaUKLWwtZja1VtgIu98Og5dZADFo7nJd4iqy0kMoPh+SZ/cJBM+YNGRgif9ABDEoGHOq3ofdKU93fbTE40rd9ZXX+3pnbTNBDg24UHNYkyenFo+P95+wZ2/8QZICtUSxJadbMXJY7BLbyNGn7a6Pf07v/Q9Vz/5q9z6YqTiiOTRUaWUvlna0Ei2I4T06fJINAYTUNTwZdXXDhrD1JGcpAxsgaGTpQjk6E8yGboQX/fPEbYebLJLP7T1n8b6dJQGT2uS22Rb5xJigXkgshMznE/QDVgjwhh0XAlws7gXBuLZ18i2ue7LoYhvaFT3rt9r6dLnbCiHQycFLm0weC5t9ve+/i2vxDYIhboFiSPnvPh//m+t++9q6P3H38xvm1WQgVW0tMBZsXHUiaiu25MBl9paqXmPrdzs0Gih1RlYeHR607p1ihgmIqiy9UWsi4vfM280fD1yR7Vdtv+55p+r/R9D0dvVcquQCwcqtEhjzcoMSag9UD8VDQ+vPU0mbr0IsviuMzBbAQxuAvVwVSWVBBihFFZ0CYhBApL8F5rlnqnEsXoHk78Hyyyyn7iq2N9+/9yoOfJGlarHOhFQErjcWK7b1o4sqtioabjyBVvbn6O9e8ZqW57CQgc5AcB3u27Ru59LLdz7hox5PHh3YZmpbjextWCEDZcmP2I+n0u9A8JLpcx4e3P+VwEbwSFLAT8qK7fLFCxFzAt1MRvOwPfvlKBFRQ3WcHn1cd+GZTu5TJGJCE9XXOuels9aZs6TPN5evVuJdYBRVTMSNivRia5ErgZonW5jf725TzwXzoRDw6IRhQcM4TG9FAEs3wKzJTczN/Y9uteJ5b5eqqjVVmQW6QjQM3kiV7KnvfmQy9uOsapFnjzz718/dN35SwcF5JAqjwLir1VUZ//kV/PjY4saVA0y2EJjfTxv/+11cuNZcIeoOHn0VHOGW1ysDewYufdu63XLnvG31E4qYx7rLmicaJd6Tz74PqNGXJKF8JAlQUXqKk7sI9hX5ogn4ExtiSEN0mR9qRZOQVlZFXsnohTT8JyDCIekG6F5pQM0unmoufWZt+t23ebehjzl2pPzm82vSM4s9yfKKixkAWhylaO03JuXDZC+g9Pee+A71PW7n3+XIz8UB2IQuV7CA5KQpnJ03I0OSHTYGmsre6/xomY50rIumuozf8xWd/weTHqItQ6OCpcMBzzv/uV1z9M1siWltghYbmlsOfmV+dkpPxkyt6Q7IxRlk6t3ri9skvXnfw36YWjvXXhgdqw5vLSE5jB5LBF6DnCq3eqnQWAUUo5BuGt0pGv52J3wVuIlnAZ7pyOYmTTIhZEFnZV9v5+mTstSY535geQ+tjGaKjJ7ekG7JCO5j0XJz0PSVrHGRjEvAnEAKHNl6cjowpZ8ExTrOdsHm9wEQJu/Qdo6vblRLYgqKt7q1s/zlT2esa97uVm0ljYrNFizKtDYWROE+2Aj8TQGULLjuWDL2okyF6k+ndJ26aWTlBmjgGv+eIMOs6OnvvN5z7zX09g5snWlvRComDx28/snB364k5BkXEGMIYspk1Hpw/8JUHP3XPiZsgjPZPVGwVpyFgJJlUL7DDL3XZDFcPINgjyvJvIX6UQ3gRQR51QJXrBCDR9FxR2/2mpP/bjRknk5zwde8HPaNJjB1P+r4hbRxi4wGZwoNSPM62Z1uofzFeAXkC0xbWmVfhSh0ixMrQC8zIq8mEdjid/SiQRmbo7zGQ8dywNKt5XHz52EbYn6ofMj2XmlqXc6okxwf23PDAJ+A9V0AeIk1CcqIctFZfvWLvszdPtLYCLOHo7P33nLrRMGa5BxCOyuSsgUa0opPmVk/ecfzzNx36VNZMd42en5gKyjp9ZyGNHUwGvgXJzmzxc3KuFH3kj8TFxDIMePYBcbEznt3k1RlAFFm7uLbrZ5O+54EjpF+P0xNR0pCWdsT2XtFYux3pkXK4SSFGtz8WReoSyqJ/XbmRo4XOwYVING89EcBKMvGLtnYpACbb3NJnXfMY6Ur+6YJYtoh8hcHNqzuu1M3UNQ8nQ99NU2kbPsmx/omphaNH5+/JG4g1xq7RTK9Mfv3u5w70Dp9u6kLZArBIHp+978DJ69rMx5HxB4JRdoKQWE1X7j51ww33/2eaZeMDu2tJb4sY26UVa3qvNH1PzVa+omweNIQpRwFGtCFuyJCgoJ1++OxTZrS68ydt/7fAjBqTcCtvrwgWJDvM2gXp0vVws/m+CESrDVjRk8jyPcVNuYTUYrpjyCIhRs9SMnBVZfsvkTUAZOKQZoufIBG2REk3bIEVYgKQHL7lcB8S6UlTvcD0XtZ18rf17/7yA590avpKFXTfME7BNLNmzfZdvOsbNkm0tmTHUpJUgwW7MDJ5H0gGhNc7+lc8htmSfyGfnatP/9tt737Hp37qc3f/c725trHGQLIy+Nze895n+75Bzsh5bTDyi/zAvOIiyURy4oKe5UiRziRDL0j6nwczSiSbIFSt3QBBQ9pK7fJk9JXKqpJRYaMvuYSjW7ycygihtzFGgzktMeUbo0vARKxUk7EfohnI66gMfwcrE3GlFJKhoPA1RLWVwWoenPqFfiMvZTo1T71LWRfXMsldo+ddvutZkkq9LXwYXqD70sGPr9QXN6ntbWUHC4mplKyI/tQllfscgk/Nr2pwSvgBWweK00un/vHmd77r2jcdmj7gXJfQjvJgbe3i2rnvs/1XS4Uw4aNXfGfUwlbCBHkuGdSbyi47+m2wu4jKVs0weTeAhKa3OvQdqJ4jlPX8NjmrfbpjBF2cleDhZmm9fJ9Lvm4BvVeYgReV6zF21I680ikmaQp9KIdyRbUzQExq8wDm3W3c21z4l67jNLTPuuBlVEVhffMJY9SXtVCf+vLBT59uxmKFm7zPF2sSwuROLebWilxODZMZTzd58AkELGDprHhk9q4/u/bnPnbzexZWZzd0RdEmE33n/n/J8PPlfH4pOsr5pgnSgWmM0C22rxEBOSWm/ymmegXQux6tUqms2wkSTEyyuzL0zeVwSwHBOg7ksk35pEaUf4V4PLX0nY/UyIAM8rZyb2TvrYz/AEz7kZvqyMth+52Mo3eSuzi7oaHoL2ek30F4cF7Aj40K1Mz7lC12HeYFO6/YPXJhdMgzn5/I2Gms/a87P9JI1zbjQNwasEovPoivpvJ/xB74rZSPj4W/GQjjphEzV//0PR9+57Vv/OqRL5xmXe32nt3/Jxl5qXNVz1aiXUAhEqFwvBDwsrm/LbGDz4XdvoEOWC4bUnhL9tnhb3cMeaqKddxwigmUuhQl7hAlhuJhjwtHDj7dDLy0s7emerHtfYokyLYqAaWmcq7VLnsVnwipfke2+PGu3ba0z7nguxyyQoxjMXkEDN3M2pFbDn1hE7jaanSDTOy+pXxgULCZkPGNHG3OAUJwQlaEfEhGxgAnF4+89/Nv/ccb/nylsbQBvIzd1rP7T3vHXyZVI1kAQCNDRxvsQyYfraMhjMyY6bmErACmKxvsbG4jbNEm1UtMsgM0ggWCY8UgOB8pE87QhB/CmXKvynXF1gpmTudUmaju+Fma4Q6uTbKajLwMqOSBD+VbBIXIH2agEzL/Z5CTiEjUATqpmc28R2616yivOu95fcmIAhVEEdEKBX+GMZ+/72OZS9edqFi2CqzI6lrXoASLduYSjRH0c+IgkQ6igs34cwf/6f995tcn5x9cd2FJmoFk+29XR18IZwlQxihSxoJiBfrl1StWJ0xlJ5FsElUbXA8mQ9NHO1SITgW5zhsvUYfgximfEEQUEeIDuVXOUeirbHutqT2ze68A2/dcJtuCqtYaKxaUSubt5sBFiagGGi/KrX01XfrvriJ8b7Xvij3PCoNr13n9Te7w7O3HZh84rQi/NWBlLmXkAgWOukXsdtirZCDDIlhYEhysZIUHZ7/6f6/9xXtO3iS5ddFltlUmfqsy+BSXJZBTjFwAFOKb4Qx8Gi0nkJURcMvvrsH6mCMgVhAT3rYaTXL1Ior24RBEy+OA6EUrn0MgCghCwuHnVsa+H+s4KkiY6rnJwJX0ljmfG5ppoEwmvF02mkx9c4YMGoNgXAC0NyU4zf3NesO8Yu83utxOXBjMAoWmkGr1lkOfOe00bg1YqWu6IDnmwqmf4PbpaJPvmJsOwwwrvBEGAmDF+fr0uz/3G1+67z9ct4MAvgqT7K3ufqcd/AbnqohpnyQXwFpqkABZA9uNgQ+/xEY6qu3Y/4iHOOSMnH9zfQit9pGlACUDZ1HdXxl/A+zE+qorSWOHXt7eZok55K6IbkKFty3720jSrXzJ1Q90JVr7tl060jvuNpB6YW988NrTcsMtAItkmtWLo50t+m7nvJZS7EfyrxDpGTSPaA6TCEs2s/qHvvz2f7v5vfXm6np6Byv7arv+mH2XOx8gYrze44l9oCHBgq11D8dt3u/e+hioDHEvRXCYyG1MOPnuKXJBmqPzzUv8gSP6BI6GSmR3Vnf+tO15audatPaTycDzkeyWF6ODKT/mwgzGnshkC6NxDH8N0n3AnNyyW/i3riL8UO/ohduv9O/R8441+rNi3rEBGmJ65fDBE3duPI1bsmNptbkS90ZbIH8XipW7ebzNSfGYSgEaOSALfwoWBPSfd3/4g9f/6QY6rald1LvnbapslytU7rwP0ZJFpXNQfWOtrWtZh2yIakCrLfajdSooHcfInw6rkrMVBC/PQGX765KB7yS7WNrartAMJ/3P8VlFvb6pInFIMJN7hZHhnHQwE+cmVN8VgILR0idcttCt93zSrue43C9eWE/8wx6v5ob7P7UxM9gaK5xbPuld31EJlZSF3nv9v3RSOZLpXMAMgnyLCpuLohLkT1q5Gw9/8gNf+sN6s7vmAtDUru7b/SaHPudtGqALZqEQhSCAzRMuO4Vu9Mnz5dy4pLavOoofROYW1JwHjNf3C6NHMPTkA2f8QbieH9bwpsswF3So2bGXVkZeRfZuxtdEAtULnBTfcS8PHbUHvuanSBgmhIF2FfdQWf2g1m5Ft8m5YOLrq0mPSmKgAzPIhXT5NLR3T3652Wxs0NutAWt+bTK6yeL05K+XyYdW6mqhG7aiDcGxxRChIWeiWY5gQtx65DP/cOOfNbJ6d7pF2IHX1HZ8n3OJZPMQ+MgTBTpm827lpnVZavn4K6Posb51XlC6fDPcnM+JqhAB3Iqhrg/GM0gqooopJUKvHX1JdfwnaXed1i+eT6PtuSgIl/F4YmnbsPxn4aksdnLkIBAdqXq28OmuzQ72jF6448nh3VU0KiyxRYfm6yePzNy7ATfcGrBOrRzLAx9dTPUZ/Ur5AL2y5oqTqCV5Ki8q0+d4eCFq4yRw/f0f/8TtfyfXVU+kWK1s+4Vk4MlyNp4p9V1zQZjgilv4BLJVyXXuy4IteVvU+kMOgosa6fyHLetWPmTAttbola8Q0Zw/WBJ6gvBHWKoq9NvhF1e3v5HJeZuJtmDkQ7bnUnACqkCexOVGB9f628WmnTfTeznLEaDXLOUIrX5GSrtMDnD1vhc7r1EKoCkdcQurlrnmHce+vEGftwCsRro2uzxZOi8QSkkraS/5xMaUmy0KS/kvKc+g4iDQicj+886//a+7PhqR0aa9E3astvutqgzHVxLm3zkfUpwtfcHVrw+hb+uRrk34EKUsW/kilj8fUwttPnmuSj/hgtBnR76tuuNnTHKR2YreKgB2B3suzlM3lYaUy1s58c3Pj6CUbsRJjibMs9bud2t3dm3/wh1f35MM5hbt0jdBQzLG3nPiptStqyFtFliSZpdPNt2aR5FF8ZaFDdaGMeGO2mWvot54p+eEMMGO552z7prb3nPLkc8L3YkOa0+tTfyUFzgUpJxIUg3plpun3uHcQodBd7NFEuScW2qcei+5kh/FIcBAI4uxB4mGTvm5IEaTt9d2HBz77NiLe3a83lYuZsvRt00UgqbH9FyZC62mZcU3GGTgC6RRCBrwknI9W7i2y91kb61/18h+0XmBVFGxjeESoOGJxYNLq3Pr+ks2OyhyevG4z5mZc7VW8lPcWbqott/xhnbSVQw/lHDAq+lWP/SVtx+dO4huNIdgMvz9ycBTnTOQLV/3v9zyTW7hPQ71Nsa0ueK5c5bO/ROXPwcYA694R9W7iy6MeKq79BINr72KMiPJ+PdWx19P+3VAhdo0pOKwCGP7Lvf7OvQun71oc48T2617itX4PwSsXdcVGJbJuWOXRBU4n7dcpQXgVpoLR2fuW6+vm6ZY0PG5+13mu2vKPUTr55Izp4OYybVBKugorVbWmIXMkTAwq/W5D37pT1aby51USwDNUHXH68G+mKkmz+/gvFqQnny/lq6RS6NZ/zTYyq2OTs65NFu6tnny7UCdcI6K7yZg6yP+V84lC8ZHGchKFVXPr078RG3sx0xygTF242jHrsU/YWv7yP44xT4sXfGoaj4rEdzxwXwd4npHX9PaHeulx903drm30rV48RnMvBJA3j1583q93bSMJRybfyAKjLmUXfq+tOpxiGG+c31Ehact/7ugZyX7Vr5WImDBo7N3XnPrB9Yzw5qe51eGv0XORTlDgvNkwtEhna0f+y23+o9OzZIhseh20QH5rDPxusvc0r83jvyccVPMrQa51B9sJE7I4pnYrDXPYHw5pWroe3Zt1y9URr7f2H0MctWWDlPlc0YmO2XGGCWR0pyUhIr2afLqoQt5470E79l8NuPqd3e2RWL38HlV28e4FMxj0AtRRvdO3VJuulw2C6zMpScWHlDIqutaJiaMmGUnD5D/CaB0cAvokkas7ShicepSkgNpyC/d/6/3nfhqpxxBkqxVt/8sq9ud5MQUJcMOIUOTnmoefrNmft9lU06ZvKpZkvVazCJyTplzy825D9aP/CLcbLRnCrDFjAWh2HO9rGRMigMTMiEzI8m27+7d/abKwLfSjCOck9kqEyyN1wywsgPhcBaNd8C21Ok3gXLSXaJeDBFd4R3sFJqsd6U6HO7b1l8dikJKQJXkGxYgAx5fuGdpba4rC9gUsAQtrM7MN06Z3CPVYpQtdSePO2y7GKy4623Tda6WottTt/ixr75nLe3CEAGY6uW17T8oJIINxrWi8cyRcGvNk+9Oj/+MW7teakD+IHlLiU6XTGu31o/8dPP4m6l5RKaMEHofFQy4gj4F5YN03mBrEJyAF1V2/mx1xxtN9SnkAGlKVo4tF39siaYXPRd7TSWS/3wTFpKQLy3qaKA9TijbX5Qu347WXeFLX3VgpG9XYcxuXe1A9tB8YKp7vqTNUSxhdmlyrbHo3TI+T5TikaZNlWCIKdPtsukliMOKxC+SbwDyqQRIe2jm9msP/ON6LdiR19neS/ygJBoJdEEgoBzl4NLFz9UPft/qoVc3Z96XNY84tyqlUiqkzq257GS6/Nn60V9Ye+A1XP4Pgybp/CuiHFwwiQqCy0LNxWgoUAmQQBVmVhzD6Hf27n1rbfg1xp5LVtjp59lyIUkYy8qFwRvgM1OEl1j5WQ6aQhTtc306n/lAGiK0jE0PyC13a8xMjOyVEwrTsycMPiGUr9Tcf/K2rqPq/jKWznJs7r7UpW2Oh9D5UsVqyRJTfMonprXWEs4Ku4xKYpmnvcxr/tSdf3fZrqft23ZJF8+a3V4Z/4HVI79h0GROtWgE0uc8Cq01sHxDY+lLNMOoncPKBFhTtqbmSTQOwy0YQ5+fM/pEc401RlJ1TqQXZQM1GDT9V9W2fWel/9kwE2TC05hgt1YIJrVddT8ev7r0wzUl8pST+qg6BoKXbwb/2QLI6lM2W6AdbB8YsXvwwihO5kjyZ4dNYFvA8aWDxaKXyqaAJejB6btp/KlJBYLlvwmqa3jtsZft2EKcPC9XW40tDDRK8JFWlQ7EMsyg4AhmWvmP2/72h5/7loppeyc7ASUD35X0/U26fJslXeCjDjHxmj8W7EIwkxUWuXab1m5jkKUF0FkKzlAkXDBE5fXTwcXYCeZYC85aR4eEvU+qjr08GXyBsbvIWsgj0hqY9bALWRmXErHu18OoMFwo5DnMt3QuSpT+UyC8kiOMMIfmYVT2dOCKu4f30xIZaCh/6IBeTvOWARmaUwvH06xZSaptvdwUK8yy5rGFe4M/s9gDAOCgLAwgYAAlVOWOxfi56HXLR0YJLHAbFrJ//qAAB0Nz39SNh6YPdO0nzWh1/Mclqxgr4sU7/7AHrzECYYw3wRr/IxoZGxK9mhjbUyqdLqm4gKIjXJJV9ycTP9Nz7jtqI99vk/00PQyJmltHeyYK7YDWrzOGvpV7W8rXFvseSTKMsmyty3wKGh2YMKiWIxyYVxLiCbTSXFqud4mSOD2wJC3XF6cWjkZClYtWIXSUMApvD4IKRhZo6GmZgHLLEaBClenc5eH7Ztb4z9v+zinrVBAF2P6X2r5L5RIoioIBqMojTmPIWylAPYDJxx55DMt3v9AXc/uND98DJSiryO5Jxl/bf+6f18Zfbyv7EUjpw5eo1i+s5BQKbQhqMUDkxUXzKXPxOKa7gZO0ekdnZwkO1EZ6k6HSlbwIDGbB1NVXGl2O/WyKYh2fPdjUWuRYucEpbMcoYPhlCSSIpbTS4dbTM4Q8rzCAdgpRDE+468QND0x12WQkaQaro68GrAvhfqHmwB8KB3kGZEQ8T+VN6syK4cWBwPtpCoXQu5qpjDDjybaX9533ztrEr9naVWQfmfgcuGcNU4izGrW8Dhzl6nDHg60GlpJ4j8ZdXee6aqvDfePFCU60Lg0hKE3T5dUumdk2Bax7p271Bh6DQgj0lpK8JUm7xy6qJr3On5gIKMllv3y9cjtF58jzU4rtvSzp6N6kkl5zy980XbMr+OzAC02ygzFSJcSrKJ8XDw8bjVIh1LJsyC0kyKi0SlHZcsgyituTke/u2/eO6s63sfdZhiMwDzOn8uZLVNMYE420anwASnaQDptI+MDgm/LsfO0Bue5BkcP92xUGX4A4KjYA6ZQu1uc6h74pYB2cuqVsDlWUdYu1AHtqg6+5+pe3D52HINK63GZYMpyWDRQt0n0e+dn2VWuRN64ai3tnbvzqsS+iG2GzlXPNwNX+jGvxYNEuW38MQmyTyj8KkceIcBckZARHk9Hv6N3/jtqe32Xf82lGDG2Qax4ZXBUlkI1ys+u5oUvKEMpQ9HKSyxbQLZoUwFDPeIj+LUzgJQrmQGC5Mde5YqcFlpbX5o/M3kvjZ8474EDBwEAmZpfTxRNX7xnZ31sbjoaDoDwpDsCPSpF6lHNalMSs/BhTW4BR2DQspLjsvw78Yz3tjDIlmFSGvg0MEVrR89h1ygv+Fu5qyWLK3CgqZ+V62P/Mnn1vr+35Q/Y9F2YUJgHNFtxiZ6YwxAcjty+UttCm5A0/1qLb1taVznQBJdFfGQYQ8rK0ZJPL71ZXGeu05gYembnXsSlAztncGiR5PEWThr1099MIJqwGuhND3QudLuiGxa7qysi865qFTS7+9knAvM1EIs2R2Tvvm7r9sl1P7eyz7Xsua7vROFzODhh2t8qXXOySKzRBFc0BhBNVNbWLzLZXVYZfhmQnYMymciGdrSLXKNRooEPH3qAEbVH0ETE+9x8MoWyxK8UdqA0ZmEAQ2LZkXojAamO589nT7DZJ903d6pyDXDkOVqSLDj4Ria3uG/06gNZLUMHBAZO3Vx47WRKj2HrdL323vRPvCXq+4FzzKw9+umO0AEC7vTL4gsjV/EDy70qEkP40R5a/pS36wiXAx7/IbEu2v7a6753VsR9lsscg2VyGrbNUBDhkqwhHJHxamFZP60ZES1Elybeu/88pW+k6qN7qgDU2po3MgeybDcxptbHYuWKnAZZT9sD0rTRp2QoQtaV4EzHcP7F9cA+Qi78FmWlh+/FyJGIt6lPu6SouFuRWwSJVqsyAdx67fmapW7ppIhl6GUxvCZGxwnLiDm/wDEFm4eydEWJQSc30P7N33x9VJt5sqpeTtShKPXRUlRWzh1yyxhTzXEVCrvRsrV5vc6YIygla63YLeyp9NLZ1xD6TkvKJWEtXOm0cpwHWwursycVDIflTTq7KBIcAtGf4osRWAHge4RfAJ40KAk5UUFv0wrynrRuumH223hDs78W59eXG7B3HvtS156xdgepFwVQebndBBSzviaJb/pOFEqjC5JzqrtfXzvkT0/+thn00Bq1sdfMlV2Wkptws1FhXxt5ccY2jNE6BcDO3mW2pcyqOT3mSXu96W2IrHSeIijylACg00y4j2ghYkk4uHFpqzOVqer7byjSFxHnbLvdgiVkkGUIF0EqUYscQ88DmpK24MRdDS311UTAKvDfnbnK3Hv6863DOC6AZsH3PgCzi3OeV+fP4PqaTzhSHOkHKCFXb/5yec/4g2fZTSPaRFWw1hrh1DuEk59S8P5v7kJoHQLOVqPkuVbrmfQBAGwTwVmrVtZddLsbtHZ523c9yWZN05lSJAkMAl1PWSbFOI7wfmb1HEGUEp5xyKD8oKq8xnDN2ofdTGmNIKuTcVew4WqDI0DdGNy/ovW/lWK7gv48LzqDaFpUFdfTI/IGZpRPbh3appLMQFG2l/6r6tIUJAf8ld1fO1aPOGnRPIztW2faKZOxHjD0HTNjS862UwJskOaXHtfAxLf4HB77eVF+6ecd/l0oluLoaDxjkIm44RtnGCaViubrVFMaMmGBS62Cd0cjQQWOj8k92zYqw8SB1aOqOIsinYH90/vyRN9G56sTgOf4r40/0Su0B3S1/5TpX7F/IBpnXj7JmGx5hezygBNKsNhfvPXnr+OCu9lkUTO1S2RG4SRN0jBLSW7qXCVBmTe8l1YkfN/0voxmK9P8hilOCnER3yi1fg9l/yFYf5PDz7NgbwKGHbu+SILlsmc1JwBJZBEfUw1tW308s0M4zBJ/ZW+HQa8sW6yiMr6ctcpgUFge/UE5bpViSjszf3RLsmROs2CcCg33jAz3Bo5TQBs85AwNGaUk9Ej2Bygfvcdi5ggqGgWJaiiWRDOlf5SDgwPGvPO38F5qYORNRpjXJuaZ6AVZPBp+gQtrzPDIu3CkjJHbkOZUdv2SqVxpWVAL95ovgQsoDQVjB8qfShb/Fyu1ZY8UMv6iy41dodm6pwo76DSDnppFNKxJ1UvBHdpmVN14ICgkqc3kgOQS96Z5eUlvPC+VPHKkI0gmac256R5zttrIusCRNL07OLJ9i6e0cObuRj+EnQA73jgNef5W1SexQMY6W/5S/taGVEnYOv6AtrTsuzpcPfyHcg7N31tPV3kp/6WmCkumz/d+ULl8nGjJEvMQ7YiSPSA5Uxr4r2f7Tsvt8FONDJSl0cNIa6jdls3+lpS8gW3IpzeiLKrveCrPz4boQCcCpcT/cUimeJy5OK+eT5C2o3QmkD36n5FzMa9LlZTsAnMsz5iGPu2JpUQkQtpMwrE+xiEPTd4gpYXwwq3JgK3oGAAAjte25HFixPb6pqMJ7shBS3BYCUyuOygE3BctTjHqJFxFYPkpGD0mYWTo+s3Ryz+j+jjGYZOBpzZNVoOnTs6gwdUgQM9IMVCZ+2I78KO2EeYghCf4Qh5MyNW5JZ/82W/wUs2lIyCrJtpfbiV+nGT8DHh8fvLpyu4HzltzSYgRSHG7M9fcurLClxIkX2B5Q5UvmUh/j0ULU8mrD1S7y2brAInDf5C15V+N/DiErjOdSBtRYf5HYqZr0+BsLZhPOOwIMCQ9i9fkOyEXkNi4e3/rF0sVoLiCQm1JkmoenD3QAi4AztYuQDFHTCLkxQj4NCHSUGenZ8yYOvRbs31IK+HKRKGXIHmzO/qVmP+qyWToBEHuS3T9qRt9Ajjzkytuagmu4lZuALJp8cmbUgh4W2GIJBejcNvl2Nqa3a5NplvokDoxafl5Nzhy7lo1Y4YOzBwqaAUgwLM4/52RkoGc0d1JWbA3BsK58UGhne/EC8/+6hm3JIcQXd85MKdKLAG87dt0zLmx/wRVBZ8eS2vlYOwXYIlTBR+dVdld3/QIHX0H2xq5thagErdW59IRb+HA6+341jlOOzAiL6p7Krjea/u8he85QEI0Ap/Sk1u4gXAy5K3eHJfqTP8KOSgohDIFiOdLA9HRttZ6uttp06XGmmHULMZNgW+kOLEELK7Onlg+XLviETsiRmvuqhnpH8w7XEp9XmGVLQ1kDUyTaUU4yLItcLWJWCOKKaR9QliLyV4r4yu+evKGervZU+lqGQRCJ6X2SVm8E4Y+zGkjOqrq3tuc32fdtZHWr5MSLzJJzWtDCP7nZ97n6QapJWYFwlkNXVibegurVxNbehbFhoxCUrXyB7iQAQSYoQLmMFcNO4CLA8r2Y40LlCuPkEY6wQ51AFLTaWHDKT44QMWbOyza+C9ZUO2Ws7sMmOLV4tOGNZlJUz1i+IbQs9lYGIm1U1db8pwIBJQoa3XYhxNn/3kDXDVIac0x18Yf4MLx6unJi7lgpjE2xF2TtyYItotWcgd1W2/Nm9r3EsIdFjMDpi2IWF+eW3Mo17vCr0xO/rrV7qBTGgClM1e74nurev2b1mQYVnsnABwEunfsXoamSMyEuLjpG0aEK+Q+lhDgx5MRlSljZ1rXVpfpca0xReyMCEpN00vp1KdaJhQecc8Ywp0wmqoSMb3UTAMda0ptjvWJ7fZflQuK5QtgqdOCWnVRSA0odYIxCyINsWrWevFbSSJLSQ1N3njt+AVCYuzwSbc/+pqlSGeDoIPYkEz9i+l4MVrbMpCSnOuo3uJm/cMv/jawRX14tOie7rTLxk3bodeAgWuwkZ6AIUuNet/wV0qgw1oRU6CFMo2Xlc5YXtJzwV7CMMoQfee3eDJhkpGurK435aLEITCjnOYgKmbXVziVcR8YSJhfupylp/b6iQLsKeZtgxVMpAEBPpTeX0NWqDHYhtG1HS9smMtKY7k/nNwbNxxyZvQv49ha+6z9WJsghuBWAUJJse6kd/mGwr1M5XWcmRMUQ+ObdbvovsfRvyhZ8NmJDiA4yWe/+np2/zdpzwFrXrfJwip+KdOFacinK6q3fl/8raYVRRULLN5HGRT5obLKNpvv7OxbXZkAZ52VdLzf7Pc441awm1c4nuwMrc+nxufujEht020JwDkMTYGhpTVFJT9KrFJGW0Cm8TzHsq5wVRjEsxyw6hpWrgcYH/Hs/fMcRNk/NjcHk3KF2lh16MUw7BjdpnDUDVyfbfwVm2+aVf0pOTqpj+SPZybe7dDImMJIxgARX5fCze7b/JisXnK2IGgFayeY/4as23QMXy3Bj+b/S9gwySHwhEr2witqF67U8vzLlZzG24LXrIOH6QMq+2nAnee4KLNWbq3OrJ3MPZ+xSHruIaDsXQYsiO3lvMkAYMmsxpZTHW56P7nl8wqaID5ZCFcunYX1IUQQmgfnGyZXGUn9P6eCld6KZKirjbBpUd9gdPwN77mbXPvCKDM173Pz7s7mP0M0EscnL5C5zlWE79kN25MdgxnMqfkZLGKFbu8017mBwNigOel2lL44gGnTEAhx+AMznn6pd3LXtero2tzyVa0qRWyn3Bvl+9Fe7vHm1C7AkrDQWF1dmgkQe+5eHg0YNxMT1LSqtVfoSU81UcpV3THWuAypXAuAh2vJOTZYlRrYqD4VuCMmB1pD1bHl5baG/Z6ilKQgmQWUHZc3Qt6L3mV3f5961CJKWtPTPbvpdrn6ISuPOkPzr83r2VXf9Bnu+FaxungQ+hCKl6fy/QytCbhU0DNhCSfsLq+N7X7aP59+wZDr0Ac2GtD1f121LaHF1Zs2t5lyrsE37JG80DoBcb2WwzY2L9Vjh7PKJhlthRFLJRxdicaJRnQqvooJvuGqrlaSWNhb9VwQ7m4x1BXm8OEskdFJUMu7STnkoyPVhWteaq3PL0zuG9+SVRJ5rbXVXloxXRl5GdjcDtndNgpyy+7Ppt7uFf0W2Bvm5ciCgTKhy6NnVid9k5bLoEjk7RXBwcNPpwicjnXZAyYzkbyqVXHLMV65EqYgolYaLglRl9bxu4iZnl09krhkFH0XDT2uLYl91cHNaITG9dAyGTu3qshfZVIhHdE7+7KhHjzVJxfasxK+LmPfysMNJ7UAT8q8c1GWJcttEC70KWGT0VAvIlE4vTwJfH5/LdUNrey/j6AtYe9LpRfVgo8pU/2J64m1avRVICYK22KtmpDL+OjP64zTbeaa1v/b+ABCyuY8pfZBFpCHbd9g6jxagKmAor0ZHARS046ic0zkzgo7PHZKT8WEVgXHGx+JOtzYZLBky89INWMLR2bsJA7TF2cSNUgQ1CXTlcBxrbC3pCaSn23g3iKFdh5vksYql/pW+zP8nNbNyouTeL2pj79NtzyXkUPQGdGlICKE+zq25pY+mJ/4Q2RHPoRWNP4JV70XViV9l7wuA6jphGWe2SG66MfVu651Rvi9hY+fZ+VDySef6ULlrJdUpCq1xjYTKLib5C13LLWNq+XAu4xKUYlat/BKQJD1DvaOdT3dnhVNLhwAaGbVgK7wpL3/Lh6c55deqWJNUTQ+88bML9QnS0ubzZKgkiXXuKcRDm57yza/MCp38l8buBHaCZiMQ+FhPN5PN/lk2/QFky8XmAeXgTC0ZeWWy/adgz40elbNJrMIIXXP2I8iOgv6onacUJheWECBjinR2ikJpSz1FYWlDEGLtsq4SgpM7sfAgaUL2LL9wUW6Hl2WonqS/v9b5KrxuwEpdenLpwcitSO++D3tWhY9CIuikck5ma5L+nmFArQlm8u2isjG6TDq8qaaN35XgR+dDRstTFCWMwP+FheVpOUfT/g4t3/v1QKCQHschm8ym3prO/ztdCljJEiBSSTCjld2/nAy+Euw9u3kZim5BcEpPuJkPAvDiXa6Vl2UclS/k616IX7kRF/E+L4UYAHA0vU/pOprVxtLs6mTRG+TEq6WTA70jPaWApby0A0vQ4trMcn1BQbj2pooMKNHgoHH6PAtqZoUOaGgGa2M0Nqp9xfAQzaEdul3pltI3BbP1EPNm+47orPLDi2vzTup0o3Qln+Xi4JCdSE/8mlv4pF9CSoKRRGfRc1nlnP9tas8AeKZ8f6ctouTUmPsnl94DiswAnx07hLbGCfNzVeRORaClQaJCUNuDQdMnHchtw5a96HlSl9al+ZVTi/VZqSBUypNr5LAVdgzvS0wX8tTl0vzKNEKMe+Cl0e9Y0H56SZKUUfk4Msmh3tEonvn+52vfYroo7Ax5+Ng60k+YuoK9lsSFghmCwEpzbr3Y7XWKV4ucsvuyk7/uFv9byoiEiKkA0WNGX1LZ+Su0e3JN6+wXv52UZcfTU38NqFXYDRaoPGY9/opfKkYpleqLkybDXFkG4DKzo9JzfpdxEUdm726k9RAOXLxSvqiSgIPbNXB+1zG0A4vgwup0tCAEYEnGY93kx0JKcQdrpRPWkgZ7xuijFrKsNSzWk2EqBktLMt56He0VndAKml2LwT3QP0TunMdarTTmndy6Bo6OInkOeCQ9+WvZ4ucpRxoig0QHZ/qTnT+XjP6g2Hdms/KdrhBwTkpPvEvZcRqVZhzx5d8RWH4guXsiQKYwrCO808U/5e1PCKKNA4cvN7YLI5N0/9TtjKpTvmSeDLjc8GrtvvGLu054F4o1tzyVOccShhgHoUJLitSUXGkslR8f7dsBY+HSaE3Nxx+tvSxi3mM0TB7H2CGgF+dJWvagj4TOJ9yPrZ6tOefWCbJtrzj8745lp34NC583cIT19AuiKnuru9/C/peAlgVZfCSKN6G4tevT+X8yPjBRKL1626HM7aM+WMxFlIVIxddXMe4/MB5JCCkOe5/flQynWeOBua8qCOhFx8hC/5RQQc/ukf1dp6bj5YvQ/Mo0nFFpMRUPE5UiWCIhFhZXZ4thkiN92xNTyTdWS+VFXAsh06m5dPawkO7ZwuTy7gUN2EhSo7lWT1e6jLJLEQC4GTf1+9n8tZCjf7GFo5xF31Or5/2lGfh2YxLSeJvw5qo9E0WQW2hM/rHRAgEjGljBigaEYFxLXxgVpcD/vGScG4n9rHtDlHIvjNcAOJAMfUubzghA0vTS8amFo/SSP3KhyLMIMqovE8P7+7r5c9A1HmstW1aprqIfil1sCXvi7Mpk+fHB2phVBaUNFCbLIycOrqxitFTYNkzG2WtXSWLsQ0kXkNRMT/+CdQAQnVvO5t6Vzn0UzhGGcHRNOJjRl9TOfbepXgU8YimvYqfgHRkunflAtvJFFKp1CyMOmx0ti1Sm9THms63zMR7BI0O0/U821d1d+kHcefTLmZqxIua8BUEXoAEFnrftsvXG0oUVNr0HozQQAoTJQmhvBFnQGbW4Nlt+fKBnqJYM1NMlCAaUstAzxOMY0QoSTtrEAz8hY2wHkfN23vJ53MIRFO/xvSTktClgOaVa/ufm9AfoUq/1SMrYn0z8oB1/I9jFMPNIFAFQtnpzY/KdxmRRKI/h4Tlri7ciCkAoMqO0zEx4VZtPTZALsqCQGSQY+NZ4pbUX0q1HrvUmGEZLTcu2Dr4dd/54F42yaLjlEbDp1nI6mju1FZXYiHkGHYFcWJsp05mqrQ31j/u6FIYah60Qy6Mo+SMKWN593sIaFSe1UJ7DlbY4UoazOxSyNFv3RWf5rEkOzRuyyT9gukDPSuQcKsnONybjv2gw/ChgyqunUJZOrh3+FXJeiGCK2eoL0SpytPzlmh2aTW5rKOhaIb/4Gsyw7X9e145MzR8+tnBfqCD+i/KPT9ZDB/ZUBs7ZduF6O7ALK8yyJnxFjE69sqxTGDNC08trc6vN1RKpxFj/XiEDJDqfFtuvvFHASzA4lOwwzOfEVxtO4GxiiQu+KifXSLsntyjd7aSpdOoPXXMyf9jZoWTvm+3Y68k+v4FO3+4ZLYKDc3Cr9aN/gPR273T37z0QfWaAyPdCKgp2ZD0PxWdMiRaHMraK12QayfQ+hdXzuvB64cDxLzVdytxRwXBAIdCIwIrdzsEL/JHSrqULsJxzJTtYq6AYFVdft7/ScGtzK9Plu3YPnufJjWdQ5SMQyDlX/KCAq3L4jaKRoWPaiunLw+4DCoM/+jSYIOC08A9avB4wRoRrIhmt7H5zMvxDBhY8bQ1nvASiI2TN6b92i/8YuVzmE/ZAXkfKpxyIG6lUg6duUXaPHqcyQZD3+dCH/Fg7+l00Xc4SZq552+R1gY10fp1jDbx491UV2/00IroDC2nOXMoCuIFBQah8fmSPDTe1eDRfD0l7Ry801oAM1LubK6AsXVIw/o0gJcGp5RhkSdyPByVUrjiA1cGaynpDBSA5lz3YnHm/lBoHOeeSicre3zOD3wfWyC4nes96EXzyt3T+k43JPyTSiCBPrCyQAFYK1qhCeQpv2XQoEvO2zElJuPfuoELDM5UJ0//NXaQraHrx2LGZe1qB6W0TwYrjqUViK5ftesYGm7ALsFS2HaGl9WCYyjERKJA7Mf9AuYbdw/ssqiw2TIuElBObXDAM/FudI43CWdFayzTkcgMjc7VmA5eLhIab+yvVDxHGIcsq49Vz/oh9LyU2guPZLYQDspUb60d/labpA2Mj4Wyh9Yoi7wYRIl35THyrVA49w9HvYTLW7XncdeLGNbesqFh21BxYxGB1x97RdQOasQ6wcmW2tc0gi+fLqZBNEZicf7Csjg73jo327w0SQfGCWUom5HCDLP0fMcqHLr7GuJxetpUxFXpNXiNjdwjQgNasax6VpPqt6fTHfIJIl2yr7n2b6XuBoaExjwKtCgYc5+p3rT34c+ApQDIuvsaWhIWM6BMcIFBxOhr/0mvkP3khUUrfilaEEUjgjDGjycj/Wg+aNz14rRwp/waP9g4zyDDu8t3PqCa1bhWE0n1/5zb7KA+VbKKlMYT/aY7P3ZuVsp8RHO/bjZjMiKVHWs1gYLt6vGHJldXSheiviL/XjTwW1MxmP2TSKaiZmf7qOb9r+78DSDbd/JktvllljXtWD/4w3L0CYFx8n3lMhlgE1hb63fqllMI5vGysdL8EOQIcfB4r53Xlg5NzDxyau9N/Xk+D8Uv69AtetPHCdQGWVwdySPlmpPCebS9Ueek+qg2aX51aWpsrD2PP6EVZ7nIvhqaSXBkzMwS/e+SGCGbSbp/DBJQ7qxbqZnzGyi7TIbjGwWzhMy6DU3/lnLfYvu8AkvgOwUehSC6t3716/0/APQjZciyOAyWjIhKhDKku1CjSLRXv42wJ5nZx4zmwx459b9ftR/D6ez/ufBAUS1XlM0/jzR67Ri7cO3bBxlpOV2CVWu14tmR2CiSHQNOtnFo+Xkbw/rFLKePoPIHyJvsgVEU4lozmhakCJY0PQvAJooSpwiSRjzv8MiapdAeWgP+/vS8NruO6zvzO7X4rHvCAh50gCYE7CZISJVGSqc2yFFGSLVuRbMuKYzvxongqGW9TlWSqZpxMuWo8SaUqrqnxJE6VM4k1WZSMNIodzUiyNdps2dpISZS5gBtIEMRKgFje2t33zI97b/d9wAMEUiRFyTwFggBer7dPn/OdnXnmSVEZkZLczq849Z8EOxferWDgNTNzUN5XOvo77B0whSMyTKs0Hg+zcuYWarGXImG1fbcpmgwNJkgSdVc76etrPFdgtnT6tcEfC3KMrW4rCP2NALC8cuWH3jZ9qMbHMRG3LU2eJyjIdLAlghpH4wXeydNHrQ2oq3F1JtmqJBIzJJlYUHS1IcMsJOS1Q1k7P+dhSUs7K5zGCScVE/OLJ5lZgieD6aeY2Wn9VCz3oKAEiUUTSs8XScnMMgiKuwpHPoegTwgiERCxCScrU3o+Qggn1HE4UcE+rOlZb98TK40qoH1hDsWc5t9DrcYyzLzr2LPT3ilpcLORdTLKLiSAEHczW1fc8Lb3WYuxnLht0te6CHMt5t4EYXCyamZ1Jplty3TrsToAtNIj1T1YB0VR880xx7aIQkbWH0f+d9twSrjpWm8SARQUXkL5mKy/Kd7xH3hptTrnmphV5gT7/uyThaOfF1L5aKTpOA/tQj5bfq8ulzXiwEQ1wED9bW7m5pqLXvIKvzj6uFZ/HJHRHcqSAEvRk9vaWr/sbb19NbIbHOM3I6vQr/pJs/VPn3Zg8mDFj3qFO+T0tG6WrMsqVTycWSKKQpC5Bcw3bm02MptY1xCFxkKRBoDq4o2C5idOMSBReJHdjkTnvyeRe1fmSjADLIGKP/YXxWO/J4IxYmEGiagNhHaqY67UiaTUPKazFaWZE0Ph9oYpCMzkZmJtX+falaS87+Qrw9NHwtHl0StsPR8GAhlc07NTLKE2s4bESsQSrFoIc/T4hRWzM9+jXQiYyA9Ol07b/LGmdYtwrEqSUGtF5mT0E0Lfn2EydUPWNjV84haoFwzUp5tETT8WF4PKkNv+BZHY9G5El9VjkVJOl07+cWn0TxwqWX6BqIVJuH317rLKV1xNRkILWC1YYd5YnV/KYBai8R5Kbq21hhxI/+m9DzEHuiJKKb/IQ24MTEnZZPvWlTuWsoY1gtDZdIexILRLScGkcEip0fFWCAYoebP91uBTIlqZW5uONylkwCR13JBV1xr1+nIomELYHsoqxUmL2rRmX30JVJ9uFjQPwzIxV0TdVU79Ry+8AWjelCCo7C8d+1Iw+QPhgEk58VhF/GQYj6nx7lRJL6qhJ9UD0kYVwIBOi1BjzVSJq+N2uLkHiWoXZb185Mcnpg+HwI6iihcjLwmSKADfvPG++LwpvTWpxvvd1bha9aitWaOlZKLJ5AhVOQPB/uFX7XVIxzJrW640d25yRiNWQpV20yggOsscCGXrPtsTBvNIwNxY11xlNyoiJko5DZ8C1S3a3PAck3GTSMm+N/Vw6chvyNJPIQSpyggKJEkZigboAbDWgrCRVTT3jqooXJ8q/aWtaj1eKe60/JZIrK95nGJl9um+v1e7hbV0kbrQsT0CqD6Ru65n5xLdjvMwFvOypp64SBKEmsjAUQxHQLOICK9cXYYyEA+MvOL7VcMpL19xc0CsQqnKgWk+Va/nnDGNVbdtMnSqri2yBPQfENkSklsznahx3wRKk2iqqUzPEzFLsJQcBP5wefAPKwN/wHKMWKgJ2qQncQoJYRZTfa+C3hziblLTNIwJXUtwzWl0Y8wBZhZI9bq5363JVcy8q/+Z8elBK/uEQSwpYFIDQbSNxczbe+7MpJaaqTZPFRLVJxtb61eG5S4hyIF5klrgmMLTMKciXxo/PLbfcrRjdWtvOt4YvgoLJcKYEFhkilLYSabGCpL1s96dmYlFe3ZFzds2LHUBuMr258og/0yp/zP+9D/AUVJVlSQYJIx5r445iJ7LsqQ3YY4XRv+g95OCRSbW+U0S6fm3z8z58vQzfQ8LAnHU1juUorYrK+Gmr111m1hy9VstBynospZegAMERpEJbXxqDWigOAGQzJJ0/bF888QLIe8QKJNoXNOyzXAjAUQswtdASzotaOdLLH3zMK4KRExctZoqLyKVqM9lWnlhL8kFIGawZI+l9AZKA18pHX+QK/sJBJIQOq6p9ItZ+AX4Jor3sd27zpyGjOokywZSvMgEOEQCLMCQItb0CSe9Y6EL/vmhx8fyJ5iYEUR1PszhzGX1HDjwe5df39nYvfSlqMWAhLXtV8550gobhR7OyFgDqVRSliwIh8d22U4HQeLyFTer2qnQKUAGZ85726r9UjausiKMc/lPW9fUlOxsTLdQLQB8vkm9dVIGkgPpHQ9G/zx/8MP+7GPEFQITRTEGwy/KNRAigVoXTFApMTXPuJAVEr1UDEhBie5Y69cWwuzjsyef3v93EIJh3kdi5gDabCITIRaum7q999NntLA1Tkmg5U1rMqnsbHmSpUHdkQkaoh9VNKI/JgIgTs+ODJ0+sbJ5dbjlmtYtmVRutnSKIMhEaMJ3zSwHQqubOcpQne9Csx0Q4eUyiKXsyPYsnox1XoiZIZVmY2+gMv63wdS/sD9CAnoCTWirQVcUW36X6ChzfzZV54BpGVXt3AEDuhSHjOoUkSIDmCE5kez8JpxlNRk3kP5Tb/2gJMtCajYl844yBEwrayYEkm9ee19HtkZHmkWotspsSLesarmCpRbZFrSyaP6tgisy3zf8iv1RY6p5ddsVJjJgs4i1e2gJqINZCH2eXlvwTe3KrUItXjx/xIarpD9QGfpW/sAd/sT3EAwLQUQQFBBJohAqcSjv5xzG8lQZ8x5aB5Jt5YZ5MjWksgBYFRYr8S6l4zQ/4GY+XFPMMPOhsddfP/mcmSZN1nGEtf4OmLKp9lvW3VsDCi5KtRlLkNjWfSvIkWAJYdokVyWr2g7MyOfAvGfwRc+PKhqI6JruOwiCyXAQWYoRMI4SGH96GCkK1Z+doWWM0BByAWAOOOhuXm+f9MyW4UyIZcBSSukz+0Gprzz0zWLfXf7E98iZ1qPHKSAKGNLkqsvwmqufIluqkKzYTlVGWkRaPoUJHRKQJiFeUpiMwA4CR6QuT7b+PmphbQaX/eLjb/6N51fsgZFakJKudDBuW+fmDfc2pHNnuqS1tS+BNrZd05rqGisMqWHiYXtwy+aD/QKSkfeDk31jsyeXNXaHOGBt2+UtmRWnZgfsHJ/QFAj3DXH6Iqnu0BrFONHMNTmU6my67PyxUxg50ZYD+UHxl5XxHwSzT4GnBCQLgCRAqumP3grGBxr5WeZaHtZfqhZz3gVoL+g8Ur6w8OBETCyakl3fRqyt5r0Q8OO9Dx+Z2OdC7xrqWQvusYq7tDd0X7/qrqUbgyEtuEMilrpl46cCGUgiaXlDJetBBVKnoam/k9SOLuFz5fXjz9urF3PiN677deYACMLYWPQGEIyf0EENrrJgvq5VqYb8hIC5s3FVfSp7zh0KGpRLHTqXsiy9E5WpR/JHf7Nw6KPB9D8ST4LVrHLT55DUlGlSrinL4fe2VCWouPrLOKmqwjus+oSTqR2D6reYiHd9SySvrgnwmXnP4C+e6fsnV18U282iWIVyVasMApH48NYH0/H6s1i6xThxe8/OVa1bpVSNY0I+qLrgcD5zlOkgsOv4TypBJQJNhKtXfKg5s8IIW4Teh8jGrDY2LTJbmj3136KfBJh7l39gcTm3RGJj4ikrT6dicF6W3iqP//fisS/kD95ZPvF1Lr4oHDXQRgrH5FUvosWWdGabSPv8rLsHg1m5EUIPaSi2BUFAEnMi1vZlN3vvQpprbPbEY69/LwhKtpOV2Vo8Akw1z/ZVd/Quu+asbmdRxnKFe8/lDyadlJJMpOtGojoLNuEVA5m1L2R8dvDgyJuWZKG6ROOO1R9VaUEmk2bunWvQFi1k9Im5V2MqShALIocgiIWU7saO7WfNV4qLWLKUEtKXUkqWkj0ZDHtTPyqc+IN830fyh++rjPxnWXiWcJocqPQpUmPvIRnEOtXOdn+LxZc3Wh2TQUtGp+n8KfUpm+65BDV0XgAEqaA6AWCCdJkdZtfJfiTW/BUskH1Q8ouP7v7e+Oxxw3YcYlYD4ADlZGNk0623b/r0Wa7p4hNWiai7ZdMH19//5L6/IUGSmSCUaWMjaOjXTfuniIjJf+XYjzd1XhnVDBFd07PzxSOPncoPClVlpVbQSnrR7i2aq+ysx2PMYYCiOWTclG7rbOxeMrq0wJnBQ4BkLnMwEwQjKB0Mintlfpdf2k88o/K0yXR+Uy2ow3s2KJNCkGmRbeghPKlt7dS84rkHsrG+NnmjJsAU/mM33nBDrOtPSdTVhASe9J448HcHhl/SbaiNkg6d3qGHSInA23s/25RqO2sz6G0GXwsSt/bef2xyzy+HX3UdoYa4hp+GbBGyu2J9B+LQyKujM0Pt2a5QcTYkczet+8Sju75jmEr74KJjacm3iOTRPKGa0EJlTZBc1rgmGVtC7h7LSGVzmYOpIBjkyqCsDLB/UpYHuHIc3jhkEfAYLEhCwISBAUiqdpdrQboYsKuC6oalliBa2ZIglpdCQUxJPlXzNTPchhvcru9AZOc1PQQAyfL1Ey/8vO9H4AAkIKV5i40sVDiZHYXbtqy44dru29+Jcf32E9XjbvKBa//wvz391eH8oCvISjhboGkUAUChcvqNgedvb3jANjOuX3X3L47+6/DkEQq9hazzHkKja677M2oEH/rrYXYnQEgp17VfvkjqmTEvlL6b9MqHUNgli69xuQ/BKQQ+yNONGUll97KB4JHOj2zW8Caj67TMi8WoarNaCxfpTcO5kqKWHJrT9FQfsxkDkI7bdEO84zvkdlRb6uGJuX9y/4/e+H65MqvRExOoCmOR0KCLJVobuu+/+mvhFOazo7cHAQRqTLV+9gN/1JxuBZMQwjxYYXqC1diJQC/3P1nyCnYoxhXxnRt/W1AslMLGgNIbkOVBUafmsHHBHIuJVShJxkRqbce2BaSGFg8sS37htdLIfyoc/bh37DPB6Ld55gl4RzmYZRSZfYYHCkg34WLVkyoKdECHNRfgHar+Ck89F8jbWKoW2eEdJb5FFXSHlIhGBxIEwSWZcnN3x5f9Fbnt5mLm0nj+5CO7/2K6MBTZWmTK7WFgqwngpJLZ+6/9RiaefYe5a0v1T6xoXve56/4om2yWqr8jqSIxMznPyqzSgJ4wkR/Yffx5WwIRUW/ndRs6rpEBFjDiqlaebaE4d3NST6q5fnlHdsUCpjXAxP5AceSb5WOflxPfF+WDxLMMn0kyApAPCkABSILUr8aloeGezetEVZenWUdhfyAwXyatX7u8lGdGLvQKzr9qAql2e6GtUoVldfoRgQXLhNv86/GOPyPRWJOlmHm6PPHo7u8Oju/TraIYir3mBCdYy0Kxc/PnVrdsfuce5qUyFoF6Wjc/eOOftmS6AlMhQ6bBn/J8sHW1yr57dv8/l62YNICYG9/Z+9m4m9JQyaR7ESGsvFDgUZvQFJajCkQJpVrkSfDGru1mEHVEoajxS78sHv+CnHiIeUx1bKb5JddGfi6KluYcXnMPwMY2tNYqzGJYKpH1HbpTkAq/smrwwvpXUpYgAUyIJ9rujXX8F3JqcxUAT5af2Pc/Dwy9Qponw1sGgCreIkjQ5ZfdeuOaj5yFO3Q+ncEhCLSssed3bvyT3mXXBWApAAFV72kFpy1YAoznB3Yf/+mcg6xs3nDLxvvVIF0j/M3yaQsgXOII7hrDUz8DpRuFiPd27qgpzQDIyuHS0Ddk6S11nyRYDaKpDifZD2VBVpgjj+eK5+ptQ0GFsBJ3/lqCYHkoVENKE6rTAlLpLFKYSENSfQaidLz9S07rt0lkFuSqoPyTvn965fATLFW2pZ3nLQgORf4RYqbu3Ob7tv0bsXCPgjOiM+NNImrJLPvt6/74nq1fjrupQFtMgkilm0Y8IXQ31uCFQ48UK/k5x/nQ+k+uabucpWpJI0x0VSeshsfRStWUMUaXAR0lbM6s6G5eO1/HMDPkbGn4W1zaY5wFpnqdINl+qEu9cfsHigjVbKqYaXEsFd0EWJASzCxUU1bNUVaFt46fKt0AAemS0xhf9h+d5t8nkV7o6IH0Xzj6+DN7H/H9spL2FoCzrwEEQUA23X7/9q9nEu8UWoV0xkKPiGJO4pb19//bm/98dctmU3RPQggSwhJd6ssZnDz0xsCL9mtNoEQsddfWL9Ync1IFpwFETy4KGgKhW2WurQgQgzZ0XhN350+6ZoArp/9eFv4fEAA+KDAVjQoMVRe9sISJ4NbCQRpF6do1DtRk6FByWVgqamK1BDxF+iYiiRztzCxB+gSRcGOIICYSa+Irvus2fmmhSWbMLDn4ef8TT735kO8XENY+QdpV89ZSUtzJfPzKry1vXHUOi03OSpsSiGhlbv2Xb/qz+7b9bnNdJ7OULE12pABU4EFxBp4+8A+2eagO0N284ab19xKpDCq9aVgJpNaALFClHbMECNLd/hynp3VDrbUg9gb8if8B9omkENqFYZCQoCjZiSNtxRKsC7ahvnEIpDQmU4V7ZMxZ60vdFMiEiim6J1vCCUvOQd+xzoMBK4uPfNaJu9IcAxpisONkr4uv/EuR3rmwNOSA/eeO/PD/vPHXFW8mxJHSWH8m0gtzxYDr3nnFF7d0XXsWjLAIvSOYlnBT16+556u3/dePXf7l5rp2CQ60waSiBKxMx4l8/ytHfzIHzDrk3LD2ng0d1zAphKp2NNAXZEwzwEgvpRZN70QnnWhakVs7D+IA4CD/jPSGwsdnYIRCMAIsmOYWJFD0RQRJrHpcsmYXZYIibJuE0NZTV2bEbshX+iWADq6bU8PRRkkkiYyojqxOGC1JmrUCAurc1t+Kdf2VSGxZxCzwpf/MwX958o2HSpUpKISh10BZRWzVXBCDmMS1qz+8Y9Wd5zzR6B05wQAQUX2i6YPrP7lj9d19I7v3Dr84OHmwUJ5RrWZccpNO3aq2rVuX10i7TsbSd1/x4KmfDY5OH1MtAoEqPRiSKcc3fAJi5vaGyxpSTfNXhGU5mHke7ENwpGEYgH5UXHX8EIbbwZZIM0PH/9WB7MAD2bubg3AIrnSoxPL4shFibHuYOfSyk9koaiQGSMg4xZe7rQ+62c+QSCwkqxhc9ktPH/rfz+39Z9+bNies8srq62bB+h1wepfd+NHNX1ik4+NZ0ztlLBhpn4iltizfsXn5Dj+olLyCH3gMdoSbcFMJtzYaIFBH/Yo7Nn/usde+O10aIxATs1QjE9g8h2piASg3sdPdvDHhzHU0ACz9EVnaS8LOMBEATAFD2OrN8qWRUTcEsJzD1ea3pWEn7f0KI+0U7qw+sUQsazevGtsmgtAbTDojlBh1IntDrPWrIrFt8aHDU6WJ/7vvH3cdedLzigasAVH2H0wGG5MCxCTWLrvm/u1fTSwlGnbmdA4Yy5B+72JOIuYkIu/e4vsQbVl2/dBU/7P7H/b8ErS5RwBIzMkwVsdnZTE5TnJ5rmarQkKlj+VoeBjzV1J9A3Rit136Eoq0KBFY22B2tr3ZNLKtat5cJCJIP86am5FWVMzRZCHNX6bbmpCJFbHc/bHsb5LbujCoAoPH8yM/fOv7+wd+5gcVVQCtHTjWNvqCjJNtZUvvJ678SibRcA4Bu03nkLGqaOk623ViH1x332RxZHf/M74sa21l/EMqoVRJANJMR4BwKJaK15oLCg5KfZAlVHWlVtExdWQAIXhH+Iu1ZfhDyEzhTdkZClW3i7m5QKHWtnRstJe2/ewD68Mqb7Gop4abYy2fF4mriBbryChZ9k8efHzP3x4f2cWB70CnrBo+Ck9AptMdkXCWN6+/f/u/y6XazhNX4fwx1hlROp65feOnT+fHD4+8zmrwpKGQq4RZfAAgxNxE3EnW8M0wwx8Es+U9VmFNGGiutooQkmIy3fSONcrRpw6PYK4mVGzzlKKu3Y1Oqg+ja3jMeblGhw8pABb65ElKrXFbPunW3UvOYoIKgOTgzeFXn9jz0OjkQebA5FxKS/gK3YVbA0QBclY2b35g+zfa6rvOH1fhImEsgFrqum7v/fSj5YnhqSMkFRrQrxzb2TWalSjhJpO1m6syBeNqdpPJlQh1X1Tsay+pxWSmsDuMB2hZZPdysq6l+rkYw9Ck32knlDCcpBTenPiPIIajBWoS8a54051uwyfgrl0cUTFzwS+8ePzHP9v3yFR+CNqJqnUrNMojsNSuFRIEcpzYytbNn7r6G62ZzsVZ9p3TRcJYIKJVLVtu3fjAU289NDZz3GBPzK+tUM8qJuKOmD9EiRmB9E4pHjBl+qqViwYyxry0QHSoBRUfm79EUbWQF6rsxjkXpV4DZpbGwlf8wka9KVki7V1Uhk4gkpToiTXc5DTcRbEtRMm3E1Ty5Ozx5w7+cM/xZyrlmQihV19SJI2JCMKNpTZ0XvvRrV9syXQscvBzRRcLYwFwyNm2/OZKUPzJ3ocnCkPEUvWhVhI7UlVRL9wa85gIDCcJ1c8rjAMxcdS2miz9GYJxIx0jNEQgWePxzte9C3GBkbgAhKlsMwxLuk8KkkiuijXe4mZ2krsJVBfGdGofklGRpbdGX/tp32OD4/sCv1ztxSOdwcsqbAWDq0Q6nt3WfevO3k9nEg0LHfzc0kXEWAAc4V698nbPrzy7/9HTxWFQAIBZqjr1MIeGgYpfKQdl1FCUrtNwa1DsgxwiBCwjWGVUG4Uw2yB65Z52zLHVf6oYmUILD6Ym2YCwWpILQJRyY84a+bfUUGCVZZdBsjtWv8NpuEPEtoLqjWxekKskB6OF4ddOPr/70E+m8oMy8E00KQwrhcYHzGUTCSeTzl2/+mO3rLs35iTOK66y6eJiLIDiTuK6nrsY/LziLQ7ME5ZQLgMWkFzyZqfLEwDrCFKUJE1O3V2xdulP/RClA8QFHQ5g+xlHao7MWw5YY7Qj75N2FoSPEAAgTQTP9kGon2WUmYFwD6F9aEygBMdbkNycqL9OpK4V7iqm+hD0137qDAbP+jNvje3a3f/sifG9pdIkZGD4J4pWVxuwBCbhuq2Z7tt6H7hi+Y1uDeRwHuliYywASLipHT0f8QLvhf2PzpTHImgdOYlkEBRHZwb91orrJEI7Tsskp91t+CSl1snZ5/yZ16h0FHya4DOk0aWStcdblZObVHbNC1YkSXsLQl9UKBVC0KWloeWb4HBbpYqZISkh3Rxi3W7d1kRmByW2gJoJMeNoWICfCGCWLE/M9r9w+F/3D75SKIxCsqkBiVxm2kwxtafqZXOcRFfzuru3fHFVy6ZzkmJ1RnQmgyEuLBW9/E8P/fCnfY9Nl0a1MNHCRgAkRHx15/Z7r/pCW91KVE3JhNYG7AGnpHeYy0eC4n4u7pfeIAXTCDygArA0D8aKGS7c7TMyISKbkMPYgIZPiqvIWKBxOBm4XRS/zElvclIbnXgPOe1MdUZELSY/mNljbyh/Yu/Qq3sGXhib7A/8Yuhk4+j6qy9Tc7pIJOt7O2/Y2fsbrZnOxVb5vNHFy1gAyl7xpWNPPb//kcn8IIfJLSwAIjjpVO7m3o9fv/rOJNVR1LPdSA6WADF54AJ4hoNR6Q+xNxqUT3L5qKz0sz8GrhD7hEBnFjBHFpbWk+EBTcKrDvDZPisCiMkBx0AxctLk5ii+0klucJKbRHwtua1EaSbXijEvSEr+VKQ3MH1039iufSdfHp/s971ZlrrYWpm7YCN0lf7XN00kIMjNpjtvXHfPdT23p2I1JtRfGLqoGYuZVd3SM/seHpk6IqVC60o8CEe4nbnVt237zMbmq1yKL+DqVx4EZfMHgn1GnuU4e0Pwh6R/ioNJ9qfZOy2DGZaT8E8jmBUoG1TFhMBUzyuNqKzNGIsEiyS5dcLJwcmJeKvjtiDWIZx2cjvIaQE1AAnLl/H2+IbBvvRPzg6+NfTyvqGXRyYP+5UiOBCQ0uR6GDRp+TVMUFkQCTe+LLf+w1s+v7Zl84VXfzZd1IylSHJwaGzPs/v/15HR18veLKD9WwKO68ZWdlxx26ZP9eQ2uiKGufg3lF4cNpxibRZKkM9cBgrgPMsZyFnIGQ6mIScQTEkuMweQHrjI0gPAlIBICUqSiEPUkciQ00RuC4kWiBZQiigGuNBJWdbZF6XQpCj5pRMzxw6N/rJvZNfw6YOl8jTJCpgk2MSS2AzYZst0AMgREAQnlcpuWXHDh9Z/orWu85ynwZwpvQcYCwAzj+WHnut7dE//C9PlU+BAqUOC47iJZc3rr1t3x9bODySFjh4ufVnZ+DCB0IHpAz6gHqEPBPrJwgVi0KniDsPRo8eYzv4pMjNQ8kv9p4/sPfnqweFXJ/MnvEoJ7BHrWSPhlHDNWxGnSgAQDsGNu8nlzZtuWvuxTR1XxZz4u85VeK8wFgAGl7z8S0efevnIU2NTxwNZBCRBCAg4sVxD1zWrb1/XcUVrenlCpENQvYjbpirgY2AKmyi35Ygyvnr1myp1jLJibLB1JrfDXPHL05WZkakTrx1/4eCp1wrFUQ48Y7ACWgHDFBao00rr0gAix0lk6zquuuzXblp9d30iq4IKZ3E955zeM4wFZQrJoG9s988PPd4/8st85TRY1esJIieRqG9t6OpdceOGziubUq1JJyXgRMkR8482x7M6vwnlub54FUfypFeo5Mdnx/YNvrF/9KXJwmCpPCVlhSCFyZqSBDALnVXDYexS6AACgYQj3HQyu6pj2/Vr7l6d66XqyRTvOr2XGEsRs5wsjr909Mm9x188NTPgBWUiCaaAyXXcdDrX1nBZT9uW1R1bcum2uJNIOIkY4iYWq4XOEtH0O7pOS9Qx2Av82crMaH64f7zvxOSB4ckj+dJYxSuxLJsQZfQgJHQZPFRzHoXamNTcDSFEIpZZ1rxhx5qPbGy/OummLiqWUvTeYyxoazHoP7Xv9ePPHRp+83R+KOAyQ7KEBDmOSCezuUxXrn55U33bqrYtHakuV8TjbswRMQEhEDonqhjsHAotyVKyDDjwgsp0ZWZkeujExJGR6aNjM8eni6OeN81BwCxNJKAqlqMD5SJK+dcD41gQUSKebs9edkX3rVetuKU+mbWcwxcXvScZSxGDK37p2MT+NwaePzz8xnR+1JMlyVLZ3iSEcNxYrK6pblljur0+kctm2rPJ1pb6juZkS8JNCCIQucIVum7HclqaELE5UcSApurfigayFjiSfSnZY2+6MjVWGJkqTU7lT50ujE3kh6fyQ/nyKa9SYOmFfgyVEs8MEqZaV/uoOPSgmzAjETnxWKq9ceW2lb+2tev6XPrsGwxdGHoPM5YiZq4E5eOTfa8PPHtk+I2pwpAXlMOgrASBHeEIx00m3HQyVp9NtjckmzOp+lQ8m0k11SebUom6dCwdjyXSbjpGrilDJtZpl4Is7G5aZnJZloteoeiXipV8vjJb8grThVOzxamSPzNVmpgpTc6WTpe8ad8vSekB0jQQ0CEjApFJ7CFTSqk42hS9mfJVIeKxZHvTqqsu27ml8wMNySbCO7BDLxS95xlLETP7sjIwcXDf0CtHR/aMzfQXK7OB1K3PFIfonBUGEQnhJt2GumQuFc/WJbOpWCYWiycTqYQTJyVA4CTclCtirhN3RQyEAEGpMusH5YCZOShVysXKbKmSL1byxdJsySvkK5MVfzbgMsvAcGBAYTaOTraOAkOhr8vwlF0+ROoqU4mG7tymrStu2tBxVTaZu3iMvrel9wljwcgBKeVkfuTQ6O7DY28NThyeyo96shxIn6Bqb4hZTedkNRmEYfomkPqL0nckIFwn7jpJVySEcFkGPlc8vyilJ7XeAnMgIQMVa9Ilu2BdJakbf+nMB1PWp64UeuabyYjQYWMTSBci7iYb0u2r267o7drek9tcF89c/CJqDr1/GCskbbHLYHhqYN/Qz49NHBidOjFdHPeDIrNkDpSFxfrJKmeWtuejYh2VvCqEyQJjXRamirJCHxgzVxl0pCC5+U2pOh3jNN+kSWrQfjCGqpAWMZFqSLd2Nq5a03H5po7tzel2EnTRwvPF6X3IWCEpDqv4pZOnj/aP7zk2cXBs6li+OFnyZjxZMTjcyspTHVaB+cuiIBEL+y/6fytzumqX6kz5qlpFE2ESIBLCScYzDem2zuyq1W1bepp72+u7XOeCz2451/R+ZqyQVDOGSlCZKowdHXvr8OiuwckjhfJMySv5XA6kpxp+kJnPGO5mmX9VaQTViQ9VMUlUhfHMyRFmRguHYq6IOW48HktmU83LcxvXtm1bkVvbkGx0ndh7BUK9Lf1KMFZIprMt58vTJ6eODkz0DUwcGM8PFsvTZa/ksc/Sl8xS+gw9/06RRtZaAoFIJdnoUlO9Cary/ch0TiAiQa6A67qxVKKuKdW5vGnNssaerqY1LZnOmJMga6j7+4Z+tRgrpNAd5QWVQnkmX5meKk5MlcbHZ4Yn8ydPzZ6cKo6WvbyUqjkRacNOc4/WoJZ0IjYBPSJyHDfhptLxhkyyOZtsaaprbUq3Z1MtmWS2LlGfimeSsbQg8f5jJpt+RRlrDhkcD8kyCPxKUCp6syWvEMhKoOZT6DG2inQnohBokfY5kUOOEG7cTcTdZMJJuU5MCEcoq5P1nu/KDV54usRYl+i80LuZZHiJ3sd0ibEu0XmhS4x1ic4LXWKsS3Re6BJjXaLzQpcY6xKdF7rEWJfovNAlxrpE54UuMdYlOi/0/wHoi0Qj7fq3EgAAAABJRU5ErkJggg=="
+          crossorigin="anonymous"
+          style="width: 40px; height: 40px; object-fit: cover; margin: 0 auto; display: block;"
+          alt="Logo Bang Jelantah"
+        />
+
+        <h2
+          style="margin: 0; color: #166534; font-size: 20px; font-weight: 800;"
+        >
+          BANG JELANTAH PURWAKARTA
+        </h2>
+        <p
+          style="margin: 4px 0; font-size: 11px; color: #666; font-weight: bold;"
+        >
+          SLIP GAJI KARYAWAN
+        </p>
+      </div>
+
+      <table style="width: 100%; font-size: 12px; margin-bottom: 16px;">
+        <tr
+          ><td style="color: #666; width: 35%;">Nama</td><td
+            style="font-weight: bold;"
+            id="slip-nama">: -</td
+          ></tr
+        >
+        <tr
+          ><td style="color: #666;">Periode</td><td
+            style="font-weight: bold;"
+            id="slip-periode">: -</td
+          ></tr
+        >
+        <tr
+          ><td style="color: #666;">Dari - Sampai</td><td
+            style="font-weight: bold; color: #0066cc;"
+            id="slip-tanggal-range">: -</td
+          ></tr
+        >
+        <tr
+          ><td style="color: #666;">Status</td><td
+            style="font-weight: bold; color: #166534;"
+            id="slip-status">: -</td
+          ></tr
+        >
+      </table>
+
+      <div
+        style="font-size: 11px; font-weight: bold; background: #f3f4f6; padding: 6px; margin-bottom: 8px;"
+      >
+        PENERIMAAN
+      </div>
+      <table style="width: 100%; font-size: 12px; margin-bottom: 12px;">
+        <tr
+          ><td>Gaji Pokok</td><td style="text-align: right;" id="slip-gaji"
+            >Rp 0</td
+          ></tr
+        >
+        <tr
+          ><td>Uang Lembur</td><td style="text-align: right;" id="slip-lembur"
+            >Rp 0</td
+          ></tr
+        >
+        <tr
+          ><td>Uang Makan</td><td style="text-align: right;" id="slip-makan"
+            >Rp 0</td
+          ></tr
+        >
+        <tr
+          ><td>Uang Makan Malam</td><td
+            style="text-align: right;"
+            id="slip-makan-malam">Rp 0</td
+          ></tr
+        >
+        <tr
+          ><td>Bonus Tepat Waktu</td><td
+            style="text-align: right;"
+            id="slip-bonus-tepat">Rp 0</td
+          ></tr
+        >
+        <tr
+          ><td>Bonus Mingguan</td><td
+            style="text-align: right;"
+            id="slip-bonus-mingguan">Rp 0</td
+          ></tr
+        >
+        <tr
+          ><td>Uang Kesehatan</td><td
+            style="text-align: right;"
+            id="slip-bonus-kesehatan">Rp 0</td
+          ></tr
+        >
+        <tr
+          ><td>Uang Rapat</td><td
+            style="text-align: right;"
+            id="slip-bonus-rapat">Rp 0</td
+          ></tr
+        >
+        <tr
+          ><td>Uang Nginep</td><td
+            style="text-align: right;"
+            id="slip-bonus-nginep">Rp 0</td
+          ></tr
+        >
+        <tr
+          ><td>Bonus Penjemputan</td><td
+            style="text-align: right;"
+            id="slip-bonus-penjemputan">Rp 0</td
+          ></tr
+        >
+        <tbody id="slip-penerimaan-dinamis"></tbody>
+      </table>
+
+      <div
+        style="font-size: 11px; font-weight: bold; background: #fee2e2; color: #991b1b; padding: 6px; margin-bottom: 8px;"
+      >
+        POTONGAN
+      </div>
+      <table style="width: 100%; font-size: 12px; margin-bottom: 16px;">
+        <tr
+          ><td style="color: #dc2626;">Kasbon</td><td
+            style="text-align: right; color: #dc2626;"
+            id="slip-kasbon">Rp 0</td
+          ></tr
+        >
+        <tbody id="slip-potongan-dinamis"></tbody>
+      </table>
+
+      <div
+        style="border-top: 2px dashed #ccc; padding-top: 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 16px;"
+      >
+        <span>TOTAL TERIMA</span>
+        <span style="color: #166534;" id="slip-total">Rp 0</span>
+      </div>
+
+      <div
+        style="text-align: center; margin-top: 24px; font-size: 10px; color: #999; font-style: italic;"
+      >
+        Dokumen ini digenerate secara otomatis oleh Sistem Keuangan Bang
+        Jelantah.
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ MODAL PREVIEW SLIP (OPSI B) -->
   <div
-    id="template-slip-gambar"
-    style="width: 380px; background-color: #ffffff; padding: 24px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; box-sizing: border-box; line-height: 1.5; border: 1px solid #eee;"
+    id="modal-preview-slip"
+    class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[70] p-4 transition-opacity opacity-0 backdrop-blur-sm"
   >
     <div
-      style="text-align: center; border-bottom: 2px dashed #ccc; padding-bottom: 12px; margin-bottom: 16px;"
+      class="bg-white rounded-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col shadow-2xl"
     >
-      <!-- LOGO GAMBAR -->
-      <img
-        id="slip-logo"
-        src="3.png"
-        style="width: 40px; height: 40px; object-fit: cover; margin: 0 auto; display: block;"
-        alt="Logo Bang Jelantah"
-      />
-
-      <h2 style="margin: 0; color: #166534; font-size: 20px; font-weight: 800;">
-        BANG JELANTAH PURWAKARTA
-      </h2>
-      <p
-        style="margin: 4px 0; font-size: 11px; color: #666; font-weight: bold;"
+      <div
+        class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0"
       >
-        SLIP GAJI KARYAWAN
-      </p>
+        <div>
+          <h3 class="font-bold text-gray-900">👁️ Preview Rincian</h3>
+          <p class="text-xs text-gray-500 font-medium" id="prev_nama_periode">
+            -
+          </p>
+        </div>
+        <button
+          onclick="window.closeModal('modal-preview-slip')"
+          class="text-gray-400 hover:text-red-500 transition"
+          ><i class="bi bi-x-lg text-lg"></i></button
+        >
+      </div>
+
+      <div class="p-5 space-y-2 text-sm bg-white" id="prev_rincian_konten">
+        <!-- Rincian akan dirender via JS di sini -->
+      </div>
+
+      <div
+        class="p-4 bg-green-50 border-t border-green-100 flex justify-between items-center"
+      >
+        <span class="text-xs text-green-800 font-bold uppercase tracking-wider"
+          >Total Tagihan</span
+        >
+        <span
+          class="text-2xl font-black text-green-700 font-mono tracking-tighter"
+          id="prev_grand_total">Rp 0</span
+        >
+      </div>
     </div>
+  </div>
 
-    <table style="width: 100%; font-size: 12px; margin-bottom: 16px;">
-      <tr
-        ><td style="color: #666; width: 35%;">Nama</td><td
-          style="font-weight: bold;"
-          id="slip-nama">: -</td
-        ></tr
+  <!-- ✅ FLOATING ACTION BAR (Untuk Batch Approval) -->
+  <div
+    id="batch-action-bar"
+    class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)] p-4 transform translate-y-full transition-transform duration-300 z-40 hidden justify-between items-center px-6 md:px-12"
+  >
+    <div class="flex flex-col">
+      <span
+        class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-0.5"
+        >Siap Dieksekusi: <span
+          id="batch-count"
+          class="text-blue-600 font-black text-sm">0</span
+        > Slip</span
       >
-      <tr
-        ><td style="color: #666;">Periode</td><td
-          style="font-weight: bold;"
-          id="slip-periode">: -</td
-        ></tr
+      <span class="text-xl font-black text-gray-900 leading-none"
+        >Total: <span id="batch-total" class="text-green-600 font-mono"
+          >Rp 0</span
+        ></span
       >
-      <tr
-        ><td style="color: #666;">Dari - Sampai</td><td
-          style="font-weight: bold; color: #0066cc;"
-          id="slip-tanggal-range">: -</td
-        ></tr
-      >
-      <tr
-        ><td style="color: #666;">Status</td><td
-          style="font-weight: bold; color: #166534;"
-          id="slip-status">: -</td
-        ></tr
-      >
-    </table>
-
-    <div
-      style="font-size: 11px; font-weight: bold; background: #f3f4f6; padding: 6px; margin-bottom: 8px;"
+    </div>
+    <button
+      onclick="window.bukaKasirMassal()"
+      class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition transform active:scale-95 flex items-center gap-2"
     >
-      PENERIMAAN
-    </div>
-    <table style="width: 100%; font-size: 12px; margin-bottom: 12px;">
-      <tr
-        ><td>Gaji Pokok</td><td style="text-align: right;" id="slip-gaji"
-          >Rp 0</td
-        ></tr
+      <i class="bi bi-check2-all text-lg"></i>
+      <span class="hidden sm:inline">Approve & Bayar Massal</span><span
+        class="sm:hidden">Bayar</span
       >
-      <tr
-        ><td>Uang Lembur</td><td style="text-align: right;" id="slip-lembur"
-          >Rp 0</td
-        ></tr
-      >
-      <tr
-        ><td>Uang Makan</td><td style="text-align: right;" id="slip-makan"
-          >Rp 0</td
-        ></tr
-      >
-      <tr
-        ><td>Uang Makan Malam</td><td
-          style="text-align: right;"
-          id="slip-makan-malam">Rp 0</td
-        ></tr
-      >
-      <tr
-        ><td>Bonus Tepat Waktu</td><td
-          style="text-align: right;"
-          id="slip-bonus-tepat">Rp 0</td
-        ></tr
-      >
-      <tr
-        ><td>Bonus Mingguan</td><td
-          style="text-align: right;"
-          id="slip-bonus-mingguan">Rp 0</td
-        ></tr
-      >
-      <tr
-        ><td>Uang Kesehatan</td><td
-          style="text-align: right;"
-          id="slip-bonus-kesehatan">Rp 0</td
-        ></tr
-      >
-      <tr
-        ><td>Uang Rapat</td><td style="text-align: right;" id="slip-bonus-rapat"
-          >Rp 0</td
-        ></tr
-      >
-      <tr
-        ><td>Uang Nginep</td><td
-          style="text-align: right;"
-          id="slip-bonus-nginep">Rp 0</td
-        ></tr
-      >
-      <tr
-        ><td>Bonus Penjemputan</td><td
-          style="text-align: right;"
-          id="slip-bonus-penjemputan">Rp 0</td
-        ></tr
-      >
-    </table>
-
-    <div
-      style="font-size: 11px; font-weight: bold; background: #fee2e2; color: #991b1b; padding: 6px; margin-bottom: 8px;"
-    >
-      POTONGAN
-    </div>
-    <table style="width: 100%; font-size: 12px; margin-bottom: 16px;">
-      <tr
-        ><td style="color: #dc2626;">Kasbon</td><td
-          style="text-align: right; color: #dc2626;"
-          id="slip-kasbon">Rp 0</td
-        ></tr
-      >
-    </table>
-
-    <div
-      style="border-top: 2px dashed #ccc; padding-top: 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 16px;"
-    >
-      <span>TOTAL TERIMA</span>
-      <span style="color: #166534;" id="slip-total">Rp 0</span>
-    </div>
-
-    <div
-      style="text-align: center; margin-top: 24px; font-size: 10px; color: #999; font-style: italic;"
-    >
-      Dokumen ini digenerate secara otomatis oleh Sistem Keuangan Bang Jelantah.
-    </div>
+    </button>
   </div>
 </div>
 
-<!-- ✅ MODAL PREVIEW SLIP (OPSI B) -->
 <div
-  id="modal-preview-slip"
-  class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[70] p-4 transition-opacity opacity-0 backdrop-blur-sm"
+  id="modal-edit-riwayat"
+  class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[80] p-4 backdrop-blur-sm"
 >
   <div
-    class="bg-white rounded-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col shadow-2xl"
+    class="bg-white rounded-2xl w-full max-w-2xl overflow-hidden flex flex-col shadow-2xl max-h-[90vh]"
   >
     <div
       class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0"
     >
       <div>
-        <h3 class="font-bold text-gray-900">👁️ Preview Rincian</h3>
-        <p class="text-xs text-gray-500 font-medium" id="prev_nama_periode">
-          -
+        <h3 class="font-bold text-gray-900">📝 Koreksi Riwayat Gaji (ACC)</h3>
+        <p class="text-xs text-gray-500 font-bold" id="edit_riwayat_nama">
+          Karyawan: -
         </p>
       </div>
       <button
-        onclick="window.closeModal('modal-preview-slip')"
+        onclick="window.closeModal('modal-edit-riwayat')"
         class="text-gray-400 hover:text-red-500 transition"
         ><i class="bi bi-x-lg text-lg"></i></button
       >
     </div>
 
-    <div class="p-5 space-y-2 text-sm bg-white" id="prev_rincian_konten">
-      <!-- Rincian akan dirender via JS di sini -->
+    <div class="p-5 overflow-y-auto space-y-4 flex-1 custom-scrollbar">
+      <input type="hidden" id="er_slip_id" />
+      <input type="hidden" id="er_status" />
+      <input type="hidden" id="er_total_lama" />
+
+      <div class="grid grid-cols-2 gap-4">
+        <div class="col-span-2 sm:col-span-1">
+          <label class="block text-xs font-bold text-orange-700 mb-1"
+            >Jumlah Jerigen</label
+          >
+          <input
+            type="number"
+            id="er_jumlah_jerigen"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:border-blue-500 outline-none bg-orange-50"
+            oninput="window.kalkulasiGajiJerigenEdit()"
+          />
+        </div>
+        <div class="col-span-2 sm:col-span-1">
+          <label class="block text-xs font-bold text-orange-700 mb-1"
+            >Tarif Jerigen</label
+          >
+          <input
+            type="number"
+            id="er_tarif_jerigen"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:border-blue-500 outline-none bg-gray-100"
+            readonly
+          />
+        </div>
+
+        <div class="col-span-2 sm:col-span-1">
+          <label class="block text-xs font-bold text-gray-700 mb-1"
+            >Gaji Pokok</label
+          >
+          <input
+            type="number"
+            id="er_gaji"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:border-blue-500 outline-none"
+            oninput="window.hitungTotalEditRiwayat()"
+          />
+        </div>
+
+        <div class="col-span-2 sm:col-span-1">
+          <label class="block text-xs font-bold text-gray-700 mb-1"
+            >Uang Lembur</label
+          >
+          <input
+            type="number"
+            id="er_lembur"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:border-blue-500 outline-none"
+            oninput="window.hitungTotalEditRiwayat()"
+          />
+        </div>
+
+        <div class="col-span-2 sm:col-span-1">
+          <label class="block text-xs font-bold text-gray-700 mb-1"
+            >Uang Makan</label
+          >
+          <input
+            type="number"
+            id="er_makan"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:border-blue-500 outline-none"
+            oninput="window.hitungTotalEditRiwayat()"
+          />
+        </div>
+
+        <div class="col-span-2 sm:col-span-1">
+          <label class="block text-xs font-bold text-gray-700 mb-1"
+            >Uang Makan Malam</label
+          >
+          <input
+            type="number"
+            id="er_makan_malam"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:border-blue-500 outline-none"
+            oninput="window.hitungTotalEditRiwayat()"
+          />
+        </div>
+
+        <div class="col-span-2 sm:col-span-1">
+          <label class="block text-xs font-bold text-gray-700 mb-1"
+            >Bonus Tepat Waktu</label
+          >
+          <input
+            type="number"
+            id="er_bonus_tepat_waktu"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:border-green-500 outline-none"
+            oninput="window.hitungTotalEditRiwayat()"
+          />
+        </div>
+
+        <div class="col-span-2 sm:col-span-1">
+          <label class="block text-xs font-bold text-gray-700 mb-1"
+            >Bonus Mingguan</label
+          >
+          <input
+            type="number"
+            id="er_bonus_mingguan"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:border-green-500 outline-none"
+            oninput="window.hitungTotalEditRiwayat()"
+          />
+        </div>
+
+        <div class="col-span-2 sm:col-span-1">
+          <label class="block text-xs font-bold text-gray-700 mb-1"
+            >Bonus Penjemputan</label
+          >
+          <input
+            type="number"
+            id="er_bonus_penjemputan"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:border-green-500 outline-none"
+            oninput="window.hitungTotalEditRiwayat()"
+          />
+        </div>
+
+        <div class="col-span-2 sm:col-span-1">
+          <label class="block text-xs font-bold text-gray-700 mb-1"
+            >Tunjangan Kesehatan</label
+          >
+          <input
+            type="number"
+            id="er_uang_kesehatan"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:border-teal-500 outline-none"
+            oninput="window.hitungTotalEditRiwayat()"
+          />
+        </div>
+
+        <div
+          class="col-span-2 bg-white p-3.5 rounded-xl border border-gray-200 mt-2 shadow-sm"
+        >
+          <div
+            class="flex justify-between items-center mb-3 border-b border-gray-100 pb-2"
+          >
+            <label
+              class="text-xs font-bold text-gray-800 uppercase flex items-center"
+            >
+              <i class="bi bi-list-check text-blue-600 mr-2 text-lg"></i> Komponen
+              Lain-lain (ACC)
+            </label>
+            <button
+              type="button"
+              onclick="window.tambahBarisLainLainACC()"
+              class="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm hover:bg-blue-100 border border-blue-200 transition"
+            >
+              <i class="bi bi-plus-lg"></i> Tambah Baris
+            </button>
+          </div>
+          <div id="container-lain-lain-acc" class="space-y-2">
+            <p class="text-[10px] text-gray-400 italic text-center py-4">
+              Memuat data komponen...
+            </p>
+          </div>
+        </div>
+        <div class="col-span-2">
+          <label class="block text-xs font-bold text-red-700 mb-1"
+            >Potongan Kasbon</label
+          >
+          <input
+            type="number"
+            id="er_kasbon"
+            class="w-full border border-red-300 bg-red-50 text-red-900 font-bold rounded-lg p-2 text-sm focus:border-red-500 outline-none"
+            oninput="window.hitungTotalEditRiwayat()"
+          />
+        </div>
+
+        <div class="col-span-2">
+          <label class="block text-xs font-bold text-red-700 mb-1"
+            >Potongan Kasbon</label
+          >
+          <input
+            type="number"
+            id="er_kasbon"
+            class="w-full border border-red-300 bg-red-50 text-red-900 font-bold rounded-lg p-2 text-sm focus:border-red-500 outline-none"
+            oninput="window.hitungTotalEditRiwayat()"
+          />
+        </div>
+      </div>
     </div>
 
     <div
-      class="p-4 bg-green-50 border-t border-green-100 flex justify-between items-center"
+      class="p-4 border-t border-gray-100 bg-gray-50 flex justify-between items-center shrink-0"
     >
-      <span class="text-xs text-green-800 font-bold uppercase tracking-wider"
-        >Total Tagihan</span
+      <div>
+        <p class="text-xs text-gray-500 font-bold uppercase">Total Diterima</p>
+        <p
+          class="text-2xl font-black text-green-600 font-mono"
+          id="er_total_baru"
+        >
+          Rp 0
+        </p>
+      </div>
+      <button
+        id="btn-save-er"
+        onclick="window.simpanEditRiwayat()"
+        class="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2.5 rounded-xl font-bold shadow-md transition"
       >
-      <span
-        class="text-2xl font-black text-green-700 font-mono tracking-tighter"
-        id="prev_grand_total">Rp 0</span
-      >
+        Simpan Koreksi
+      </button>
     </div>
   </div>
-</div>
-
-<!-- ✅ FLOATING ACTION BAR (Untuk Batch Approval) -->
-<div
-  id="batch-action-bar"
-  class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)] p-4 transform translate-y-full transition-transform duration-300 z-40 hidden justify-between items-center px-6 md:px-12"
->
-  <div class="flex flex-col">
-    <span
-      class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-0.5"
-      >Siap Dieksekusi: <span
-        id="batch-count"
-        class="text-blue-600 font-black text-sm">0</span
-      > Slip</span
-    >
-    <span class="text-xl font-black text-gray-900 leading-none"
-      >Total: <span id="batch-total" class="text-green-600 font-mono">Rp 0</span
-      ></span
-    >
-  </div>
-  <button
-    onclick="window.bukaKasirMassal()"
-    class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition transform active:scale-95 flex items-center gap-2"
-  >
-    <i class="bi bi-check2-all text-lg"></i>
-    <span class="hidden sm:inline">Approve & Bayar Massal</span><span
-      class="sm:hidden">Bayar</span
-    >
-  </button>
 </div>
 
 <script
@@ -1644,6 +1967,11 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         siklusGaji: siklusAktif, // Kirim data siklus ke Deno
       };
 
+      window.dataLainLain = setup.lain_lain || [];
+      if (typeof window.renderLainLain === "function") {
+        window.renderLainLain();
+      }
+
       // Cek slip draft
       const slip = (emp.slip_gaji || []).find(
         (s) => s.periode === tglAkhir && s.status === "Menunggu",
@@ -1666,14 +1994,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       ).value;
       const potonganManual =
         potKasbonInput === "" ? null : parseFloat(potKasbonInput);
-
       const talInput = document.getElementById(
         "tambahan_talangan_sekarang",
       ).value;
       const talanganManual = talInput === "" ? null : parseFloat(talInput);
-
-      // 🔥 AMBIL INPUT JERIGEN MANUAL
-      // 🔴 AREA MASALAH
       const jm = document.getElementById("input_jerigen_manual")?.value;
 
       try {
@@ -1693,80 +2017,265 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                 : talanganManual,
               siklusGaji: d.siklusGaji,
               jumlahJerigenManual: jm === "" ? null : parseFloat(jm),
+
+              // 🔥 1. INI WAJIB ADA BIAR DENO TAU ADA ITEM BARU 🔥
+              lain_lain_manual: window.dataLainLain,
             },
           },
         );
 
-        // 1. Cek error dari network/invocation
         if (error) throw error;
-
-        // 2. JARING PENGAMAN: Cek error internal dari Edge Function
         if (data && data.success === false) {
           throw new Error(data.error || "Gagal melakukan kalkulasi di server.");
         }
 
-        // 3. AMANKAN VARIABEL: Beri fallback objek kosong jika data.data bernilai falsy
         const res = data?.data || {};
 
-        // Tampilkan info jerigen di UI
-        const isJerigen = document.getElementById("chk_gaji_jerigen").checked;
-        if (isJerigen) {
+        const isJerigen = document.getElementById("chk_gaji_jerigen")?.checked;
+        if (isJerigen && document.getElementById("info_total_jerigen_minggu")) {
           document.getElementById("info_total_jerigen_minggu").innerText =
-            `${res.jumlahJerigen || 0} Pcs`; // Sekarang aman, tidak akan crash meskipun res kosong
+            `${res.jumlahJerigen || 0} Pcs`;
         }
 
-        // Simpan state final (tambahkan fallback nilai 0 jika grandTotal undefined)
         d.finalState = { grandTotal: res.grandTotal || 0 };
 
-        // Modifikasi Label UI
         const labelGajiPokok = isJerigen
-          ? `Gaji Jerigen (${res.jumlahJerigen || 0} Pcs x Rp ${parseFloat(document.getElementById("setup_tarif_jerigen").value || 0).toLocaleString("id-ID")})`
+          ? `Gaji Jerigen (${res.jumlahJerigen || 0} Pcs)`
           : `Gaji Pokok Proporsional (${res.hariKerjaNormal || 0} Hari)`;
-
         const labelBonus = isJerigen
           ? `Bonus Jerigen (Mode Khusus)`
           : `Bonus Tambahan`;
 
-        // Simpan Grand Total buat dipake modal Kasir nanti
-        d.finalState = { grandTotal: res.grandTotal };
+        // 🔥 2. BIKIN LOOPING HTML UNTUK KOMPONEN DINAMIS 🔥
+        let htmlLainLainPreview = "";
+        if (
+          res.detailLainLain &&
+          Array.isArray(res.detailLainLain) &&
+          res.detailLainLain.length > 0
+        ) {
+          res.detailLainLain.forEach((item) => {
+            const isNambah = item.tipe === "penambahan";
+            const tanda = isNambah ? "+" : "-";
+            const warnaClass = isNambah
+              ? "text-green-700 font-bold"
+              : "text-red-600 font-bold";
 
-        // 🔥 RENDER ULANG UI SLIP GAJI 🔥
+            htmlLainLainPreview += `
+                <div class="flex justify-between text-xs font-bold border-t border-dashed border-gray-300 mt-2 pt-2">
+                    <span>${item.nama_item}</span> 
+                    <span class="${warnaClass}">${tanda} Rp ${Number(item.nominal).toLocaleString("id-ID")}</span>
+                </div>`;
+          });
+        }
+
+        // 🔥 3. RENDER ULANG UI SLIP GAJI (DENGAN VARIABEL htmlLainLainPreview) 🔥
         document.getElementById("m_rincian_list").innerHTML = `
-                <div class="bg-blue-50/50 p-2.5 rounded mb-3 border border-blue-200">
-                    <div class="text-[11px] font-bold text-blue-900 uppercase tracking-widest text-center"><i class="bi bi-calendar-range mr-1"></i> ${res.teksPeriode}</div>
-                    <div class="text-[10px] font-semibold text-blue-700 text-center mt-1">Total Kehadiran: ${res.totalHariHadir} Hari (Termasuk ${res.hariMingguMasuk} Hr Minggu)</div>
-                </div>
-                
-                <div class="flex justify-between text-xs"><span>${labelGajiPokok}</span> <span class="font-bold text-gray-900">Rp ${res.valGajiNormal.toLocaleString("id-ID")}</span></div>
-                
-                ${res.valGajiMinggu > 0 ? `<div class="flex justify-between text-xs text-purple-700 font-bold bg-purple-50 p-1 rounded mt-1"><span>⭐ Extra Masuk Hari Minggu (${res.hariMingguMasuk} Hari)</span> <span>+ Rp ${res.valGajiMinggu.toLocaleString("id-ID")}</span></div>` : ""}
-                
-                ${res.valLembur > 0 ? `<div class="flex justify-between text-xs mt-1"><span>Uang Lembur (${res.totalMenitLembur} Menit)</span> <span class="font-bold text-gray-900">+ Rp ${res.valLembur.toLocaleString("id-ID")}</span></div>` : ""}
-                ${res.valMakan > 0 ? `<div class="flex justify-between text-xs text-green-700 mt-1"><span>Uang Makan (${res.totalHariHadir} Hari)</span> <span class="font-bold">+ Rp ${res.valMakan.toLocaleString("id-ID")}</span></div>` : ""}
-                
-                ${res.valTransport > 0 ? `<div class="flex justify-between text-xs text-blue-700 mt-1"><span>Uang Transport (${res.totalHariHadir} Hari)</span> <span class="font-bold">+ Rp ${res.valTransport.toLocaleString("id-ID")}</span></div>` : ""}
-                
-                <!-- 🔴 TAMBAHAN: TAMPILKAN POTONGAN BONUS/HARI ABSEN -->
-                ${res.valPotonganAbsen > 0 ? `<div class="flex justify-between text-xs text-red-600 font-bold mt-1"><span>Potongan Bonus/Hari Absen (${res.totalHariAbsen} Hari)</span> <span>- Rp ${res.valPotonganAbsen.toLocaleString("id-ID")}</span></div>` : ""}
+            <div class="bg-blue-50/50 p-2.5 rounded mb-3 border border-blue-200">
+                <div class="text-[11px] font-bold text-blue-900 uppercase tracking-widest text-center"><i class="bi bi-calendar-range mr-1"></i> ${res.teksPeriode}</div>
+                <div class="text-[10px] font-semibold text-blue-700 text-center mt-1">Total Kehadiran: ${res.totalHariHadir} Hari (Termasuk ${res.hariMingguMasuk} Hr Minggu)</div>
+            </div>
+            
+            <div class="flex justify-between text-xs"><span>${labelGajiPokok}</span> <span class="font-bold text-gray-900">Rp ${(res.valGajiNormal || 0).toLocaleString("id-ID")}</span></div>
+            
+            ${res.valGajiMinggu > 0 ? `<div class="flex justify-between text-xs text-purple-700 font-bold bg-purple-50 p-1 rounded mt-1"><span>⭐ Extra Masuk Hari Minggu (${res.hariMingguMasuk} Hari)</span> <span>+ Rp ${res.valGajiMinggu.toLocaleString("id-ID")}</span></div>` : ""}
+            
+            ${res.valLembur > 0 ? `<div class="flex justify-between text-xs mt-1"><span>Uang Lembur (${res.totalMenitLembur} Menit)</span> <span class="font-bold text-gray-900">+ Rp ${res.valLembur.toLocaleString("id-ID")}</span></div>` : ""}
+            ${res.valMakan > 0 ? `<div class="flex justify-between text-xs text-green-700 mt-1"><span>Uang Makan (${res.totalHariHadir} Hari)</span> <span class="font-bold">+ Rp ${res.valMakan.toLocaleString("id-ID")}</span></div>` : ""}
+            ${res.valTransport > 0 ? `<div class="flex justify-between text-xs text-blue-700 mt-1"><span>Uang Transport (${res.totalHariHadir} Hari)</span> <span class="font-bold">+ Rp ${res.valTransport.toLocaleString("id-ID")}</span></div>` : ""}
+            
+            ${res.valPotonganAbsen > 0 ? `<div class="flex justify-between text-xs text-red-600 font-bold mt-1"><span>Potongan Bonus/Hari Absen (${res.totalHariAbsen} Hari)</span> <span>- Rp ${res.valPotonganAbsen.toLocaleString("id-ID")}</span></div>` : ""}
 
-                ${res.valBonusTepat > 0 ? `<div class="flex justify-between text-xs text-green-700 mt-1"><span>Bonus Tepat Waktu (${res.tepatWaktuCount}x)</span> <span class="font-bold">+ Rp ${res.valBonusTepat.toLocaleString("id-ID")}</span></div>` : ""}
-                ${res.valBonusMingguan > 0 ? `<div class="flex justify-between text-xs text-green-700 mt-1"><span>${labelBonus}</span> <span class="font-bold">+ Rp ${res.valBonusMingguan.toLocaleString("id-ID")}</span></div>` : ""}
-                ${res.valKesehatan > 0 ? `<div class="flex justify-between text-xs text-teal-700 mt-1"><span>Tunjangan Kesehatan</span> <span class="font-bold">+ Rp ${res.valKesehatan.toLocaleString("id-ID")}</span></div>` : ""}
-                ${res.valRapat > 0 ? `<div class="flex justify-between text-xs text-teal-700 mt-1"><span>Uang Rapat</span> <span class="font-bold">+ Rp ${res.valRapat.toLocaleString("id-ID")}</span></div>` : ""}
-                ${res.valNginep > 0 ? `<div class="flex justify-between text-xs text-teal-700 mt-1"><span>Uang Nginep</span> <span class="font-bold">+ Rp ${res.valNginep.toLocaleString("id-ID")}</span></div>` : ""}
-                
-                <!-- 👉 TARUH UANG TALANGAN DI SINI (Di atas potongan kasbon) -->
-                ${res.valTalangan > 0 ? `<div class="flex justify-between text-xs text-green-700 font-bold border-t border-dashed border-gray-300 mt-2 pt-2"><span>Uang Talangan (Reimbursement)</span> <span>+ Rp ${res.valTalangan.toLocaleString("id-ID")}</span></div>` : ""}
+            ${res.valBonusTepat > 0 ? `<div class="flex justify-between text-xs text-green-700 mt-1"><span>Bonus Tepat Waktu (${res.tepatWaktuCount}x)</span> <span class="font-bold">+ Rp ${res.valBonusTepat.toLocaleString("id-ID")}</span></div>` : ""}
+            ${res.valBonusMingguan > 0 ? `<div class="flex justify-between text-xs text-green-700 mt-1"><span>${labelBonus}</span> <span class="font-bold">+ Rp ${res.valBonusMingguan.toLocaleString("id-ID")}</span></div>` : ""}
+            ${res.valKesehatan > 0 ? `<div class="flex justify-between text-xs text-teal-700 mt-1"><span>Tunjangan Kesehatan</span> <span class="font-bold">+ Rp ${res.valKesehatan.toLocaleString("id-ID")}</span></div>` : ""}
+            ${res.valRapat > 0 ? `<div class="flex justify-between text-xs text-teal-700 mt-1"><span>Uang Rapat</span> <span class="font-bold">+ Rp ${res.valRapat.toLocaleString("id-ID")}</span></div>` : ""}
+            ${res.valNginep > 0 ? `<div class="flex justify-between text-xs text-teal-700 mt-1"><span>Uang Nginep</span> <span class="font-bold">+ Rp ${res.valNginep.toLocaleString("id-ID")}</span></div>` : ""}
+            
+            ${res.valTalangan > 0 ? `<div class="flex justify-between text-xs text-green-700 font-bold border-t border-dashed border-gray-300 mt-2 pt-2"><span>Uang Talangan (Reimbursement)</span> <span>+ Rp ${res.valTalangan.toLocaleString("id-ID")}</span></div>` : ""}
 
-                ${res.valPotonganKasbon > 0 ? `<div class="flex justify-between text-xs text-red-600 font-bold border-t border-dashed border-gray-300 mt-2 pt-2"><span>Potongan Kasbon Periode Ini</span> <span>- Rp ${res.valPotonganKasbon.toLocaleString("id-ID")}</span></div>` : ""}
-            `;
+            ${res.valPotonganKasbon > 0 ? `<div class="flex justify-between text-xs text-red-600 font-bold border-t border-dashed border-gray-300 mt-2 pt-2"><span>Potongan Kasbon Periode Ini</span> <span>- Rp ${res.valPotonganKasbon.toLocaleString("id-ID")}</span></div>` : ""}
+            
+            ${htmlLainLainPreview}
+        `;
+
         document.getElementById("m_total_gaji").innerText =
-          `Rp ${res.grandTotal.toLocaleString("id-ID")}`;
+          `Rp ${(res.grandTotal || 0).toLocaleString("id-ID")}`;
       } catch (e) {
         document.getElementById("m_total_gaji").innerText = "Error Server!";
         document.getElementById("m_rincian_list").innerHTML =
           `<p class="text-red-500 text-xs text-center font-bold">${e.message || "Gagal terhubung ke Deno."}</p>`;
       }
+    };
+
+    window.simpanMasterKomponen = async function () {
+      const namaInput = document
+        .getElementById("input-master-nama")
+        .value.trim();
+      const tipeInput = document.getElementById("input-master-tipe").value;
+
+      if (!namaInput) {
+        return alert("Nama komponen tidak boleh kosong bro!");
+      }
+
+      try {
+        // Insert ke tabel master_komponen_gaji
+        const { error } = await window.supabase
+          .from("master_komponen_gaji")
+          .insert([{ nama_komponen: namaInput, tipe_default: tipeInput }]);
+
+        if (error) {
+          if (error.code === "23505") {
+            // Kode error duplicate PostgreSQL
+            throw new Error("Nama komponen ini sudah ada di database!");
+          }
+          throw error;
+        }
+
+        alert(`Mantap! "${namaInput}" berhasil ditambahkan ke daftar master.`);
+
+        // Kosongkan form setelah sukses
+        document.getElementById("input-master-nama").value = "";
+
+        // (Opsional) Refresh dropdown atau array di memori agar langsung muncul
+        if (typeof window.loadMasterKomponen === "function") {
+          window.loadMasterKomponen();
+        }
+      } catch (err) {
+        alert("Gagal menyimpan: " + err.message);
+      }
+    };
+
+    // Memori untuk menyimpan state
+    window.pilihanMasterKomponen = [];
+    window.dataLainLain = [];
+
+    // Fungsi untuk menarik master data dari database
+    window.loadMasterKomponen = async function () {
+      try {
+        const { data, error } = await window.supabase
+          .from("master_komponen_gaji")
+          .select("*")
+          .order("nama_komponen", { ascending: true });
+
+        if (!error && data) {
+          window.pilihanMasterKomponen = data;
+        }
+        window.renderLainLain(); // Render ulang setelah data siap
+      } catch (err) {
+        console.error("Gagal load master komponen:", err);
+      }
+    };
+
+    // Fungsi untuk menggambar UI dinamis
+    // Fungsi untuk menggambar UI dinamis (SETUP GAJI)
+    window.renderLainLain = function () {
+      const container = document.getElementById("container-lain-lain");
+      if (!container) return;
+
+      container.innerHTML = "";
+
+      if (window.dataLainLain.length === 0) {
+        container.innerHTML = `<p class="text-[10px] text-gray-400 italic text-center py-4 bg-gray-50 rounded-lg border border-dashed border-gray-200">Belum ada komponen tambahan. Klik tombol Tambah Baris.</p>`;
+        return;
+      }
+
+      window.dataLainLain.forEach((item, index) => {
+        const isPenambahan = item.tipe === "penambahan";
+        const colorClass = isPenambahan
+          ? "text-green-700 bg-green-50 border-green-200"
+          : "text-red-700 bg-red-50 border-red-200";
+
+        // 🔥 LOGIKA ANTI-DOUBLE: Cek item yang sudah dipakai di baris lain 🔥
+        let opsiHTML = `<option value="" disabled ${!item.nama_item ? "selected" : ""}>-- Pilih Komponen --</option>`;
+        if (window.pilihanMasterKomponen) {
+          window.pilihanMasterKomponen.forEach((master) => {
+            const sudahDipakai = window.dataLainLain.some(
+              (d, idx) => idx !== index && d.nama_item === master.nama_komponen,
+            );
+            const isTerpilihDiSini = item.nama_item === master.nama_komponen;
+
+            if (sudahDipakai) {
+              opsiHTML += `<option value="${master.nama_komponen}" disabled class="text-gray-300">❌ ${master.nama_komponen} (Sudah Dipilih)</option>`;
+            } else {
+              opsiHTML += `<option value="${master.nama_komponen}" data-tipe="${master.tipe_default}" ${isTerpilihDiSini ? "selected" : ""}>${master.nama_komponen}</option>`;
+            }
+          });
+        }
+
+        // Kalau ternyata itemnya udah nggak ada di master tapi ada di database (history)
+        if (
+          item.nama_item &&
+          !window.pilihanMasterKomponen?.find(
+            (m) => m.nama_komponen === item.nama_item,
+          )
+        ) {
+          opsiHTML += `<option value="${item.nama_item}" selected>${item.nama_item} (Data Lama)</option>`;
+        }
+
+        const rowHTML = `
+        <div class="p-2.5 rounded-lg border border-gray-200 bg-gray-50 flex flex-col sm:flex-row gap-2 relative transition-all">
+          <div class="w-full sm:w-2/5">
+            <select class="w-full border-gray-300 rounded p-1.5 text-xs outline-none focus:border-blue-500 font-bold text-gray-700 shadow-inner" 
+                    onchange="window.pilihKomponenDariDropdown(${index}, this)">
+              ${opsiHTML}
+            </select>
+          </div>
+          <div class="w-full sm:w-1/4">
+            <select class="w-full border rounded p-1.5 text-xs outline-none font-bold ${colorClass}" disabled>
+              <option value="penambahan" ${isPenambahan ? "selected" : ""}>+ Nambah</option>
+              <option value="potongan" ${!isPenambahan ? "selected" : ""}>- Potong</option>
+            </select>
+          </div>
+          <div class="w-full sm:w-1/3 flex gap-2">
+            <input type="number" placeholder="Nominal (Rp)" 
+                   class="w-full border-gray-300 rounded p-1.5 text-xs outline-none focus:border-blue-500 shadow-inner font-mono font-bold" 
+                   value="${item.nominal || ""}" oninput="window.updateLainLain(${index}, 'nominal', this.value)" />
+            
+            <button type="button" onclick="window.hapusLainLain(${index})" class="bg-red-100 text-red-600 px-2.5 rounded hover:bg-red-200 transition-colors shadow-sm flex items-center justify-center">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>`;
+        container.insertAdjacentHTML("beforeend", rowHTML);
+      });
+    };
+
+    // Logic Pintar: Saat milih nama, otomatis tipe (nambah/potong) ikut berubah
+    window.pilihKomponenDariDropdown = function (index, elemenSelect) {
+      const namaTerpilih = elemenSelect.value;
+      const masterData = window.pilihanMasterKomponen.find(
+        (m) => m.nama_komponen === namaTerpilih,
+      );
+
+      if (masterData) {
+        window.dataLainLain[index].nama_item = masterData.nama_komponen;
+        window.dataLainLain[index].tipe = masterData.tipe_default;
+        window.renderLainLain(); // Render ulang biar warnanya (merah/hijau) menyesuaikan
+        window.kalkulasiRealtimeGaji();
+      }
+    };
+
+    window.tambahBarisLainLain = function () {
+      // Tambah object kosong ke memori, lalu render
+      window.dataLainLain.push({
+        id: Date.now().toString(),
+        nama_item: "",
+        tipe: "penambahan",
+        nominal: 0,
+      });
+      window.renderLainLain();
+    };
+
+    window.updateLainLain = function (index, field, value) {
+      window.dataLainLain[index][field] =
+        field === "nominal" ? parseFloat(value) || 0 : value;
+      window.kalkulasiRealtimeGaji();
+    };
+
+    window.hapusLainLain = function (index) {
+      window.dataLainLain.splice(index, 1);
+      window.renderLainLain();
+      window.kalkulasiRealtimeGaji();
     };
 
     // FUNGSI PENJEMBATAN (Simpan Draf ATAU Lempar ke Kasir)
@@ -1960,6 +2469,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         bonus_jerigen_manual:
           parseFloat(document.getElementById("setup_bonus_jerigen")?.value) ||
           0,
+        lain_lain: window.dataLainLain,
       };
 
       try {
@@ -1988,7 +2498,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
     // ==========================================
     // ✅ PERBAIKAN EXPORT EXCEL (.XLSX)
-    // ✅ DENGAN TAMBAHAN: Uang Makan Malam & Bonus Penjemputan
+    // ✅ FORMAT UTUH + DYNAMIC COLUMNS JSONB
     // ==========================================
     window.exportExcelRiwayat = function () {
       try {
@@ -2007,7 +2517,22 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           );
         }
 
-        // 1️⃣ Petakan data
+        // 🔥 STEP 1: SCAN SEMUA "NAMA ITEM" DARI SELURUH KARYAWAN 🔥
+        // Untuk bikin Header Kolom Dinamis di Excel (Uang Bongkar (+), dsb)
+        const dynamicHeaders = new Set();
+        dataTerfilter.forEach((s) => {
+          if (s.lain_lain && Array.isArray(s.lain_lain)) {
+            s.lain_lain.forEach((item) => {
+              if (item.nama_item) {
+                const tanda = item.tipe === "penambahan" ? "(+)" : "(-)";
+                dynamicHeaders.add(`${item.nama_item} ${tanda}`);
+              }
+            });
+          }
+        });
+        const dynamicColumnsArray = Array.from(dynamicHeaders);
+
+        // 🔥 STEP 2: PETAKAN DATA 🔥
         const rows = dataTerfilter.map((s, index) => {
           const totalBonus =
             Number(s.bonus_tepat_waktu || 0) +
@@ -2015,9 +2540,32 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             Number(s.uang_kesehatan || 0) +
             Number(s.uang_rapat || 0) +
             Number(s.uang_nginep || 0) +
-            Number(s.bonus_penjemputan || 0); // ✅ TAMBAH INI
+            Number(s.bonus_penjemputan || 0);
 
-          return {
+          // Kalkulasi untuk kolom bawaan (Penambahan Lain, Potongan Lain, Rincian)
+          let detailLainText = [];
+          let totalPenambahanLain = 0;
+          let totalPotonganLain = 0;
+
+          if (s.lain_lain && Array.isArray(s.lain_lain)) {
+            s.lain_lain.forEach((item) => {
+              const nom = Number(item.nominal) || 0;
+              if (item.tipe === "penambahan") {
+                totalPenambahanLain += nom;
+                detailLainText.push(
+                  `${item.nama_item} (+${nom.toLocaleString("id-ID")})`,
+                );
+              } else if (item.tipe === "potongan") {
+                totalPotonganLain += nom;
+                detailLainText.push(
+                  `${item.nama_item} (-${nom.toLocaleString("id-ID")})`,
+                );
+              }
+            });
+          }
+
+          // 1️⃣ STRUKTUR BAWAAN LU YANG UTUH (SESUAI REQUEST)
+          let rowData = {
             No: index + 1,
             "Nama Karyawan": s.profiles?.nama || "Unknown",
             Periode: s.periode || "-",
@@ -2025,15 +2573,40 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             "Gaji Pokok (Rp)": Number(s.gaji_karyawan || 0),
             "Uang Lembur (Rp)": Number(s.uang_lembur || 0),
             "Uang Makan (Rp)": Number(s.uang_makan || 0),
-            "Uang Makan Malam (Rp)": Number(s.uang_makan_malam || 0), // ✅ TAMBAH INI
-            "Bonus Penjemputan (Rp)": Number(s.bonus_penjemputan || 0), // ✅ TAMBAH INI
+            "Uang Makan Malam (Rp)": Number(s.uang_makan_malam || 0),
+            "Bonus Penjemputan (Rp)": Number(s.bonus_penjemputan || 0),
             "Total Bonus (Rp)": totalBonus,
+            "Penambahan Lain (Rp)": totalPenambahanLain,
             "Potongan Kasbon (Rp)": Number(s.kasbon || 0),
-            "Total Diterima (Rp)": Number(s.total_diterima || 0),
+            "Potongan Lain (Rp)": totalPotonganLain,
+            "Rincian Komponen Lain": detailLainText.join(" | "),
           };
+
+          // 2️⃣ INJEKSI KOLOM DINAMIS (Agar Akuntansi Mudah Difilter/Sum)
+          // Set default 0 dulu untuk semua header dinamis yang ditemukan
+          dynamicColumnsArray.forEach((col) => {
+            rowData[col] = 0;
+          });
+
+          // Isi nominalnya jika karyawan ini punya item tersebut
+          if (s.lain_lain && Array.isArray(s.lain_lain)) {
+            s.lain_lain.forEach((item) => {
+              if (item.nama_item) {
+                const tanda = item.tipe === "penambahan" ? "(+)" : "(-)";
+                const headerName = `${item.nama_item} ${tanda}`;
+                // Gunakan += biar kalau ada 2 input bernama sama, angkanya dijumlahkan aman
+                rowData[headerName] += Number(item.nominal) || 0;
+              }
+            });
+          }
+
+          // 3️⃣ TOTAL DITERIMA SELALU MENTOK DI KANAN
+          rowData["Total Diterima (Rp)"] = Number(s.total_diterima || 0);
+
+          return rowData;
         });
 
-        // 2️⃣ Buat Workbook
+        // 3️⃣ Buat Workbook & Append Sheet
         const worksheet = XLSX.utils.json_to_sheet(rows);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(
@@ -2042,7 +2615,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           "Riwayat Gaji Terfilter",
         );
 
-        // 3️⃣ Atur Lebar Kolom
+        // 4️⃣ Atur Lebar Kolom Biar Enak Dibaca
         const columnWidths = Object.keys(rows[0] || {}).map((key) => {
           const maxLength = Math.max(
             key.length,
@@ -2052,21 +2625,21 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         });
         worksheet["!cols"] = columnWidths;
 
-        // 4️⃣ Ambil nama file
+        // 5️⃣ Ambil Nama Karyawan untuk Nama File
         let namaKaryawan = "Semua Karyawan";
         const dropdownUser = document.getElementById("filter-gaji-user");
         if (dropdownUser && dropdownUser.value !== "semua") {
           namaKaryawan = dropdownUser.options[dropdownUser.selectedIndex].text;
         }
 
-        // 5️⃣ Download dengan error handling
+        // 6️⃣ Download File dengan Error Handling
         try {
           XLSX.writeFile(
             workbook,
-            `rekap_gaji_${namaKaryawan}_${new Date().toISOString().split("T")[0]}.xlsx`,
+            `rekap_gaji_${namaKaryawan.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.xlsx`,
           );
           alert(
-            `✅ Excel berhasil diunduh!\n\nFile: rekap_gaji_${namaKaryawan}.xlsx\nTotal: ${rows.length} baris`,
+            `✅ Excel berhasil diunduh!\n\nFile: rekap_gaji_${namaKaryawan.replace(/\s+/g, "_")}.xlsx\nTotal: ${rows.length} baris`,
           );
         } catch (writeErr) {
           alert(`❌ Gagal menulis file Excel: ${writeErr.message}`);
@@ -2081,22 +2654,19 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
     // ==========================================
     // ✅ PERBAIKAN DOWNLOAD SLIP GAMBAR (PNG)
-    // ✅ HANYA TAMPILKAN ITEM YANG NILAINYA > 0
-    // ==========================================
-    // ==========================================
-    // ✅ PERBAIKAN DOWNLOAD SLIP GAMBAR (PNG)
     // ✅ BONUS DIRINCI + HANYA TAMPIL YANG > 0
+    // ==========================================
+    // ==========================================
+    // ✅ FUNGSI 1: DOWNLOAD SLIP GAMBAR (PNG)
     // ==========================================
     window.downloadSlipGambar = async function (slipId) {
       try {
-        // 🔍 Validasi: Cek html2canvas
         if (typeof html2canvas === "undefined") {
           return alert(
             "❌ Library html2canvas belum ter-load. Silakan refresh halaman!",
           );
         }
 
-        // 🔍 Validasi: Cek data slip
         const slip = window.currentFilteredRiwayat?.find(
           (s) => String(s.id) === String(slipId),
         );
@@ -2110,13 +2680,11 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         document.getElementById("slip-periode").innerText = `: ${slip.periode}`;
         document.getElementById("slip-status").innerText = `: ${slip.status}`;
 
-        // Gaji Pokok (selalu tampil)
         document.getElementById("slip-gaji").parentElement.style.display =
           "table-row";
         document.getElementById("slip-gaji").innerText =
           `Rp ${Number(slip.gaji_karyawan || 0).toLocaleString("id-ID")}`;
 
-        // Lembur
         const slipLembur = document.getElementById("slip-lembur");
         if (Number(slip.uang_lembur || 0) > 0) {
           slipLembur.innerText = `Rp ${Number(slip.uang_lembur || 0).toLocaleString("id-ID")}`;
@@ -2125,7 +2693,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           slipLembur.parentElement.style.display = "none";
         }
 
-        // Makan
         const slipMakan = document.getElementById("slip-makan");
         if (Number(slip.uang_makan || 0) > 0) {
           slipMakan.innerText = `Rp ${Number(slip.uang_makan || 0).toLocaleString("id-ID")}`;
@@ -2134,7 +2701,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           slipMakan.parentElement.style.display = "none";
         }
 
-        // Makan Malam
         const slipMakanMalam = document.getElementById("slip-makan-malam");
         if (Number(slip.uang_makan_malam || 0) > 0) {
           slipMakanMalam.innerText = `Rp ${Number(slip.uang_makan_malam || 0).toLocaleString("id-ID")}`;
@@ -2143,7 +2709,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           slipMakanMalam.parentElement.style.display = "none";
         }
 
-        // 🔴 BONUS DIRINCI - TAMPIL HANYA JIKA > 0
         const slipBonusTepat = document.getElementById("slip-bonus-tepat");
         if (Number(slip.bonus_tepat_waktu || 0) > 0) {
           slipBonusTepat.innerText = `Rp ${Number(slip.bonus_tepat_waktu || 0).toLocaleString("id-ID")}`;
@@ -2198,86 +2763,126 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           slipBonusPenjemputan.parentElement.style.display = "none";
         }
 
-        // Total (selalu tampil)
         document.getElementById("slip-total").innerText =
           `Rp ${Number(slip.total_diterima || 0).toLocaleString("id-ID")}`;
 
-        // 2️⃣ Siapkan template
-        const templateEl = document.getElementById("template-slip-gambar");
-        if (!templateEl) {
+        let htmlPenerimaanLain = "";
+        let htmlPotonganLain = "";
+
+        if (slip.lain_lain && slip.lain_lain.length > 0) {
+          slip.lain_lain.forEach((item) => {
+            const nom = Number(item.nominal) || 0;
+            if (item.tipe === "penambahan") {
+              htmlPenerimaanLain += `<tr><td>${item.nama_item}</td><td style="text-align: right;">Rp ${nom.toLocaleString("id-ID")}</td></tr>`;
+            } else if (item.tipe === "potongan") {
+              htmlPotonganLain += `<tr><td style="color: #dc2626;">${item.nama_item}</td><td style="text-align: right; color: #dc2626;">Rp ${nom.toLocaleString("id-ID")}</td></tr>`;
+            }
+          });
+        }
+
+        const elPenerimaanDinamis = document.getElementById(
+          "slip-penerimaan-dinamis",
+        );
+        const elPotonganDinamis = document.getElementById(
+          "slip-potongan-dinamis",
+        );
+        if (elPenerimaanDinamis)
+          elPenerimaanDinamis.innerHTML = htmlPenerimaanLain;
+        if (elPotonganDinamis) elPotonganDinamis.innerHTML = htmlPotonganLain;
+
+        // 2️⃣ JURUS KLONING MUTLAK (Bypass ukuran 0x0 & CORS)
+        const originalEl = document.getElementById("template-slip-gambar");
+        if (!originalEl)
           return alert("❌ Template slip tidak ditemukan di halaman!");
+
+        const cloneEl = originalEl.cloneNode(true);
+        cloneEl.id = "temp-clone-slip";
+        cloneEl.style.position = "fixed";
+        cloneEl.style.top = "0px";
+        cloneEl.style.left = "0px";
+        cloneEl.style.zIndex = "-9999"; // Tetap di belakang layar
+        cloneEl.style.display = "block"; // Paksa render fisik
+        cloneEl.style.visibility = "visible";
+        document.body.appendChild(cloneEl);
+
+        try {
+          // Jeda agar fisik clone terbentuk sempurna
+          await new Promise((resolve) => setTimeout(resolve, 300));
+
+          // 3️⃣ Render ke Canvas dengan SISTEM FALLBACK CORS
+          let canvas;
+          let dataUrl = "";
+
+          try {
+            canvas = await html2canvas(cloneEl, {
+              scale: 2,
+              backgroundColor: "#ffffff",
+              useCORS: true,
+              logging: false,
+            });
+            dataUrl = canvas.toDataURL("image/png", 0.95);
+
+            // Jika hasil fotonya masih 0x0, paksa lempar ke error untuk memicu fallback
+            if (dataUrl === "data:,") throw new Error("Canvas Blank 0x0");
+          } catch (secError) {
+            console.warn("Terblokir CORS / Blank. Bypass logo sementara...");
+
+            // Hapus logo HANYA di elemen kloningan, template asli tetap utuh
+            const logoEl = cloneEl.querySelector("#slip-logo");
+            if (logoEl) logoEl.style.display = "none";
+
+            canvas = await html2canvas(cloneEl, {
+              scale: 2,
+              backgroundColor: "#ffffff",
+              useCORS: false,
+              logging: false,
+            });
+            dataUrl = canvas.toDataURL("image/png", 0.95);
+          }
+
+          if (!dataUrl || dataUrl === "data:,")
+            throw new Error("Gagal render (Canvas tetap kosong).");
+
+          // 4️⃣ Download file PNG
+          const link = document.createElement("a");
+          const safeName = (slip.profiles?.nama || "Karyawan")
+            .replace(/[^a-z0-9\-_\s]/gi, "")
+            .slice(0, 20);
+          link.download = `Slip_${safeName}_${slip.periode}.png`;
+          link.href = dataUrl;
+
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          alert(
+            `✅ Slip PNG berhasil diunduh!\n\nNama: ${safeName}\nPeriode: ${slip.periode}`,
+          );
+        } catch (err) {
+          console.error("Download Slip Error:", err);
+          alert(`❌ GAGAL DOWNLOAD SLIP PNG:\n\n${err.message}`);
+        } finally {
+          // 5️⃣ Bersihkan clone dari layar agar tidak menumpuk
+          const tempClone = document.getElementById("temp-clone-slip");
+          if (tempClone) document.body.removeChild(tempClone);
         }
-
-        const wrapper = templateEl.parentElement;
-        wrapper.classList.remove("hidden");
-        wrapper.style.position = "absolute";
-        wrapper.style.top = "-9999px";
-        wrapper.style.left = "-9999px";
-
-        // 3️⃣ Render ke Canvas dengan timeout
-        const canvas = await Promise.race([
-          html2canvas(templateEl, {
-            scale: 2,
-            backgroundColor: "#ffffff",
-            useCORS: true,
-            allowTaint: true,
-            logging: false,
-          }),
-          new Promise((_, reject) =>
-            setTimeout(
-              () => reject(new Error("Timeout membuat gambar")),
-              10000,
-            ),
-          ),
-        ]);
-
-        // 4️⃣ Download file PNG
-        const link = document.createElement("a");
-        const safeName = (slip.profiles?.nama || "Karyawan")
-          .replace(/[^a-z0-9\-_\s]/gi, "")
-          .slice(0, 20);
-        link.download = `Slip_${safeName}_${slip.periode}.png`;
-        link.href = canvas.toDataURL("image/png", 0.95);
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        alert(
-          `✅ Slip PNG berhasil diunduh!\n\nNama: ${safeName}\nPeriode: ${slip.periode}`,
-        );
       } catch (err) {
-        console.error("Download Slip Error:", err);
-        alert(
-          `❌ GAGAL DOWNLOAD SLIP PNG:\n\n${err.message || "Error tidak diketahui"}`,
-        );
-      } finally {
-        // Sembunyikan template
-        const templateEl = document.getElementById("template-slip-gambar");
-        if (templateEl && templateEl.parentElement) {
-          const wrapper = templateEl.parentElement;
-          wrapper.classList.add("hidden");
-          wrapper.style.position = "";
-          wrapper.style.top = "";
-          wrapper.style.left = "";
-        }
+        console.error("Error Umum:", err);
+        alert(`❌ TERJADI KESALAHAN:\n\n${err.message}`);
       }
     };
 
     // ==========================================
-    // ✅ PERBAIKAN EXPORT SLIP AKUMULASI FILTER
-    // ✅ BONUS DIRINCI + HANYA TAMPIL YANG > 0
+    // ✅ FUNGSI 2: EXPORT SLIP AKUMULASI FILTER
     // ==========================================
     window.exportSlipAkumulasiFilter = async function () {
       try {
-        // 🔍 Validasi: Cek html2canvas
         if (typeof html2canvas === "undefined") {
           return alert(
             "❌ Library html2canvas belum ter-load. Silakan refresh halaman!",
           );
         }
 
-        // 🔍 Validasi: Cek data filter
         const dataTerfilter = window.currentFilteredRiwayat;
         if (!dataTerfilter || dataTerfilter.length === 0) {
           return alert(
@@ -2291,15 +2896,16 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           totalMakan = 0,
           totalMakanMalam = 0,
           totalTransport = 0;
-        let totalTalangan = 0;
-        let totalBonusTepat = 0,
+        let totalTalangan = 0,
+          totalBonusTepat = 0,
           totalBonusMingguan = 0,
-          totalKesehatan = 0,
-          totalRapat = 0,
+          totalKesehatan = 0;
+        let totalRapat = 0,
           totalNginep = 0,
-          totalBonusPenjemputan = 0;
-        let totalKasbon = 0;
+          totalBonusPenjemputan = 0,
+          totalKasbon = 0;
         let namaKaryawan = "";
+        let akumulasiLainLain = {}; // <--- INI VARIABEL YANG SEMPAT BIKIN ERROR, SUDAH AMAN DI SINI
 
         dataTerfilter.forEach((slip) => {
           const isACC =
@@ -2320,8 +2926,21 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           totalBonusPenjemputan += Number(slip.bonus_penjemputan || 0);
           totalKasbon += Number(slip.kasbon || 0);
 
-          if (!namaKaryawan && slip.profiles?.nama) {
+          if (!namaKaryawan && slip.profiles?.nama)
             namaKaryawan = slip.profiles.nama;
+
+          if (slip.lain_lain && slip.lain_lain.length > 0) {
+            slip.lain_lain.forEach((item) => {
+              const key = `${item.nama_item}_${item.tipe}`;
+              if (!akumulasiLainLain[key]) {
+                akumulasiLainLain[key] = {
+                  nama_item: item.nama_item,
+                  tipe: item.tipe,
+                  nominal: 0,
+                };
+              }
+              akumulasiLainLain[key].nominal += Number(item.nominal) || 0;
+            });
           }
         });
 
@@ -2340,7 +2959,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           totalBonusPenjemputan -
           totalKasbon;
 
-        // 2️⃣ Suntik nilai ke template HANYA YANG > 0
+        // 2️⃣ Suntik nilai ke template
         document.getElementById("slip-nama").innerText =
           `: ${namaKaryawan || "Akumulasi Filter"}`;
         document.getElementById("slip-periode").innerText =
@@ -2352,16 +2971,13 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           document.getElementById("filter-gaji-end")?.value || "-";
         document.getElementById("slip-tanggal-range").innerText =
           `: ${startDate} s/d ${endDate}`;
-
         document.getElementById("slip-status").innerText = `: ACC`;
 
-        // Gaji Pokok (selalu tampil)
         document.getElementById("slip-gaji").innerText =
           `Rp ${totalGaji.toLocaleString("id-ID")}`;
         document.getElementById("slip-gaji").parentElement.style.display =
           "table-row";
 
-        // Lembur
         const slipLembur = document.getElementById("slip-lembur");
         if (totalLembur > 0) {
           slipLembur.innerText = `Rp ${totalLembur.toLocaleString("id-ID")}`;
@@ -2370,7 +2986,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           slipLembur.parentElement.style.display = "none";
         }
 
-        // Makan
         const slipMakan = document.getElementById("slip-makan");
         if (totalMakan > 0) {
           slipMakan.innerText = `Rp ${totalMakan.toLocaleString("id-ID")}`;
@@ -2379,7 +2994,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           slipMakan.parentElement.style.display = "none";
         }
 
-        // Makan Malam
         const slipMakanMalam = document.getElementById("slip-makan-malam");
         if (slipMakanMalam) {
           if (totalMakanMalam > 0) {
@@ -2390,7 +3004,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           }
         }
 
-        // 🔴 BONUS DIRINCI
         const slipBonusTepat = document.getElementById("slip-bonus-tepat");
         if (slipBonusTepat) {
           if (totalBonusTepat > 0) {
@@ -2457,7 +3070,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           }
         }
 
-        // Kasbon
         const slipKasbon = document.getElementById("slip-kasbon");
         if (totalKasbon > 0) {
           slipKasbon.innerText = `Rp ${totalKasbon.toLocaleString("id-ID")}`;
@@ -2466,69 +3078,112 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           slipKasbon.parentElement.style.display = "none";
         }
 
-        // Total (selalu tampil)
         document.getElementById("slip-total").innerText =
           `Rp ${grandTotal.toLocaleString("id-ID")}`;
 
-        // 3️⃣ Siapkan template
-        const templateEl = document.getElementById("template-slip-gambar");
-        if (!templateEl) {
+        let htmlPenerimaanAkumulasi = "";
+        let htmlPotonganAkumulasi = "";
+
+        Object.values(akumulasiLainLain).forEach((item) => {
+          if (item.tipe === "penambahan") {
+            htmlPenerimaanAkumulasi += `<tr><td>${item.nama_item} (Akumulasi)</td><td style="text-align: right;">Rp ${item.nominal.toLocaleString("id-ID")}</td></tr>`;
+          } else if (item.tipe === "potongan") {
+            htmlPotonganAkumulasi += `<tr><td style="color: #dc2626;">${item.nama_item} (Akumulasi)</td><td style="text-align: right; color: #dc2626;">Rp ${item.nominal.toLocaleString("id-ID")}</td></tr>`;
+          }
+        });
+
+        const elPenerimaanAkumulasi = document.getElementById(
+          "slip-penerimaan-dinamis",
+        );
+        const elPotonganAkumulasi = document.getElementById(
+          "slip-potongan-dinamis",
+        );
+        if (elPenerimaanAkumulasi)
+          elPenerimaanAkumulasi.innerHTML = htmlPenerimaanAkumulasi;
+        if (elPotonganAkumulasi)
+          elPotonganAkumulasi.innerHTML = htmlPotonganAkumulasi;
+
+        // 3️⃣ JURUS KLONING MUTLAK (Bypass ukuran 0x0 & CORS)
+        const originalEl = document.getElementById("template-slip-gambar");
+        if (!originalEl)
           return alert("❌ Template slip tidak ditemukan di halaman!");
+
+        const cloneEl = originalEl.cloneNode(true);
+        cloneEl.id = "temp-clone-slip-akumulasi";
+        cloneEl.style.position = "fixed";
+        cloneEl.style.top = "0px";
+        cloneEl.style.left = "0px";
+        cloneEl.style.zIndex = "-9999"; // Tetap di belakang layar
+        cloneEl.style.display = "block"; // Paksa render fisik
+        cloneEl.style.visibility = "visible";
+        document.body.appendChild(cloneEl);
+
+        try {
+          // Jeda agar fisik clone terbentuk sempurna
+          await new Promise((resolve) => setTimeout(resolve, 300));
+
+          // 4️⃣ Render ke Canvas dengan SISTEM FALLBACK CORS
+          let canvas;
+          let dataUrl = "";
+
+          try {
+            canvas = await html2canvas(cloneEl, {
+              scale: 2,
+              backgroundColor: "#ffffff",
+              useCORS: true,
+              logging: false,
+            });
+            dataUrl = canvas.toDataURL("image/png", 0.95);
+
+            // Jika hasil fotonya masih 0x0, paksa lempar ke error untuk memicu fallback
+            if (dataUrl === "data:,") throw new Error("Canvas Blank 0x0");
+          } catch (secError) {
+            console.warn("Terblokir CORS / Blank. Bypass logo sementara...");
+
+            // Hapus logo HANYA di elemen kloningan
+            const logoEl = cloneEl.querySelector("#slip-logo");
+            if (logoEl) logoEl.style.display = "none";
+
+            canvas = await html2canvas(cloneEl, {
+              scale: 2,
+              backgroundColor: "#ffffff",
+              useCORS: false,
+              logging: false,
+            });
+            dataUrl = canvas.toDataURL("image/png", 0.95);
+          }
+
+          if (!dataUrl || dataUrl === "data:,")
+            throw new Error("Gagal render (Canvas tetap kosong).");
+
+          // 5️⃣ Download file PNG
+          const link = document.createElement("a");
+          const safeName = (namaKaryawan || "Akumulasi")
+            .replace(/[^a-z0-9\-_\s]/gi, "")
+            .slice(0, 20);
+          link.download = `Slip_${safeName}_AKUMULASI_${new Date().toISOString().split("T")[0]}.png`;
+          link.href = dataUrl;
+
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          alert(
+            `✅ Slip PNG Akumulasi berhasil diunduh!\n\nNama: ${safeName}\nTotal Periode: ${dataTerfilter.length}\nGrand Total: Rp ${grandTotal.toLocaleString("id-ID")}`,
+          );
+        } catch (err) {
+          console.error("Export Akumulasi Error:", err);
+          alert(`❌ GAGAL EXPORT AKUMULASI PNG:\n\n${err.message}`);
+        } finally {
+          // 6️⃣ Bersihkan clone dari layar agar tidak menumpuk
+          const tempClone = document.getElementById(
+            "temp-clone-slip-akumulasi",
+          );
+          if (tempClone) document.body.removeChild(tempClone);
         }
-
-        const wrapper = templateEl.parentElement;
-        wrapper.classList.remove("hidden");
-        wrapper.style.position = "absolute";
-        wrapper.style.top = "-9999px";
-        wrapper.style.left = "-9999px";
-
-        // 4️⃣ Render ke Canvas
-        const canvas = await Promise.race([
-          html2canvas(templateEl, {
-            scale: 2,
-            backgroundColor: "#ffffff",
-            useCORS: true,
-            allowTaint: true,
-            logging: false,
-          }),
-          new Promise((_, reject) =>
-            setTimeout(
-              () => reject(new Error("Timeout membuat gambar")),
-              10000,
-            ),
-          ),
-        ]);
-
-        // 5️⃣ Download file PNG
-        const link = document.createElement("a");
-        const safeName = (namaKaryawan || "Akumulasi")
-          .replace(/[^a-z0-9\-_\s]/gi, "")
-          .slice(0, 20);
-        link.download = `Slip_${safeName}_AKUMULASI_${new Date().toISOString().split("T")[0]}.png`;
-        link.href = canvas.toDataURL("image/png", 0.95);
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        alert(
-          `✅ Slip PNG Akumulasi berhasil diunduh!\n\nNama: ${safeName}\nTotal Periode: ${dataTerfilter.length}\nGrand Total: Rp ${grandTotal.toLocaleString("id-ID")}`,
-        );
       } catch (err) {
-        console.error("Export Akumulasi Error:", err);
-        alert(
-          `❌ GAGAL EXPORT AKUMULASI PNG:\n\n${err.message || "Error tidak diketahui"}`,
-        );
-      } finally {
-        // Sembunyikan template
-        const templateEl = document.getElementById("template-slip-gambar");
-        if (templateEl && templateEl.parentElement) {
-          const wrapper = templateEl.parentElement;
-          wrapper.classList.add("hidden");
-          wrapper.style.position = "";
-          wrapper.style.top = "";
-          wrapper.style.left = "";
-        }
+        console.error("Error Umum Akumulasi:", err);
+        alert(`❌ TERJADI KESALAHAN:\n\n${err.message}`);
       }
     };
 
@@ -2671,27 +3326,24 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                                     ${
                                       isMenunggu
                                         ? `
-                                    <!-- Tombol Preview Khusus Status Menunggu -->
-                                    <button onclick="window.previewSlip('${slip.id}')" class="text-blue-600 hover:bg-blue-50 px-2.5 py-1.5 rounded-lg text-xs font-bold border border-blue-200 transition flex items-center gap-1.5 shadow-sm" title="<button onclick="window.previewSlip('${slip.id}')" class="text-blue-600 hover:bg-blue-50 px-2.5 py-1.5 rounded-lg text-xs font-bold border border-blue-200 transition flex items-center gap-1.5 shadow-sm" title="Cek Rincian">
-          <i class="bi bi-eye"></i> Preview
-      </button>
-      
-      <button onclick="window.openEditSlipModal('${slip.id}')" class="text-amber-600 hover:bg-amber-50 px-2.5 py-1.5 rounded text-xs font-bold border border-amber-200 transition flex items-center gap-1.5 shadow-sm">
-          <i class="bi bi-pencil-square"></i> Koreksi Draf
-      </button>
-      `
+                                        <!-- Tombol Preview Khusus Status Menunggu -->
+                                        <button onclick="window.previewSlip('${slip.id}')" class="text-blue-600 hover:bg-blue-50 px-2.5 py-1.5 rounded-lg text-xs font-bold border border-blue-200 transition flex items-center gap-1.5 shadow-sm" title="Cek Rincian">
+                                          <i class="bi bi-eye"></i> Preview
+                                        </button>
+
+                                        <button onclick="window.openEditSlipModal('${slip.id}')" class="text-amber-600 hover:bg-amber-50 px-2.5 py-1.5 rounded text-xs font-bold border border-amber-200 transition flex items-center gap-1.5 shadow-sm">
+                                          <i class="bi bi-pencil-square"></i> Koreksi Draf
+                                        </button>
+                                        `
                                         : `
-      <button onclick="window.bukaEditRiwayat('${slip.id}')" class="text-gray-600 hover:bg-gray-100 px-2.5 py-1.5 rounded text-xs border border-gray-200 transition flex items-center gap-1.5">
-        <i class="bi bi-pencil-square"></i> Koreksi
-      </button>
-                                    <!-- Tombol Default Jika Sudah ACC -->
-                                    <button onclick="window.bukaEditRiwayat('${slip.id}')" class="text-gray-600 hover:bg-gray-100 px-2 py-1 rounded text-xs border border-gray-200 transition">
-                                      <i class="bi bi-pencil-square"></i> Koreksi
-                                    </button>
-                                    <button onclick="window.downloadSlipGambar('${slip.id}')" class="text-emerald-600 hover:bg-emerald-50 px-2 py-1 rounded text-xs border border-emerald-200 transition" title="Unduh Gambar Slip">
-                                        <i class="bi bi-image"></i>
-                                    </button>
-                                    `
+                                        <!-- Tombol Default Jika Sudah ACC -->
+                                        <button onclick="window.bukaEditRiwayat('${slip.id}')" class="text-gray-600 hover:bg-gray-100 px-2.5 py-1.5 rounded text-xs border border-gray-200 transition flex items-center gap-1.5">
+                                          <i class="bi bi-pencil-square"></i> Koreksi
+                                        </button>
+                                        <button onclick="window.downloadSlipGambar('${slip.id}')" class="text-emerald-600 hover:bg-emerald-50 px-2.5 py-1.5 rounded text-xs border border-emerald-200 transition" title="Unduh Gambar Slip">
+                                            <i class="bi bi-image"></i>
+                                        </button>
+                                        `
                                     }
                                 </div>
                             </div>
@@ -2729,7 +3381,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       }
 
       try {
-        const { data: dataGaji, error } = await supabase
+        const { data: dataGaji, error } = await window.supabase
           .from("slip_gaji")
           .select(`*, profiles!inner(id, nama, role, foto_profil)`)
           .neq("profiles.role", "owner")
@@ -2832,6 +3484,11 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           .eq("user_id", slip.user_id)
           .maybeSingle();
 
+        window.dataLainLainACC = slip.lain_lain || [];
+        if (typeof window.renderLainLainACC === "function") {
+          window.renderLainLainACC();
+        }
+
         // Murni dari setup_gaji, abaikan slip.tarif_jerigen
         const tarifJerigenFinal = setup?.tarif_jerigen || 0;
 
@@ -2924,6 +3581,15 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         mingguan +
         kesehatan -
         kasbon;
+
+      if (window.dataLainLainACC && window.dataLainLainACC.length > 0) {
+        window.dataLainLainACC.forEach((item) => {
+          const nom = parseFloat(item.nominal) || 0;
+          if (item.tipe === "penambahan") total += nom;
+          else if (item.tipe === "potongan") total -= nom;
+        });
+      }
+
       if (total < 0) total = 0;
 
       document.getElementById("er_total_baru").innerText =
@@ -2997,6 +3663,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             parseFloat(document.getElementById("er_uang_kesehatan").value) || 0,
           kasbon: parseFloat(document.getElementById("er_kasbon").value) || 0,
           total_diterima: totalBaru,
+          lain_lain: window.dataLainLainACC,
         };
 
         // 🔥 LOGIKA KEUANGAN (Tetap sama seperti aslinya)
@@ -3039,38 +3706,77 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         btn.disabled = false;
       }
     };
+
     // ==========================================
-    // 🔧 FITUR EDIT SLIP GAJI (MODAL TERPISAH)
+    // 🔧 FITUR EDIT SLIP GAJI DRAF (DENGAN DEBUG)
     // ==========================================
 
     window.openEditSlipModal = async function (slipId) {
-      if (!window.supabase) return;
+      console.log("🚀 [DEBUG] Mulai Buka Modal Koreksi untuk Slip ID:", slipId);
+      if (!window.supabase)
+        return console.error("❌ [DEBUG] Supabase belum terload!");
+
       try {
         const slip = window.currentFilteredRiwayat.find(
           (s) => String(s.id) === String(slipId),
         );
-        if (!slip) return alert("❌ Slip tidak ditemukan!");
 
-        // Ambil parameter dari tabel setup
-        const { data: setup } = await window.supabase
-          .from("setup_gaji")
-          .select("is_gaji_jerigen, tarif_jerigen")
-          .eq("user_id", slip.user_id)
-          .maybeSingle();
+        if (!slip) {
+          console.error(
+            "❌ [DEBUG] Data slip tidak ditemukan di array pencarian!",
+          );
+          return alert("❌ Slip tidak ditemukan!");
+        }
+        console.log("✅ [DEBUG] Data slip berhasil ditemukan:", slip);
 
-        const isJerigen = setup?.is_gaji_jerigen || false;
-        const tarifJerigen = setup?.tarif_jerigen || 0;
+        // ✅ BACA LANGSUNG DARI DATA HISTORIS SLIP
+        const isJerigen =
+          slip.jumlah_jerigen > 0 ||
+          (slip.tarif_jerigen && slip.tarif_jerigen > 0)
+            ? true
+            : false;
+        const tarifJerigen = slip.tarif_jerigen || 0;
+        console.log(
+          "📊 [DEBUG] Mode Jerigen:",
+          isJerigen,
+          "| Tarif:",
+          tarifJerigen,
+        );
 
-        // Isi UI Text
-        document.getElementById("edit-emp-name").innerText =
-          slip.profiles?.nama || "N/A";
-        document.getElementById("edit-slip-periode").innerText = slip.periode;
+        // 🛡️ ISI UI TEXT DENGAN PENGAMAN (ANTI NULL)
+        console.log("🛠️ [DEBUG] Mulai memasukkan nilai ke dalam form HTML...");
 
-        // Reset semua input ke value default
-        document.getElementById("edit_jumlah_jerigen").value =
-          slip.jumlah_jerigen || 0;
-        document.getElementById("edit_kasbon").value = slip.kasbon || 0;
-        document.getElementById("edit_bonus_manual").value = 0; // Mulai dari 0 untuk draf
+        const elNama = document.getElementById("edit-emp-name");
+        if (elNama) elNama.innerText = slip.profiles?.nama || "N/A";
+        else
+          console.warn(
+            "⚠️ [DEBUG] Elemen 'edit-emp-name' tidak ditemukan di HTML!",
+          );
+
+        const elPeriode = document.getElementById("edit-slip-periode");
+        if (elPeriode) elPeriode.innerText = slip.periode;
+
+        const elJerigen = document.getElementById("edit_jumlah_jerigen");
+        if (elJerigen) elJerigen.value = slip.jumlah_jerigen || 0;
+        else
+          console.warn(
+            "⚠️ [DEBUG] Elemen 'edit_jumlah_jerigen' tidak ditemukan di HTML!",
+          );
+
+        const elKasbon = document.getElementById("edit_kasbon");
+        if (elKasbon) elKasbon.value = slip.kasbon || 0;
+        else
+          console.warn(
+            "⚠️ [DEBUG] Elemen 'edit_kasbon' tidak ditemukan di HTML!",
+          );
+
+        const elBonusManual = document.getElementById("edit_bonus_manual");
+        if (elBonusManual)
+          elBonusManual.value = 0; // Mulai dari 0 untuk draf
+        else
+          console.warn(
+            "⚠️ [DEBUG] Elemen 'edit_bonus_manual' tidak ditemukan di HTML!",
+          );
 
         // Simpan parameter hitung di window
         window.editSlipData = {
@@ -3082,25 +3788,41 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           isJerigen: isJerigen,
           tarifJerigen: tarifJerigen,
         };
+        console.log(
+          "💾 [DEBUG] Data window.editSlipData tersimpan:",
+          window.editSlipData,
+        );
 
-        // Tampilkan/Sembunyikan form berdasarkan Mode Jerigen
+        // Tampilkan/Sembunyikan form berdasarkan Mode Jerigen (Dengan Pengaman)
         const wrapJerigen = document.getElementById("wrap_edit_jerigen");
         const wrapBonus = document.getElementById("wrap_edit_bonus");
         const wrapBreakdown = document.getElementById("edit_bonus_breakdown");
 
         if (isJerigen) {
-          wrapJerigen.classList.remove("hidden");
-          wrapBonus.classList.add("hidden");
-          wrapBreakdown.classList.add("hidden");
+          if (wrapJerigen) wrapJerigen.classList.remove("hidden");
+          if (wrapBonus) wrapBonus.classList.add("hidden");
+          if (wrapBreakdown) wrapBreakdown.classList.add("hidden");
         } else {
-          wrapJerigen.classList.add("hidden");
-          wrapBonus.classList.remove("hidden");
-          wrapBreakdown.classList.remove("hidden");
+          if (wrapJerigen) wrapJerigen.classList.add("hidden");
+          if (wrapBonus) wrapBonus.classList.remove("hidden");
+          if (wrapBreakdown) wrapBreakdown.classList.remove("hidden");
+        }
+
+        window.dataLainLainRiwayat = slip.lain_lain || [];
+        console.log(
+          "📂 [DEBUG] Data JSONB Lain-lain di-load:",
+          window.dataLainLainRiwayat,
+        );
+
+        if (typeof window.renderLainLainRiwayat === "function") {
+          window.renderLainLainRiwayat();
         }
 
         window.hitungTotalEditSlip();
         window.openModal("modal-edit-slip");
+        console.log("🎉 [DEBUG] Modal berhasil dibuka tanpa error!");
       } catch (err) {
+        console.error("💥 [DEBUG] ERROR FATAL saat buka modal:", err);
         alert("❌ Error: " + err.message);
       }
     };
@@ -3108,25 +3830,34 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     // --- 2. Fungsi Hitung Otomatis Saat Ngetik ---
     window.hitungTotalEditSlip = function () {
       if (!window.editSlipData) return;
+      console.log("🧮 [DEBUG] Menghitung total draf...");
 
       const isJerigen = window.editSlipData.isJerigen || false;
-      const jumlahJerigen =
-        parseInt(document.getElementById("edit_jumlah_jerigen").value) || 0;
-      const kasbon =
-        parseFloat(document.getElementById("edit_kasbon").value) || 0;
+
+      // 🛡️ AMBIL VALUE DENGAN PENGAMAN
+      const elJerigen = document.getElementById("edit_jumlah_jerigen");
+      const jumlahJerigen = elJerigen ? parseInt(elJerigen.value) || 0 : 0;
+
+      const elKasbon = document.getElementById("edit_kasbon");
+      const kasbon = elKasbon ? parseFloat(elKasbon.value) || 0 : 0;
 
       let newGrandTotal = 0;
 
       if (isJerigen) {
         const tarif = window.editSlipData.tarifJerigen || 0;
         newGrandTotal = jumlahJerigen * tarif - kasbon;
+        console.log(
+          `🧮 [DEBUG] Mode Jerigen Kalkulasi: (${jumlahJerigen} x ${tarif}) - ${kasbon} = ${newGrandTotal}`,
+        );
       } else {
-        const bonusManual =
-          parseFloat(document.getElementById("edit_bonus_manual").value) || 0;
+        const elBonus = document.getElementById("edit_bonus_manual");
+        const bonusManual = elBonus ? parseFloat(elBonus.value) || 0 : 0;
 
-        // Karena lembur manual sudah dihapus, penambahnya cuma bonus manual
         newGrandTotal =
           window.editSlipData.originalGrandTotal + (bonusManual - kasbon);
+        console.log(
+          `🧮 [DEBUG] Mode Normal Kalkulasi: ${window.editSlipData.originalGrandTotal} + (${bonusManual} - ${kasbon}) = ${newGrandTotal}`,
+        );
 
         // Render breakdown visual
         const bTepat = window.editSlipData.originalBonusTepat || 0;
@@ -3134,38 +3865,60 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         const bSehat = window.editSlipData.originalBonusKesehatan || 0;
         const tBonus = bTepat + bMinggu + bSehat;
 
-        document.getElementById("edit_bonus_breakdown").innerHTML = `
-        <div class="text-xs space-y-1">
-          <p class="font-bold text-amber-900 mb-2">📊 Bonus Sistem (Tidak Berubah)</p>
-          <div class="flex justify-between text-amber-800"><span>Kehadiran Tepat Waktu:</span> <span>Rp ${bTepat.toLocaleString("id-ID")}</span></div>
-          <div class="flex justify-between text-amber-800"><span>Bonus Mingguan:</span> <span>Rp ${bMinggu.toLocaleString("id-ID")}</span></div>
-          <div class="flex justify-between text-amber-800"><span>Uang Kesehatan:</span> <span>Rp ${bSehat.toLocaleString("id-ID")}</span></div>
-          <div class="border-t border-amber-200 pt-1.5 mt-1.5 flex justify-between font-black text-amber-900">
-            <span>Total Bonus Sistem:</span> <span>Rp ${tBonus.toLocaleString("id-ID")}</span>
-          </div>
-        </div>`;
+        const wrapBreakdown = document.getElementById("edit_bonus_breakdown");
+        if (wrapBreakdown) {
+          wrapBreakdown.innerHTML = `
+            <div class="text-xs space-y-1">
+              <p class="font-bold text-amber-900 mb-2">📊 Bonus Sistem (Tidak Berubah)</p>
+              <div class="flex justify-between text-amber-800"><span>Kehadiran Tepat Waktu:</span> <span>Rp ${bTepat.toLocaleString("id-ID")}</span></div>
+              <div class="flex justify-between text-amber-800"><span>Bonus Mingguan:</span> <span>Rp ${bMinggu.toLocaleString("id-ID")}</span></div>
+              <div class="flex justify-between text-amber-800"><span>Uang Kesehatan:</span> <span>Rp ${bSehat.toLocaleString("id-ID")}</span></div>
+              <div class="border-t border-amber-200 pt-1.5 mt-1.5 flex justify-between font-black text-amber-900">
+                <span>Total Bonus Sistem:</span> <span>Rp ${tBonus.toLocaleString("id-ID")}</span>
+              </div>
+            </div>`;
+        }
       }
 
-      document.getElementById("edit_grand_total_preview").innerText =
-        `Rp ${Math.max(0, newGrandTotal).toLocaleString("id-ID")}`;
+      // TAMBAHKAN JSONB LAIN-LAIN
+      if (window.dataLainLainRiwayat && window.dataLainLainRiwayat.length > 0) {
+        window.dataLainLainRiwayat.forEach((item) => {
+          const nom = parseFloat(item.nominal) || 0;
+          if (item.tipe === "penambahan") newGrandTotal += nom;
+          else if (item.tipe === "potongan") newGrandTotal -= nom;
+        });
+        console.log(
+          `🧮 [DEBUG] Grand Total setelah ditambahkan JSONB Lain-lain:`,
+          newGrandTotal,
+        );
+      }
+
+      const prevTotal = document.getElementById("edit_grand_total_preview");
+      if (prevTotal) {
+        prevTotal.innerText = `Rp ${Math.max(0, newGrandTotal).toLocaleString("id-ID")}`;
+      }
     };
 
     // --- 3. Fungsi Simpan Ke Database ---
     window.submitEditSlip = async function () {
+      console.log("📤 [DEBUG] Tombol Simpan Draf Ditekan!");
       if (!window.editSlipData) return alert("❌ Data slip tidak ditemukan!");
       if (!confirm("Yakin simpan draf koreksi ini?")) return;
 
       const isJerigen = window.editSlipData.isJerigen || false;
-      const jumlahJerigen =
-        parseInt(document.getElementById("edit_jumlah_jerigen").value) || 0;
-      const kasbon =
-        parseFloat(document.getElementById("edit_kasbon").value) || 0;
+
+      // 🛡️ AMBIL VALUE DENGAN PENGAMAN
+      const elJerigen = document.getElementById("edit_jumlah_jerigen");
+      const jumlahJerigen = elJerigen ? parseInt(elJerigen.value) || 0 : 0;
+
+      const elKasbon = document.getElementById("edit_kasbon");
+      const kasbon = elKasbon ? parseFloat(elKasbon.value) || 0 : 0;
 
       let newTotal = 0;
       let payloadUpdate = {
         jumlah_jerigen: jumlahJerigen,
         kasbon: kasbon,
-        uang_lembur_tambahan: 0, // Pastikan mutlak 0 supaya database bersih
+        lain_lain: window.dataLainLainRiwayat,
       };
 
       if (isJerigen) {
@@ -3173,13 +3926,25 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         newTotal = jumlahJerigen * tarif - kasbon;
         payloadUpdate.gaji_karyawan = jumlahJerigen * tarif;
       } else {
-        const bonusManual =
-          parseFloat(document.getElementById("edit_bonus_manual").value) || 0;
+        const elBonus = document.getElementById("edit_bonus_manual");
+        const bonusManual = elBonus ? parseFloat(elBonus.value) || 0 : 0;
         newTotal =
           window.editSlipData.originalGrandTotal + (bonusManual - kasbon);
       }
 
+      if (window.dataLainLainRiwayat && window.dataLainLainRiwayat.length > 0) {
+        window.dataLainLainRiwayat.forEach((item) => {
+          const nom = parseFloat(item.nominal) || 0;
+          if (item.tipe === "penambahan") newTotal += nom;
+          else if (item.tipe === "potongan") newTotal -= nom;
+        });
+      }
+
       payloadUpdate.total_diterima = Math.max(0, newTotal);
+      console.log(
+        "📦 [DEBUG] Payload yang akan dikirim ke Supabase:",
+        payloadUpdate,
+      );
 
       const { error } = await window.supabase
         .from("slip_gaji")
@@ -3187,14 +3952,19 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         .eq("id", window.editSlipData.slipId);
 
       if (error) {
+        console.error("💥 [DEBUG] Supabase gagal update:", error);
         alert("❌ Gagal update draf: " + error.message);
         return;
       }
 
+      console.log("✅ [DEBUG] Update draf sukses!");
       alert("✅ Draf slip berhasil dikoreksi!");
       window.closeModal("modal-edit-slip");
-      document.getElementById("btn-filter-gaji")?.click(); // Refresh riwayat otomatis
+
+      const btnFilter = document.getElementById("btn-filter-gaji");
+      if (btnFilter) btnFilter.click();
     };
+
     // ==========================================
     // ⚡ FITUR BATCH APPROVAL & PREVIEW
     // ==========================================
@@ -3243,6 +4013,23 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         Number(slip.uang_rapat || 0) +
         Number(slip.uang_nginep || 0);
 
+      // 🔥 RENDER KOMPONEN DINAMIS (LAIN-LAIN) 🔥
+      let htmlLainLain = "";
+      if (slip.lain_lain && slip.lain_lain.length > 0) {
+        slip.lain_lain.forEach((item) => {
+          const isNambah = item.tipe === "penambahan";
+          const tanda = isNambah ? "+" : "-";
+          const warnaClass = isNambah
+            ? "text-green-700"
+            : "text-red-600 font-bold";
+          htmlLainLain += `
+          <div class="flex justify-between border-b border-gray-100 pb-1 mb-1">
+            <span class="${warnaClass}">${item.nama_item}</span> 
+            <span class="font-bold ${warnaClass}">${tanda}Rp ${Number(item.nominal).toLocaleString("id-ID")}</span>
+          </div>`;
+        });
+      }
+
       const html = `
       <div class="flex justify-between border-b border-gray-100 pb-1 mb-1">
         <span class="text-gray-600">Gaji Pokok</span> 
@@ -3253,6 +4040,9 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       ${Number(slip.uang_makan_malam || 0) > 0 ? `<div class="flex justify-between border-b border-gray-100 pb-1 mb-1"><span class="text-gray-600">Makan Malam</span> <span class="font-bold text-gray-900">+Rp ${Number(slip.uang_makan_malam || 0).toLocaleString("id-ID")}</span></div>` : ""}
       ${totalBonus > 0 ? `<div class="flex justify-between border-b border-gray-100 pb-1 mb-1"><span class="text-green-700">Total Bonus</span> <span class="font-bold text-green-700">+Rp ${totalBonus.toLocaleString("id-ID")}</span></div>` : ""}
       ${Number(slip.kasbon || 0) > 0 ? `<div class="flex justify-between border-b border-gray-100 pb-1 mb-1"><span class="text-red-600 font-bold">Potongan Kasbon</span> <span class="font-bold text-red-600">-Rp ${Number(slip.kasbon || 0).toLocaleString("id-ID")}</span></div>` : ""}
+      
+      <!-- INJECT LAIN-LAIN DI SINI -->
+      ${htmlLainLain}
     `;
 
       document.getElementById("prev_rincian_konten").innerHTML = html;
@@ -3288,6 +4078,234 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       btn.innerHTML = `<i class="bi bi-safe2 mr-2"></i> BAYAR MASSAL (${checkboxes.length} SLIP)`;
 
       window.openModal("modal-kasir-gaji");
+    };
+
+    // Panggil ini biar Master Komponen langsung siaga
+    if (typeof window.loadMasterKomponen === "function") {
+      window.loadMasterKomponen();
+    }
+    // STATE KHUSUS EDIT SLIP (LAIN-LAIN)
+    window.dataLainLainRiwayat = [];
+
+    window.renderLainLainRiwayat = function () {
+      const container = document.getElementById("container-lain-lain-riwayat");
+      if (!container) return;
+
+      container.innerHTML = "";
+
+      if (window.dataLainLainRiwayat.length === 0) {
+        container.innerHTML = `<p class="text-[10px] text-gray-400 italic text-center py-4 bg-gray-50 rounded-lg border border-dashed border-gray-200">Tidak ada komponen lain-lain. Klik Tambah Baris.</p>`;
+        return;
+      }
+
+      window.dataLainLainRiwayat.forEach((item, index) => {
+        const isPenambahan = item.tipe === "penambahan";
+        const colorClass = isPenambahan
+          ? "text-green-700 bg-green-50 border-green-200"
+          : "text-red-700 bg-red-50 border-red-200";
+
+        // 🔥 LOGIKA ANTI-DOUBLE 🔥
+        let opsiHTML = `<option value="" disabled ${!item.nama_item ? "selected" : ""}>-- Pilih Komponen --</option>`;
+        if (window.pilihanMasterKomponen) {
+          window.pilihanMasterKomponen.forEach((master) => {
+            const sudahDipakai = window.dataLainLainRiwayat.some(
+              (d, idx) => idx !== index && d.nama_item === master.nama_komponen,
+            );
+            const isTerpilihDiSini = item.nama_item === master.nama_komponen;
+
+            if (sudahDipakai) {
+              opsiHTML += `<option value="${master.nama_komponen}" disabled class="text-gray-300">❌ ${master.nama_komponen} (Sudah Dipilih)</option>`;
+            } else {
+              opsiHTML += `<option value="${master.nama_komponen}" data-tipe="${master.tipe_default}" ${isTerpilihDiSini ? "selected" : ""}>${master.nama_komponen}</option>`;
+            }
+          });
+        }
+        if (
+          item.nama_item &&
+          !window.pilihanMasterKomponen?.find(
+            (m) => m.nama_komponen === item.nama_item,
+          )
+        ) {
+          opsiHTML += `<option value="${item.nama_item}" selected>${item.nama_item} (Data Lama)</option>`;
+        }
+
+        const rowHTML = `
+    <div class="p-2.5 rounded-lg border border-gray-200 bg-gray-50 flex flex-col sm:flex-row gap-2 relative transition-all">
+      <div class="w-full sm:w-2/5">
+        <select class="w-full border-gray-300 rounded p-1.5 text-xs outline-none focus:border-blue-500 font-bold text-gray-700 shadow-inner" 
+                onchange="window.pilihKomponenDropdownRiwayat(${index}, this)">
+          ${opsiHTML}
+        </select>
+      </div>
+      <div class="w-full sm:w-1/4">
+        <select class="w-full border rounded p-1.5 text-xs outline-none font-bold ${colorClass}" 
+                onchange="window.updateLainLainRiwayat(${index}, 'tipe', this.value)">
+          <option value="penambahan" ${isPenambahan ? "selected" : ""}>+ Nambah</option>
+          <option value="potongan" ${!isPenambahan ? "selected" : ""}>- Potong</option>
+        </select>
+      </div>
+      <div class="w-full sm:w-1/3 flex gap-2">
+        <input type="number" placeholder="Nominal (Rp)" 
+               class="w-full border-gray-300 rounded p-1.5 text-xs outline-none focus:border-blue-500 shadow-inner font-mono font-bold" 
+               value="${item.nominal || ""}" oninput="window.updateLainLainRiwayat(${index}, 'nominal', this.value)" />
+        
+        <button type="button" onclick="window.hapusLainLainRiwayat(${index})" class="bg-red-100 text-red-600 px-2.5 rounded hover:bg-red-200 transition-colors shadow-sm flex items-center justify-center">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </div>`;
+        container.insertAdjacentHTML("beforeend", rowHTML);
+      });
+    };
+
+    window.pilihKomponenDropdownRiwayat = function (index, elemenSelect) {
+      const namaTerpilih = elemenSelect.value;
+      const masterData = window.pilihanMasterKomponen?.find(
+        (m) => m.nama_komponen === namaTerpilih,
+      );
+
+      if (masterData) {
+        window.dataLainLainRiwayat[index].nama_item = masterData.nama_komponen;
+        window.dataLainLainRiwayat[index].tipe = masterData.tipe_default;
+      } else {
+        window.dataLainLainRiwayat[index].nama_item = namaTerpilih;
+      }
+      window.renderLainLainRiwayat();
+      window.hitungTotalEditSlip(); // 🔥 Panggil hitung ulang modal
+    };
+
+    window.tambahBarisLainLainRiwayat = function () {
+      window.dataLainLainRiwayat.push({
+        id: Date.now().toString(),
+        nama_item: "",
+        tipe: "penambahan",
+        nominal: 0,
+      });
+      window.renderLainLainRiwayat();
+      window.hitungTotalEditSlip();
+    };
+
+    window.updateLainLainRiwayat = function (index, field, value) {
+      window.dataLainLainRiwayat[index][field] =
+        field === "nominal" ? parseFloat(value) || 0 : value;
+      if (field === "tipe") window.renderLainLainRiwayat();
+      window.hitungTotalEditSlip();
+    };
+
+    window.hapusLainLainRiwayat = function (index) {
+      window.dataLainLainRiwayat.splice(index, 1);
+      window.renderLainLainRiwayat();
+      window.hitungTotalEditSlip();
+    };
+
+    // ==========================================
+    // 🔧 STATE KHUSUS MODAL KOREKSI RIWAYAT ACC
+    // ==========================================
+    window.dataLainLainACC = [];
+
+    window.renderLainLainACC = function () {
+      const container = document.getElementById("container-lain-lain-acc");
+      if (!container) return;
+
+      container.innerHTML = "";
+
+      if (window.dataLainLainACC.length === 0) {
+        container.innerHTML = `<p class="text-[10px] text-gray-400 italic text-center py-4 bg-gray-50 rounded-lg border border-dashed border-gray-200">Tidak ada komponen tambahan.</p>`;
+        return;
+      }
+
+      window.dataLainLainACC.forEach((item, index) => {
+        const isNambah = item.tipe === "penambahan";
+        const colorClass = isNambah
+          ? "text-green-700 bg-green-50 border-green-200"
+          : "text-red-700 bg-red-50 border-red-200";
+
+        // 🔥 LOGIKA ANTI-DOUBLE 🔥
+        let opsiHTML = `<option value="" disabled ${!item.nama_item ? "selected" : ""}>-- Pilih Komponen --</option>`;
+        if (window.pilihanMasterKomponen) {
+          window.pilihanMasterKomponen.forEach((master) => {
+            const sudahDipakai = window.dataLainLainACC.some(
+              (d, idx) => idx !== index && d.nama_item === master.nama_komponen,
+            );
+            const isTerpilihDiSini = item.nama_item === master.nama_komponen;
+
+            if (sudahDipakai) {
+              opsiHTML += `<option value="${master.nama_komponen}" disabled class="text-gray-300">❌ ${master.nama_komponen} (Sudah Dipilih)</option>`;
+            } else {
+              opsiHTML += `<option value="${master.nama_komponen}" data-tipe="${master.tipe_default}" ${isTerpilihDiSini ? "selected" : ""}>${master.nama_komponen}</option>`;
+            }
+          });
+        }
+        if (
+          item.nama_item &&
+          !window.pilihanMasterKomponen?.find(
+            (m) => m.nama_komponen === item.nama_item,
+          )
+        ) {
+          opsiHTML += `<option value="${item.nama_item}" selected>${item.nama_item} (Data Lama)</option>`;
+        }
+
+        const rowHTML = `
+          <div class="p-2.5 rounded-lg border border-gray-200 bg-gray-50 flex flex-col sm:flex-row gap-2 transition-all">
+            <div class="w-full sm:w-2/5">
+              <select class="w-full border-gray-300 rounded p-1.5 text-xs outline-none focus:border-blue-500 font-bold text-gray-700 shadow-inner" onchange="window.pilihKomponenDropdownACC(${index}, this)">
+                ${opsiHTML}
+              </select>
+            </div>
+            <div class="w-full sm:w-1/4">
+              <select class="w-full border rounded p-1.5 text-xs outline-none font-bold ${colorClass}" onchange="window.updateLainLainACC(${index}, 'tipe', this.value)">
+                <option value="penambahan" ${isNambah ? "selected" : ""}>+ Nambah</option>
+                <option value="potongan" ${!isNambah ? "selected" : ""}>- Potong</option>
+              </select>
+            </div>
+            <div class="w-full sm:w-1/3 flex gap-2">
+              <input type="number" placeholder="Nominal" class="w-full border-gray-300 rounded p-1.5 text-xs outline-none focus:border-blue-500 shadow-inner font-mono font-bold" value="${item.nominal || ""}" oninput="window.updateLainLainACC(${index}, 'nominal', this.value)" />
+              <button type="button" onclick="window.hapusLainLainACC(${index})" class="bg-red-100 text-red-600 px-2.5 rounded hover:bg-red-200 transition-colors shadow-sm flex items-center justify-center">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>`;
+        container.insertAdjacentHTML("beforeend", rowHTML);
+      });
+    };
+
+    window.pilihKomponenDropdownACC = function (index, el) {
+      const val = el.value;
+      const master = window.pilihanMasterKomponen?.find(
+        (m) => m.nama_komponen === val,
+      );
+      if (master) {
+        window.dataLainLainACC[index].nama_item = master.nama_komponen;
+        window.dataLainLainACC[index].tipe = master.tipe_default;
+      } else {
+        window.dataLainLainACC[index].nama_item = val;
+      }
+      window.renderLainLainACC();
+      window.hitungTotalEditRiwayat();
+    };
+
+    window.tambahBarisLainLainACC = function () {
+      window.dataLainLainACC.push({
+        id: Date.now().toString(),
+        nama_item: "",
+        tipe: "penambahan",
+        nominal: 0,
+      });
+      window.renderLainLainACC();
+      window.hitungTotalEditRiwayat();
+    };
+
+    window.updateLainLainACC = function (index, field, value) {
+      window.dataLainLainACC[index][field] =
+        field === "nominal" ? parseFloat(value) || 0 : value;
+      if (field === "tipe") window.renderLainLainACC();
+      window.hitungTotalEditRiwayat();
+    };
+
+    window.hapusLainLainACC = function (index) {
+      window.dataLainLainACC.splice(index, 1);
+      window.renderLainLainACC();
+      window.hitungTotalEditRiwayat();
     };
   });
 </script>

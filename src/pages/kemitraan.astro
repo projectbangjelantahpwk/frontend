@@ -111,19 +111,38 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                         <option value="5">Follow Up Ke- 5+</option>
                       </select>
                     </div>
+                    <!-- TAMBAHKAN KODE INI -->
+                    <div>
+                      <label
+                        class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1"
+                        >Sumber Mitra</label
+                      >
+                      <select
+                        id="filter-sumber-prospek"
+                        class="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container text-sm outline-none focus:border-primary"
+                      >
+                        <option value="">-- Semua Sumber --</option>
+                        <option value="Canvaser Lapangan"
+                          >Canvaser Lapangan</option
+                        >
+                        <option value="Instagram">Instagram</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="Tiktok">Tiktok</option>
+                        <option value="Lainnya">Lainnya</option>
+                      </select>
+                    </div>
+                    <!-- BATAS KODE TAMBAHAN -->
                     <div class="flex justify-between gap-2 mt-1">
                       <button
                         onclick="window.resetFilterProspek(event)"
                         class="flex-1 h-9 border border-outline-variant text-on-surface-variant font-bold text-xs rounded-lg hover:bg-surface-container-low transition-colors"
+                        >Reset</button
                       >
-                        Reset
-                      </button>
                       <button
                         onclick="window.applyFilterProspek(event)"
                         class="flex-1 h-9 bg-primary text-on-primary font-bold text-xs rounded-lg hover:bg-surface-tint transition-colors shadow-sm"
+                        >Terapkan</button
                       >
-                        Terapkan
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -1371,7 +1390,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
             // Tampilan Card untuk Mobile
             htmlProspekMobile += `
-                        <div class="prospek-item bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm" data-tgl="${rawDate}" data-fu="${currentFollowUp}">
+    <div class="prospek-item bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm" data-tgl="${rawDate}" data-fu="${currentFollowUp}" data-sumber="${sumber}">
                             <div class="flex justify-between items-start">
                                 <div>
                                     <p class="text-xs text-on-surface-variant mt-1 font-medium">Tgl Follow Up: <span class="font-bold text-primary">${tanggalInput}</span></p>
@@ -1393,7 +1412,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
             // Tampilan Baris untuk Tabel Desktop
             htmlProspekTable += `
-                        <tr class="prospek-item hover:bg-surface-container-low transition-colors" data-tgl="${rawDate}" data-fu="${currentFollowUp}">
+                        <tr class="prospek-item hover:bg-surface-container-low transition-colors" data-tgl="${rawDate}" data-fu="${currentFollowUp}" data-sumber="${sumber}">
                             <td class="p-md text-center text-sm font-bold text-on-surface-variant">${index + 1}</td>
                             <td class="p-md text-sm font-medium text-on-surface-variant whitespace-nowrap">
                                 <span class="material-symbols-outlined text-[14px] align-middle mr-1">calendar_today</span>${tanggalInput}
@@ -2338,70 +2357,98 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
     // Pemicu Render Otomatis Saat Pertama Kali Halaman Terbuka
     if (inputPeriode) window.generateLeaderboard();
-    // ==========================================
-    // FITUR FILTER PROSPEK (TANGGAL & FOLLOW UP)
-    // ==========================================
-    // Logika Buka/Tutup Dropdown
-    window.toggleDropdownFilter = function () {
-      const dropdown = document.getElementById("dropdown-filter-prospek");
-      dropdown.classList.toggle("hidden");
+    // =========================================================
+    // FITUR PENCARIAN & FILTER PROSPEK SINKRON (ANTI-BENTROK)
+    // =========================================================
+
+    // 1. Logika Buka/Tutup Dropdown
+    window.toggleDropdownFilter = function (e) {
+      if (e) e.preventDefault();
+      document
+        .getElementById("dropdown-filter-prospek")
+        ?.classList.toggle("hidden");
     };
 
-    // Menutup dropdown jika user klik area kosong di luar kotak
+    // Menutup dropdown otomatis jika user klik area kosong di luar kotak
     document.addEventListener("click", function (event) {
       const dropdown = document.getElementById("dropdown-filter-prospek");
-      const button = event.target.closest(
-        'button[onclick="window.toggleDropdownFilter()"]',
+      const isClickInsideBtn = event.target.closest(
+        'button[onclick*="toggleDropdownFilter"]',
       );
-      if (!button && dropdown && !dropdown.contains(event.target)) {
+      if (!isClickInsideBtn && dropdown && !dropdown.contains(event.target)) {
         dropdown.classList.add("hidden");
       }
     });
 
-    window.applyFilterProspek = function () {
-      const filterTgl = document.getElementById("filter-tgl-prospek").value;
-      const filterFu = document.getElementById("filter-fu-prospek").value;
+    // 2. Mesin Utama: Menyatukan Filter Dropdown + Kolom Search Teks
+    window.applyFilterProspek = function (e) {
+      if (e) e.preventDefault();
+
+      const filterTgl =
+        document.getElementById("filter-tgl-prospek")?.value || "";
+      const filterFu =
+        document.getElementById("filter-fu-prospek")?.value || "";
+      const filterSumber =
+        document.getElementById("filter-sumber-prospek")?.value || ""; // Filter Sumber Mitra
+
+      const keyword = (
+        document.getElementById("input-search-mitra")?.value || ""
+      )
+        .toLowerCase()
+        .trim();
       const items = document.querySelectorAll(".prospek-item");
 
       items.forEach((item) => {
-        const itemTgl = item.getAttribute("data-tgl");
+        const itemTgl = item.getAttribute("data-tgl") || "";
         const itemFu = parseInt(item.getAttribute("data-fu")) || 1;
+        const itemSumber = item.getAttribute("data-sumber") || ""; // Ambil atribut data-sumber
+        const text = item.textContent.toLowerCase();
 
-        let matchTgl = true;
-        let matchFu = true;
+        let match = true;
 
-        if (filterTgl && itemTgl !== filterTgl) matchTgl = false;
+        // Syarat A: Kecocokan Tanggal
+        if (filterTgl && itemTgl !== filterTgl) match = false;
 
+        // Syarat B: Kecocokan Angka Follow Up
         if (filterFu) {
-          if (filterFu === "5") {
-            if (itemFu < 5) matchFu = false;
-          } else {
-            if (itemFu !== parseInt(filterFu)) matchFu = false;
-          }
+          if (filterFu === "5" && itemFu < 5) match = false;
+          else if (filterFu !== "5" && itemFu !== parseInt(filterFu))
+            match = false;
         }
 
-        if (matchTgl && matchFu) {
-          item.style.display = "";
-        } else {
-          item.style.display = "none";
-        }
+        // Syarat C: Kecocokan Sumber Mitra (Case Insensitive)
+        // Kita ubah keduanya jadi huruf kecil agar kebal dari tipe penulisan "Instagram" vs "instagram"
+        if (
+          filterSumber &&
+          itemSumber.toLowerCase() !== filterSumber.toLowerCase()
+        )
+          match = false;
+
+        // Syarat D: Kecocokan Kata Kunci di Kolom Search
+        if (keyword && !text.includes(keyword)) match = false;
+
+        // Eksekusi: Tampilkan jika lulus semua syarat!
+        item.style.display = match ? "" : "none";
       });
 
-      // Otomatis tutup dropdown setelah filter diterapkan
+      // Tutup kotak dropdown setelah sukses filter
       document
         .getElementById("dropdown-filter-prospek")
-        .classList.add("hidden");
+        ?.classList.add("hidden");
     };
 
-    window.resetFilterProspek = function () {
-      document.getElementById("filter-tgl-prospek").value = "";
-      document.getElementById("filter-fu-prospek").value = "";
-      window.applyFilterProspek();
+    // 3. Tombol Reset Filter Dropdown
+    window.resetFilterProspek = function (e) {
+      if (e) e.preventDefault();
+      if (document.getElementById("filter-tgl-prospek"))
+        document.getElementById("filter-tgl-prospek").value = "";
+      if (document.getElementById("filter-fu-prospek"))
+        document.getElementById("filter-fu-prospek").value = "";
+      if (document.getElementById("filter-sumber-prospek"))
+        document.getElementById("filter-sumber-prospek").value = ""; // Reset opsi sumber mitra
 
-      // Otomatis tutup dropdown setelah direset
-      document
-        .getElementById("dropdown-filter-prospek")
-        .classList.add("hidden");
+      // Panggil ulang mesin utama
+      window.applyFilterProspek();
     };
     // =========================================================
     // FITUR PENCARIAN & FILTER PROSPEK SINKRON (ANTI-BENTROK)
@@ -2428,6 +2475,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     });
 
     // 2. Mesin Utama: Menyatukan Filter Dropdown + Kolom Search Teks
+    // 2. Mesin Utama: Menyatukan Filter Dropdown + Kolom Search Teks
     window.applyFilterProspek = function (e) {
       if (e) e.preventDefault();
 
@@ -2435,17 +2483,20 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         document.getElementById("filter-tgl-prospek")?.value || "";
       const filterFu =
         document.getElementById("filter-fu-prospek")?.value || "";
+      const filterSumber =
+        document.getElementById("filter-sumber-prospek")?.value || ""; // Filter Baru
+
       const keyword = (
         document.getElementById("input-search-mitra")?.value || ""
       )
         .toLowerCase()
         .trim();
-
       const items = document.querySelectorAll(".prospek-item");
 
       items.forEach((item) => {
         const itemTgl = item.getAttribute("data-tgl") || "";
         const itemFu = parseInt(item.getAttribute("data-fu")) || 1;
+        const itemSumber = item.getAttribute("data-sumber") || ""; // Ambil atribut sumber
         const text = item.textContent.toLowerCase();
 
         let match = true;
@@ -2460,7 +2511,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             match = false;
         }
 
-        // Syarat C: Kecocokan Kata Kunci di Kolom Search
+        // Syarat C: Kecocokan Sumber Mitra
+        if (filterSumber && itemSumber !== filterSumber) match = false;
+
+        // Syarat D: Kecocokan Kata Kunci di Kolom Search
         if (keyword && !text.includes(keyword)) match = false;
 
         // Eksekusi: Tampilkan jika lulus semua syarat!
@@ -2480,6 +2534,8 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         document.getElementById("filter-tgl-prospek").value = "";
       if (document.getElementById("filter-fu-prospek"))
         document.getElementById("filter-fu-prospek").value = "";
+      if (document.getElementById("filter-sumber-prospek"))
+        document.getElementById("filter-sumber-prospek").value = ""; // Reset opsi sumber mitra
 
       // Panggil ulang mesin utama
       window.applyFilterProspek();

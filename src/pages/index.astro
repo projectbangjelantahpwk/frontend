@@ -10,6 +10,7 @@ import JenisPelangganTransaksiChart from "../components/dashboard/JenisPelanggan
 import LeaderboardMitra from "../components/dashboard/LeaderboardMitra.astro";
 import BestEmployees from "../components/dashboard/BestEmployees.astro";
 import BukuKasHarian from "../components/dashboard/BukuKasHarian.astro";
+import DepositMitra from "../components/dashboard/DepositMitraRealtime.astro";
 import SalesMetricsWithProgress from "../components/dashboard/SalesMetricsWithProgress.astro";
 import SalaryMetricsWithProgress from "../components/dashboard/SalaryMetricsWithProgress.astro";
 import PembelianMetricsWithProgress from "../components/dashboard/PembelianMetricsWithProgress.astro";
@@ -75,6 +76,7 @@ const employeesData = [
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
         <SumberTransaksiChart />
+        <DepositMitra />
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-1 gap-lg">

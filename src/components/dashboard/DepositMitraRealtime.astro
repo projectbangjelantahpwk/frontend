@@ -1,0 +1,172 @@
+---
+// src/components/dashboard/DepositMitraRealtime.astro
+---
+
+<div
+  class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md flex flex-col h-full hover:shadow-lg transition-shadow duration-300"
+>
+  <div
+    class="mb-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+  >
+    <div>
+      <h3
+        class="font-headline-md text-on-surface font-bold text-transparent bg-clip-text bg-linear-to-r from-primary to-secondary"
+      >
+        Monitor DP Mitra
+      </h3>
+      <p class="text-label-sm text-on-surface-variant font-medium">
+        Data Saldo Deposit Realtime
+      </p>
+    </div>
+
+    <div
+      class="flex flex-col sm:flex-row items-end sm:items-center gap-3 w-full sm:w-auto"
+    >
+      <div
+        class="text-right w-full sm:w-auto flex sm:block justify-between items-center bg-primary/5 sm:bg-transparent p-2 sm:p-0 rounded-lg"
+      >
+        <span
+          class="text-label-xs text-primary/80 uppercase tracking-wider block mb-0 sm:mb-1 font-bold"
+          >Total Keseluruhan DP</span
+        >
+        <span id="total-dp-mitra" class="text-title-md font-black text-primary"
+          >Rp 0</span
+        >
+      </div>
+
+      <button
+        onclick="window.fetchDepositMitra()"
+        class="bg-surface-variant/20 px-4 py-2 rounded-xl border border-surface-variant/50 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all shadow-inner w-full sm:w-auto flex items-center justify-center gap-2 text-sm font-bold text-gray-700 hover:bg-gray-100"
+      >
+        <i class="bi bi-arrow-clockwise text-primary"></i> Refresh Data
+      </button>
+    </div>
+  </div>
+
+  <div
+    class="w-full border border-gray-100 rounded-xl overflow-hidden mb-md flex-grow shadow-sm"
+  >
+    <div class="max-h-[350px] overflow-y-auto hide-scrollbar bg-gray-50/30">
+      <table class="w-full text-left border-collapse">
+        <thead
+          class="bg-surface-variant/30 border-b border-gray-100 text-on-surface-variant text-xs sticky top-0 z-10"
+        >
+          <tr>
+            <th class="p-3 text-left font-semibold w-24">Tgl Transfer</th>
+            <th class="p-3 text-left font-semibold">Nama Mitra</th>
+            <th class="p-3 text-center font-semibold hidden md:table-cell"
+              >Area / Rute</th
+            >
+            <th class="p-3 text-center font-semibold hidden sm:table-cell"
+              >Jml Order</th
+            >
+            <th class="p-3 text-right font-semibold text-primary"
+              >Saldo DP Aktif (Rp)</th
+            >
+          </tr>
+        </thead>
+        <tbody id="tbody-deposit-mitra" class="text-sm bg-white">
+          <tr>
+            <td
+              colspan="5"
+              class="text-center p-4 text-gray-400 text-xs animate-pulse"
+              >Memuat data realtime...</td
+            >
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { supabase } from "../../lib/supabase";
+
+  const formatRp = (num: number) =>
+    new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(num || 0);
+
+  const formatTgl = (tglStr: string) => {
+    if (!tglStr) return "-";
+    const date = new Date(tglStr);
+    return date.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  async function fetchDepositMitra() {
+    const tbody = document.getElementById("tbody-deposit-mitra");
+    const elTotal = document.getElementById("total-dp-mitra");
+    if (!tbody || !elTotal) return;
+
+    // Tambahkan efek loading pas di klik refresh
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-gray-400 text-xs">Memperbarui data...</td></tr>`;
+
+    // Pastikan nama tabel disesuaikan dengan DB lo ya bro, asumsi gw namanya "mitra" atau "mitra_rows"
+    const { data, error } = await supabase
+      .from("mitra")
+      .select("nama_mitra, updated_at, rute_jemput, total_order, deposit")
+      .gt("deposit", 0)
+      .order("deposit", { ascending: false });
+
+    if (error) {
+      console.error("Gagal menarik data DP:", error.message);
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-red-500 text-xs">Gagal mengambil data dari server.</td></tr>`;
+      return;
+    }
+
+    let grandTotal = 0;
+    tbody.innerHTML = "";
+
+    if (data && data.length > 0) {
+      data.forEach((item, index) => {
+        const dp = Number(item.deposit) || 0;
+        grandTotal += dp;
+
+        // Bikin selang-seling warna baris biar enak dibaca
+        const bgClass = index % 2 === 0 ? "bg-white" : "bg-gray-50/40";
+
+        tbody.innerHTML += `
+          <tr class="border-b border-gray-100 transition-colors hover:bg-surface-variant/20 ${bgClass}">
+              <td class="p-3 text-xs text-gray-500 whitespace-nowrap">
+                  ${formatTgl(item.updated_at)}
+              </td>
+              <td class="p-3 font-bold text-gray-800">
+                  ${item.nama_mitra}
+              </td>
+              <td class="p-3 text-center hidden md:table-cell">
+                  <span class="inline-block bg-gray-100 px-2 py-1 rounded-md text-[10px] font-bold text-gray-600 uppercase tracking-wider border border-gray-200">
+                    ${item.rute_jemput || "-"}
+                  </span>
+              </td>
+              <td class="p-3 text-center text-xs font-bold text-gray-400 hidden sm:table-cell">
+                  ${item.total_order || 0}x
+              </td>
+              <td class="p-3 text-right font-black text-primary">
+                  ${formatRp(dp)}
+              </td>
+          </tr>
+        `;
+      });
+    } else {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center p-6 text-gray-400 text-sm font-medium">Belum ada mitra yang memiliki saldo deposit.</td></tr>`;
+    }
+
+    elTotal.textContent = formatRp(grandTotal);
+  }
+
+  // Auto load saat komponen dimuat
+  document.addEventListener("DOMContentLoaded", () => {
+    fetchDepositMitra();
+
+    // Ekspos ke global biar tombol onclick di HTML bisa manggil ini
+    if (typeof window !== "undefined") {
+      (window as any).fetchDepositMitra = fetchDepositMitra;
+    }
+  });
+</script>

@@ -147,9 +147,9 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           <option value="Semua">Semua Komoditas</option>
           <option value="Minyak Jelantah">Minyak Jelantah</option>
           <option value="Minyak Asting">Minyak Asting</option>
-          <option value="Ampas Goreng">Ampas Goreng</option>
+          <option value="Ampas">Ampas</option>
           <option value="Kriuk">Kriuk</option>
-          <option value="Tepung Ayakan">Tepung Ayakan</option>
+          <option value="Tepung">Tepung</option>
           <option value="Spinner">Spinner</option>
         </select>
       </div>
@@ -1057,7 +1057,21 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         let matchKomoditas = true;
         // Cek apakah opsi komoditas spesifik dipilih (bukan "Semua")
         if (filterKomoditas !== "Semua" && komoditas) {
-          matchKomoditas = komoditas === filterKomoditas;
+          const lowerKomoditas = komoditas.toLowerCase();
+          const lowerFilter = filterKomoditas.toLowerCase();
+
+          // Jika filter yang dipilih adalah "ampas" (mencocokkan: Ampas Goreng, Ampas, ampas)
+          if (lowerFilter === "ampas") {
+            matchKomoditas = lowerKomoditas.includes("ampas");
+          }
+          // Jika filter yang dipilih adalah "tepung" (mencocokkan: Tepung Ayakan, tepung ayakan, tepung)
+          else if (lowerFilter === "tepung") {
+            matchKomoditas = lowerKomoditas.includes("tepung");
+          }
+          // Untuk komoditas lainnya gunakan perbandingan langsung yang aman (case-insensitive)
+          else {
+            matchKomoditas = lowerKomoditas === lowerFilter;
+          }
         }
 
         // Tampilkan baris HANYA JIKA lolos kedua filter (tanggal dan komoditas)

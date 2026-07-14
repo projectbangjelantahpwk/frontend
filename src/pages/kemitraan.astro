@@ -1787,23 +1787,15 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         overlay.classList.remove("opacity-0");
         aside.classList.remove("translate-x-full");
 
-        // 2. Format Link WhatsApp
-        let waNumber = hp.replace(/\D/g, "");
-        if (waNumber.startsWith("0")) waNumber = "62" + waNumber.substring(1);
-
-        const textPesan = `Halo Kak, semoga harinya menyenangkan.\nKami dari BANG JELANTAH PURWAKARTA ingin melakukan follow up terkait penjualan minyak jelantah. Apakah Kakak masih berminat?\nKami tunggu informasinya, terima kasih. 😊🙏\n\n*Bang Jelantah Purwakarta*\nwww.bangjelantahpurwakarta.com`;
-        const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(textPesan)}`;
-        document.getElementById("btn-wa-prospek").href = waLink;
-
-        // 3. Fetch Riwayat Tanggal & Follow Up Ke-
+        // Siapkan kontainer loading riwayat
         const listContainer = document.getElementById("list-riwayat-followup");
         listContainer.innerHTML =
           '<p class="text-sm text-on-surface-variant italic">Memuat riwayat...</p>';
 
-        // ✅ BARU - Cari pake ID dulu
+        // 2. Fetch Data Prospek Dulu (Tambahkan sumber_customer di select)
         const { data: prospekCari } = await window.supabase
           .from("mitra_baru")
-          .select("id")
+          .select("id, sumber_customer")
           .eq("nomor_hp", hp)
           .single();
 
@@ -1815,14 +1807,40 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
         const idProspek = prospekCari.id;
 
+        // Jaga-jaga kalau nilainya kosong (null), kita ubah jadi string kosong biar nggak error
+        const sumberCustomer = prospekCari.sumber_customer || "";
+
+        // 👇 ALAT BANTU CEK: Lihat di Console Inspect Element (F12) sumbernya terbaca apa
+        console.log(
+          "Mengecek prospek. Sumber Customer yang terbaca di DB:",
+          sumberCustomer,
+        );
+
+        // 3. Format Link WhatsApp Berdasarkan Sumber
+        let waNumber = hp.replace(/\D/g, "");
+        if (waNumber.startsWith("0")) waNumber = "62" + waNumber.substring(1);
+
+        let textPesan = "";
+
+        // ✅ LOGIKA PENENTUAN TEKS PESAN (SUDAH DI BIKIN KEBAL)
+        // Ubah jadi huruf kecil semua dan cek apakah mengandung kata "canvaser"
+        if (sumberCustomer.toLowerCase().includes("canvaser")) {
+          textPesan = `Assalamu'alaikum Kak,\n\nPerkenalkan, saya Maulana, admin resmi dari Bang Jelantah Purwakarta.\nSaya bertanggung jawab dalam pendataan customer, konfirmasi transaksi, serta koordinasi pengambilan jelantah.\n\nApabila Kakak memiliki pertanyaan atau keperluan lainnya, dapat langsung menghubungi saya melalui nomor ini.\n\nTerima kasih atas kepercayaannya kepada kami. 🙏\n\nSalam hormat,\nMaulana\nAdmin Bang Jelantah Purwakarta`;
+        } else {
+          textPesan = `Halo Kak, semoga harinya menyenangkan.\nKami dari BANG JELANTAH PURWAKARTA ingin melakukan follow up terkait penjualan minyak jelantah. Apakah Kakak masih berminat?\nKami tunggu informasinya, terima kasih. 😊🙏\n\n*Bang Jelantah Purwakarta*\nwww.bangjelantahpurwakarta.com`;
+        }
+
+        const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(textPesan)}`;
+        document.getElementById("btn-wa-prospek").href = waLink;
+
+        // 4. Fetch Riwayat Tanggal & Follow Up Ke-
         const { data: riwayat } = await window.supabase
           .from("riwayat_follow_up")
           .select("created_at, follow_up_ke, keterangan")
-          .eq("id_nomor_hp", idProspek) // ✅ Query pake ID
+          .eq("id_nomor_hp", idProspek)
           .order("created_at", { ascending: false });
 
         // KALKULASI OTOMATIS:
-        // Cari angka follow up tertinggi di riwayat, kalau kosong berarti akan jadi follow up ke-2
         let nextFollowUpKe = 2;
         if (riwayat && riwayat.length > 0) {
           let htmlList = "";
@@ -1846,32 +1864,13 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           listContainer.innerHTML = htmlList;
         }
 
-        // 4. Atur event listener tombol "+1" menggunakan hasil kalkulasi terbaru
+        // 5. Atur event listener tombol "+1" menggunakan hasil kalkulasi terbaru
         const btnTambah = document.getElementById("btn-tambah-followup-aside");
         btnTambah.onclick = () =>
           window.prosesTambahFollowUp(hp, nextFollowUpKe);
 
-        // 5. Tampilkan Riwayat dengan Detail
-        if (riwayat && riwayat.length > 0) {
-          let htmlList = "";
-          riwayat.forEach((r) => {
-            const tgl = new Date(r.created_at).toLocaleString("id-ID", {
-              dateStyle: "medium",
-              timeStyle: "short",
-            });
-            const urutanKe = r.follow_up_ke || "-";
-
-            htmlList += `
-                        <div class="flex items-center gap-3 p-3 bg-surface-container-lowest border border-outline-variant rounded-lg">
-                            <span class="w-8 h-8 flex items-center justify-center rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold shrink-0">#${urutanKe}</span>
-                            <div>
-                                <p class="text-sm font-bold text-on-surface mb-0.5">Follow Up Ke-${urutanKe}</p>
-                                <p class="text-[11px] font-medium text-on-surface-variant">${tgl} WIB</p>
-                            </div>
-                        </div>`;
-          });
-          listContainer.innerHTML = htmlList;
-        } else {
+        // 6. Tampilkan Riwayat dengan Detail (Jika kosong)
+        if (!riwayat || riwayat.length === 0) {
           listContainer.innerHTML =
             '<p class="text-sm text-on-surface-variant italic p-3 bg-surface-container rounded-lg border border-dashed border-outline-variant">Belum ada riwayat tercatat. Input prospek awal dihitung sebagai Follow Up Ke-1.</p>';
         }

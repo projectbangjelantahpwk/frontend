@@ -2686,12 +2686,9 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           `Rp ${Number(slip.gaji_karyawan || 0).toLocaleString("id-ID")}`;
 
         const slipLembur = document.getElementById("slip-lembur");
-        if (Number(slip.uang_lembur || 0) > 0) {
-          slipLembur.innerText = `Rp ${Number(slip.uang_lembur || 0).toLocaleString("id-ID")}`;
-          slipLembur.parentElement.style.display = "table-row";
-        } else {
-          slipLembur.parentElement.style.display = "none";
-        }
+        // Langsung tembak teksnya dan paksa tampil (tanpa disembunyikan/none)
+        slipLembur.innerText = `Rp ${Number(slip.uang_lembur || 0).toLocaleString("id-ID")}`;
+        slipLembur.parentElement.style.display = "table-row";
 
         const slipMakan = document.getElementById("slip-makan");
         if (Number(slip.uang_makan || 0) > 0) {
@@ -2979,9 +2976,12 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           "table-row";
 
         const slipLembur = document.getElementById("slip-lembur");
-        // Langsung tembak teksnya dan paksa tampil (tanpa disembunyikan/none)
-        slipLembur.innerText = `Rp ${Number(slip.uang_lembur || 0).toLocaleString("id-ID")}`;
-        slipLembur.parentElement.style.display = "table-row";
+        if (totalLembur > 0) {
+          slipLembur.innerText = `Rp ${totalLembur.toLocaleString("id-ID")}`;
+          slipLembur.parentElement.style.display = "table-row";
+        } else {
+          slipLembur.parentElement.style.display = "none";
+        }
 
         const slipMakan = document.getElementById("slip-makan");
         if (totalMakan > 0) {

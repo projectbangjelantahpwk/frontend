@@ -147,7 +147,14 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             class="bg-cyan-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-cyan-700 transition shadow-sm ml-2"
             title="Download Slip PNG - Data Terakumulasi Sesuai Filter"
           >
-            <i class="bi bi-images"></i> Image (Akumulasi)
+            <i class="bi bi-images"></i> Slip Gaji (Akumulasi)
+          </button>
+          <button
+            onclick="window.exportSlipPotonganFilter()"
+            class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition shadow-sm ml-2"
+            title="Download Bukti Potongan Gaji PNG"
+          >
+            <i class="bi bi-file-earmark-minus"></i> Slip Potongan
           </button>
         </div>
       </div>
@@ -1107,6 +1114,70 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         Dokumen ini digenerate secara otomatis oleh Sistem Keuangan Bang
         Jelantah.
       </div>
+    </div>
+  </div>
+
+  <!-- TEMPLATE SLIP POTONGAN GAMBAR (TAHAP 1) -->
+  <div
+    id="template-slip-potongan-gambar"
+    style="width: 380px; background-color: #ffffff; padding: 24px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; box-sizing: border-box; line-height: 1.5; border: 1px solid #eee;"
+  >
+    <div
+      style="text-align: center; border-bottom: 2px dashed #ccc; padding-bottom: 12px; margin-bottom: 16px;"
+    >
+      <h2 style="margin: 0; color: #dc2626; font-size: 20px; font-weight: 800;">
+        BUKTI POTONGAN GAJI
+      </h2>
+      <p
+        style="margin: 4px 0; font-size: 11px; color: #666; font-weight: bold;"
+      >
+        BANG JELANTAH PURWAKARTA
+      </p>
+    </div>
+
+    <table style="width: 100%; font-size: 12px; margin-bottom: 16px;">
+      <tr>
+        <td style="color: #666; width: 35%;">Nama</td>
+        <td style="font-weight: bold;" id="slip-pot-nama">: -</td>
+      </tr>
+      <tr>
+        <td style="color: #666;">Periode</td>
+        <td style="font-weight: bold;" id="slip-pot-periode">: -</td>
+      </tr>
+      <tr>
+        <td style="color: #666;">Dari - Sampai</td>
+        <td style="font-weight: bold; color: #0066cc;" id="slip-pot-tanggal">
+          : -
+        </td>
+      </tr>
+    </table>
+
+    <div
+      style="font-size: 11px; font-weight: bold; background: #fee2e2; color: #991b1b; padding: 6px; margin-bottom: 8px;"
+    >
+      RINCIAN POTONGAN
+    </div>
+    <table style="width: 100%; font-size: 12px; margin-bottom: 16px;">
+      <tr>
+        <td style="color: #dc2626;">Potongan Kasbon</td>
+        <td style="text-align: right; color: #dc2626;" id="slip-pot-kasbon">
+          Rp 0
+        </td>
+      </tr>
+      <tbody id="slip-pot-dinamis"></tbody>
+    </table>
+
+    <div
+      style="border-top: 2px dashed #ccc; padding-top: 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 16px;"
+    >
+      <span style="color: #991b1b;">TOTAL POTONGAN</span>
+      <span style="color: #dc2626;" id="slip-pot-total">Rp 0</span>
+    </div>
+
+    <div
+      style="text-align: center; margin-top: 24px; font-size: 10px; color: #999; font-style: italic;"
+    >
+      Dokumen ini digenerate secara otomatis oleh Sistem Keuangan Bang Jelantah.
     </div>
   </div>
 
@@ -3181,6 +3252,193 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       } catch (err) {
         console.error("Error Umum Akumulasi:", err);
         alert(`❌ TERJADI KESALAHAN:\n\n${err.message}`);
+      }
+    };
+
+    // ==========================================
+    // ✅ FUNGSI EXPORT SLIP POTONGAN (FULL)
+    // ==========================================
+    window.exportSlipPotonganFilter = async function () {
+      try {
+        if (typeof html2canvas === "undefined") {
+          return alert(
+            "❌ Library html2canvas belum ter-load. Silakan refresh halaman!",
+          );
+        }
+
+        const dataTerfilter = window.currentFilteredRiwayat;
+        if (!dataTerfilter || dataTerfilter.length === 0) {
+          return alert(
+            "⚠️ Tidak ada data riwayat yang cocok dengan filter untuk diunduh!",
+          );
+        }
+
+        // 1️⃣ Akumulasi nilai khusus potongan dari data ACC
+        let totalKasbon = 0;
+        let namaKaryawan = "";
+        let akumulasiPotonganLain = {};
+
+        dataTerfilter.forEach((slip) => {
+          const isACC =
+            slip.status === "ACC" || slip.status_persetujuan === "ACC";
+          if (!isACC) return;
+
+          totalKasbon += Number(slip.kasbon || 0);
+
+          if (!namaKaryawan && slip.profiles?.nama) {
+            namaKaryawan = slip.profiles.nama;
+          }
+
+          if (slip.lain_lain && slip.lain_lain.length > 0) {
+            slip.lain_lain.forEach((item) => {
+              if (item.tipe === "potongan") {
+                const key = item.nama_item;
+                if (!akumulasiPotonganLain[key]) {
+                  akumulasiPotonganLain[key] = 0;
+                }
+                akumulasiPotonganLain[key] += Number(item.nominal) || 0;
+              }
+            });
+          }
+        });
+
+        const totalPotonganLain = Object.values(akumulasiPotonganLain).reduce(
+          (a, b) => a + b,
+          0,
+        );
+        const grandTotalPotongan = totalKasbon + totalPotonganLain;
+
+        // Cek jika tidak ada potongan sama sekali
+        if (grandTotalPotongan === 0) {
+          return alert(
+            "✅ Karyawan ini tidak memiliki catatan potongan (Kasbon/Lainnya) pada periode filter ini.",
+          );
+        }
+
+        // 2️⃣ Suntik nilai ke template
+        document.getElementById("slip-pot-nama").innerText =
+          `: ${namaKaryawan || "Akumulasi Filter"}`;
+        document.getElementById("slip-pot-periode").innerText =
+          `: AKUMULASI (${dataTerfilter.length} Periode)`;
+
+        const startDate =
+          document.getElementById("filter-gaji-start")?.value || "-";
+        const endDate =
+          document.getElementById("filter-gaji-end")?.value || "-";
+        document.getElementById("slip-pot-tanggal").innerText =
+          `: ${startDate} s/d ${endDate}`;
+
+        // Handle Kasbon
+        const elKasbon = document.getElementById("slip-pot-kasbon");
+        if (totalKasbon > 0) {
+          elKasbon.innerText = `Rp ${totalKasbon.toLocaleString("id-ID")}`;
+          elKasbon.parentElement.style.display = "table-row";
+        } else {
+          elKasbon.parentElement.style.display = "none";
+        }
+
+        // Handle Potongan Lain-lain (JSONB)
+        let htmlPotonganDinamis = "";
+        Object.keys(akumulasiPotonganLain).forEach((namaItem) => {
+          const nominal = akumulasiPotonganLain[namaItem];
+          htmlPotonganDinamis += `<tr>
+            <td style="color: #dc2626;">${namaItem} (Akumulasi)</td>
+            <td style="text-align: right; color: #dc2626;">Rp ${nominal.toLocaleString("id-ID")}</td>
+          </tr>`;
+        });
+
+        document.getElementById("slip-pot-dinamis").innerHTML =
+          htmlPotonganDinamis;
+        document.getElementById("slip-pot-total").innerText =
+          `Rp ${grandTotalPotongan.toLocaleString("id-ID")}`;
+
+        // ==========================================
+        // 🔥 TAHAP 2: RENDER KE CANVAS & DOWNLOAD
+        // ==========================================
+
+        // 3️⃣ Jurus Kloning Mutlak (Bypass ukuran 0x0 & div hidden)
+        const originalEl = document.getElementById(
+          "template-slip-potongan-gambar",
+        );
+        if (!originalEl)
+          return alert(
+            "❌ Template slip potongan tidak ditemukan di halaman HTML!",
+          );
+
+        const cloneEl = originalEl.cloneNode(true);
+        cloneEl.id = "temp-clone-slip-potongan";
+        cloneEl.style.position = "fixed";
+        cloneEl.style.top = "0px";
+        cloneEl.style.left = "0px";
+        cloneEl.style.zIndex = "-9999";
+        cloneEl.style.display = "block"; // Paksa tampil
+        cloneEl.style.visibility = "visible"; // Paksa kelihatan buat si canvas
+        document.body.appendChild(cloneEl);
+
+        try {
+          // Jeda sepersekian detik biar fisik clone ke-render di DOM
+          await new Promise((resolve) => setTimeout(resolve, 300));
+
+          // 4️⃣ Render ke Canvas (dengan sistem Fallback kalau nge-blank)
+          let canvas;
+          let dataUrl = "";
+
+          try {
+            canvas = await html2canvas(cloneEl, {
+              scale: 2,
+              backgroundColor: "#ffffff",
+              useCORS: true,
+              logging: false,
+            });
+            dataUrl = canvas.toDataURL("image/png", 0.95);
+
+            if (dataUrl === "data:,") throw new Error("Canvas Blank 0x0");
+          } catch (secError) {
+            console.warn(
+              "⚠️ Terblokir CORS / Blank. Mencoba render ulang fallback...",
+            );
+
+            canvas = await html2canvas(cloneEl, {
+              scale: 2,
+              backgroundColor: "#ffffff",
+              useCORS: false,
+              logging: false,
+            });
+            dataUrl = canvas.toDataURL("image/png", 0.95);
+          }
+
+          if (!dataUrl || dataUrl === "data:,")
+            throw new Error("Gagal render (Canvas tetap kosong).");
+
+          // 5️⃣ Trigger Download File PNG
+          const link = document.createElement("a");
+          const safeName = (namaKaryawan || "Akumulasi")
+            .replace(/[^a-z0-9\-_\s]/gi, "")
+            .slice(0, 20);
+
+          link.download = `Bukti_Potongan_${safeName}_${new Date().toISOString().split("T")[0]}.png`;
+          link.href = dataUrl;
+
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          alert(
+            `✅ Bukti Potongan Gaji PNG berhasil diunduh!\n\nNama: ${safeName}\nTotal Periode: ${dataTerfilter.length}\nGrand Total Potongan: Rp ${grandTotalPotongan.toLocaleString("id-ID")}`,
+          );
+        } catch (err) {
+          console.error("Export Potongan Render Error:", err);
+          alert(`❌ GAGAL EXPORT POTONGAN PNG:\n\n${err.message}`);
+        } finally {
+          // 6️⃣ Bersihkan clone dari layar biar body HTML nggak penuh sampah elemen
+          const tempClone = document.getElementById("temp-clone-slip-potongan");
+          if (tempClone) document.body.removeChild(tempClone);
+        }
+      } catch (err) {
+        console.error("Error Export Potongan Umum:", err);
+        alert(
+          `❌ TERJADI KESALAHAN SAAT MEMPROSES POTONGAN:\n\n${err.message}`,
+        );
       }
     };
 

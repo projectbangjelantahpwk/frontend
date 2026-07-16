@@ -2392,7 +2392,7 @@ const statusBadgeColors = {
         const { data: semuaSlip } = await client
           .from("slip_gaji")
           .select(
-            "id, user_id, periode, gaji_karyawan, uang_lembur, uang_makan, uang_kesehatan, bonus_tepat_waktu, bonus_mingguan, uang_transport, uang_talangan, uang_rapat, kasbon, total_diterima, status",
+            "id, user_id, periode, gaji_karyawan, uang_lembur, uang_makan, uang_kesehatan, bonus_tepat_waktu, bonus_mingguan, uang_transport, uang_talangan, uang_rapat, kasbon, lain_lain, total_diterima, status",
           )
           .order("periode", { ascending: false });
 
@@ -2486,24 +2486,64 @@ const statusBadgeColors = {
           containerRiwayat.innerHTML = `<p class="text-center text-gray-500 text-xs mt-4 italic">Belum ada riwayat gaji.</p>`;
         } else {
           containerRiwayat.innerHTML = riwayatKaryawan
-            .map(
-              (slip) => `
-                <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm flex justify-between items-center hover:bg-gray-50 transition">
-                    <div>
-                        <p class="text-xs font-bold text-gray-900 mb-0.5">${slip.periode}</p>
-                        <p class="text-[10px] text-gray-500 font-mono">Rp ${Number(slip.total_diterima).toLocaleString("id-ID")}</p>
+            .map((slip) => {
+              // 👇 1. KITA EKSTRAK JSON LAIN-LAIN DI SINI 👇
+              let rincianLainHTML = "";
+              if (slip.lain_lain) {
+                try {
+                  const dataLain =
+                    typeof slip.lain_lain === "string"
+                      ? JSON.parse(slip.lain_lain)
+                      : slip.lain_lain;
+
+                  if (Array.isArray(dataLain) && dataLain.length > 0) {
+                    rincianLainHTML = `<div class="mt-2 pt-2 border-t border-dashed border-gray-200 w-full">
+                                        <p class="text-[9px] font-bold text-gray-400 mb-1">Rincian Lain-lain:</p>
+                                        <ul class="space-y-0.5 w-full">`;
+
+                    dataLain.forEach((item) => {
+                      const isPotongan = item.tipe === "potongan";
+                      const tanda = isPotongan ? "-" : "+";
+                      const warna = isPotongan
+                        ? "text-red-600"
+                        : "text-green-600";
+
+                      rincianLainHTML += `
+                        <li class="flex justify-between text-[10px]">
+                          <span class="text-gray-600">${item.nama_item || item.kategori}</span>
+                          <span class="${warna} font-bold">${tanda} Rp ${item.nominal.toLocaleString("id-ID")}</span>
+                        </li>`;
+                    });
+
+                    rincianLainHTML += `</ul></div>`;
+                  }
+                } catch (e) {
+                  console.error("Gagal parse riwayat lain-lain", e);
+                }
+              }
+              // 👆 BATAS EKSTRAKSI JSON 👆
+
+              // 👇 2. KITA CETAK KARTU RIWAYATNYA 👇
+              return `
+                <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm flex flex-col hover:bg-gray-50 transition">
+                    <div class="flex justify-between items-center w-full">
+                        <div>
+                            <p class="text-xs font-bold text-gray-900 mb-0.5">${slip.periode}</p>
+                            <p class="text-[10px] text-gray-500 font-mono">Total: Rp ${Number(slip.total_diterima).toLocaleString("id-ID")}</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded text-[9px] font-bold tracking-wider ${slip.status === "ACC" || slip.status === "Disetujui" ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"} uppercase">
+                                ${slip.status}
+                            </span>
+                            <button type="button" onclick="window.editRiwayatManual(${slip.id})" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded text-[10px] font-bold border border-blue-200 transition shadow-sm">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </button>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span class="px-2 py-0.5 rounded text-[9px] font-bold tracking-wider ${slip.status === "ACC" || slip.status === "Disetujui" ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"} uppercase">
-                            ${slip.status}
-                        </span>
-                        <button type="button" onclick="window.editRiwayatManual(${slip.id})" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded text-[10px] font-bold border border-blue-200 transition shadow-sm">
-                            <i class="bi bi-pencil-square"></i> Edit
-                        </button>
-                    </div>
+                    ${rincianLainHTML} <!-- Suntik rinciannya di bawah total -->
                 </div>
-            `,
-            )
+              `;
+            })
             .join("");
         }
       });
@@ -2589,7 +2629,6 @@ const statusBadgeColors = {
       document.getElementById("manual_talangan").value =
         slip.uang_talangan || 0;
       document.getElementById("manual_uang_rapat").value = slip.uang_rapat || 0;
-      document.getElementById("manual_lain_lain").value = slip.lain_lain || 0;
       document.getElementById("manual_kasbon").value = slip.kasbon || 0;
 
       const containerLain = document.getElementById(
@@ -2599,17 +2638,24 @@ const statusBadgeColors = {
 
       if (slip.lain_lain) {
         try {
-          // Parse JSON kalau bentuknya string, kalau udah object/array biarin aja
+          // Cek apakah dataLain ini JSON atau cuma angka sisaan jadul
           const dataLain =
             typeof slip.lain_lain === "string"
               ? JSON.parse(slip.lain_lain)
               : slip.lain_lain;
 
           if (Array.isArray(dataLain) && dataLain.length > 0) {
+            // Kalau dia Array (Data Baru), cetak barisnya
             dataLain.forEach((item) => {
-              // Panggil fungsi cetak baris, kirim kategori & nominal dari DB
-              window.tambahBarisLainLain(item.kategori, item.nominal);
+              // Tembak pake nama_item, kalau kosong backup pake kategori
+              window.tambahBarisLainLain(
+                item.nama_item || item.kategori,
+                item.nominal,
+              );
             });
+          } else if (typeof dataLain === "number" && dataLain > 0) {
+            // Kalau dia Angka (Data Jadul), cetak satu baris default
+            window.tambahBarisLainLain("Lain-lain (Data Lama)", dataLain);
           }
         } catch (e) {
           console.error("Gagal parse JSON Lain-lain:", e);

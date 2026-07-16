@@ -385,9 +385,13 @@ const statusBadgeColors = {
   <div id="gaji_manual-tab" class="tab-content hidden">
     <input type="hidden" id="manual_edit_slip_id" value="" />
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- Container Grid Utama: Dibagi jadi 3 kolom (2 kolom kiri buat form, 1 kolom kanan buat riwayat) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 max-w-7xl mx-auto">
+      <!-- ========================================== -->
+      <!-- KOTAK KIRI: FORM INPUT GAJI                -->
+      <!-- ========================================== -->
       <div
-        class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm max-w-5xl mx-auto mt-6"
+        class="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-200 shadow-sm h-fit"
       >
         <h2 class="text-xl font-bold text-gray-900 mb-2">
           <i class="bi bi-clock-history text-blue-600 mr-2"></i>Input Rekap Gaji
@@ -398,233 +402,248 @@ const statusBadgeColors = {
           pernah diinput otomatis terkunci (abu-abu).
         </p>
 
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <div class="lg:col-span-3">
-            <form id="form-gaji-manual" class="space-y-4">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-xs font-bold text-gray-700 mb-1"
-                    >Pilih Karyawan</label
-                  >
-                  <select
-                    id="manual_emp_id"
-                    required
-                    class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-blue-600 bg-gray-50"
-                  >
-                    <option value="" disabled selected
-                      >-- Memuat Karyawan... --</option
-                    >
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-xs font-bold text-gray-700 mb-1"
-                    >Periode Tanggal Gaji</label
-                  >
-                  <input
-                    type="text"
-                    id="manual_periode"
-                    required
-                    placeholder="Pilih Karyawan Dulu..."
-                    readonly
-                    class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-blue-600 bg-white cursor-pointer"
-                    style="pointer-events: auto !important;"
-                  />
-                </div>
-              </div>
-
-              <div
-                class="border-t border-dashed border-gray-300 pt-4 grid grid-cols-2 gap-3"
+        <form id="form-gaji-manual" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1"
+                >Pilih Karyawan</label
               >
-                <div>
-                  <label class="block text-xs font-bold text-gray-700 mb-1"
-                    >Gaji Pokok (Rp)</label
-                  >
-                  <input
-                    type="number"
-                    id="manual_gaji"
-                    required
-                    value="0"
-                    class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
-                  />
-                </div>
-                <div>
-                  <label class="block text-xs font-bold text-gray-700 mb-1"
-                    >Uang Lembur (Rp)</label
-                  >
-                  <input
-                    type="number"
-                    id="manual_lembur"
-                    value="0"
-                    class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
-                  />
-                </div>
-                <div>
-                  <label class="block text-xs font-bold text-gray-700 mb-1"
-                    >Uang Makan (Rp)</label
-                  >
-                  <input
-                    type="number"
-                    id="manual_makan"
-                    value="0"
-                    class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
-                  />
-                </div>
-                <div>
-                  <label class="block text-xs font-bold text-gray-700 mb-1"
-                    >Tunjangan Kesehatan (Rp)</label
-                  >
-                  <input
-                    type="number"
-                    id="manual_kesehatan"
-                    value="0"
-                    class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
-                  />
-                </div>
-                <div>
-                  <label class="block text-xs font-bold text-gray-700 mb-1"
-                    >Bonus Tepat Waktu (Rp)</label
-                  >
-                  <input
-                    type="number"
-                    id="manual_bonus_tepat"
-                    value="0"
-                    class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
-                  />
-                </div>
-                <div>
-                  <label class="block text-xs font-bold text-gray-700 mb-1"
-                    >Bonus Mingguan (Rp)</label
-                  >
-                  <input
-                    type="number"
-                    id="manual_bonus_mingguan"
-                    value="0"
-                    class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
-                  />
-                </div>
-
-                <!-- 👉 TAMBAHAN: UANG TRANSPORT -->
-                <div>
-                  <label class="block text-xs font-bold text-gray-700 mb-1"
-                    >Uang Transport (Rp)</label
-                  >
-                  <input
-                    type="number"
-                    id="manual_transport"
-                    value="0"
-                    class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
-                  />
-                </div>
-
-                <!-- 👉 TAMBAHAN: UANG TALANGAN -->
-                <div>
-                  <label class="block text-xs font-bold text-blue-800 mb-1"
-                    >Uang Talangan / Reimb (Rp)</label
-                  >
-                  <input
-                    type="number"
-                    id="manual_talangan"
-                    value="0"
-                    class="w-full border border-blue-300 bg-blue-50 text-blue-900 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
-                  />
-                </div>
-                <!-- 🔴 TAMBAHAN: UANG RAPAT -->
-                <div>
-                  <label class="block text-xs font-bold text-gray-700 mb-1"
-                    >Uang Rapat (Rp)</label
-                  >
-                  <input
-                    type="number"
-                    id="manual_uang_rapat"
-                    value="0"
-                    class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
-                  />
-                </div>
-
-                <div>
-                  <label class="block text-xs font-bold text-orange-800 mb-1"
-                    >Jumlah Jerigen (Pcs)</label
-                  >
-                  <input
-                    type="number"
-                    id="manual_jumlah_jerigen"
-                    value="0"
-                    class="w-full border border-orange-300 bg-orange-50 text-orange-900 rounded-lg p-2 text-sm outline-none focus:border-orange-600"
-                  />
-                </div>
-                <div>
-                  <label class="block text-xs font-bold text-orange-800 mb-1"
-                    >Volume Minyak (Kg)</label
-                  >
-                  <input
-                    type="number"
-                    step="0.01"
-                    id="manual_volume_minyak"
-                    value="0"
-                    class="w-full border border-orange-300 bg-orange-50 text-orange-900 rounded-lg p-2 text-sm outline-none focus:border-orange-600"
-                  />
-                </div>
-
-                <div class="col-span-2 mt-1">
-                  <label class="block text-xs font-bold text-red-700 mb-1"
-                    >Potongan Kasbon (Rp)</label
-                  >
-                  <input
-                    type="number"
-                    id="manual_kasbon"
-                    value="0"
-                    class="w-full border border-red-300 bg-red-50 text-red-900 font-bold rounded-lg p-2 text-sm outline-none focus:border-red-600"
-                  />
-                </div>
-              </div>
-
-              <div
-                class="bg-blue-50 p-4 rounded-xl border border-blue-200 mt-2 flex justify-between items-center"
+              <select
+                id="manual_emp_id"
+                required
+                class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-blue-600 bg-gray-50"
               >
-                <span class="text-sm font-bold text-blue-900"
-                  >Total Diterima:</span
+                <option value="" disabled selected
+                  >-- Memuat Karyawan... --</option
                 >
-                <span
-                  id="manual_grandtotal"
-                  class="text-2xl font-black font-mono text-blue-900">Rp 0</span
-                >
-              </div>
-
-              <button
-                type="submit"
-                id="btn-submit-manual"
-                class="w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition shadow-md flex justify-center items-center gap-2"
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1"
+                >Periode Tanggal Gaji</label
               >
-                <i class="bi bi-cloud-arrow-up"></i> Simpan ke slip_gaji
-              </button>
-            </form>
+              <input
+                type="text"
+                id="manual_periode"
+                required
+                placeholder="Pilih Karyawan Dulu..."
+                readonly
+                class="w-full border border-gray-300 rounded-lg p-2.5 text-sm outline-none focus:border-blue-600 bg-white cursor-pointer"
+                style="pointer-events: auto !important;"
+              />
+            </div>
           </div>
 
           <div
-            class="lg:col-span-2 bg-gray-50 rounded-xl border border-gray-200 p-4 flex flex-col h-full max-h-[550px]"
+            class="border-t border-dashed border-gray-300 pt-4 grid grid-cols-2 gap-3"
           >
-            <h3
-              class="text-sm font-bold text-gray-800 mb-1 border-b border-gray-200 pb-2"
-            >
-              <i class="bi bi-journal-check text-green-600 mr-1"></i>Riwayat
-              Gaji Karyawan
-            </h3>
-            <p
-              id="label_riwayat_nama"
-              class="text-xs font-bold text-blue-700 mb-3"
-            >
-              -
-            </p>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1"
+                >Gaji Pokok (Rp)</label
+              >
+              <input
+                type="number"
+                id="manual_gaji"
+                required
+                value="0"
+                class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1"
+                >Uang Lembur (Rp)</label
+              >
+              <input
+                type="number"
+                id="manual_lembur"
+                value="0"
+                class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1"
+                >Uang Makan (Rp)</label
+              >
+              <input
+                type="number"
+                id="manual_makan"
+                value="0"
+                class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1"
+                >Tunjangan Kesehatan (Rp)</label
+              >
+              <input
+                type="number"
+                id="manual_kesehatan"
+                value="0"
+                class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1"
+                >Bonus Tepat Waktu (Rp)</label
+              >
+              <input
+                type="number"
+                id="manual_bonus_tepat"
+                value="0"
+                class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1"
+                >Bonus Mingguan (Rp)</label
+              >
+              <input
+                type="number"
+                id="manual_bonus_mingguan"
+                value="0"
+                class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1"
+                >Uang Transport (Rp)</label
+              >
+              <input
+                type="number"
+                id="manual_transport"
+                value="0"
+                class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-blue-800 mb-1"
+                >Uang Talangan / Reimb (Rp)</label
+              >
+              <input
+                type="number"
+                id="manual_talangan"
+                value="0"
+                class="w-full border border-blue-300 bg-blue-50 text-blue-900 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1"
+                >Uang Rapat (Rp)</label
+              >
+              <input
+                type="number"
+                id="manual_uang_rapat"
+                value="0"
+                class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+              />
+            </div>
 
+            <!-- 👉 WADAH DINAMIS: LAIN-LAIN -->
             <div
-              id="container_riwayat_manual"
-              class="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1"
+              class="col-span-2 mt-2 bg-gray-50 p-4 rounded-xl border border-dashed border-gray-300"
             >
-              <div class="text-center text-gray-400 text-xs mt-10 italic">
-                <i class="bi bi-arrow-left-circle text-2xl block mb-2"></i>
-                Silakan pilih karyawan di form sebelah kiri untuk melihat riwayat.
+              <div class="flex justify-between items-center mb-3">
+                <h4 class="text-sm font-bold text-gray-800">
+                  <i class="bi bi-list-check mr-1"></i> Komponen Lain-lain
+                </h4>
+                <button
+                  type="button"
+                  id="btn_tambah_lain"
+                  class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 hover:bg-blue-100 transition"
+                >
+                  + Tambah Baris
+                </button>
+              </div>
+              <div id="container_lain_lain_dinamis" class="space-y-3">
+                <!-- Baris default bakal diinjeksi lewat Javascript -->
               </div>
             </div>
+
+            <div>
+              <label class="block text-xs font-bold text-orange-800 mb-1"
+                >Jumlah Jerigen (Pcs)</label
+              >
+              <input
+                type="number"
+                id="manual_jumlah_jerigen"
+                value="0"
+                class="w-full border border-orange-300 bg-orange-50 text-orange-900 rounded-lg p-2 text-sm outline-none focus:border-orange-600"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-orange-800 mb-1"
+                >Volume Minyak (Kg)</label
+              >
+              <input
+                type="number"
+                step="0.01"
+                id="manual_volume_minyak"
+                value="0"
+                class="w-full border border-orange-300 bg-orange-50 text-orange-900 rounded-lg p-2 text-sm outline-none focus:border-orange-600"
+              />
+            </div>
+
+            <div class="col-span-2 mt-1">
+              <label class="block text-xs font-bold text-red-700 mb-1"
+                >Potongan Kasbon (Rp)</label
+              >
+              <input
+                type="number"
+                id="manual_kasbon"
+                value="0"
+                class="w-full border border-red-300 bg-red-50 text-red-900 font-bold rounded-lg p-2 text-sm outline-none focus:border-red-600"
+              />
+            </div>
+          </div>
+
+          <div
+            class="bg-blue-50 p-4 rounded-xl border border-blue-200 mt-2 flex justify-between items-center"
+          >
+            <span class="text-sm font-bold text-blue-900">Total Diterima:</span>
+            <span
+              id="manual_grandtotal"
+              class="text-2xl font-black font-mono text-blue-900">Rp 0</span
+            >
+          </div>
+
+          <button
+            type="submit"
+            id="btn-submit-manual"
+            class="w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition shadow-md flex justify-center items-center gap-2"
+          >
+            <i class="bi bi-cloud-arrow-up"></i> Simpan ke slip_gaji
+          </button>
+        </form>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- KOTAK KANAN: RIWAYAT GAJI                  -->
+      <!-- ========================================== -->
+      <div
+        class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col h-full max-h-[750px]"
+      >
+        <div class="border-b border-gray-200 pb-3 mb-4">
+          <h3 class="text-lg font-bold text-gray-900 flex items-center">
+            <i class="bi bi-journal-check text-green-600 mr-2"></i> Riwayat Gaji Karyawan
+          </h3>
+          <p
+            id="label_riwayat_nama"
+            class="text-sm font-bold text-blue-700 mt-1"
+          >
+            Belum ada karyawan dipilih
+          </p>
+        </div>
+
+        <div
+          id="container_riwayat_manual"
+          class="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2"
+        >
+          <div
+            class="text-center text-gray-400 text-xs mt-10 italic bg-gray-50 py-6 rounded-lg border border-dashed border-gray-200"
+          >
+            <i class="bi bi-arrow-left-circle text-2xl block mb-2 text-gray-300"
+            ></i>
+            Silakan pilih karyawan di form sebelah kiri untuk melihat riwayat.
           </div>
         </div>
       </div>
@@ -2386,6 +2405,28 @@ const statusBadgeColors = {
 
         tataKelolaJerigenLengkap = semuaJerigen || [];
 
+        // 4. Tarik Master Komponen Gaji buat Dropdown Lain-lain
+        const { data: komponenLain } = await client
+          .from("master_komponen_gaji")
+          .select("id, nama_komponen, tipe_default")
+          .order("nama_komponen", { ascending: true });
+
+        window.komponenLainData = komponenLain || [];
+
+        // Hapus isi lama tiap kali buka/ganti karyawan
+        document.getElementById("container_lain_lain_dinamis").innerHTML = "";
+
+        const selKomponen = document.getElementById("manual_kategori_lain");
+        if (selKomponen && komponenLain) {
+          selKomponen.innerHTML =
+            '<option value="">-- Pilih Kategori Lain --</option>';
+          komponenLain.forEach((k) => {
+            // Nambahin label biar ketahuan ini potongan atau tambahan
+            const labelTipe = k.tipe_default === "potongan" ? "[-]" : "[+]";
+            selKomponen.innerHTML += `<option value="${k.nama_komponen}" data-tipe="${k.tipe_default}">${labelTipe} ${k.nama_komponen}</option>`;
+          });
+        }
+
         historyGajiMap = {};
 
         slipGajiLengkap.forEach((slip) => {
@@ -2467,6 +2508,58 @@ const statusBadgeColors = {
         }
       });
 
+    window.tambahBarisLainLain = function (kategori_dipilih = "", nominal = 0) {
+      const container = document.getElementById("container_lain_lain_dinamis");
+      if (!container) return; // Jaga-jaga kalau DOM belum siap
+
+      const divId = `baris_lain_${Date.now()}_${Math.floor(Math.random() * 100)}`;
+
+      let opsiHTML = '<option value="">-- Pilih Kategori --</option>';
+      if (window.komponenLainData) {
+        window.komponenLainData.forEach((k) => {
+          const label = k.tipe_default === "potongan" ? "[-]" : "[+]";
+          const selected =
+            k.nama_komponen === kategori_dipilih ? "selected" : "";
+          opsiHTML += `<option value="${k.nama_komponen}" data-tipe="${k.tipe_default}" ${selected}>${label} ${k.nama_komponen}</option>`;
+        });
+      }
+
+      const barisHTML = `
+        <div id="${divId}" class="flex gap-2 items-end baris-lain-item w-full">
+          <div class="flex-1">
+            <select class="input-kategori-lain w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600 bg-white">
+              ${opsiHTML}
+            </select>
+          </div>
+          <div class="w-1/3">
+            <input type="number" value="${nominal}" placeholder="Nominal" class="input-nominal-lain w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600" />
+          </div>
+          <button type="button" onclick="document.getElementById('${divId}').remove(); hitungGrandTotalManual();" class="bg-red-50 text-red-600 px-3 py-2 rounded-lg border border-red-200 hover:bg-red-100 mb-0.5">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      `;
+
+      container.insertAdjacentHTML("beforeend", barisHTML);
+
+      const divBaru = document.getElementById(divId);
+      divBaru
+        .querySelector(".input-kategori-lain")
+        .addEventListener("change", hitungGrandTotalManual);
+      divBaru
+        .querySelector(".input-nominal-lain")
+        .addEventListener("input", hitungGrandTotalManual);
+    };
+
+    // 🔴 KARENA TOMBOL TAMBAH RENDERNYA DI HTML STATIS, KITA BISA PASANG EVENT LISTENERNYA DI SINI (Di luar semua fungsi)
+    document.addEventListener("DOMContentLoaded", function () {
+      document
+        .getElementById("btn_tambah_lain")
+        ?.addEventListener("click", () => {
+          window.tambahBarisLainLain();
+        });
+    });
+
     // 🔥 FUNGSI BARU: TARIK DATA LAMA KE FORM KIRI 🔥
     window.editRiwayatManual = function (slipId) {
       const slip = slipGajiLengkap.find((s) => String(s.id) === String(slipId));
@@ -2496,7 +2589,32 @@ const statusBadgeColors = {
       document.getElementById("manual_talangan").value =
         slip.uang_talangan || 0;
       document.getElementById("manual_uang_rapat").value = slip.uang_rapat || 0;
+      document.getElementById("manual_lain_lain").value = slip.lain_lain || 0;
       document.getElementById("manual_kasbon").value = slip.kasbon || 0;
+
+      const containerLain = document.getElementById(
+        "container_lain_lain_dinamis",
+      );
+      if (containerLain) containerLain.innerHTML = ""; // Bersihin form lama dulu
+
+      if (slip.lain_lain) {
+        try {
+          // Parse JSON kalau bentuknya string, kalau udah object/array biarin aja
+          const dataLain =
+            typeof slip.lain_lain === "string"
+              ? JSON.parse(slip.lain_lain)
+              : slip.lain_lain;
+
+          if (Array.isArray(dataLain) && dataLain.length > 0) {
+            dataLain.forEach((item) => {
+              // Panggil fungsi cetak baris, kirim kategori & nominal dari DB
+              window.tambahBarisLainLain(item.kategori, item.nominal);
+            });
+          }
+        } catch (e) {
+          console.error("Gagal parse JSON Lain-lain:", e);
+        }
+      }
 
       // 🔥 CARI DATA JERIGEN YANG COCOK (Berdasarkan Karyawan & Tanggal Periode)
       const dataJerigen = tataKelolaJerigenLengkap.find(
@@ -2531,7 +2649,6 @@ const statusBadgeColors = {
       document.getElementById("manual_edit_slip_id").value = "";
     }
 
-    // Kalkulator Realtime UI
     // Kalkulator Realtime UI & Sistem Kunci
     const hitungGrandTotalManual = () => {
       // 1. Ambil elemen form yang saling berkaitan
@@ -2652,6 +2769,25 @@ const statusBadgeColors = {
       const pKasbon =
         parseFloat(document.getElementById("manual_kasbon").value) || 0;
 
+      let pLainTotal = 0;
+      document.querySelectorAll(".baris-lain-item").forEach((baris) => {
+        const sel = baris.querySelector(".input-kategori-lain");
+        const input = baris.querySelector(".input-nominal-lain");
+
+        if (sel && input) {
+          const tipe =
+            sel.options[sel.selectedIndex]?.getAttribute("data-tipe");
+          let nominal = parseFloat(input.value) || 0;
+
+          if (tipe === "potongan") {
+            pLainTotal -= Math.abs(nominal);
+          } else if (tipe) {
+            // Dianggap tambahan kalau bukan potongan (atau cek: tipe === "tambahan")
+            pLainTotal += Math.abs(nominal);
+          }
+        }
+      });
+
       // 4. Kalkulasi Grand Total
       const total =
         pGaji +
@@ -2662,7 +2798,8 @@ const statusBadgeColors = {
         pRapat +
         pKes +
         pBTepat +
-        pBMinggu -
+        pBMinggu +
+        pLainTotal -
         pKasbon;
 
       document.getElementById("manual_grandtotal").innerText =
@@ -2680,6 +2817,8 @@ const statusBadgeColors = {
       "manual_kesehatan",
       "manual_bonus_tepat",
       "manual_bonus_mingguan",
+      "manual_kategori_lain",
+      "manual_lain_lain",
       "manual_kasbon",
       "manual_jumlah_jerigen",
       "manual_volume_minyak",
@@ -2692,6 +2831,8 @@ const statusBadgeColors = {
     // ========================================================
     // 🔥 SENSOR PERINGATAN DOBEL INPUT (GAJI POKOK VS JERIGEN)
     // ========================================================
+    let sudahPeringatkanBentrok = false; // 👈 TAMBAHIN INI DI SINI
+
     const sensorBentrokGaji = (e) => {
       const pGaji =
         parseFloat(document.getElementById("manual_gaji").value) || 0;
@@ -2767,6 +2908,22 @@ const statusBadgeColors = {
         const grandTotal = hitungGrandTotalManual();
 
         try {
+          let arrayLainLain = [];
+          document.querySelectorAll(".baris-lain-item").forEach((baris) => {
+            const sel = baris.querySelector(".input-kategori-lain");
+            const input = baris.querySelector(".input-nominal-lain");
+
+            if (sel && input && sel.value) {
+              arrayLainLain.push({
+                kategori: sel.value,
+                tipe:
+                  sel.options[sel.selectedIndex]?.getAttribute("data-tipe") ||
+                  "",
+                nominal: parseFloat(input.value) || 0,
+              });
+            }
+          });
+
           const payload = {
             user_id: empId,
             periode: periode,
@@ -2794,6 +2951,7 @@ const statusBadgeColors = {
               parseFloat(
                 document.getElementById("manual_bonus_mingguan").value,
               ) || 0,
+            lain_lain: arrayLainLain,
             kasbon:
               parseFloat(document.getElementById("manual_kasbon").value) || 0,
             total_diterima: grandTotal,

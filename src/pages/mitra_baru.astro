@@ -948,8 +948,24 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       if (waNumber.startsWith("0")) waNumber = "62" + waNumber.substring(1);
       const textPesan =
         prospekCari.sumber_customer === "Canvaser Lapangan"
-          ? `Assalamu'alaikum Kak,\n\nPerkenalkan, saya Maulana admin Bang Jelantah...`
-          : `Halo Kak, semoga harinya menyenangkan.\nKami dari BANG JELANTAH PURWAKARTA...`;
+          ? `Assalamu'alaikum Kak,\n\n
+
+Perkenalkan, saya Maulana, admin resmi dari Bang Jelantah Purwakarta.
+Saya bertanggung jawab dalam pendataan customer, konfirmasi transaksi, serta koordinasi pengambilan jelantah.
+\n
+Apabila Kakak memiliki pertanyaan atau keperluan lainnya, dapat langsung menghubungi saya melalui nomor ini.
+\n
+Terima kasih atas kepercayaannya kepada kami. 🙏
+\n
+Salam hormat,\n
+Maulana \n
+Admin Bang Jelantah Purwakarta`
+          : `Halo Kak, semoga harinya menyenangkan.\n
+Kami dari BANG JELANTAH PURWAKARTA ingin melakukan follow up terkait penjualan minyak jelantah. Apakah Kakak masih berminat?\n
+Kami tunggu informasinya, terima kasih. 😊🙏
+\n
+*Bang Jelantah Purwakarta*\n
+www.bangjelantahpurwakarta.com`;
 
       document.getElementById("btn-wa-prospek").href =
         `https://wa.me/${waNumber}?text=${encodeURIComponent(textPesan)}`;
@@ -1013,16 +1029,14 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           .select("id")
           .eq("nomor_hp", hp)
           .single();
-        await window.supabase
-          .from("riwayat_follow_up")
-          .insert([
-            {
-              id_nomor_hp: prospekData.id,
-              follow_up_ke: targetFollowUpKe,
-              keterangan: keterangan,
-              created_at: new Date().toISOString(),
-            },
-          ]);
+        await window.supabase.from("riwayat_follow_up").insert([
+          {
+            id_nomor_hp: prospekData.id,
+            follow_up_ke: targetFollowUpKe,
+            keterangan: keterangan,
+            created_at: new Date().toISOString(),
+          },
+        ]);
         await window.supabase
           .from("mitra_baru")
           .update({ follow_up_ke: targetFollowUpKe })

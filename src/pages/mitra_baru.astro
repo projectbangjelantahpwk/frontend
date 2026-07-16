@@ -1,0 +1,1118 @@
+---
+import Layout from "../layouts/Layout.astro"; // Sesuaikan path folder Layout lu
+import "bootstrap-icons/font/bootstrap-icons.css";
+---
+
+<Layout title="Mitra Baru - Kemitraan">
+  <div class="max-w-7xl mx-auto flex flex-col h-full gap-lg p-4 md:p-6">
+    <!-- HEADER & SEARCH BAR -->
+    <div
+      class="flex flex-col md:flex-row justify-between items-start md:items-center gap-md mb-2"
+    >
+      <div>
+        <h1
+          class="font-headline-lg text-headline-lg-mobile md:text-headline-lg font-bold text-primary"
+        >
+          Prospek Mitra Baru
+        </h1>
+        <p class="font-body-md text-body-md text-on-surface-variant mt-xs">
+          Manajemen relasi dan data calon mitra pengumpul.
+        </p>
+      </div>
+
+      <div
+        class="w-full md:w-auto flex flex-col md:flex-row items-center gap-3 z-20"
+      >
+        <!-- DROPDOWN FILTER -->
+        <div class="relative inline-block text-left w-full md:w-auto">
+          <button
+            onclick="window.toggleDropdownFilter()"
+            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-surface-container-lowest border border-outline-variant text-on-surface-variant rounded-full font-label-sm font-bold hover:bg-surface-container transition-colors shadow-sm"
+          >
+            <i class="bi bi-funnel-fill"></i> Filter
+          </button>
+
+          <div
+            id="dropdown-filter-prospek"
+            class="hidden absolute right-0 mt-2 w-64 origin-top-right rounded-xl bg-surface-container-lowest border border-outline-variant shadow-lg p-4 flex flex-col gap-3 transition-all"
+          >
+            <div>
+              <label
+                class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1"
+                >Pilih Tanggal</label
+              >
+              <input
+                type="date"
+                id="filter-tgl-prospek"
+                class="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container text-sm outline-none focus:border-primary"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1"
+                >Follow Up Ke-</label
+              >
+              <select
+                id="filter-fu-prospek"
+                class="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container text-sm outline-none focus:border-primary"
+              >
+                <option value="">-- Semua --</option>
+                <option value="1">Follow Up Ke- 1</option>
+                <option value="2">Follow Up Ke- 2</option>
+                <option value="3">Follow Up Ke- 3</option>
+                <option value="4">Follow Up Ke- 4</option>
+                <option value="5">Follow Up Ke- 5+</option>
+              </select>
+            </div>
+            <div>
+              <label
+                class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1"
+                >Sumber Mitra</label
+              >
+              <select
+                id="filter-sumber-prospek"
+                class="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container text-sm outline-none focus:border-primary"
+              >
+                <option value="">-- Semua Sumber --</option>
+                <option value="Canvaser Lapangan">Canvaser Lapangan</option>
+                <option value="Instagram">Instagram</option>
+                <option value="Facebook">Facebook</option>
+                <option value="Tiktok">Tiktok</option>
+                <option value="Lainnya">Lainnya</option>
+              </select>
+            </div>
+            <div class="flex justify-between gap-2 mt-1">
+              <button
+                onclick="window.resetFilterProspek(event)"
+                class="flex-1 h-9 border border-outline-variant text-on-surface-variant font-bold text-xs rounded-lg hover:bg-surface-container-low transition-colors"
+                >Reset</button
+              >
+              <button
+                onclick="window.applyFilterProspek(event)"
+                class="flex-1 h-9 bg-primary text-on-primary font-bold text-xs rounded-lg hover:bg-surface-tint transition-colors shadow-sm"
+                >Terapkan</button
+              >
+            </div>
+          </div>
+        </div>
+
+        <button
+          onclick="window.openModal('modal-tambah-prospek')"
+          class="w-full md:w-auto bg-primary text-on-primary px-4 py-2.5 rounded-full text-sm font-bold flex items-center justify-center gap-2 shadow-sm hover:bg-surface-tint transition-colors whitespace-nowrap"
+        >
+          <span class="material-symbols-outlined text-[18px]">add</span> Prospek Baru
+        </button>
+
+        <div
+          class="w-full md:w-auto flex items-center bg-surface-container-lowest rounded-full px-sm h-11 border border-outline-variant focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all shadow-sm"
+        >
+          <span class="material-symbols-outlined text-on-surface-variant ml-sm"
+            >search</span
+          >
+          <input
+            id="input-search-mitra"
+            oninput="window.applyFilterProspek()"
+            class="bg-transparent border-none focus:ring-0 text-on-surface w-full md:w-64 font-body-md text-sm h-full placeholder:text-on-surface-variant outline-none px-2"
+            placeholder="Cari nama, no hp..."
+            type="text"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- 🔥 SUB-TAB (UMUM VS CANVASER) 🔥 -->
+    <div class="flex gap-6 border-b border-outline-variant mb-2">
+      <button
+        onclick="window.switchSubTab('umum')"
+        id="btn-tab-umum"
+        class="pb-3 px-1 font-label-lg font-bold text-primary border-b-2 border-primary transition-all"
+        >Prospek Umum</button
+      >
+      <button
+        onclick="window.switchSubTab('canvaser')"
+        id="btn-tab-canvaser"
+        class="pb-3 px-1 font-label-lg font-bold text-on-surface-variant border-b-2 border-transparent hover:text-primary transition-all"
+        >Canvaser Lapangan</button
+      >
+    </div>
+
+    <!-- KONTEN: PROSPEK UMUM -->
+    <div id="view-umum" class="flex flex-col flex-1 gap-md transition-all">
+      <div class="md:hidden flex flex-col gap-md" id="mitra-baru-mobile">
+        <p class="text-on-surface-variant text-center py-4">Memuat data...</p>
+      </div>
+      <div
+        class="hidden md:block overflow-x-auto bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm"
+      >
+        <table class="w-full text-left border-collapse min-w-[600px]">
+          <thead>
+            <tr
+              class="border-b border-outline-variant bg-surface-container-low"
+            >
+              <th
+                class="px-md py-sm w-12 text-center font-label-sm text-on-surface-variant uppercase"
+                >No</th
+              >
+              <th
+                class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                >Tgl Input</th
+              >
+              <th
+                class="p-md font-label-lg text-on-surface-variant font-semibold"
+                >No HP</th
+              >
+              <th
+                class="p-md font-label-lg text-on-surface-variant font-semibold"
+                >Sumber Mitra</th
+              >
+              <th
+                class="p-md font-label-lg text-on-surface-variant font-semibold text-center"
+                >Follow Up Ke-</th
+              >
+              <th
+                class="p-md font-label-lg text-on-surface-variant font-semibold text-right"
+                >Aksi</th
+              >
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant" id="mitra-baru-tbody">
+            <tr
+              ><td colspan="6" class="p-md text-center text-on-surface-variant"
+                >Memuat...</td
+              ></tr
+            >
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- KONTEN: PROSPEK CANVASER -->
+    <div
+      id="view-canvaser"
+      class="hidden flex-col flex-1 gap-md transition-all"
+    >
+      <div class="md:hidden flex flex-col gap-md" id="canvaser-mobile">
+        <p class="text-on-surface-variant text-center py-4">
+          Memuat data canvaser...
+        </p>
+      </div>
+      <div
+        class="hidden md:block overflow-x-auto bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm"
+      >
+        <table class="w-full text-left border-collapse min-w-[1000px]">
+          <thead>
+            <tr
+              class="border-b border-outline-variant bg-surface-container-low"
+            >
+              <th
+                class="px-md py-sm w-12 text-center font-label-sm text-on-surface-variant uppercase"
+                >No</th
+              >
+              <th
+                class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                >Tgl Input</th
+              >
+              <th
+                class="p-md font-label-lg text-on-surface-variant font-semibold"
+                >Nama Usaha</th
+              >
+              <th
+                class="p-md font-label-lg text-on-surface-variant font-semibold"
+                >Nama Pemilik</th
+              >
+              <th
+                class="p-md font-label-lg text-on-surface-variant font-semibold"
+                >No HP</th
+              >
+              <th
+                class="p-md font-label-lg text-on-surface-variant font-semibold"
+                >Alamat & Link</th
+              >
+              <th
+                class="p-md font-label-lg text-on-surface-variant font-semibold text-center"
+                >Follow Up</th
+              >
+              <th
+                class="p-md font-label-lg text-on-surface-variant font-semibold text-right"
+                >Aksi</th
+              >
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant" id="canvaser-tbody">
+            <tr
+              ><td colspan="8" class="p-md text-center text-on-surface-variant"
+                >Memuat...</td
+              ></tr
+            >
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: TAMBAH PROSPEK BARU -->
+  <div
+    class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-container-margin opacity-0 transition-opacity duration-300"
+    id="modal-tambah-prospek"
+  >
+    <div
+      class="bg-surface-container-lowest rounded-xl shadow-lg w-full max-w-md p-lg transform scale-95 transition-transform duration-300 relative"
+    >
+      <button
+        class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors"
+        onclick="closeModal('modal-tambah-prospek')"
+      >
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      <h3 class="font-headline-md text-headline-md text-on-surface mb-sm">
+        Tambah Prospek Baru
+      </h3>
+      <p class="font-body-md text-body-md text-on-surface-variant mb-md">
+        Masukkan data calon mitra yang baru dihubungi.
+      </p>
+      <form class="flex flex-col gap-md" id="form-tambah-prospek">
+        <div>
+          <label
+            class="block font-label-sm text-label-sm text-on-surface-variant mb-xs"
+            >No HP / WhatsApp</label
+          >
+          <input
+            id="input_hp_baru"
+            class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none"
+            placeholder="0812..."
+            type="text"
+            required
+          />
+        </div>
+        <div>
+          <label
+            class="block font-label-sm text-label-sm text-on-surface-variant mb-xs"
+            >Sumber Mendapatkan Kontak</label
+          >
+          <select
+            id="input_sumber_baru"
+            class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none"
+          >
+            <option value="Instagram">Instagram</option>
+            <option value="Facebook">Facebook</option>
+            <option value="Tiktok">Tiktok</option>
+            <option value="Canvaser Lapangan">Canvaser Lapangan</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+        </div>
+        <div class="mt-sm flex justify-end gap-sm">
+          <button
+            class="px-md h-touch-target rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors"
+            onclick="closeModal('modal-tambah-prospek')"
+            type="button">Batal</button
+          >
+          <button
+            class="px-md h-touch-target bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors"
+            type="submit"
+            id="btn-submit-prospek">Simpan Prospek</button
+          >
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: KONVERSI DARI TABEL KE LANGGANAN -->
+  <div
+    class="fixed inset-0 z-[60] bg-on-background/50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300"
+    id="conversionModal"
+  >
+    <div
+      class="relative w-full max-w-md transform scale-95 transition-transform duration-300 mt-8 md:mt-0"
+    >
+      <button
+        class="absolute -top-12 right-0 md:-right-14 md:top-0 w-10 h-10 flex items-center justify-center bg-white text-gray-700 hover:text-red-600 hover:bg-gray-50 rounded-full shadow-lg border border-gray-200 transition-all z-10"
+        onclick="closeModal('conversionModal')"
+      >
+        <span class="material-symbols-outlined">close</span>
+      </button>
+
+      <div
+        class="bg-surface-container-lowest rounded-xl shadow-xl p-5 md:p-6 max-h-[80vh] overflow-y-auto scrollbar-hide relative flex flex-col"
+      >
+        <h3 class="font-headline-md text-headline-md text-on-surface mb-1">
+          Jadikan Langganan
+        </h3>
+        <p class="font-body-md text-body-md text-on-surface-variant mb-4">
+          Prospek ini akan dipindahkan ke daftar Mitra Langganan.
+        </p>
+
+        <form class="flex flex-col gap-4 pb-2" id="formKonversiLangganan">
+          <div>
+            <label
+              class="block font-label-sm text-label-sm text-on-surface-variant mb-1"
+              >No HP Prospek</label
+            >
+            <input
+              class="w-full h-12 px-3 rounded-lg border border-outline-variant bg-surface-container text-on-surface outline-none font-bold"
+              id="konversi_hp"
+              type="text"
+              readonly
+            />
+          </div>
+          <div>
+            <label
+              class="block font-label-sm text-label-sm text-on-surface-variant mb-1"
+              >Nama Lengkap Toko/Mitra</label
+            >
+            <input
+              id="konversi_nama"
+              class="w-full h-12 px-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none"
+              placeholder="Masukkan nama mitra"
+              type="text"
+              required
+            />
+          </div>
+          <div>
+            <label
+              class="block font-label-sm text-label-sm text-on-surface-variant mb-1"
+              >Rute Penjemputan</label
+            >
+            <select
+              id="konversi_rute"
+              class="w-full h-12 px-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none"
+              required
+            >
+              <option value="">-- Memuat Rute... --</option>
+            </select>
+          </div>
+          <div>
+            <label
+              class="block font-label-sm text-label-sm text-on-surface-variant mb-1"
+              >Jenis Pelanggan</label
+            >
+            <select
+              id="konversi_jenis"
+              class="w-full h-12 px-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none"
+              required
+            >
+              <option value="Rumah Tangga">Rumah Tangga / Perorangan</option>
+              <option value="Restoran/Rumah Makan"
+                >Restoran / Rumah Makan</option
+              >
+              <option value="MBG">MBG</option>
+              <option value="Pengepul Kecil">Pengepul Kecil</option>
+              <option value="Pabrik/Industri">Pabrik / Industri</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
+          <div>
+            <label
+              class="block font-label-sm text-label-sm text-on-surface-variant mb-1"
+              >Alamat Lengkap Domisili</label
+            >
+            <textarea
+              id="konversi_alamat"
+              class="w-full p-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none"
+              placeholder="Contoh: Jl. Raya Purwakarta No. 123"
+              rows="2"
+              required></textarea>
+          </div>
+          <div>
+            <label
+              class="block font-label-sm text-label-sm text-on-surface-variant mb-1"
+              >Link Google Maps (G-Maps)</label
+            >
+            <input
+              id="konversi_gmaps"
+              class="w-full h-12 px-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none"
+              placeholder="https://maps.google.com/..."
+              type="url"
+              required
+            />
+          </div>
+
+          <div
+            class="mt-2 flex justify-end gap-3 pt-4 border-t border-gray-100"
+          >
+            <button
+              class="px-5 py-2.5 rounded-full font-label-lg text-primary hover:bg-surface-container-low transition-colors"
+              onclick="closeModal('conversionModal')"
+              type="button">Batal</button
+            >
+            <button
+              class="px-5 py-2.5 bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors"
+              type="submit"
+              id="btn-submit-konversi">Simpan & Pindahkan</button
+            >
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- OVERLAY & ASIDE: DETAIL FOLLOW UP -->
+  <div
+    id="overlay-aside"
+    class="fixed inset-0 z-[65] bg-on-background/50 hidden opacity-0 transition-opacity duration-300"
+    onclick="window.tutupDetailProspek()"
+  >
+  </div>
+  <div
+    id="aside-prospek"
+    class="fixed inset-y-0 right-0 z-[70] w-full max-w-sm bg-surface-container-lowest shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col"
+  >
+    <div
+      class="p-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low"
+    >
+      <h3 class="font-headline-sm font-bold text-on-surface">
+        Detail Follow Up
+      </h3>
+      <button
+        onclick="window.tutupDetailProspek()"
+        class="text-on-surface-variant hover:text-error transition-colors"
+      >
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="p-md flex-1 overflow-y-auto">
+      <p class="font-label-sm text-on-surface-variant mb-1">
+        No WhatsApp Prospek
+      </p>
+      <p id="aside-hp-text" class="text-xl font-bold text-on-surface mb-6">-</p>
+
+      <a
+        id="btn-wa-prospek"
+        href="#"
+        target="_blank"
+        class="w-full flex items-center justify-center gap-2 bg-[#25D366] text-white py-3 rounded-xl font-bold mb-4 shadow-sm hover:bg-[#1ebd5a] transition"
+      >
+        <i class="bi bi-whatsapp text-lg"></i> Chat & Follow Up
+      </a>
+
+      <label
+        class="block font-label-sm text-label-sm text-on-surface-variant mb-1"
+        >Catatan / Keterangan</label
+      >
+      <textarea
+        id="input-keterangan-followup"
+        class="w-full p-3 mb-3 rounded-xl border border-outline-variant bg-surface-container-lowest text-sm text-on-surface focus:ring-1 focus:ring-primary outline-none resize-none shadow-sm"
+        rows="2"
+        placeholder="Contoh: Belum direspon / Masih mikir-mikir..."></textarea>
+
+      <button
+        id="btn-tambah-followup-aside"
+        class="w-full flex items-center justify-center gap-2 bg-secondary-container text-on-secondary-container py-3 rounded-xl font-bold mb-6 hover:bg-secondary hover:text-white transition shadow-sm"
+      >
+        <span class="material-symbols-outlined text-[20px]">add_call</span> Simpan
+        Follow Up (+1)
+      </button>
+
+      <p
+        class="font-bold text-on-surface mb-3 border-b border-outline-variant pb-2 text-sm"
+      >
+        Riwayat Tanggal Follow Up
+      </p>
+      <div id="list-riwayat-followup" class="flex flex-col gap-3">
+        <p class="text-sm text-on-surface-variant italic">Memuat riwayat...</p>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    // ==========================================
+    // LOGIKA PERPINDAHAN SUB-TAB
+    // ==========================================
+    window.switchSubTab = function (tab) {
+      const btnUmum = document.getElementById("btn-tab-umum");
+      const btnCanvaser = document.getElementById("btn-tab-canvaser");
+      const viewUmum = document.getElementById("view-umum");
+      const viewCanvaser = document.getElementById("view-canvaser");
+
+      if (tab === "umum") {
+        btnUmum.className =
+          "pb-3 px-1 font-label-lg font-bold text-primary border-b-2 border-primary transition-all";
+        btnCanvaser.className =
+          "pb-3 px-1 font-label-lg font-bold text-on-surface-variant border-b-2 border-transparent hover:text-primary transition-all";
+        viewUmum.classList.remove("hidden");
+        viewUmum.classList.add("flex");
+        viewCanvaser.classList.add("hidden");
+        viewCanvaser.classList.remove("flex");
+      } else {
+        btnCanvaser.className =
+          "pb-3 px-1 font-label-lg font-bold text-primary border-b-2 border-primary transition-all";
+        btnUmum.className =
+          "pb-3 px-1 font-label-lg font-bold text-on-surface-variant border-b-2 border-transparent hover:text-primary transition-all";
+        viewCanvaser.classList.remove("hidden");
+        viewCanvaser.classList.add("flex");
+        viewUmum.classList.add("hidden");
+        viewUmum.classList.remove("flex");
+      }
+    };
+
+    // ==========================================
+    // INISIALISASI & FETCH DATA
+    // ==========================================
+    document.addEventListener("DOMContentLoaded", async () => {
+      if (!window.supabase) return console.error("Supabase tidak terhubung!");
+
+      const allowedRoles = ["owner", "hrd", "admin", "keuangan", "it"];
+      const client = window.supabase || supabase;
+      const {
+        data: { session },
+      } = await client.auth.getSession();
+
+      if (!session) return window.location.replace("/");
+
+      const { data: prof } = await client
+        .from("profiles")
+        .select("role")
+        .eq("id", session.user.id)
+        .single();
+      if (!allowedRoles.includes(prof?.role)) {
+        alert(
+          `Akses Ditolak! Role Anda (${prof?.role || "Guest"}) dilarang masuk ke halaman ini.`,
+        );
+        return window.location.replace("/");
+      }
+      document.body.style.display = "block";
+
+      async function loadDataProspek() {
+        const { data: ruteData } = await window.supabase
+          .from("rute_jemput")
+          .select("id, nama_rute")
+          .eq("status", "Aktif");
+        let optRute = '<option value="">-- Pilih Rute / Wilayah --</option>';
+        if (ruteData)
+          ruteData.forEach(
+            (r) =>
+              (optRute += `<option value="${r.nama_rute}">${r.nama_rute}</option>`),
+          );
+
+        const elRuteKonversi = document.getElementById("konversi_rute");
+        if (elRuteKonversi) elRuteKonversi.innerHTML = optRute;
+
+        // Fetch Tabel mitra_baru, di sini diasumsikan sudah ada field nama_usaha, nama_pemilik, alamat, link_gmaps, foto_lokasi di database
+        const { data: prospek } = await window.supabase
+          .from("mitra_baru")
+          .select("*, riwayat_follow_up(created_at)")
+          .order("created_at", { ascending: false });
+
+        let htmlProspekMobile = "";
+        let htmlProspekTable = "";
+        let htmlCanvaserMobile = "";
+        let htmlCanvaserTable = "";
+
+        let umumCount = 0;
+        let canvaserCount = 0;
+
+        if (prospek && prospek.length > 0) {
+          prospek.forEach((p) => {
+            const sumber = p.sumber_customer || "Lainnya";
+            const currentFollowUp = p.follow_up_ke || 1;
+            let tanggalInput = "-";
+            let rawDate = "";
+
+            if (p.riwayat_follow_up && p.riwayat_follow_up.length > 0) {
+              const sortedRiwayat = p.riwayat_follow_up.sort(
+                (a, b) => new Date(b.created_at) - new Date(a.created_at),
+              );
+              const dateObj = new Date(sortedRiwayat[0].created_at);
+              tanggalInput = `${String(dateObj.getDate()).padStart(2, "0")}-${String(dateObj.getMonth() + 1).padStart(2, "0")}-${dateObj.getFullYear()}`;
+              rawDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, "0")}-${String(dateObj.getDate()).padStart(2, "0")}`;
+            } else if (p.created_at) {
+              const dateObj = new Date(p.created_at);
+              tanggalInput = `${String(dateObj.getDate()).padStart(2, "0")}-${String(dateObj.getMonth() + 1).padStart(2, "0")}-${dateObj.getFullYear()}`;
+              rawDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, "0")}-${String(dateObj.getDate()).padStart(2, "0")}`;
+            }
+
+            // Melindungi text ber-quote buat masuk ke parameter JS
+            const safeNama = (p.nama_pemilik || p.nama_usaha || "").replace(
+              /'/g,
+              "\\'",
+            );
+            const safeAlamat = (p.alamat || "").replace(/'/g, "\\'");
+            const safeGmaps = (p.link_gmaps || "").replace(/'/g, "\\'");
+
+            if (sumber === "Canvaser Lapangan") {
+              canvaserCount++;
+              // HTML Canvaser Mobile
+              htmlCanvaserMobile += `
+              <div class="prospek-item bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm" data-tgl="${rawDate}" data-fu="${currentFollowUp}" data-sumber="${sumber}" data-nama="${p.nama_usaha || p.nama_pemilik || ""}">
+                  <div class="flex justify-between items-start border-b border-outline-variant pb-2 mb-1">
+                      <div>
+                          <p class="font-headline-md text-on-surface font-bold">${p.nama_usaha || "Tanpa Nama Usaha"}</p>
+                          <p class="text-xs text-on-surface-variant font-medium">${p.nama_pemilik || "-"}</p>
+                      </div>
+                      <span class="px-xs py-xs bg-primary-container text-on-primary-container rounded font-label-sm text-[10px]">Canvaser</span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2 text-sm">
+                      <div><p class="text-xs text-on-surface-variant">No HP</p><p class="font-bold">${p.nomor_hp}</p></div>
+                      <div><p class="text-xs text-on-surface-variant">Tgl Input</p><p class="font-bold">${tanggalInput}</p></div>
+                      <div class="col-span-2"><p class="text-xs text-on-surface-variant">Alamat</p><p class="truncate">${p.alamat || "-"}</p></div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-outline-variant">
+                      <button class="h-touch-target bg-secondary-container text-on-secondary-container rounded-full font-label-md hover:bg-secondary hover:text-white transition-colors flex items-center justify-center gap-xs" onclick="window.bukaDetailProspek('${p.nomor_hp}')">
+                          <span class="material-symbols-outlined text-[16px]">history</span> Follow Up
+                      </button>
+                      <button class="h-touch-target bg-primary text-on-primary rounded-full font-label-md hover:bg-surface-tint transition-colors flex items-center justify-center gap-xs" onclick="window.openModalKonversi('${p.nomor_hp}', '${safeNama}', '${safeAlamat}', '${safeGmaps}')">
+                          <span class="material-symbols-outlined text-[16px]">person_add</span> Konversi
+                      </button>
+                  </div>
+              </div>`;
+
+              // HTML Canvaser Table
+              htmlCanvaserTable += `
+              <tr class="prospek-item hover:bg-surface-container-low transition-colors" data-tgl="${rawDate}" data-fu="${currentFollowUp}" data-sumber="${sumber}" data-nama="${p.nama_usaha || p.nama_pemilik || ""}">
+                  <td class="p-md text-center text-sm font-bold text-on-surface-variant">${canvaserCount}</td>
+                  <td class="p-md text-xs font-medium text-on-surface-variant whitespace-nowrap">${tanggalInput}</td>
+                  <td class="p-md font-body-md text-on-surface font-semibold">${p.nama_usaha || "-"}</td>
+                  <td class="p-md font-body-md text-on-surface">${p.nama_pemilik || "-"}</td>
+                  <td class="p-md font-body-md font-bold">${p.nomor_hp}</td>
+                  <td class="p-md text-sm">
+                      <div class="flex flex-col gap-1 max-w-[200px]">
+                          <span class="truncate" title="${p.alamat || ""}">${p.alamat || "-"}</span>
+                          <div class="flex gap-2 text-[11px] font-bold">
+                              ${p.link_gmaps ? `<a href="${p.link_gmaps}" target="_blank" class="text-blue-600 hover:underline"><i class="bi bi-geo-alt-fill"></i> Map</a>` : '<span class="text-gray-400">No Map</span>'}
+                              ${p.foto_lokasi ? `<a href="${p.foto_lokasi}" target="_blank" class="text-green-600 hover:underline"><i class="bi bi-image"></i> Foto</a>` : '<span class="text-gray-400">No Foto</span>'}
+                          </div>
+                      </div>
+                  </td>
+                  <td class="p-md text-center"><span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-secondary text-on-secondary font-label-sm text-xs font-bold">${currentFollowUp}</span></td>
+                  <td class="p-md text-right">
+                      <div class="flex justify-end gap-2 items-center">
+                          <button class="w-9 h-9 bg-secondary-container text-on-secondary-container rounded-full flex items-center justify-center hover:bg-secondary hover:text-white transition-colors shadow-sm" onclick="window.bukaDetailProspek('${p.nomor_hp}')" title="Follow Up">
+                              <span class="material-symbols-outlined text-[18px]">history</span>
+                          </button>
+                          <!-- PERHATIKAN AUTOFILL PARAMETER DI BAWAH INI -->
+                          <button class="px-3 h-9 bg-primary text-on-primary rounded-full text-xs font-bold flex items-center gap-1 hover:bg-surface-tint transition-colors shadow-sm" onclick="window.openModalKonversi('${p.nomor_hp}', '${safeNama}', '${safeAlamat}', '${safeGmaps}')">
+                              Konversi
+                          </button>
+                      </div>
+                  </td>
+              </tr>`;
+            } else {
+              umumCount++;
+              // HTML Umum Mobile
+              htmlProspekMobile += `
+              <div class="prospek-item bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm" data-tgl="${rawDate}" data-fu="${currentFollowUp}" data-sumber="${sumber}" data-nama="">
+                  <div class="flex justify-between items-start">
+                      <div>
+                          <p class="text-xs text-on-surface-variant mt-1 font-medium">Tgl Input: <span class="font-bold text-primary">${tanggalInput}</span></p>
+                          <p class="font-label-sm text-label-sm text-on-surface-variant mt-1">No HP</p>
+                          <p class="font-body-md text-on-surface font-semibold">${p.nomor_hp}</p>
+                          <p class="text-xs text-on-surface-variant mt-1 font-medium">Follow up ke: <span class="font-bold text-secondary">${currentFollowUp}</span></p>
+                      </div>
+                      <span class="px-xs py-xs bg-primary-container text-on-primary-container rounded font-label-sm text-[10px]">${sumber}</span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2 mt-xs">
+                      <button class="h-touch-target bg-secondary-container text-on-secondary-container rounded-full font-label-sm hover:bg-secondary hover:text-white transition-colors flex items-center justify-center gap-xs" onclick="window.bukaDetailProspek('${p.nomor_hp}')">
+                          <span class="material-symbols-outlined text-[16px]">history</span> Detail
+                      </button>
+                      <button class="h-touch-target bg-primary text-on-primary rounded-full font-label-sm hover:bg-surface-tint transition-colors flex items-center justify-center gap-xs" onclick="window.openModalKonversi('${p.nomor_hp}')">
+                          <span class="material-symbols-outlined text-[16px]">person_add</span> Langganan
+                      </button>
+                  </div>
+              </div>`;
+
+              // HTML Umum Table
+              htmlProspekTable += `
+              <tr class="prospek-item hover:bg-surface-container-low transition-colors" data-tgl="${rawDate}" data-fu="${currentFollowUp}" data-sumber="${sumber}" data-nama="">
+                  <td class="p-md text-center text-sm font-bold text-on-surface-variant">${umumCount}</td>
+                  <td class="p-md text-sm font-medium text-on-surface-variant whitespace-nowrap"><span class="material-symbols-outlined text-[14px] align-middle mr-1">calendar_today</span>${tanggalInput}</td>
+                  <td class="p-md font-body-md text-on-surface font-semibold">${p.nomor_hp}</td>
+                  <td class="p-md"><span class="px-2 py-1 bg-primary-container text-on-primary-container rounded font-label-sm text-[10px]">${sumber}</span></td>
+                  <td class="p-md text-center"><span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-secondary text-on-secondary font-label-sm text-xs font-bold">${currentFollowUp}</span></td>
+                  <td class="p-md text-right">
+                      <div class="flex justify-end gap-2 items-center">
+                          <button class="px-3 py-1.5 bg-secondary-container text-on-secondary-container rounded-full font-label-sm hover:bg-secondary hover:text-white transition-colors inline-flex items-center gap-1 h-9 shadow-sm" onclick="window.bukaDetailProspek('${p.nomor_hp}')" title="Lihat Riwayat & WA">
+                              <span class="material-symbols-outlined text-[16px]">history</span> Detail
+                          </button>
+                          <button class="px-3 py-1.5 bg-primary text-on-primary rounded-full font-label-sm hover:bg-surface-tint transition-colors inline-flex items-center gap-1 h-9 shadow-sm" onclick="window.openModalKonversi('${p.nomor_hp}')">
+                              <span class="material-symbols-outlined text-[16px]">person_add</span> Konversi
+                          </button>
+                      </div>
+                  </td>
+              </tr>`;
+            }
+          });
+        }
+
+        // Tembak Data HTML Umum
+        if (umumCount === 0) {
+          const empty =
+            '<p class="text-on-surface-variant text-center p-md">Tidak ada prospek umum.</p>';
+          document.getElementById("mitra-baru-mobile").innerHTML = empty;
+          document.getElementById("mitra-baru-tbody").innerHTML =
+            `<tr><td colspan="6">${empty}</td></tr>`;
+        } else {
+          document.getElementById("mitra-baru-mobile").innerHTML =
+            htmlProspekMobile;
+          document.getElementById("mitra-baru-tbody").innerHTML =
+            htmlProspekTable;
+        }
+
+        // Tembak Data HTML Canvaser
+        if (canvaserCount === 0) {
+          const emptyCanv =
+            '<p class="text-on-surface-variant text-center p-md">Tidak ada prospek dari Canvaser Lapangan.</p>';
+          document.getElementById("canvaser-mobile").innerHTML = emptyCanv;
+          document.getElementById("canvaser-tbody").innerHTML =
+            `<tr><td colspan="8">${emptyCanv}</td></tr>`;
+        } else {
+          document.getElementById("canvaser-mobile").innerHTML =
+            htmlCanvaserMobile;
+          document.getElementById("canvaser-tbody").innerHTML =
+            htmlCanvaserTable;
+        }
+      }
+
+      await loadDataProspek();
+    });
+
+    // ==========================================
+    // FUNGSI MODAL & FORM KONVERSI (AUTO-FILL)
+    // ==========================================
+    window.openModal = function (id) {
+      const modal = document.getElementById(id);
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      void modal.offsetWidth;
+      modal.classList.remove("opacity-0");
+      const isi = modal.querySelector("div");
+      if (isi) isi.classList.remove("scale-95");
+    };
+
+    window.closeModal = function (id) {
+      const modal = document.getElementById(id);
+      if (!modal) return;
+      modal.classList.add("opacity-0");
+      const isi = modal.querySelector("div");
+      if (isi) isi.classList.add("scale-95");
+      setTimeout(() => {
+        modal.classList.add("hidden");
+      }, 300);
+    };
+
+    // FUNGSI MODAL KONVERSI (Menerima Auto-Fill)
+    window.openModalKonversi = function (
+      hp,
+      nama = "",
+      alamat = "",
+      gmaps = "",
+    ) {
+      const inputHp = document.getElementById("konversi_hp");
+      const inputNama = document.getElementById("konversi_nama");
+      const inputAlamat = document.getElementById("konversi_alamat");
+      const inputGmaps = document.getElementById("konversi_gmaps");
+
+      if (inputHp) inputHp.value = hp;
+
+      // Auto-Fill jika datanya ada (dari Canvaser)
+      if (inputNama) inputNama.value = nama;
+      if (inputAlamat) inputAlamat.value = alamat;
+      if (inputGmaps) inputGmaps.value = gmaps;
+
+      window.openModal("conversionModal");
+    };
+
+    document
+      .getElementById("formKonversiLangganan")
+      ?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btn-submit-konversi");
+        btn.innerText = "Memproses...";
+        btn.disabled = true;
+        const hp = document.getElementById("konversi_hp").value;
+
+        try {
+          const { data: prospekData, error: findError } = await window.supabase
+            .from("mitra_baru")
+            .select("sumber_customer")
+            .eq("nomor_hp", hp)
+            .single();
+
+          const sumberCustomer = prospekData?.sumber_customer || "Lainnya";
+
+          const { error: insertError } = await window.supabase
+            .from("mitra")
+            .insert([
+              {
+                nama_mitra: document.getElementById("konversi_nama").value,
+                rute_jemput: document.getElementById("konversi_rute").value,
+                nomor_hp: hp,
+                alamat: document.getElementById("konversi_alamat").value,
+                link_gmaps: document.getElementById("konversi_gmaps").value,
+                sumber_mitra: sumberCustomer,
+                jenis_pelanggan:
+                  document.getElementById("konversi_jenis").value,
+                total_order: 0,
+                total_transaksi: 0,
+                activated: true,
+              },
+            ]);
+
+          if (insertError) throw insertError;
+
+          await window.supabase.from("mitra_baru").delete().eq("nomor_hp", hp);
+
+          alert(
+            `✅ Berhasil! Prospek dikonversi menjadi Mitra Langganan.\n(Sumber: ${sumberCustomer})`,
+          );
+          window.location.reload();
+        } catch (err) {
+          alert("❌ Gagal Konversi: " + err.message);
+          btn.innerText = "Simpan & Pindahkan";
+          btn.disabled = false;
+        }
+      });
+
+    document
+      .getElementById("form-tambah-prospek")
+      ?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btn-submit-prospek");
+        btn.innerText = "Menyimpan...";
+        btn.disabled = true;
+
+        const hp = document.getElementById("input_hp_baru").value;
+        const sumber = document.getElementById("input_sumber_baru").value;
+
+        try {
+          const { data: newProspek, error: prospekError } =
+            await window.supabase
+              .from("mitra_baru")
+              .insert([
+                { nomor_hp: hp, sumber_customer: sumber, follow_up_ke: 1 },
+              ])
+              .select("id");
+
+          if (prospekError) throw prospekError;
+
+          await window.supabase.from("riwayat_follow_up").insert([
+            {
+              id_nomor_hp: newProspek[0].id,
+              follow_up_ke: 1,
+              keterangan: `Minat dari ${sumber}`,
+              created_at: new Date().toISOString(),
+            },
+          ]);
+
+          alert("✅ Prospek baru berhasil disimpan!");
+          window.location.reload();
+        } catch (err) {
+          alert("❌ Gagal: " + err.message);
+          btn.innerText = "Simpan Prospek";
+          btn.disabled = false;
+        }
+      });
+
+    // ==========================================
+    // LOGIKA ASIDE PANEL & FOLLOW UP
+    // ==========================================
+    window.tutupDetailProspek = function () {
+      const aside = document.getElementById("aside-prospek");
+      const overlay = document.getElementById("overlay-aside");
+      if (aside) aside.classList.add("translate-x-full");
+      if (overlay) {
+        overlay.classList.add("opacity-0");
+        setTimeout(() => overlay.classList.add("hidden"), 300);
+      }
+    };
+
+    window.bukaDetailProspek = async function (hp) {
+      const aside = document.getElementById("aside-prospek");
+      const overlay = document.getElementById("overlay-aside");
+      document.getElementById("aside-hp-text").innerText = hp;
+
+      if (overlay) {
+        overlay.classList.remove("hidden");
+        void overlay.offsetWidth;
+        overlay.classList.remove("opacity-0");
+      }
+      if (aside) aside.classList.remove("translate-x-full");
+
+      const listContainer = document.getElementById("list-riwayat-followup");
+      if (listContainer)
+        listContainer.innerHTML =
+          '<p class="text-sm text-on-surface-variant italic">Memuat riwayat...</p>';
+
+      const { data: prospekCari } = await window.supabase
+        .from("mitra_baru")
+        .select("id, sumber_customer")
+        .eq("nomor_hp", hp)
+        .single();
+      if (!prospekCari) {
+        if (listContainer)
+          listContainer.innerHTML =
+            '<p class="text-sm text-error">Prospek tidak ditemukan!</p>';
+        return;
+      }
+
+      let waNumber = hp.replace(/\D/g, "");
+      if (waNumber.startsWith("0")) waNumber = "62" + waNumber.substring(1);
+      const textPesan =
+        prospekCari.sumber_customer === "Canvaser Lapangan"
+          ? `Assalamu'alaikum Kak,\n\nPerkenalkan, saya Maulana admin Bang Jelantah...`
+          : `Halo Kak, semoga harinya menyenangkan.\nKami dari BANG JELANTAH PURWAKARTA...`;
+
+      document.getElementById("btn-wa-prospek").href =
+        `https://wa.me/${waNumber}?text=${encodeURIComponent(textPesan)}`;
+
+      const { data: riwayat } = await window.supabase
+        .from("riwayat_follow_up")
+        .select("created_at, follow_up_ke, keterangan")
+        .eq("id_nomor_hp", prospekCari.id)
+        .order("created_at", { ascending: false });
+      let nextFollowUpKe = 2;
+
+      if (riwayat && riwayat.length > 0) {
+        let htmlList = "";
+        riwayat.forEach((r) => {
+          const tgl = new Date(r.created_at).toLocaleString("id-ID", {
+            dateStyle: "medium",
+            timeStyle: "short",
+          });
+          htmlList += `
+          <div class="flex items-start gap-3 p-3 bg-surface-container-lowest border border-outline-variant rounded-lg">
+              <span class="w-8 h-8 flex items-center justify-center rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold shrink-0">#${r.follow_up_ke || "-"}</span>
+              <div class="flex-1 min-w-0">
+                  <p class="text-[11px] font-medium text-on-surface-variant mb-1">${tgl}</p>
+                  <p class="text-xs text-on-surface bg-surface-container rounded px-2 py-1">${r.keterangan || "(tidak ada catatan)"}</p>
+              </div>
+          </div>`;
+        });
+        if (listContainer) listContainer.innerHTML = htmlList;
+        nextFollowUpKe =
+          Math.max(...riwayat.map((r) => parseInt(r.follow_up_ke) || 1)) + 1;
+      } else {
+        if (listContainer)
+          listContainer.innerHTML =
+            '<p class="text-sm italic p-3 bg-surface-container rounded-lg border border-dashed">Belum ada riwayat tercatat.</p>';
+      }
+
+      const btnTambah = document.getElementById("btn-tambah-followup-aside");
+      if (btnTambah) {
+        btnTambah.onclick = () =>
+          window.prosesTambahFollowUp(hp, nextFollowUpKe);
+        btnTambah.innerHTML = `<span class="material-symbols-outlined text-[20px]">add_call</span> Simpan Follow Up Ke-${nextFollowUpKe}`;
+      }
+    };
+
+    window.prosesTambahFollowUp = async function (hp, targetFollowUpKe) {
+      const keterangan =
+        document.getElementById("input-keterangan-followup")?.value.trim() ||
+        "";
+      if (!keterangan)
+        return alert("⚠️ Silakan isi keterangan follow-up terlebih dahulu!");
+      if (!confirm(`Catat riwayat telah mem-follow up kontak ${hp} hari ini?`))
+        return;
+
+      const btnTambah = document.getElementById("btn-tambah-followup-aside");
+      btnTambah.innerText = "Menyimpan...";
+      btnTambah.disabled = true;
+
+      try {
+        const { data: prospekData } = await window.supabase
+          .from("mitra_baru")
+          .select("id")
+          .eq("nomor_hp", hp)
+          .single();
+        await window.supabase
+          .from("riwayat_follow_up")
+          .insert([
+            {
+              id_nomor_hp: prospekData.id,
+              follow_up_ke: targetFollowUpKe,
+              keterangan: keterangan,
+              created_at: new Date().toISOString(),
+            },
+          ]);
+        await window.supabase
+          .from("mitra_baru")
+          .update({ follow_up_ke: targetFollowUpKe })
+          .eq("id", prospekData.id);
+
+        alert("✅ Follow-up berhasil disimpan!");
+        window.location.reload();
+      } catch (err) {
+        alert("❌ Gagal menambah riwayat: " + err.message);
+        btnTambah.disabled = false;
+      }
+    };
+
+    // ==========================================
+    // FILTER & SEARCH GLOBAL (DI-GABUNGKAN)
+    // ==========================================
+    window.toggleDropdownFilter = function (e) {
+      if (e) e.preventDefault();
+      document
+        .getElementById("dropdown-filter-prospek")
+        ?.classList.toggle("hidden");
+    };
+
+    document.addEventListener("click", function (event) {
+      const dropdown = document.getElementById("dropdown-filter-prospek");
+      if (
+        !event.target.closest('button[onclick*="toggleDropdownFilter"]') &&
+        dropdown &&
+        !dropdown.contains(event.target)
+      ) {
+        dropdown.classList.add("hidden");
+      }
+    });
+
+    window.applyFilterProspek = function (e) {
+      if (e) e.preventDefault();
+      const filterTgl =
+        document.getElementById("filter-tgl-prospek")?.value || "";
+      const filterFu =
+        document.getElementById("filter-fu-prospek")?.value || "";
+      const filterSumber =
+        document.getElementById("filter-sumber-prospek")?.value || "";
+      const keyword = (
+        document.getElementById("input-search-mitra")?.value || ""
+      )
+        .toLowerCase()
+        .trim();
+
+      const items = document.querySelectorAll(".prospek-item");
+
+      items.forEach((item) => {
+        const itemTgl = item.getAttribute("data-tgl") || "";
+        const itemFu = parseInt(item.getAttribute("data-fu")) || 1;
+        const itemSumber = item.getAttribute("data-sumber") || "";
+        // Ditambah atribut 'data-nama' buat nangkep nama usaha pas di-search
+        const itemNama = (item.getAttribute("data-nama") || "").toLowerCase();
+        const text = item.textContent.toLowerCase() + " " + itemNama;
+
+        let match = true;
+        if (filterTgl && itemTgl !== filterTgl) match = false;
+        if (filterFu) {
+          if (filterFu === "5" && itemFu < 5) match = false;
+          else if (filterFu !== "5" && itemFu !== parseInt(filterFu))
+            match = false;
+        }
+        if (
+          filterSumber &&
+          itemSumber.toLowerCase() !== filterSumber.toLowerCase()
+        )
+          match = false;
+        if (keyword && !text.includes(keyword)) match = false;
+
+        item.style.display = match ? "" : "none";
+      });
+
+      if (e)
+        document
+          .getElementById("dropdown-filter-prospek")
+          ?.classList.add("hidden");
+    };
+
+    window.resetFilterProspek = function (e) {
+      if (e) e.preventDefault();
+      if (document.getElementById("filter-tgl-prospek"))
+        document.getElementById("filter-tgl-prospek").value = "";
+      if (document.getElementById("filter-fu-prospek"))
+        document.getElementById("filter-fu-prospek").value = "";
+      if (document.getElementById("filter-sumber-prospek"))
+        document.getElementById("filter-sumber-prospek").value = "";
+      window.applyFilterProspek();
+    };
+  </script>
+</Layout>

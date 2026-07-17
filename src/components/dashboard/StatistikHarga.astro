@@ -1,0 +1,342 @@
+---
+// ==========================================
+// 1. AREA SSG (Server-Side)
+// ==========================================
+// Kosong! Karena kita akan nge-fetch data murni di Client-Side
+// persis seperti arsitektur di komponen referensi lu.
+---
+
+<!-- ==========================================
+     2. AREA HTML & CSS (Tampilan)
+     ========================================== -->
+<div
+  class="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-4"
+>
+  <div
+    class="flex flex-col md:flex-row md:justify-between md:items-start mb-4 gap-3"
+  >
+    <div>
+      <h2 class="text-xl font-bold text-gray-800">
+        Distribusi Harga: Minyak Jelantah
+      </h2>
+      <p class="text-sm text-gray-500">
+        Klik pada titik kurva untuk melihat detail mitra.
+      </p>
+    </div>
+
+    <!-- UI FILTER TANGGAL -->
+    <div
+      class="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200 w-full md:w-auto"
+    >
+      <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider"
+        >Filter (Mingguan):</span
+      >
+      <input
+        type="date"
+        id="start-date-stat"
+        class="text-sm bg-transparent border-none outline-none text-gray-700 cursor-pointer"
+      />
+      <span class="text-gray-400">-</span>
+      <input
+        type="date"
+        id="end-date-stat"
+        class="text-sm bg-transparent border-none outline-none text-gray-700 cursor-pointer"
+      />
+    </div>
+  </div>
+
+  <div
+    id="chart-container-stat"
+    class="w-full min-w-full h-72 md:h-96 relative"
+  >
+    <div
+      id="loading-stat"
+      class="absolute inset-0 flex items-center justify-center bg-white/80 z-10"
+    >
+      <span class="text-blue-600 font-bold animate-pulse"
+        >Memuat Data Supabase...</span
+      >
+    </div>
+  </div>
+
+  <!-- Bottom Sheet Drill-Down -->
+  <div
+    id="detail-panel"
+    class="hidden mt-6 border-t pt-4 transition-all duration-300"
+  >
+    <div class="flex justify-between items-center mb-3">
+      <h3 class="text-lg font-semibold text-indigo-600">
+        Detail Mitra di Harga: Rp <span id="detail-harga">0</span>
+      </h3>
+      <button
+        id="close-panel"
+        class="text-gray-400 hover:text-red-500 font-bold text-xl"
+        >&times;</button
+      >
+    </div>
+    <ul id="mitra-list" class="space-y-2 max-h-64 overflow-y-auto pr-2"></ul>
+  </div>
+</div>
+
+<!-- ==========================================
+     3. AREA CSR (Client-Side Rendering)
+     ========================================== -->
+<script
+  is:inline
+  src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+
+<script>
+  import { supabase } from "../../lib/supabase";
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    const loadingEl = document.getElementById("loading-stat");
+    const startDateInput = document.getElementById("start-date-stat");
+    const endDateInput = document.getElementById("end-date-stat");
+    const detailPanel = document.getElementById("detail-panel");
+
+    // Set Default Filter Tanggal (1 Minggu Terakhir)
+    const today = new Date();
+    const lastWeek = new Date();
+    lastWeek.setDate(today.getDate() - 7);
+
+    // @ts-ignore
+    startDateInput.value = lastWeek.toISOString().split("T")[0];
+    // @ts-ignore
+    endDateInput.value = today.toISOString().split("T")[0];
+
+    // Variabel Global di dalam komponen
+    let rawData: any[] = [];
+    let myChart: any = null;
+    let currentDrillDownMap: Record<string, any[]> = {};
+
+    try {
+      // Fetch Supabase
+      const [resItems, resTrans, resJemputs, resMitras] = await Promise.all([
+        supabase.from("transaksi_item").select("*"),
+        supabase.from("transaksi").select("*"),
+        supabase.from("penjemputan").select("*"),
+        supabase.from("mitra").select("*"),
+      ]);
+
+      if (resItems.error) throw resItems.error;
+
+      const items = resItems.data || [];
+      const trans = resTrans.data || [];
+      const jemputs = resJemputs.data || [];
+      const mitras = resMitras.data || [];
+
+      // Proses JOIN & Ekstrak Tanggal (dari penjemputan atau transaksi)
+      rawData = items.map((item: any) => {
+        const t = trans.find((tr: any) => tr.id === item.transaksi_id) || {};
+        const j = jemputs.find((pj: any) => pj.id === t.penjemputan_id) || {};
+        const m = mitras.find((mt: any) => mt.id === j.mitra_id) || {};
+
+        // Ambil tanggal, prioritas dari penjemputan, kalau kosong ambil dari tanggal transaksi (created_at)
+        const dateStr =
+          j.tanggal || (t.created_at ? t.created_at.split("T")[0] : "");
+
+        return {
+          komoditas: item.komoditas,
+          harga_unit: parseFloat(item.harga_unit) || 0,
+          volume: parseFloat(item.volume) || 0,
+          jenis_pelanggan: m.jenis_pelanggan || "Tidak Diketahui",
+          nama_mitra: m.nama_mitra || "Tanpa Nama",
+          tanggal: dateStr, // Kita simpan tanggalnya untuk di-filter
+        };
+      });
+
+      // Init Grafik ECharts
+      const chartContainer = document.getElementById("chart-container-stat");
+      // @ts-ignore
+      myChart = echarts.init(chartContainer);
+
+      // ResizeObserver untuk layarnya
+      if (chartContainer) {
+        new ResizeObserver(() => {
+          myChart.resize();
+        }).observe(chartContainer);
+      }
+
+      // Sembunyikan Loading
+      if (loadingEl) loadingEl.style.display = "none";
+
+      // Jalankan render grafik pertama kali
+      renderChart();
+
+      // ==========================================
+      // FUNGSI UPDATE GRAFIK BERDASARKAN TANGGAL
+      // ==========================================
+      function renderChart() {
+        // @ts-ignore
+        const start = startDateInput.value;
+        // @ts-ignore
+        const end = endDateInput.value;
+
+        // 1. Filter Data berdasarkan Komoditas & Rentang Tanggal
+        let filteredData = rawData.filter(
+          (d) =>
+            d.komoditas &&
+            d.komoditas.toLowerCase().includes("jelantah") &&
+            d.harga_unit > 0,
+        );
+
+        if (start)
+          filteredData = filteredData.filter((d) => d.tanggal >= start);
+        if (end) filteredData = filteredData.filter((d) => d.tanggal <= end);
+
+        // 2. Susun Ulang Sumbu X dan Series
+        const uniquePrices = [
+          ...new Set(filteredData.map((d) => d.harga_unit)),
+        ].sort((a: any, b: any) => a - b);
+        const uniqueJenis = [
+          ...new Set(filteredData.map((d) => d.jenis_pelanggan)),
+        ];
+
+        const seriesData: any[] = [];
+        currentDrillDownMap = {}; // Reset map
+
+        uniquePrices.forEach((price: any) => {
+          currentDrillDownMap[price] = [];
+        });
+
+        uniqueJenis.forEach((jenis: any) => {
+          const dataPoints = uniquePrices.map((price: any) => {
+            const trxs = filteredData.filter(
+              (d) => d.harga_unit === price && d.jenis_pelanggan === jenis,
+            );
+            const totalVolume = trxs.reduce(
+              (sum: number, curr: any) => sum + curr.volume,
+              0,
+            );
+
+            trxs.forEach((trx: any) => {
+              const existingMitra = currentDrillDownMap[price].find(
+                (m: any) => m.nama === trx.nama_mitra,
+              );
+              if (existingMitra) {
+                existingMitra.volume += trx.volume;
+              } else {
+                currentDrillDownMap[price].push({
+                  nama: trx.nama_mitra,
+                  jenis: trx.jenis_pelanggan,
+                  volume: trx.volume,
+                });
+              }
+            });
+            return totalVolume;
+          });
+
+          seriesData.push({
+            name: jenis,
+            type: "line",
+            smooth: true,
+            areaStyle: { opacity: 0.2 },
+            emphasis: { focus: "series" },
+            data: dataPoints,
+          });
+        });
+
+        Object.keys(currentDrillDownMap).forEach((price) => {
+          currentDrillDownMap[price].sort(
+            (a: any, b: any) => b.volume - a.volume,
+          );
+        });
+
+        // 3. Update ECharts dengan data baru
+        myChart.setOption(
+          {
+            tooltip: { trigger: "axis", axisPointer: { type: "cross" } },
+            legend: {
+              top: "0%",
+              type: "scroll",
+              icon: "circle",
+              textStyle: { fontSize: 12 },
+            },
+            grid: { left: "5%", right: "5%", bottom: "5%", containLabel: true },
+            xAxis: [
+              {
+                type: "category",
+                boundaryGap: false,
+                data: uniquePrices,
+                axisLabel: { formatter: "Rp {value}" },
+              },
+            ],
+            yAxis: [{ type: "value", name: "Volume (L/Kg)" }],
+            series: seriesData,
+            color: [
+              "#3b82f6",
+              "#ef4444",
+              "#10b981",
+              "#f59e0b",
+              "#8b5cf6",
+              "#6b7280",
+            ],
+          },
+          true,
+        ); // parameter true ini penting buat mereset sisa data yang lama
+      }
+
+      // ==========================================
+      // EVENT LISTENERS
+      // ==========================================
+
+      // Saat tanggal diubah -> Update Grafik
+      startDateInput?.addEventListener("change", () => {
+        if (detailPanel) detailPanel.classList.add("hidden"); // Tutup panel detail
+        renderChart();
+      });
+
+      endDateInput?.addEventListener("change", () => {
+        if (detailPanel) detailPanel.classList.add("hidden"); // Tutup panel detail
+        renderChart();
+      });
+
+      // Saat kurva diklik (Drill-Down)
+      const detailHarga = document.getElementById("detail-harga");
+      const mitraList = document.getElementById("mitra-list");
+
+      myChart.on("click", function (params: any) {
+        const clickedPrice = params.name;
+        const mitrasAtThisPrice = currentDrillDownMap[clickedPrice];
+
+        if (detailHarga)
+          detailHarga.innerText = Number(clickedPrice).toLocaleString("id-ID");
+        if (mitraList) mitraList.innerHTML = "";
+
+        if (mitrasAtThisPrice && mitrasAtThisPrice.length > 0) {
+          mitrasAtThisPrice.forEach((mitra: any, index: number) => {
+            const li = document.createElement("li");
+            li.className =
+              "flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-100 shadow-sm";
+            li.innerHTML = `
+              <div class="flex items-center gap-3">
+                <div class="bg-indigo-100 text-indigo-700 font-bold w-8 h-8 rounded-full flex items-center justify-center text-sm">#${index + 1}</div>
+                <div>
+                  <p class="font-medium text-gray-800 text-sm leading-tight">${mitra.nama}</p>
+                  <p class="text-xs text-gray-500">${mitra.jenis}</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <p class="font-bold text-gray-700 text-sm">${mitra.volume.toLocaleString("id-ID")} <span class="text-xs font-normal">L</span></p>
+              </div>
+            `;
+            if (mitraList) mitraList.appendChild(li);
+          });
+        }
+
+        if (detailPanel) {
+          detailPanel.classList.remove("hidden");
+          detailPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      });
+
+      document.getElementById("close-panel")?.addEventListener("click", () => {
+        detailPanel?.classList.add("hidden");
+      });
+    } catch (error) {
+      console.error("Gagal memuat data dari Supabase:", error);
+      if (loadingEl)
+        loadingEl.innerHTML = `<span class="text-red-500 font-bold">Error memuat data!</span>`;
+    }
+  });
+</script>

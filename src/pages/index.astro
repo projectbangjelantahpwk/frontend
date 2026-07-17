@@ -6,6 +6,7 @@ import StokKomoditasChart from "../components/dashboard/StokKomoditasChart.astro
 import TransaksiKomoditasChart from "../components/dashboard/TransaksiKomoditasChart.astro";
 import TransaksiGudangChart from "../components/dashboard/TransaksiGudangHarian.astro";
 import SumberTransaksiChart from "../components/dashboard/SumberTransaksiChart.astro";
+import StatistikHarga from "../components/dashboard/StatistikHarga.astro";
 import JenisPelangganTransaksiChart from "../components/dashboard/JenisPelangganTransaksiChart.astro";
 import LeaderboardMitra from "../components/dashboard/LeaderboardMitra.astro";
 import BestEmployees from "../components/dashboard/BestEmployees.astro";
@@ -105,6 +106,8 @@ const employeesData = [
         <div class="grid grid-cols-1 lg:grid-cols-1">
           <TransaksiGudangChart />
         </div>
+
+        <StatistikHarga />
 
         <!-- SECTION 6: PROFIT MINGGUAN (Hidden untuk non-owner/IT) -->
         <ProfitMingguanChart />

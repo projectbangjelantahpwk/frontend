@@ -56,24 +56,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               <div>
                 <label
                   class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1"
-                  >Sumber Mitra</label
-                >
-                <select
-                  id="filter-sumber-mitra"
-                  onchange="window.applySearchMitra()"
-                  class="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container text-sm outline-none focus:border-primary"
-                >
-                  <option value="">-- Semua Sumber --</option>
-                  <option value="Canvaser Lapangan">Canvaser Lapangan</option>
-                  <option value="Instagram">Instagram</option>
-                  <option value="Facebook">Facebook</option>
-                  <option value="Tiktok">Tiktok</option>
-                  <option value="Lainnya">Lainnya</option>
-                </select>
-              </div>
-              <div>
-                <label
-                  class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1"
                   >Jenis Pelanggan</label
                 >
                 <select
@@ -176,10 +158,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                   >
                   <th
                     class="p-md font-label-lg text-on-surface-variant font-semibold"
-                    >Sumber Mitra</th
-                  >
-                  <th
-                    class="p-md font-label-lg text-on-surface-variant font-semibold"
                     >Jenis Pelanggan</th
                   >
                   <th
@@ -193,6 +171,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                   <th
                     class="p-md font-label-lg text-on-surface-variant font-semibold text-center"
                     >Jml Transaksi</th
+                  >
+                  <th
+                    class="p-md font-label-lg text-on-surface-variant font-semibold"
+                    >Riwayat Follow Up</th
                   >
                   <th
                     class="p-md font-label-lg text-on-surface-variant font-semibold text-right"
@@ -245,6 +227,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                   <th
                     class="p-md font-label-lg text-on-surface-variant font-semibold text-center"
                     >Jml Transaksi</th
+                  >
+                  <th
+                    class="p-md font-label-lg text-on-surface-variant font-semibold"
+                    >Riwayat Follow Up</th
                   >
                   <th
                     class="p-md font-label-lg text-on-surface-variant font-semibold"
@@ -411,22 +397,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               required
             >
               <option value="">-- Memuat Rute... --</option>
-            </select>
-          </div>
-          <div>
-            <label
-              class="block font-label-sm text-label-sm text-on-surface-variant mb-xs"
-              >Sumber Mitra</label
-            >
-            <select
-              id="edit_mitra_sumber"
-              class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none"
-              required
-            >
-              <option value="Instagram">Instagram</option>
-              <option value="Facebook">Facebook</option>
-              <option value="Tiktok">Tiktok</option>
-              <option value="Lainnya">Lainnya</option>
             </select>
           </div>
           <div>
@@ -659,6 +629,85 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       </form>
     </div>
   </div>
+  <!-- ================= ASIDE FOLLOW UP ================= -->
+  <!-- Overlay -->
+  <div
+    id="overlay-aside-fu"
+    class="fixed inset-0 bg-on-background/50 z-[65] hidden opacity-0 transition-opacity duration-300"
+    onclick="window.tutupAsideFU()"
+  >
+  </div>
+
+  <!-- Panel Aside -->
+  <aside
+    id="aside-fu"
+    class="fixed top-0 right-0 h-full w-full md:w-[400px] bg-surface-container-lowest z-[70] transform translate-x-full transition-transform duration-300 shadow-2xl flex flex-col"
+  >
+    <div
+      class="flex items-center justify-between p-4 border-b border-outline-variant bg-surface-container-low"
+    >
+      <h3 class="font-headline-md text-on-surface">Update Follow Up</h3>
+      <button
+        onclick="window.tutupAsideFU()"
+        class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-highest rounded-full transition-colors"
+      >
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="p-lg flex-1 overflow-y-auto">
+      <div
+        class="mb-6 p-4 bg-primary-container/30 border border-primary/20 rounded-xl"
+      >
+        <p class="font-label-sm text-primary mb-1">Mitra yang di-follow up:</p>
+        <p
+          id="fu_nama_mitra"
+          class="font-headline-sm text-on-surface font-bold"
+        >
+          Nama Mitra
+        </p>
+      </div>
+
+      <form id="form-fu-mitra" class="flex flex-col gap-md">
+        <input type="hidden" id="fu_mitra_id" />
+
+        <div>
+          <label class="block font-label-sm text-on-surface-variant mb-xs"
+            >Tanggal Follow Up</label
+          >
+          <input
+            type="date"
+            id="fu_tanggal"
+            class="w-full h-12 px-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none"
+            required
+          />
+        </div>
+
+        <div>
+          <label class="block font-label-sm text-on-surface-variant mb-xs"
+            >Catatan / Keterangan</label
+          >
+          <textarea
+            id="fu_keterangan"
+            rows="5"
+            class="w-full p-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none"
+            placeholder="Tulis hasil obrolan atau keterangan follow up di sini..."
+            required></textarea>
+        </div>
+
+        <div class="mt-6">
+          <button
+            type="submit"
+            id="btn-submit-fu"
+            class="w-full h-12 bg-primary text-on-primary rounded-full font-label-lg hover:bg-surface-tint shadow-sm transition-colors flex items-center justify-center gap-2"
+          >
+            <span class="material-symbols-outlined text-[20px]">save</span> Simpan
+            Catatan
+          </button>
+        </div>
+      </form>
+    </div>
+  </aside>
   <script is:inline>
     // ==========================================
     // FITUR PENCARIAN GLOBAL SAKTI (BULLETPROOF)
@@ -823,7 +872,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         const { data: langganan, error: errLang } = await window.supabase
           .from("mitra")
           .select(
-            "id, nama_mitra, rute_jemput, nomor_hp, alamat, link_gmaps, total_order, total_transaksi, activated, sumber_mitra, created_at, deposit, jenis_pelanggan, tgl_transaksi_pertama",
+            "id, nama_mitra, rute_jemput, nomor_hp, alamat, link_gmaps, total_order, total_transaksi, activated, sumber_mitra, tgl_terakhir_fu, keterangan_fu, created_at, deposit, jenis_pelanggan, tgl_transaksi_pertama",
           )
           .eq("activated", true)
           .order("created_at", { ascending: false });
@@ -861,57 +910,80 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               chartDataByMonth[monthKeys[monthIndex]] += 1;
             }
 
-            // 📱 TAMPILAN MOBILE CARD
+            // 📱 TAMPILAN MOBILE CARD (SUDAH RESPONSIVE & MOBILE FIRST)
             htmlLangMobile += `
-                        <div class="mitra-item bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm relative" data-rute="${l.rute_jemput || ""}" data-sumber="${l.sumber_mitra || ""}" data-jenis="${l.jenis_pelanggan || ""}">
-                            <button onclick="window.nonaktifkanMitra('${l.id}', '${l.nama_mitra.replace(/'/g, "\\'")}')" class="absolute top-4 right-4 text-error hover:bg-error-container rounded-full p-1 transition-colors" title="Nonaktifkan Mitra">
-                                <span class="material-symbols-outlined text-[20px]">person_off</span>
-                            </button>
-                            <div class="border-b border-outline-variant pb-sm">
-                                <p class="font-headline-md text-on-surface font-semibold pr-8">${l.nama_mitra}</p>
-                            </div>
-                            <div><span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded uppercase mt-1 inline-block">${l.rute_jemput || "Tanpa Rute"}</span></div>
-                            <div class="grid grid-cols-2 gap-sm pt-xs">
-                                <div><p class="font-label-sm text-on-surface-variant">No HP</p><p class="font-body-md text-on-surface">${l.nomor_hp || "-"}</p></div>
-                                <div><p class="font-label-sm text-on-surface-variant">Sumber</p><p class="font-body-md text-on-surface font-semibold">${l.sumber_mitra || "Lainnya"}</p></div>
-                                <div><p class="font-label-sm text-on-surface-variant">Jenis Mitra</p><p class="font-body-md text-on-surface">${l.jenis_pelanggan || "Lainnya"}</p></div>
-                                <div><p class="font-label-sm text-on-surface-variant">Transaksi</p><p class="font-body-md text-on-surface">${l.total_order || 0}x</p></div>
-                                <div><p class="font-label-sm text-on-surface-variant">Deposit</p><p class="font-body-md text-green-700 font-bold">Rp ${Number(l.deposit || 0).toLocaleString("id-ID")}</p></div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2 mt-xs pt-2 border-t border-outline-variant/40">
-                                <button onclick="window.broadcastWA('${l.nomor_hp}', '${l.nama_mitra.replace(/'/g, "\\'")}')" class="h-10 bg-[#25D366] text-white rounded-full font-label-lg flex items-center justify-center gap-1 shadow-xs hover:bg-[#1ebd5a] transition-colors">
-                                    <i class="bi bi-whatsapp"></i> Chat WA
-                                </button>
-                                <button onclick="window.bukaEditMitra('${l.id}')" class="h-10 bg-surface-container text-primary rounded-full font-label-lg flex items-center justify-center gap-1 hover:bg-primary-container transition-colors">
-                                    <span class="material-symbols-outlined text-[16px]">edit</span> Edit
-                                </button>
-                            </div>
-                        </div>`;
+            <div class="mitra-item bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col gap-sm shadow-sm relative" data-rute="${l.rute_jemput || ""}" data-jenis="${l.jenis_pelanggan || ""}">
+                <button onclick="window.nonaktifkanMitra('${l.id}', '${l.nama_mitra.replace(/'/g, "\\'")}')" class="absolute top-4 right-4 text-error hover:bg-error-container rounded-full p-1 transition-colors" title="Nonaktifkan Mitra">
+                    <span class="material-symbols-outlined text-[20px]">person_off</span>
+                </button>
+                <div class="border-b border-outline-variant pb-sm">
+                    <p class="font-headline-md text-on-surface font-semibold pr-8">${l.nama_mitra}</p>
+                </div>
+                <div><span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded uppercase mt-1 inline-block">${l.rute_jemput || "Tanpa Rute"}</span></div>
+                <div class="grid grid-cols-2 gap-sm pt-xs">
+                    <div><p class="font-label-sm text-on-surface-variant">No HP</p><p class="font-body-md text-on-surface">${l.nomor_hp || "-"}</p></div>
+                    <div><p class="font-label-sm text-on-surface-variant">Jenis Mitra</p><p class="font-body-md text-on-surface">${l.jenis_pelanggan || "Lainnya"}</p></div>
+                    <div><p class="font-label-sm text-on-surface-variant">Transaksi</p><p class="font-body-md text-on-surface">${l.total_order || 0}x</p></div>
+                    <div><p class="font-label-sm text-on-surface-variant">Deposit</p><p class="font-body-md text-green-700 font-bold">Rp ${Number(l.deposit || 0).toLocaleString("id-ID")}</p></div>
+                </div>
+                
+                <div class="col-span-2 mt-2 p-3 bg-surface-container-low border border-outline-variant/50 rounded-lg relative group">
+                    <button onclick="window.bukaAsideFU('${l.id}', '${l.nama_mitra.replace(/'/g, "\\'")}', '${l.tgl_terakhir_fu || ""}', '${(l.keterangan_fu || "").replace(/'/g, "\\'")}')" class="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-surface-container-highest text-primary rounded-full hover:bg-primary-container transition-colors shadow-sm">
+                        <span class="material-symbols-outlined text-[16px]">edit_note</span>
+                    </button>
+                    <p class="font-label-sm text-on-surface-variant mb-1">Riwayat Follow Up</p>
+                    <p class="font-body-md text-on-surface text-sm leading-tight pr-8">
+                        ${l.tgl_terakhir_fu ? `<span class="font-bold text-primary">${new Date(l.tgl_terakhir_fu).toLocaleDateString("id-ID")}</span> - ` : ""} 
+                        ${l.keterangan_fu || "Belum ada riwayat follow up."}
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 mt-xs pt-2 border-t border-outline-variant/40">
+                    <button onclick="window.broadcastWA('${l.nomor_hp}', '${l.nama_mitra.replace(/'/g, "\\'")}')" class="h-10 bg-[#25D366] text-white rounded-full font-label-lg flex items-center justify-center gap-1 shadow-xs hover:bg-[#1ebd5a] transition-colors">
+                        <i class="bi bi-whatsapp"></i> Chat WA
+                    </button>
+                    <button onclick="window.bukaEditMitra('${l.id}')" class="h-10 bg-surface-container text-primary rounded-full font-label-lg flex items-center justify-center gap-1 hover:bg-primary-container transition-colors">
+                        <span class="material-symbols-outlined text-[16px]">edit</span> Edit
+                    </button>
+                </div>
+            </div>`;
 
             // 🏢 TAMPILAN TABEL DESKTOP
             htmlLangTable += `
-                        <tr class="mitra-item hover:bg-surface-container-low transition-colors group" data-rute="${l.rute_jemput || ""}" data-sumber="${l.sumber_mitra || ""}" data-jenis="${l.jenis_pelanggan || ""}">
-                            <td class="p-md text-center text-sm font-bold text-on-surface-variant">${index + 1}</td>
-                            <td class="p-md font-body-md text-on-surface font-semibold">${l.nama_mitra}</td>
-                            <td><span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded uppercase mt-1 inline-block">${l.rute_jemput || "Tanpa Rute"}</span></td>
-                            <td class="p-md font-body-md text-on-surface">${l.nomor_hp || "-"}</td>
-                            <td class="p-md"><span class="text-[10px] bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded uppercase inline-block font-medium">${l.sumber_mitra || "Lainnya"}</span></td>
-                            <td class="p-md font-body-md text-on-surface">${l.jenis_pelanggan || "Lainnya"}</td>
-                            <td class="p-md text-center"><a class="text-primary inline-block p-1 rounded-full hover:bg-primary-container" href="${l.link_gmaps || "#"}" target="_blank"><span class="material-symbols-outlined text-[20px]">location_on</span></a></td>
-                            <td class="p-md text-center font-mono font-bold text-green-700">Rp ${Number(l.deposit || 0).toLocaleString("id-ID")}</td>
-                            <td class="p-md text-center font-body-md">${l.total_order || 0}x</td>
-                            <td class="p-md text-right flex justify-end gap-2 items-center">
-                                <button onclick="window.broadcastWA('${l.nomor_hp}', '${l.nama_mitra.replace(/'/g, "\\'")}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-[#25D366] rounded-full hover:bg-[#25D366]/15 opacity-0 group-hover:opacity-100 transition-opacity" title="Kirim WA Broadcast">
-                                    <i class="bi bi-whatsapp text-[18px]"></i>
-                                </button>
-                                <button onclick="window.bukaEditMitra('${l.id}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-primary rounded-full hover:bg-primary-container opacity-0 group-hover:opacity-100 transition-opacity" title="Edit Mitra">
-                                    <span class="material-symbols-outlined text-[18px]">edit</span>
-                                </button>
-                                <button onclick="window.nonaktifkanMitra('${l.id}', '${l.nama_mitra.replace(/'/g, "\\'")}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-error rounded-full hover:bg-error-container opacity-0 group-hover:opacity-100 transition-opacity" title="Pindah ke Tidak Aktif">
-                                    <span class="material-symbols-outlined text-[18px]">person_off</span>
-                                </button>
-                            </td>
-                        </tr>`;
+            <tr class="mitra-item hover:bg-surface-container-low transition-colors group" data-rute="${l.rute_jemput || ""}" data-jenis="${l.jenis_pelanggan || ""}">
+                <td class="p-md text-center text-sm font-bold text-on-surface-variant">${index + 1}</td>
+                <td class="p-md font-body-md text-on-surface font-semibold">${l.nama_mitra}</td>
+                <td><span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded uppercase mt-1 inline-block">${l.rute_jemput || "Tanpa Rute"}</span></td>
+                <td class="p-md font-body-md text-on-surface">${l.nomor_hp || "-"}</td>
+                <td class="p-md font-body-md text-on-surface">${l.jenis_pelanggan || "Lainnya"}</td>
+                <td class="p-md text-center"><a class="text-primary inline-block p-1 rounded-full hover:bg-primary-container" href="${l.link_gmaps || "#"}" target="_blank"><span class="material-symbols-outlined text-[20px]">location_on</span></a></td>
+                <td class="p-md text-center font-mono font-bold text-green-700">Rp ${Number(l.deposit || 0).toLocaleString("id-ID")}</td>
+                <td class="p-md text-center font-body-md">${l.total_order || 0}x</td>
+                
+                <td class="p-md text-sm relative group/fu cursor-pointer hover:bg-surface-container-highest transition-colors rounded-lg" onclick="window.bukaAsideFU('${l.id}', '${l.nama_mitra.replace(/'/g, "\\'")}', '${l.tgl_terakhir_fu || ""}', '${(l.keterangan_fu || "").replace(/'/g, "\\'")}')">
+                    <div class="flex items-start justify-between gap-2">
+                        <div>
+                            ${l.tgl_terakhir_fu ? `<span class="font-bold block text-xs text-primary">${new Date(l.tgl_terakhir_fu).toLocaleDateString("id-ID")}</span>` : "-"}
+                            <span class="text-on-surface-variant truncate max-w-[150px] inline-block" title="${l.keterangan_fu || ""}">
+                                ${l.keterangan_fu || "Belum ada riwayat"}
+                            </span>
+                        </div>
+                        <span class="material-symbols-outlined text-[16px] text-primary opacity-0 group-hover/fu:opacity-100 transition-opacity">edit_note</span>
+                    </div>
+                </td>
+                
+                <td class="p-md text-right flex justify-end gap-2 items-center">
+                    <button onclick="window.broadcastWA('${l.nomor_hp}', '${l.nama_mitra.replace(/'/g, "\\'")}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-[#25D366] rounded-full hover:bg-[#25D366]/15 opacity-0 group-hover:opacity-100 transition-opacity" title="Kirim WA Broadcast">
+                        <i class="bi bi-whatsapp text-[18px]"></i>
+                    </button>
+                    <button onclick="window.bukaEditMitra('${l.id}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-primary rounded-full hover:bg-primary-container opacity-0 group-hover:opacity-100 transition-opacity" title="Edit Mitra">
+                        <span class="material-symbols-outlined text-[18px]">edit</span>
+                    </button>
+                    <button onclick="window.nonaktifkanMitra('${l.id}', '${l.nama_mitra.replace(/'/g, "\\'")}')" class="w-10 h-10 flex items-center justify-center bg-surface-container text-error rounded-full hover:bg-error-container opacity-0 group-hover:opacity-100 transition-opacity" title="Pindah ke Tidak Aktif">
+                        <span class="material-symbols-outlined text-[18px]">person_off</span>
+                    </button>
+                </td>
+            </tr>`;
           });
         } else {
           const empty =
@@ -984,6 +1056,75 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
       // Jalankan Render CSR
       await loadDataKemitraan();
+
+      // ==========================================
+      // LOGIKA ASIDE FOLLOW UP
+      // ==========================================
+      window.bukaAsideFU = function (id, nama, tglLama, ketLama) {
+        document.getElementById("fu_mitra_id").value = id;
+        document.getElementById("fu_nama_mitra").innerText = nama;
+
+        // Auto isi tanggal ke hari ini kalau belum ada riwayat sebelumnya
+        const tglHariIni = new Date().toISOString().split("T")[0];
+        document.getElementById("fu_tanggal").value = tglLama || tglHariIni;
+        document.getElementById("fu_keterangan").value = ketLama || "";
+
+        const aside = document.getElementById("aside-fu");
+        const overlay = document.getElementById("overlay-aside-fu");
+
+        overlay.classList.remove("hidden");
+        void overlay.offsetWidth; // trigger reflow
+        overlay.classList.remove("opacity-0");
+        aside.classList.remove("translate-x-full");
+        document.body.style.overflow = "hidden"; // Kunci scroll layar utama
+      };
+
+      window.tutupAsideFU = function () {
+        const aside = document.getElementById("aside-fu");
+        const overlay = document.getElementById("overlay-aside-fu");
+
+        aside.classList.add("translate-x-full");
+        overlay.classList.add("opacity-0");
+
+        setTimeout(() => {
+          overlay.classList.add("hidden");
+          document.body.style.overflow = ""; // Lepas scroll layar utama
+        }, 300);
+      };
+
+      // Submit form Follow Up
+      document
+        .getElementById("form-fu-mitra")
+        ?.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const btn = document.getElementById("btn-submit-fu");
+          btn.innerHTML =
+            '<span class="material-symbols-outlined text-[20px] animate-spin">sync</span> Menyimpan...';
+          btn.disabled = true;
+
+          try {
+            const id = document.getElementById("fu_mitra_id").value;
+            const payload = {
+              tgl_terakhir_fu: document.getElementById("fu_tanggal").value,
+              keterangan_fu: document.getElementById("fu_keterangan").value,
+            };
+
+            const { error } = await window.supabase
+              .from("mitra")
+              .update(payload)
+              .eq("id", id);
+
+            if (error) throw error;
+
+            alert("Follow up berhasil dicatat!");
+            window.location.reload();
+          } catch (err) {
+            alert("Gagal menyimpan: " + err.message);
+            btn.innerHTML =
+              '<span class="material-symbols-outlined text-[20px]">save</span> Simpan Catatan';
+            btn.disabled = false;
+          }
+        });
 
       // ==========================================
       // 4. LOGIKA MODAL & AKSI DATABASE
@@ -1105,8 +1246,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       // Ubah dari mitra.id_rutejemput menjadi mitra.rute_jemput
       document.getElementById("edit_mitra_rute").value =
         mitra.rute_jemput || "";
-      document.getElementById("edit_mitra_sumber").value =
-        mitra.sumber_mitra || "Lainnya";
       document.getElementById("edit_mitra_jenis").value =
         mitra.jenis_pelanggan || "Lainnya"; // 🔥 SUNTIKAN BARU
       document.getElementById("edit_mitra_deposit").value = mitra.deposit || 0;
@@ -1116,40 +1255,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       window.openModal("modal-edit-mitra");
     };
 
-    document
-      .getElementById("form-edit-mitra")
-      ?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById("btn-submit-edit-mitra");
-        btn.innerText = "Menyimpan...";
-        btn.disabled = true;
-        try {
-          const id = document.getElementById("edit_mitra_id").value;
-          const payload = {
-            nama_mitra: document.getElementById("edit_mitra_nama").value,
-            rute_jemput: document.getElementById("edit_mitra_rute").value,
-            sumber_mitra: document.getElementById("edit_mitra_sumber").value,
-            jenis_pelanggan: document.getElementById("edit_mitra_jenis").value, // 🔥 SUNTIKAN BARU
-            deposit: parseFloat(
-              document.getElementById("edit_mitra_deposit").value,
-            ),
-            alamat: document.getElementById("edit_mitra_alamat").value,
-            link_gmaps: document.getElementById("edit_mitra_gmaps").value,
-          };
-          const { error } = await window.supabase
-            .from("mitra")
-            .update(payload)
-            .eq("id", id);
-          if (error) throw error;
-
-          alert("Data Mitra berhasil diupdate!");
-          window.location.reload();
-        } catch (err) {
-          alert("Gagal update: " + err.message);
-          btn.innerText = "Simpan Perubahan";
-          btn.disabled = false;
-        }
-      });
     // ==========================================
     // LOGIKA LIVE TOP 5 LEADERBOARD (KOTAK UTAMA)
     // ==========================================
@@ -1398,9 +1503,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         document.getElementById("filter-tgl-prospek")?.value || "";
       const filterFu =
         document.getElementById("filter-fu-prospek")?.value || "";
-      const filterSumber =
-        document.getElementById("filter-sumber-prospek")?.value || ""; // Filter Sumber Mitra
-
       const keyword = (
         document.getElementById("input-search-mitra")?.value || ""
       )

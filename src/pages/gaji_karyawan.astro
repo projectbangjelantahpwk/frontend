@@ -2724,10 +2724,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     };
 
     // ==========================================
-    // ✅ PERBAIKAN DOWNLOAD SLIP GAMBAR (PNG)
-    // ✅ BONUS DIRINCI + HANYA TAMPIL YANG > 0
-    // ==========================================
-    // ==========================================
     // ✅ FUNGSI 1: DOWNLOAD SLIP GAMBAR (PNG)
     // ==========================================
     window.downloadSlipGambar = async function (slipId) {
@@ -2745,7 +2741,9 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           return alert("⚠️ Data slip tidak ditemukan dalam filter!");
         }
 
-        // 1️⃣ Suntik data ke template
+        // ============================================================
+        // STEP 1️⃣: Set semua KOMPONEN STATIC (gaji, lembur, makan, dll)
+        // ============================================================
         document.getElementById("slip-nama").innerText =
           `: ${slip.profiles?.nama || "Unknown"}`;
         document.getElementById("slip-periode").innerText = `: ${slip.periode}`;
@@ -2757,7 +2755,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           `Rp ${Number(slip.gaji_karyawan || 0).toLocaleString("id-ID")}`;
 
         const slipLembur = document.getElementById("slip-lembur");
-        // Langsung tembak teksnya dan paksa tampil (tanpa disembunyikan/none)
         slipLembur.innerText = `Rp ${Number(slip.uang_lembur || 0).toLocaleString("id-ID")}`;
         slipLembur.parentElement.style.display = "table-row";
 
@@ -2831,9 +2828,9 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           slipBonusPenjemputan.parentElement.style.display = "none";
         }
 
-        document.getElementById("slip-total").innerText =
-          `Rp ${Number(slip.total_diterima || 0).toLocaleString("id-ID")}`;
-
+        // ============================================================
+        // STEP 2️⃣: INJECT KOMPONEN DINAMIS (LAIN-LAIN) KE TBODY
+        // ============================================================
         let htmlPenerimaanLain = "";
         let htmlPotonganLain = "";
 
@@ -2858,7 +2855,15 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           elPenerimaanDinamis.innerHTML = htmlPenerimaanLain;
         if (elPotonganDinamis) elPotonganDinamis.innerHTML = htmlPotonganLain;
 
-        // 2️⃣ JURUS KLONING MUTLAK (Bypass ukuran 0x0 & CORS)
+        // ============================================================
+        // STEP 3️⃣: **PALING AKHIR** - SET TOTAL DITERIMA
+        // ============================================================
+        document.getElementById("slip-total").innerText =
+          `Rp ${Number(slip.total_diterima || 0).toLocaleString("id-ID")}`;
+
+        // ============================================================
+        // STEP 4️⃣: Clone & Render ke Canvas
+        // ============================================================
         const originalEl = document.getElementById("template-slip-gambar");
         if (!originalEl)
           return alert("❌ Template slip tidak ditemukan di halaman!");
@@ -2868,16 +2873,14 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         cloneEl.style.position = "fixed";
         cloneEl.style.top = "0px";
         cloneEl.style.left = "0px";
-        cloneEl.style.zIndex = "-9999"; // Tetap di belakang layar
-        cloneEl.style.display = "block"; // Paksa render fisik
+        cloneEl.style.zIndex = "-9999";
+        cloneEl.style.display = "block";
         cloneEl.style.visibility = "visible";
         document.body.appendChild(cloneEl);
 
         try {
-          // Jeda agar fisik clone terbentuk sempurna
           await new Promise((resolve) => setTimeout(resolve, 300));
 
-          // 3️⃣ Render ke Canvas dengan SISTEM FALLBACK CORS
           let canvas;
           let dataUrl = "";
 
@@ -2890,12 +2893,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             });
             dataUrl = canvas.toDataURL("image/png", 0.95);
 
-            // Jika hasil fotonya masih 0x0, paksa lempar ke error untuk memicu fallback
             if (dataUrl === "data:,") throw new Error("Canvas Blank 0x0");
           } catch (secError) {
             console.warn("Terblokir CORS / Blank. Bypass logo sementara...");
 
-            // Hapus logo HANYA di elemen kloningan, template asli tetap utuh
             const logoEl = cloneEl.querySelector("#slip-logo");
             if (logoEl) logoEl.style.display = "none";
 
@@ -2911,7 +2912,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           if (!dataUrl || dataUrl === "data:,")
             throw new Error("Gagal render (Canvas tetap kosong).");
 
-          // 4️⃣ Download file PNG
           const link = document.createElement("a");
           const safeName = (slip.profiles?.nama || "Karyawan")
             .replace(/[^a-z0-9\-_\s]/gi, "")
@@ -2930,7 +2930,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           console.error("Download Slip Error:", err);
           alert(`❌ GAGAL DOWNLOAD SLIP PNG:\n\n${err.message}`);
         } finally {
-          // 5️⃣ Bersihkan clone dari layar agar tidak menumpuk
           const tempClone = document.getElementById("temp-clone-slip");
           if (tempClone) document.body.removeChild(tempClone);
         }
@@ -4037,8 +4036,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         window.editSlipData = {
           slipId: slip.id,
           originalGrandTotal: slip.total_diterima,
-          originalKasbon: slip.kasbon || 0, // 🔥 TAMBAHKAN INI
-          originalLainLain: slip.lain_lain || [], // 🔥 TAMBAHKAN INI
           originalBonusTepat: slip.bonus_tepat_waktu || 0,
           originalBonusMingguan: slip.bonus_mingguan || 0,
           originalBonusKesehatan: slip.uang_kesehatan || 0,
@@ -4098,22 +4095,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       const elKasbon = document.getElementById("edit_kasbon");
       const kasbon = elKasbon ? parseFloat(elKasbon.value) || 0 : 0;
 
-      // 🔥 PERBAIKAN: Hitung Subtotal Murni (Kembalikan kasbon & lain-lain lama)
-      let subtotalMurni =
-        window.editSlipData.originalGrandTotal +
-        (window.editSlipData.originalKasbon || 0);
-
-      if (
-        window.editSlipData.originalLainLain &&
-        window.editSlipData.originalLainLain.length > 0
-      ) {
-        window.editSlipData.originalLainLain.forEach((item) => {
-          const nom = parseFloat(item.nominal) || 0;
-          if (item.tipe === "penambahan") subtotalMurni -= nom;
-          else if (item.tipe === "potongan") subtotalMurni += nom;
-        });
-      }
-
       let newGrandTotal = 0;
 
       if (isJerigen) {
@@ -4126,13 +4107,13 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         const elBonus = document.getElementById("edit_bonus_manual");
         const bonusManual = elBonus ? parseFloat(elBonus.value) || 0 : 0;
 
-        // 🔥 PERBAIKAN: Menggunakan subtotalMurni yang sudah dibersihkan dari potongan ganda
-        newGrandTotal = subtotalMurni + bonusManual - kasbon;
+        newGrandTotal =
+          window.editSlipData.originalGrandTotal + (bonusManual - kasbon);
         console.log(
-          `🧮 [DEBUG] Mode Normal Kalkulasi: ${subtotalMurni} + (${bonusManual} - ${kasbon}) = ${newGrandTotal}`,
+          `🧮 [DEBUG] Mode Normal Kalkulasi: ${window.editSlipData.originalGrandTotal} + (${bonusManual} - ${kasbon}) = ${newGrandTotal}`,
         );
 
-        // Render breakdown visual (TETAP DIPERTAHANKAN)
+        // Render breakdown visual
         const bTepat = window.editSlipData.originalBonusTepat || 0;
         const bMinggu = window.editSlipData.originalBonusMingguan || 0;
         const bSehat = window.editSlipData.originalBonusKesehatan || 0;
@@ -4173,7 +4154,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     };
 
     // --- 3. Fungsi Simpan Ke Database ---
-    // --- 3. Fungsi Simpan Ke Database ---
     window.submitEditSlip = async function () {
       console.log("📤 [DEBUG] Tombol Simpan Draf Ditekan!");
       if (!window.editSlipData) return alert("❌ Data slip tidak ditemukan!");
@@ -4195,23 +4175,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         lain_lain: window.dataLainLainRiwayat,
       };
 
-      // 🔥 PERBAIKAN: Hitung Subtotal Murni untuk Database
-      let subtotalMurni =
-        window.editSlipData.originalGrandTotal +
-        (window.editSlipData.originalKasbon || 0);
-
-      if (
-        window.editSlipData.originalLainLain &&
-        window.editSlipData.originalLainLain.length > 0
-      ) {
-        window.editSlipData.originalLainLain.forEach((item) => {
-          const nom = parseFloat(item.nominal) || 0;
-          if (item.tipe === "penambahan") subtotalMurni -= nom;
-          else if (item.tipe === "potongan") subtotalMurni += nom;
-        });
-      }
-
-      // 🔥 PERBAIKAN: Kalkulasi Nilai Baru
       if (isJerigen) {
         const tarif = window.editSlipData.tarifJerigen || 0;
         newTotal = jumlahJerigen * tarif - kasbon;
@@ -4219,11 +4182,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       } else {
         const elBonus = document.getElementById("edit_bonus_manual");
         const bonusManual = elBonus ? parseFloat(elBonus.value) || 0 : 0;
-        // Menggunakan subtotalMurni yang sudah bebas dari double deduction
-        newTotal = subtotalMurni + bonusManual - kasbon;
+        newTotal =
+          window.editSlipData.originalGrandTotal + (bonusManual - kasbon);
       }
 
-      // Masukkan komponen Lain-lain terbaru dari tabel
       if (window.dataLainLainRiwayat && window.dataLainLainRiwayat.length > 0) {
         window.dataLainLainRiwayat.forEach((item) => {
           const nom = parseFloat(item.nominal) || 0;

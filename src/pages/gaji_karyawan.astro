@@ -3011,7 +3011,8 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           }
         });
 
-        const grandTotal =
+        // Ubah dari const menjadi let agar bisa ditambah/dikurang
+        let grandTotal =
           totalGaji +
           totalLembur +
           totalMakan +
@@ -3025,6 +3026,15 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           totalNginep +
           totalBonusPenjemputan -
           totalKasbon;
+
+        // 🔥 TAMBAHKAN BLOK INI: Kalkulasi komponen dinamis (Lain-lain) ke Grand Total 🔥
+        Object.values(akumulasiLainLain).forEach((item) => {
+          if (item.tipe === "penambahan") {
+            grandTotal += Number(item.nominal) || 0;
+          } else if (item.tipe === "potongan") {
+            grandTotal -= Number(item.nominal) || 0;
+          }
+        });
 
         // 2️⃣ Suntik nilai ke template
         document.getElementById("slip-nama").innerText =

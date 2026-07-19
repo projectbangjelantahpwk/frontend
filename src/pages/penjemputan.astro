@@ -1004,6 +1004,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       tomDuetMobil,
       tomDuetDriver,
       tomDuetHelper;
+    let isFetchingDuet = false;
 
     // =======================================================
     // FUNGSI GANTI TAB SAKTI (UI + LOGIKA TANGGAL)
@@ -1402,33 +1403,26 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               maxOptions: null,
             });
 
-            // ==========================================
-            // 3. 🔥 PENCARIAN AUTO DUET BERDASARKAN DRIVER 🔥
-            // ==========================================
-            const tgl = document.getElementById("input_tanggal")?.value;
+            // 🔥 CEK GEMBOK: Hentikan eksekusi DB jika ini adalah trigger otomatis dari pemilihan Mobil
+            if (isFetchingDuet) return;
 
+            // 3. Pencarian Auto Duet Berdasarkan Driver
+            const tgl = document.getElementById("input_tanggal")?.value;
             if (selectedSupirId && tgl) {
-              console.log(`🔎 Cari pasangan duet untuk Driver pada ${tgl}`);
               try {
                 const { data } = await window.supabase
                   .from("partner_kendaraan")
-                  .select("helper_id, mobil_id") // ✅ FIX: Ganti dari 'mobil' jadi 'mobil_id'
+                  .select("helper_id, mobil_id")
                   .eq("tanggal", tgl)
                   .eq("driver_id", selectedSupirId)
                   .maybeSingle();
 
                 if (data) {
-                  console.log(
-                    "✅ Pasangan ditemukan! Auto-isi Helper dan Armada:",
-                    data,
-                  );
+                  isFetchingDuet = true; // Kunci gembok sebelum set nilai otomatis
                   if (data.helper_id) tomHelper.setValue(data.helper_id);
                   if (data.mobil_id && tomMobilPickup)
-                    tomMobilPickup.setValue(data.mobil_id); // ✅ FIX: Panggil data.mobil_id
-                } else {
-                  console.log(
-                    "ℹ️ Driver ini belum punya setingan duet di tanggal ini.",
-                  );
+                    tomMobilPickup.setValue(data.mobil_id);
+                  isFetchingDuet = false; // Buka gembok setelah selesai
                 }
               } catch (e) {
                 console.error("Gagal mencari data duet:", e);
@@ -1442,10 +1436,12 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         document
           .getElementById("input_mobil_pickup")
           .addEventListener("change", async function () {
+            // 🔥 CEK GEMBOK: Hentikan eksekusi DB jika ini adalah trigger otomatis dari pemilihan Driver
+            if (isFetchingDuet) return;
+
             const selectedMobilId = this.value;
             const tgl = document.getElementById("input_tanggal")?.value;
 
-            // Kalau Armada udah dipilih, otomatis cari siapa Driver & Helpernya!
             if (selectedMobilId && tgl) {
               try {
                 const { data } = await window.supabase
@@ -1456,18 +1452,17 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                   .maybeSingle();
 
                 if (data) {
-                  console.log(
-                    "✅ Armada dikenali! Auto-isi Driver dan Helper:",
-                    data,
-                  );
-                  // Set Driver
+                  isFetchingDuet = true; // Kunci gembok
+
+                  // Set Driver (Akan men-trigger onchange Driver, tapi DB fetch-nya akan diblokir oleh gembok)
                   if (data.driver_id && tomMobil)
                     tomMobil.setValue(data.driver_id);
 
-                  // Set Helper (Kasih jeda dikit biar logic driver gak bentrok)
+                  // Set Helper dengan jeda agar onchange Driver selesai me-rebuild dropdown Helper
                   setTimeout(() => {
                     if (data.helper_id && tomHelper)
                       tomHelper.setValue(data.helper_id);
+                    isFetchingDuet = false; // Buka gembok setelah semua proses selesai
                   }, 150);
                 }
               } catch (e) {

@@ -4037,6 +4037,8 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         window.editSlipData = {
           slipId: slip.id,
           originalGrandTotal: slip.total_diterima,
+          originalKasbon: slip.kasbon || 0, // 🔥 TAMBAHKAN INI
+          originalLainLain: slip.lain_lain || [], // 🔥 TAMBAHKAN INI
           originalBonusTepat: slip.bonus_tepat_waktu || 0,
           originalBonusMingguan: slip.bonus_mingguan || 0,
           originalBonusKesehatan: slip.uang_kesehatan || 0,
@@ -4096,6 +4098,22 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       const elKasbon = document.getElementById("edit_kasbon");
       const kasbon = elKasbon ? parseFloat(elKasbon.value) || 0 : 0;
 
+      // 🔥 PERBAIKAN: Hitung Subtotal Murni (Kembalikan kasbon & lain-lain lama)
+      let subtotalMurni =
+        window.editSlipData.originalGrandTotal +
+        (window.editSlipData.originalKasbon || 0);
+
+      if (
+        window.editSlipData.originalLainLain &&
+        window.editSlipData.originalLainLain.length > 0
+      ) {
+        window.editSlipData.originalLainLain.forEach((item) => {
+          const nom = parseFloat(item.nominal) || 0;
+          if (item.tipe === "penambahan") subtotalMurni -= nom;
+          else if (item.tipe === "potongan") subtotalMurni += nom;
+        });
+      }
+
       let newGrandTotal = 0;
 
       if (isJerigen) {
@@ -4108,13 +4126,13 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         const elBonus = document.getElementById("edit_bonus_manual");
         const bonusManual = elBonus ? parseFloat(elBonus.value) || 0 : 0;
 
-        newGrandTotal =
-          window.editSlipData.originalGrandTotal + (bonusManual - kasbon);
+        // 🔥 PERBAIKAN: Menggunakan subtotalMurni yang sudah dibersihkan dari potongan ganda
+        newGrandTotal = subtotalMurni + bonusManual - kasbon;
         console.log(
-          `🧮 [DEBUG] Mode Normal Kalkulasi: ${window.editSlipData.originalGrandTotal} + (${bonusManual} - ${kasbon}) = ${newGrandTotal}`,
+          `🧮 [DEBUG] Mode Normal Kalkulasi: ${subtotalMurni} + (${bonusManual} - ${kasbon}) = ${newGrandTotal}`,
         );
 
-        // Render breakdown visual
+        // Render breakdown visual (TETAP DIPERTAHANKAN)
         const bTepat = window.editSlipData.originalBonusTepat || 0;
         const bMinggu = window.editSlipData.originalBonusMingguan || 0;
         const bSehat = window.editSlipData.originalBonusKesehatan || 0;
@@ -4176,6 +4194,22 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         lain_lain: window.dataLainLainRiwayat,
       };
 
+      // 1. Hitung Subtotal Murni
+      let subtotalMurni =
+        window.editSlipData.originalGrandTotal +
+        (window.editSlipData.originalKasbon || 0);
+      if (
+        window.editSlipData.originalLainLain &&
+        window.editSlipData.originalLainLain.length > 0
+      ) {
+        window.editSlipData.originalLainLain.forEach((item) => {
+          const nom = parseFloat(item.nominal) || 0;
+          if (item.tipe === "penambahan") subtotalMurni -= nom;
+          else if (item.tipe === "potongan") subtotalMurni += nom;
+        });
+      }
+
+      // 2. Kalkulasi Nilai Baru
       if (isJerigen) {
         const tarif = window.editSlipData.tarifJerigen || 0;
         newTotal = jumlahJerigen * tarif - kasbon;
@@ -4183,10 +4217,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       } else {
         const elBonus = document.getElementById("edit_bonus_manual");
         const bonusManual = elBonus ? parseFloat(elBonus.value) || 0 : 0;
-        newTotal =
-          window.editSlipData.originalGrandTotal + (bonusManual - kasbon);
+        newTotal = subtotalMurni + bonusManual - kasbon;
       }
 
+      // 3. Masukkan komponen Lain-lain terbaru
       if (window.dataLainLainRiwayat && window.dataLainLainRiwayat.length > 0) {
         window.dataLainLainRiwayat.forEach((item) => {
           const nom = parseFloat(item.nominal) || 0;

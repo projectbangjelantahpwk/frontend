@@ -4173,6 +4173,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     };
 
     // --- 3. Fungsi Simpan Ke Database ---
+    // --- 3. Fungsi Simpan Ke Database ---
     window.submitEditSlip = async function () {
       console.log("📤 [DEBUG] Tombol Simpan Draf Ditekan!");
       if (!window.editSlipData) return alert("❌ Data slip tidak ditemukan!");
@@ -4194,10 +4195,11 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         lain_lain: window.dataLainLainRiwayat,
       };
 
-      // 1. Hitung Subtotal Murni
+      // 🔥 PERBAIKAN: Hitung Subtotal Murni untuk Database
       let subtotalMurni =
         window.editSlipData.originalGrandTotal +
         (window.editSlipData.originalKasbon || 0);
+
       if (
         window.editSlipData.originalLainLain &&
         window.editSlipData.originalLainLain.length > 0
@@ -4209,7 +4211,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         });
       }
 
-      // 2. Kalkulasi Nilai Baru
+      // 🔥 PERBAIKAN: Kalkulasi Nilai Baru
       if (isJerigen) {
         const tarif = window.editSlipData.tarifJerigen || 0;
         newTotal = jumlahJerigen * tarif - kasbon;
@@ -4217,10 +4219,11 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       } else {
         const elBonus = document.getElementById("edit_bonus_manual");
         const bonusManual = elBonus ? parseFloat(elBonus.value) || 0 : 0;
+        // Menggunakan subtotalMurni yang sudah bebas dari double deduction
         newTotal = subtotalMurni + bonusManual - kasbon;
       }
 
-      // 3. Masukkan komponen Lain-lain terbaru
+      // Masukkan komponen Lain-lain terbaru dari tabel
       if (window.dataLainLainRiwayat && window.dataLainLainRiwayat.length > 0) {
         window.dataLainLainRiwayat.forEach((item) => {
           const nom = parseFloat(item.nominal) || 0;

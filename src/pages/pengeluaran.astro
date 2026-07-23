@@ -1316,14 +1316,16 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           .select("id")
           .eq("user_id", userId)
           .eq("tanggal", tanggalStr)
-          .eq("sumber_dana", sumberDana)
-          .maybeSingle();
+          // .eq("sumber_dana", sumberDana) <-- Biarkan ini DIHAPUS
+          .order("created_at", { ascending: false }) // 🔥 TAMBAH INI: Urutkan dari yang terbaru
+          .limit(1); // 🔥 GANTI .maybeSingle() JADI INI: Ambil 1 data teratas aja
 
         if (errCheck) throw errCheck;
 
         let pengeluaranId;
-        if (existing) {
-          pengeluaranId = existing.id;
+        if (existing && existing.length > 0) {
+          // 🔥 UBAH PENGECEKANNYA JADI GINI
+          pengeluaranId = existing[0].id;
         } else {
           const { data: inserted, error: errInsert } = await window.supabase
             .from("pengeluaran")
@@ -1333,7 +1335,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               total_harian: 0,
               status_approval: "Menunggu",
               sumber_dana: sumberDana,
-              // 🔥 mitra_id tidak usah dimasukkan ke sini
             })
             .select("id")
             .single();
@@ -1383,7 +1384,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     };
 
     // ==========================================
-    // 🔥 FUNGSI KEMBALIKAN SISA UANG JALAN KE GUDANG 🔥
+    // 🔥 FUNGSI KEMBALIKAN SISA UANG JALAN KE GUDANG (REVISI KASBON) 🔥
     // ==========================================
     window.simpanSisaUangJalan = async function (
       rincianId,
@@ -1391,6 +1392,8 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       sumberDanaAsli,
       pengeluaranId,
     ) {
+      if (!window.supabase) return;
+      
       // Ambil User ID dari pengeluaran Induk untuk jaga-jaga kalau ada Kasbon
       const { data: pData } = await window.supabase
         .from("pengeluaran")
@@ -1405,27 +1408,55 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         sisaNominalSistem,
       );
 
-      if (inputNominal === null) return;
+      if (inputNominal === null) return; // Dibatalkan oleh admin
 
       const setorFisik = parseInt(inputNominal.replace(/[^0-9]/g, "")) || 0;
 
       if (setorFisik > sisaNominalSistem) {
         return alert(
-          "❌ Gagal! Nominal setor tidak boleh lebih besar dari sisa uang jalan di sistem.",
+          "❌ Gagal! Nominal setor uang fisik tidak boleh lebih besar dari sisa Uang Jalan di sistem.",
         );
       }
 
       const selisihKasbon = sisaNominalSistem - setorFisik;
 
-      let msgConfirm = `Rincian Penutupan:\n- Setor uang fisik: Rp ${setorFisik.toLocaleString("id-ID")} (Menambah Uang Gudang)`;
+      // 🔥 LOGIKA BARU: PENCEGATAN SELISIH UANG 🔥
       if (selisihKasbon > 0) {
-        msgConfirm += `\n- Kurang setor: Rp ${selisihKasbon.toLocaleString("id-ID")} ⚠️\n\nSistem akan OTOMATIS mencatat selisih ini sebagai KASBON dan memotong gaji driver!`;
+        const pilihan = prompt(
+          `⚠️ TERDETEKSI SELISIH KURANG: Rp ${selisihKasbon.toLocaleString("id-ID")}\n\n` +
+          `Uang fisik yang disetor lebih sedikit dari catatan sistem. Apa alasan selisih ini?\n` +
+          `Ketik 1 = KASBON (Uang terpakai pribadi/hilang, akan memotong slip gaji)\n` +
+          `Ketik 2 = PERBAIKAN (Ada struk bensin/tol/dll yang lupa diinput admin)`
+        );
+
+        if (pilihan === "2") {
+          return alert("🛑 Proses Dibatalkan!\n\nSilakan input dulu pengeluaran (Bensin/Parkir) yang kelupaan tersebut ke dalam sistem. Setelah di-ACC, sisa Uang Jalan akan otomatis berkurang dengan benar.");
+        } else if (pilihan === "1") {
+          const konfirmasiKasbon = confirm(
+            `RINCIAN PENUTUPAN AKHIR:\n` +
+            `- Uang fisik disetor: Rp ${setorFisik.toLocaleString("id-ID")} (Masuk ke Kas Gudang)\n` +
+            `- KASBON DADAKAN: Rp ${selisihKasbon.toLocaleString("id-ID")}\n\n` +
+            `Sistem akan mencatat selisih ini sebagai "Kasbon Uang Jalan" yang akan otomatis memotong Slip Gaji minggu ini. Lanjutkan proses?`
+          );
+          if (!konfirmasiKasbon) return;
+        } else {
+          return alert("❌ Pilihan tidak valid. Proses dibatalkan.");
+        }
+      } else {
+         // Jika uangnya pas (selisih 0)
+         const konfirmasiPas = confirm(
+           `RINCIAN PENUTUPAN AKHIR:\n` +
+           `- Uang fisik disetor: Rp ${setorFisik.toLocaleString("id-ID")} (Masuk ke Kas Gudang)\n\n` +
+           `Sisa uang jalan sesuai (tidak ada selisih). Lanjutkan proses?`
+         );
+         if (!konfirmasiPas) return;
       }
-      msgConfirm += `\n\nLanjutkan proses?`;
 
-      if (!confirm(msgConfirm)) return;
-
+      // 🚀 EKSEKUSI KE BACKEND
       try {
+        const btnBuka = document.activeElement; 
+        if(btnBuka) btnBuka.innerText = "Memproses...";
+
         // Tembak langsung ke Edge Function biar dieksekusi di server!
         const { data, error } = await window.supabase.functions.invoke(
           "tutup-uang-jalan",
@@ -1443,10 +1474,11 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         if (error) throw new Error(error.message);
         if (data && data.success === false) throw new Error(data.error);
 
-        alert("Mantap! Uang sisa berhasil ditambahkan ke laci Gudang.");
+        alert("✅ Mantap! Uang sisa berhasil ditambahkan ke laci Gudang dan catatan berhasil disesuaikan.");
         window.location.reload();
       } catch (e) {
-        alert("Gagal memproses penyetoran sisa uang: " + e.message);
+        alert("❌ Gagal memproses penyetoran sisa uang: " + e.message);
+        window.location.reload();
       }
     };
   });

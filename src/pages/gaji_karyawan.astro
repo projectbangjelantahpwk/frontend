@@ -583,6 +583,31 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                 >
               </div>
             </div>
+            <div
+              class="col-span-2 bg-indigo-50 p-3.5 rounded-xl border border-indigo-200 mt-2"
+            >
+              <label class="flex items-center justify-between cursor-pointer">
+                <div class="pr-4">
+                  <span
+                    class="text-xs font-black text-indigo-900 uppercase tracking-wide block"
+                  >
+                    <i class="bi bi-stopwatch-fill mr-1"></i> Mode Jam Bebas (Durasi)
+                  </span>
+                  <span
+                    class="text-[10px] text-indigo-700 block font-semibold mt-0.5 leading-relaxed"
+                  >
+                    Gaji pokok dihitung per menit dari durasi kedatangan
+                    (Maksimal 9 Jam). Bebas jam telat.
+                  </span>
+                </div>
+                <input
+                  type="checkbox"
+                  id="chk_jam_bebas"
+                  onchange="window.kalkulasiRealtimeGaji();"
+                  class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer shrink-0"
+                />
+              </label>
+            </div>
           </div>
 
           <div
@@ -607,12 +632,20 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                 >
               </div>
             </div>
+
+            <!-- 🔥 TAHAP 2: WADAH ALERT KASBON UANG JALAN 🔥 -->
+            <div
+              id="alert_kasbon_uang_jalan"
+              class="hidden mb-3 text-[10px] bg-red-100 border border-red-300 text-red-800 p-2.5 rounded-lg shadow-sm font-medium leading-relaxed"
+            >
+            </div>
+
             <input
               type="number"
               id="potongan_kasbon_sekarang"
               onchange="window.kalkulasiRealtimeGaji()"
               class="w-full border border-red-300 bg-white text-red-900 font-bold font-mono rounded-lg p-2.5 text-sm outline-none focus:border-red-600 shadow-inner"
-              placeholder="Ketik nominal potongan..."
+              placeholder="Ketik nominal potongan hutang lama (opsional)..."
             />
           </div>
 
@@ -1873,6 +1906,9 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       const chkJerigen = document.getElementById("chk_gaji_jerigen");
       if (chkJerigen) chkJerigen.checked = setup.is_gaji_jerigen || false;
 
+      const chkJamBebas = document.getElementById("chk_jam_bebas");
+      if (chkJamBebas) chkJamBebas.checked = setup.is_jam_bebas || false;
+
       // 🔥 PERBAIKAN ERROR VALUE JERIGEN 🔥
       // Pakai pengaman IF karena beberapa form jerigen sudah kita hapus dari HTML
       const InpTarifJerigen = document.getElementById("setup_tarif_jerigen");
@@ -2102,6 +2138,19 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
         const res = data?.data || {};
 
+        // 🔥 TAHAP 2: MUNCULKAN NOTIFIKASI KASBON DADAKAN DI FORM SETUP 🔥
+        const alertKasbonUj = document.getElementById(
+          "alert_kasbon_uang_jalan",
+        );
+        if (alertKasbonUj) {
+          if (res.kasbonUangJalan && res.kasbonUangJalan > 0) {
+            alertKasbonUj.innerHTML = `⚠️ <b>PERHATIAN:</b> Sistem mendeteksi adanya <b>Kasbon Uang Jalan (Dadakan)</b> sebesar <b class="font-mono text-red-900">Rp ${res.kasbonUangJalan.toLocaleString("id-ID")}</b> pada rentang tanggal ini. Angka tersebut akan otomatis ditambahkan ke total potongan slip gaji di sebelah kanan.`;
+            alertKasbonUj.classList.remove("hidden");
+          } else {
+            alertKasbonUj.classList.add("hidden");
+          }
+        }
+
         const isJerigen = document.getElementById("chk_gaji_jerigen")?.checked;
         if (isJerigen && document.getElementById("info_total_jerigen_minggu")) {
           document.getElementById("info_total_jerigen_minggu").innerText =
@@ -2164,7 +2213,9 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             
             ${res.valTalangan > 0 ? `<div class="flex justify-between text-xs text-green-700 font-bold border-t border-dashed border-gray-300 mt-2 pt-2"><span>Uang Talangan (Reimbursement)</span> <span>+ Rp ${res.valTalangan.toLocaleString("id-ID")}</span></div>` : ""}
 
-            ${res.valPotonganKasbon > 0 ? `<div class="flex justify-between text-xs text-red-600 font-bold border-t border-dashed border-gray-300 mt-2 pt-2"><span>Potongan Kasbon Periode Ini</span> <span>- Rp ${res.valPotonganKasbon.toLocaleString("id-ID")}</span></div>` : ""}
+            ${res.potonganKasbonDasar > 0 ? `<div class="flex justify-between text-xs text-red-600 font-bold border-t border-dashed border-gray-300 mt-2 pt-2"><span>Potongan Kasbon (Hutang Dasar)</span> <span>- Rp ${res.potonganKasbonDasar.toLocaleString("id-ID")}</span></div>` : ""}
+            
+            ${res.kasbonUangJalan > 0 ? `<div class="flex justify-between text-xs text-red-700 font-black bg-red-100/80 p-2 rounded-lg mt-1 border border-red-200 shadow-sm"><span>⚠️ Kasbon Uang Jalan (Dadakan)</span> <span>- Rp ${res.kasbonUangJalan.toLocaleString("id-ID")}</span></div>` : ""}
             
             ${htmlLainLainPreview}
         `;
@@ -2503,6 +2554,8 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         siklus_gaji: document.getElementById("setup_siklus_gaji").value, // TAMBAHAN BARU
         gaji_menit:
           parseFloat(document.getElementById("setup_gaji_pokok")?.value) || 0,
+        is_jam_bebas:
+          document.getElementById("chk_jam_bebas")?.checked || false,
         uang_lembur_menit:
           parseFloat(document.getElementById("setup_lembur_menit")?.value) || 0,
         uang_makan:

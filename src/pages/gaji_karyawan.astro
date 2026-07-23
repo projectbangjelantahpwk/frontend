@@ -585,6 +585,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             </div>
           </div>
           <div
+            id="blok_jam_bebas"
             class="col-span-2 bg-indigo-50 p-3.5 rounded-xl border border-indigo-200 mt-2"
           >
             <label class="flex items-center justify-between cursor-pointer">
@@ -601,10 +602,11 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                   9 Jam). Bebas jam telat.
                 </span>
               </div>
+              <!-- WAJIB TAMBAHKAN FUNGSI BARU DI ONCHANGE INI -->
               <input
                 type="checkbox"
                 id="chk_jam_bebas"
-                onchange="window.kalkulasiRealtimeGaji();"
+                onchange="window.toggleJamBebas(); window.kalkulasiRealtimeGaji();"
                 class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer shrink-0"
               />
             </label>
@@ -1789,15 +1791,24 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       const siklus = document.getElementById("setup_siklus_gaji").value;
       const labelGaji = document.getElementById("label_gaji_pokok");
 
-      if (siklus === "Bulanan") labelGaji.innerText = "Gaji Pokok Bulanan (Rp)";
-      else if (siklus === "Harian")
-        labelGaji.innerText = "Gaji Pokok Harian (Rp)";
-      else labelGaji.innerText = "Gaji Pokok Mingguan (Rp)";
+      // Deteksi apakah jam bebas aktif
+      const chkJamBebas = document.getElementById("chk_jam_bebas");
+      const isJB = chkJamBebas ? chkJamBebas.checked : false;
+
+      // 🔥 LOGIKA LABEL BARU
+      if (isJB) {
+        labelGaji.innerText = "Gaji Pokok per Menit (Rp)";
+      } else {
+        if (siklus === "Bulanan")
+          labelGaji.innerText = "Gaji Pokok Bulanan (Rp)";
+        else if (siklus === "Harian")
+          labelGaji.innerText = "Gaji Pokok Harian (Rp)";
+        else labelGaji.innerText = "Gaji Pokok Mingguan (Rp)";
+      }
 
       if (window.currentSalaryData) {
         window.currentSalaryData.siklusGaji = siklus;
 
-        // 🔥 CARA AMAN AMBIL TANGGAL HARI INI (Tanpa hitung-hitungan offset yang bikin eror)
         const today = new Date();
         const year = today.getFullYear();
         const month = String(today.getMonth() + 1).padStart(2, "0");
@@ -1808,31 +1819,24 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
         if (siklus === "Bulanan") {
           tglMulai = `${year}-${month}-01`;
-          // Tembak akhir bulan dengan trik hari ke-0 bulan depan
           const dAkhir = new Date(year, today.getMonth() + 1, 0);
           tglAkhir = `${year}-${month}-${String(dAkhir.getDate()).padStart(2, "0")}`;
         } else if (siklus === "Harian") {
-          // Fix Mutlak Hari Ini
           tglMulai = strHariIni;
           tglAkhir = strHariIni;
         } else {
-          // Siklus Mingguan
-          const h = today.getDay() || 7; // Hari ini (1-7, 1=Senin)
+          const h = today.getDay() || 7;
           const senin = new Date(today);
           senin.setDate(today.getDate() - (h - 1));
-
           const mSenin = String(senin.getMonth() + 1).padStart(2, "0");
           const dSenin = String(senin.getDate()).padStart(2, "0");
           tglMulai = `${senin.getFullYear()}-${mSenin}-${dSenin}`;
-
           const minggu = new Date(senin);
-          minggu.setDate(senin.getDate() + 6); // Tarik 6 hari ke depan (Sampai Minggu)
-
+          minggu.setDate(senin.getDate() + 6);
           const mMinggu = String(minggu.getMonth() + 1).padStart(2, "0");
           const dMinggu = String(minggu.getDate()).padStart(2, "0");
           tglAkhir = `${minggu.getFullYear()}-${mMinggu}-${dMinggu}`;
         }
-
         window.currentSalaryData.tglMulai = tglMulai;
         window.currentSalaryData.tglAkhir = tglAkhir;
       }
@@ -1921,12 +1925,15 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       window.toggleGajiJerigen = function () {
         const chkJerigen = document.getElementById("chk_gaji_jerigen");
         const opsiJerigen = document.getElementById("opsi_jerigen");
+        const blokJamBebas = document.getElementById("blok_jam_bebas");
 
         if (chkJerigen && opsiJerigen) {
           const isJ = chkJerigen.checked;
           opsiJerigen.style.display = isJ ? "block" : "none";
 
-          // Daftar ID input komponen reguler yang harus disembunyikan jika mode jerigen aktif
+          // 🔥 Sembunyikan Jam Bebas jika Jerigen dicentang
+          if (blokJamBebas) blokJamBebas.style.display = isJ ? "none" : "block";
+
           const nonJerigenIds = [
             "setup_siklus_gaji",
             "setup_gaji_pokok",
@@ -1942,30 +1949,41 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             "setup_uang_nginep",
             "setup_uang_kesehatan",
             "tambahan_talangan_sekarang",
-            "blok_jam_bebas",
           ];
-
           nonJerigenIds.forEach((id) => {
             const el = document.getElementById(id);
             if (el) {
               el.disabled = isJ;
-              // Cari elemen pembungkus grid terdekat (col-span-2 atau col-span-1)
               const wrapper =
                 el.closest(".col-span-2, .col-span-1") || el.parentElement;
               if (wrapper) {
-                if (isJ) {
-                  wrapper.classList.add("hidden");
-                } else {
-                  wrapper.classList.remove("hidden");
-                }
+                if (isJ) wrapper.classList.add("hidden");
+                else wrapper.classList.remove("hidden");
               }
             }
           });
         }
       };
 
+      // 🔥 FUNGSI BARU: MODE JAM BEBAS 🔥
+      window.toggleJamBebas = function () {
+        const chkJamBebas = document.getElementById("chk_jam_bebas");
+        const blokJerigen = document.getElementById("blok_jerigen");
+
+        if (chkJamBebas) {
+          const isJB = chkJamBebas.checked;
+
+          // Sembunyikan Jerigen jika Jam Bebas dicentang
+          if (blokJerigen) blokJerigen.style.display = isJB ? "none" : "block";
+
+          // Trigger perubahan label Gaji Pokok
+          window.ubahSiklusUI();
+        }
+      };
+
       // 2. Baru panggil fungsinya
       window.toggleGajiJerigen();
+      window.toggleJamBebas();
 
       // 🔴 CEK APAKAH EDIT SLIP LAMA (dari riwayat) 🔴
       let slipLama = null;

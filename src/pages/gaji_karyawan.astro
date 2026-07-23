@@ -2424,10 +2424,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         // LEMPAR KE KASIR SPLIT PAYMENT
         document.getElementById("kasir_total_tagihan").innerText =
           `Rp ${window.currentSalaryData.finalState.grandTotal.toLocaleString("id-ID")}`;
-        document.getElementById("kasir_keuangan").value =
-          window.currentSalaryData.finalState.grandTotal; // Default isi semua ke Keuangan
+        document.getElementById("kasir_owner").value =
+          window.currentSalaryData.finalState.grandTotal;
+        document.getElementById("kasir_keuangan").value = 0;
         document.getElementById("kasir_gudang").value = 0;
-        document.getElementById("kasir_owner").value = 0;
         window.kalkulasiKasir();
         window.openModal("modal-kasir-gaji");
       } else {
@@ -2489,6 +2489,14 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       // 🔥 WAJIB TAMBAH INI: Biar jumlah jerigen nggak hilang/nol saat tombol bayar ditekan
       const jm = document.getElementById("input_jerigen_manual")?.value;
 
+      // 🔥 BACA INPUT KASIR SPLIT
+      const valKeuangan =
+        parseFloat(document.getElementById("kasir_keuangan")?.value) || 0;
+      const valGudang =
+        parseFloat(document.getElementById("kasir_gudang")?.value) || 0;
+      const valOwner =
+        parseFloat(document.getElementById("kasir_owner")?.value) || 0;
+
       try {
         const { data, error } = await window.supabase.functions.invoke(
           "gaji-karyawan",
@@ -2506,6 +2514,12 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               siklusGaji: d.siklusGaji,
               // Lempar data jerigen ke Deno saat bayar
               jumlahJerigenManual: jm === "" || !jm ? null : parseFloat(jm),
+              lain_lain_manual: window.dataLainLain,
+
+              // 🔥 KIRIM DATA SUMBER KAS KE DENO
+              kasKeuanganTerpakai: overrideStatus === "ACC" ? valKeuangan : 0,
+              kasGudangTerpakai: overrideStatus === "ACC" ? valGudang : 0,
+              kasOwnerTerpakai: overrideStatus === "ACC" ? valOwner : 0,
             },
           },
         );
@@ -4002,28 +4016,32 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         };
 
         // 🔥 LOGIKA KEUANGAN (Tetap sama seperti aslinya)
+        // 🔥 LOGIKA KEUANGAN (Ubah Potong Saldo Owner)
         if (status === "ACC" || status === "Disetujui") {
           const selisih = totalBaru - totalLama;
           if (selisih !== 0) {
             const { data: kasData } = await window.supabase
               .from("kas_perusahaan")
-              .select("uang_keuangan")
+              .select("uang_owner") // <-- Tarik data uang owner
               .eq("id", 1)
               .single();
-            let saldoKeuangan = parseFloat(kasData?.uang_keuangan) || 0;
+            let saldoOwner = parseFloat(kasData?.uang_owner) || 0;
 
-            if (selisih > 0 && saldoKeuangan < selisih) {
+            if (selisih > 0 && saldoOwner < selisih) {
               throw new Error(
-                `Saldo Uang Keuangan tidak cukup untuk nombokin selisih Rp ${selisih.toLocaleString("id-ID")}`,
+                `Saldo Uang Owner tidak cukup untuk nombokin selisih Rp ${selisih.toLocaleString("id-ID")}`,
               );
             }
 
+            // Update saldo owner
             await window.supabase
               .from("kas_perusahaan")
-              .update({ uang_keuangan: saldoKeuangan - selisih })
+              .update({ uang_owner: saldoOwner - selisih })
               .eq("id", 1);
 
-            payload.kas_keuangan_terpakai = totalBaru;
+            payload.kas_owner_terpakai = totalBaru; // <-- Tandai di slip gaji
+            payload.kas_keuangan_terpakai = 0; // <-- Nolkan data lama (jika ada)
+            payload.kas_gudang_terpakai = 0; // <-- Nolkan data lama
           }
         }
 
@@ -4400,11 +4418,9 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       });
 
       // Gunakan ulang modal Kasir
-      document.getElementById("kasir_total_tagihan").innerText =
-        `Rp ${total.toLocaleString("id-ID")}`;
-      document.getElementById("kasir_keuangan").value = total;
+      document.getElementById("kasir_owner").value = total;
+      document.getElementById("kasir_keuangan").value = 0;
       document.getElementById("kasir_gudang").value = 0;
-      document.getElementById("kasir_owner").value = 0;
       window.kalkulasiKasir();
 
       // Hijack tombol eksekusi untuk mode massal
@@ -4641,6 +4657,137 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       window.dataLainLainACC.splice(index, 1);
       window.renderLainLainACC();
       window.hitungTotalEditRiwayat();
+    };
+    // ==========================================
+    // 🚀 FITUR FINAL: EKSEKUSI BAYAR MASSAL (BATCH APPROVAL)
+    // ==========================================
+    window.eksekusiBayarMassal = async function () {
+      if (!window.batchSelectedIds || window.batchSelectedIds.length === 0)
+        return;
+
+      const btn = document.getElementById("btn-eksekusi-bayar");
+      btn.innerText = "Memproses Massal... Jangan Tutup Browser!";
+      btn.disabled = true;
+
+      try {
+        // 1. Ambil Inputan Split Payment Kasir
+        const vKeu =
+          parseFloat(document.getElementById("kasir_keuangan").value) || 0;
+        const vGud =
+          parseFloat(document.getElementById("kasir_gudang").value) || 0;
+        const vOwn =
+          parseFloat(document.getElementById("kasir_owner").value) || 0;
+        const totalBayarKasir = vKeu + vGud + vOwn;
+
+        // 2. Potong Kas Perusahaan Secara Global
+        const { data: kasLama, error: errKas } = await window.supabase
+          .from("kas_perusahaan")
+          .select("*")
+          .eq("id", 1)
+          .single();
+        if (errKas) throw errKas;
+
+        if (
+          kasLama.uang_keuangan < vKeu ||
+          kasLama.uang_gudang < vGud ||
+          kasLama.uang_owner < vOwn
+        ) {
+          throw new Error(
+            "❌ Saldo di salah satu Kas Perusahaan tidak mencukupi!",
+          );
+        }
+
+        await window.supabase
+          .from("kas_perusahaan")
+          .update({
+            uang_keuangan: kasLama.uang_keuangan - vKeu,
+            uang_gudang: kasLama.uang_gudang - vGud,
+            uang_owner: kasLama.uang_owner - vOwn,
+          })
+          .eq("id", 1);
+
+        // 3. Eksekusi Pembayaran Tiap Slip Terpilih (Looping)
+        for (const slipId of window.batchSelectedIds) {
+          const slip = window.currentFilteredRiwayat.find(
+            (s) => String(s.id) === String(slipId),
+          );
+          if (!slip) continue;
+
+          // a. Update Status Slip jadi LUNAS (ACC) dan Pecah Proporsi Kasir
+          await window.supabase
+            .from("slip_gaji")
+            .update({
+              status: "ACC",
+              // Proporsikan pencatatan kas agar akurat per slip
+              kas_keuangan_terpakai:
+                totalBayarKasir > 0
+                  ? (vKeu / totalBayarKasir) * slip.total_diterima
+                  : 0,
+              kas_owner_terpakai:
+                totalBayarKasir > 0
+                  ? (vOwn / totalBayarKasir) * slip.total_diterima
+                  : 0,
+              kas_gudang_terpakai:
+                totalBayarKasir > 0
+                  ? (vGud / totalBayarKasir) * slip.total_diterima
+                  : 0,
+            })
+            .eq("id", slipId);
+
+          // b. Kurangi Hutang Asli di 'setup_gaji' & Lunaskan 'Kasbon Uang Jalan'
+          if (slip.kasbon > 0) {
+            // Tarik data setup gaji
+            const { data: setup } = await window.supabase
+              .from("setup_gaji")
+              .select("id, kasbon")
+              .eq("user_id", slip.user_id)
+              .single();
+
+            if (setup) {
+              const sisaHutangBaru = Math.max(
+                0,
+                (parseFloat(setup.kasbon) || 0) - slip.kasbon,
+              );
+              await window.supabase
+                .from("setup_gaji")
+                .update({ kasbon: sisaHutangBaru })
+                .eq("id", setup.id);
+            }
+
+            // Sinkronisasi Kasbon Uang Jalan Dadakan biar nggak ketagih 2x
+            const dEnd = new Date(slip.periode);
+            const dStart = new Date(dEnd);
+            dStart.setDate(dEnd.getDate() - 6); // Asumsi rentang waktu 1 minggu
+            const tglMulai = dStart.toISOString().split("T")[0];
+
+            const { data: listP } = await window.supabase
+              .from("pengeluaran")
+              .select("id")
+              .eq("user_id", slip.user_id)
+              .gte("tanggal", tglMulai)
+              .lte("tanggal", slip.periode);
+
+            if (listP && listP.length > 0) {
+              const arrIds = listP.map((p) => p.id);
+              await window.supabase
+                .from("rincian_pengeluaran")
+                .update({ keterangan_bayar: true })
+                .in("pengeluaran_id", arrIds)
+                .eq("nama_item", "Kasbon Uang Jalan")
+                .eq("keterangan_bayar", false);
+            }
+          }
+        }
+
+        alert(
+          `✅ SIKAT HABIS! ${window.batchSelectedIds.length} Slip Gaji (Draf) berhasil dibayar secara massal!`,
+        );
+        window.location.reload();
+      } catch (err) {
+        alert("🚨 GAGAL PROSES MASSAL:\n\n" + err.message);
+        btn.innerText = "BAYAR MASSAL";
+        btn.disabled = false;
+      }
     };
   });
 </script>

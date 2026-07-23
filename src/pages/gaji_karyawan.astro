@@ -583,33 +583,32 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                 >
               </div>
             </div>
-            <div
-              class="col-span-2 bg-indigo-50 p-3.5 rounded-xl border border-indigo-200 mt-2"
-            >
-              <label class="flex items-center justify-between cursor-pointer">
-                <div class="pr-4">
-                  <span
-                    class="text-xs font-black text-indigo-900 uppercase tracking-wide block"
-                  >
-                    <i class="bi bi-stopwatch-fill mr-1"></i> Mode Jam Bebas (Durasi)
-                  </span>
-                  <span
-                    class="text-[10px] text-indigo-700 block font-semibold mt-0.5 leading-relaxed"
-                  >
-                    Gaji pokok dihitung per menit dari durasi kedatangan
-                    (Maksimal 9 Jam). Bebas jam telat.
-                  </span>
-                </div>
-                <input
-                  type="checkbox"
-                  id="chk_jam_bebas"
-                  onchange="window.kalkulasiRealtimeGaji();"
-                  class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer shrink-0"
-                />
-              </label>
-            </div>
           </div>
-
+          <div
+            class="col-span-2 bg-indigo-50 p-3.5 rounded-xl border border-indigo-200 mt-2"
+          >
+            <label class="flex items-center justify-between cursor-pointer">
+              <div class="pr-4">
+                <span
+                  class="text-xs font-black text-indigo-900 uppercase tracking-wide block"
+                >
+                  <i class="bi bi-stopwatch-fill mr-1"></i> Mode Jam Bebas (Durasi)
+                </span>
+                <span
+                  class="text-[10px] text-indigo-700 block font-semibold mt-0.5 leading-relaxed"
+                >
+                  Gaji pokok dihitung per menit dari durasi kedatangan (Maksimal
+                  9 Jam). Bebas jam telat.
+                </span>
+              </div>
+              <input
+                type="checkbox"
+                id="chk_jam_bebas"
+                onchange="window.kalkulasiRealtimeGaji();"
+                class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer shrink-0"
+              />
+            </label>
+          </div>
           <div
             class="col-span-2 border-t border-dashed border-gray-300 pt-3 mt-1"
           >
@@ -1943,6 +1942,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             "setup_uang_nginep",
             "setup_uang_kesehatan",
             "tambahan_talangan_sekarang",
+            "blok_jam_bebas",
           ];
 
           nonJerigenIds.forEach((id) => {

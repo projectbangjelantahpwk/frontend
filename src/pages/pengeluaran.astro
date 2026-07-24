@@ -1317,7 +1317,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           .eq("user_id", userId)
           .eq("tanggal", tanggalStr)
           // .eq("sumber_dana", sumberDana) <-- Biarkan ini DIHAPUS
-          .order("created_at", { ascending: false }) // 🔥 TAMBAH INI: Urutkan dari yang terbaru
+          .order("updated_at", { ascending: false }) // 🔥 TAMBAH INI: Urutkan dari yang terbaru
           .limit(1); // 🔥 GANTI .maybeSingle() JADI INI: Ambil 1 data teratas aja
 
         if (errCheck) throw errCheck;

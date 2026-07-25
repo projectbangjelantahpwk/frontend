@@ -2178,6 +2178,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         }
 
         const isJerigen = document.getElementById("chk_gaji_jerigen")?.checked;
+        const isJamBebas = document.getElementById("chk_jam_bebas")?.checked;
         if (isJerigen && document.getElementById("info_total_jerigen_minggu")) {
           document.getElementById("info_total_jerigen_minggu").innerText =
             `${res.jumlahJerigen || 0} Pcs`;
@@ -2187,7 +2188,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
         const labelGajiPokok = isJerigen
           ? `Gaji Jerigen (${res.jumlahJerigen || 0} Pcs)`
-          : `Gaji Pokok Proporsional (${res.hariKerjaNormal || 0} Hari)`;
+          : isJamBebas 
+            ? `Gaji Pokok Jam Bebas (${res.totalMenitKerjaAktual || 0} Menit)`
+            : `Gaji Pokok Proporsional (${res.hariKerjaNormal || 0} Hari)`;
+            
         const labelBonus = isJerigen
           ? `Bonus Jerigen (Mode Khusus)`
           : `Bonus Tambahan`;

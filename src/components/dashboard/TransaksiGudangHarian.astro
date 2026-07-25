@@ -273,6 +273,11 @@ const defaultMonth = `${yyyy}-${mm}`;
 <script>
   import { supabase } from "../../lib/supabase";
 
+  // 🛠️ FIX 1: Expose supabase ke global window supaya bisa diakses oleh <script is:inline>
+  if (typeof window !== "undefined") {
+    (window as any).supabase = supabase;
+  }
+
   type KomoditasKey =
     | "Minyak Jelantah"
     | "Minyak Asting"
@@ -298,7 +303,6 @@ const defaultMonth = `${yyyy}-${mm}`;
     let currentCommodity: KomoditasKey = "Minyak Jelantah";
     let dataGlobal: DataGlobalT[] = [];
 
-    // Updated with bruto and margin columns for all commodities including Asting
     const kolomDatabase: Record<
       KomoditasKey,
       { rp: string; vol: string; bruto: string; margin: string }
@@ -399,14 +403,11 @@ const defaultMonth = `${yyyy}-${mm}`;
         margin: 0,
       }));
 
-      // 2. Mapping Data: Ambil nilai mentah dari Supabase
       dataGlobal.forEach((item) => {
         const rp = Number(item[kolomAktif.rp]) || 0;
         const vol = Number(item[kolomAktif.vol]) || 0;
         const bruto = Number(item[kolomAktif.bruto]) || 0;
-
-        // 🔥 TRIGGER FRONTEND: Deteksi jika margin null, langsung kalkulasi otomatis!
-        let margin = item[kolomAktif.margin];
+        let margin = item[kolomAktif.margin] || 0;
 
         const dayIdx = parseInt(item.tanggal.split("-")[2]) - 1;
 
@@ -433,7 +434,6 @@ const defaultMonth = `${yyyy}-${mm}`;
         const textClass =
           dataHariIni.vol > 0 ? "text-gray-900 font-bold" : "text-gray-400";
 
-        // ✅ Hitung Bruto Baru: Harga Satuan Jual * Volume
         const brutoBaru = dataHariIni.bruto * dataHariIni.vol;
 
         tbody.innerHTML += `
@@ -442,19 +442,14 @@ const defaultMonth = `${yyyy}-${mm}`;
             <span class="inline-block w-6 text-center bg-gray-100 rounded text-xs font-bold mr-2">${tglNum}</span>
         </td>
         <td class="p-3 text-right font-medium ${textClass}">${formatVol(dataHariIni.vol)} <span class="text-[10px]">Kg</span></td>
-        
         <td class="p-3 text-right text-xs text-gray-500 hidden md:table-cell">${formatRp(hrgSatuan)}</td>
-        
         <td class="p-3 text-right font-bold ${dataHariIni.rp > 0 ? "text-primary" : "text-gray-400"}">
             ${formatRp(dataHariIni.rp)}
         </td>
-        
         <td class="p-3 text-right text-xs text-orange-600 hidden md:table-cell font-medium">${formatRp(dataHariIni.bruto)}</td>
-        
         <td class="p-3 text-right font-bold text-blue-600">
             ${formatRp(brutoBaru)}
         </td>
-
         <td class="p-3 text-right font-bold ${dataHariIni.margin > 0 ? "text-green-600" : dataHariIni.margin < 0 ? "text-red-600" : "text-gray-400"}">
             ${formatRp(dataHariIni.margin)}
         </td>
@@ -513,12 +508,23 @@ const defaultMonth = `${yyyy}-${mm}`;
     const hariIni = new Date(waktuLokal - offset).toISOString().split("T")[0];
     document.getElementById("modal_tanggal_bruto").value = hariIni;
 
+    // 🛠️ FIX 2: Langsung fetch data sesuai tanggal hari ini secara otomatis!
+    window.fetchBrutoByDate(hariIni);
+
     m.classList.remove("hidden");
     m.classList.add("flex");
     setTimeout(() => {
       m.classList.remove("opacity-0");
       m.querySelector("div").classList.remove("scale-95");
-    }, 10);
+
+      // 🛠️ FIX 3: Auto-focus ke input pertama biar bener-bener "langsung bisa diinput" (gak usah klik dulu)
+      const inputMinyak = document.getElementById("m_bruto_minyak");
+      if (inputMinyak) {
+        inputMinyak.focus();
+        inputMinyak.select(); // Highlight angka "0" biar kalau ngetik langsung ke-replace
+      }
+    }, 50); // Kasih delay dikit biar animasi modal selesai
+
     document.body.style.overflow = "hidden";
   };
 
@@ -535,59 +541,90 @@ const defaultMonth = `${yyyy}-${mm}`;
   };
 
   // Fungsi Eksekusi Simpan Bruto dan Kalkulasi Margin via Frontend
+  // Fungsi Eksekusi Simpan Bruto (DENGAN DEBUGGING LENGKAP)
   window.simpanBrutoViaModal = async function () {
-    if (!window.supabase) return alert("Supabase tidak terhubung!");
+    console.log("=== 🐛 DEBUG START: SIMPAN BRUTO ===");
+
+    // 1. Cek apakah objek Supabase terbaca
+    console.log(
+      "1. Status window.supabase:",
+      window.supabase ? "TERHUBUNG" : "KOSONG/UNDEFINED",
+    );
+    if (!window.supabase) {
+      alert(
+        "Supabase tidak terhubung! Buka Inspect Element -> Console untuk cek error.",
+      );
+      return;
+    }
 
     const btn = document.getElementById("btn-save-modal-bruto");
     const tglPilih = document.getElementById("modal_tanggal_bruto").value;
 
-    if (!tglPilih) return alert("Pilih tanggal terlebih dahulu!");
+    // 2. Cek tanggal
+    console.log("2. Tanggal yang dipilih:", tglPilih);
+    if (!tglPilih) {
+      alert("Pilih tanggal terlebih dahulu!");
+      return;
+    }
 
     btn.innerHTML =
       '<i class="bi bi-arrow-repeat animate-spin"></i> Memproses...';
     btn.disabled = true;
 
     try {
-      // 1. Helper aman untuk menarik nilai Bruto (Jika kosong otomatis 0)
       const getBrutoAman = (id) => {
         const val = document.getElementById(id)?.value;
         return val ? parseFloat(val) : 0;
       };
 
-      const brMinyak = getBrutoAman("m_bruto_minyak");
-      const brAsting = getBrutoAman("m_bruto_asting");
-      const brAmpas = getBrutoAman("m_bruto_ampas");
-      const brKriuk = getBrutoAman("m_bruto_kriuk");
-      const brTepung = getBrutoAman("m_bruto_tepung");
-      const brSpinner = getBrutoAman("m_bruto_spinner");
+      // 3. Susun Payload (Hanya kirim Bruto)
+      const payloadBruto = {
+        bruto_minyak_jelantah: getBrutoAman("m_bruto_minyak"),
+        bruto_minyak_asting: getBrutoAman("m_bruto_asting"),
+        bruto_ampas: getBrutoAman("m_bruto_ampas"),
+        bruto_kriuk: getBrutoAman("m_bruto_kriuk"),
+        bruto_tepung: getBrutoAman("m_bruto_tepung"),
+        bruto_spinner: getBrutoAman("m_bruto_spinner"),
+      };
 
-      // 2. Update HANYA kolom Bruto ke Database Supabase
-      const { error: errUpdate } = await window.supabase
+      console.log(
+        "3. Payload Data Bruto yang mau dikirim ke Database:",
+        payloadBruto,
+      );
+
+      // 4. Kirim ke Supabase
+      console.log("4. Mengirim request ke tabel 'transaksi_gudang_harian'...");
+      const response = await window.supabase
         .from("transaksi_gudang_harian")
-        .update({
-          bruto_minyak_jelantah: brMinyak,
-          bruto_minyak_asting: brAsting,
-          bruto_ampas: brAmpas,
-          bruto_kriuk: brKriuk,
-          bruto_tepung: brTepung,
-          bruto_spinner: brSpinner,
-        })
+        .update(payloadBruto)
         .eq("tanggal", tglPilih);
 
-      if (errUpdate) throw errUpdate;
+      // 5. Cek Respons Mentah dari Supabase
+      console.log("5. RAW Response dari Supabase:", response);
 
-      alert(
-        "✅ Sukses menyimpan harga modal (bruto)! Margin otomatis terupdate.",
-      );
+      // Jika Supabase mengembalikan error (seperti masalah RLS policy atau kolom ga match)
+      if (response.error) {
+        console.error("❌ ERROR DARI SUPABASE:", response.error);
+        throw response.error;
+      }
+
+      console.log("✅ BERHASIL! Data tersimpan tanpa error.");
+      alert("✅ Sukses menyimpan harga modal (bruto)!");
       window.tutupModalBruto();
       window.location.reload();
     } catch (err) {
-      alert("❌ Gagal menyimpan bruto: " + err.message);
+      console.error("=== ❌ FATAL ERROR CATCHED ===", err);
+      // Munculin detail pesan errornya ke alert biar langsung keliatan
+      alert(
+        "❌ Gagal menyimpan bruto: " + (err.message || JSON.stringify(err)),
+      );
     } finally {
-      btn.innerHTML = "💾 Simpan Harga Modal (Bruto)";
+      btn.innerHTML = '<i class="bi bi-floppy"></i> Simpan & Hitung';
       btn.disabled = false;
+      console.log("=== 🏁 DEBUG END ===");
     }
   };
+
   // Fungsi untuk narik data Bruto pas tanggal dipilih
   window.fetchBrutoByDate = async function (tanggal) {
     if (!tanggal || !window.supabase) return;
@@ -601,14 +638,12 @@ const defaultMonth = `${yyyy}-${mm}`;
         .eq("tanggal", tanggal)
         .single();
 
-      // Helper buat ngisi inputan
       const setInput = (id, val) => {
         const el = document.getElementById(id);
         if (el) el.value = val || "";
       };
 
       if (data && !error) {
-        // Kalau data ada, isi formnya
         setInput("m_bruto_minyak", data.bruto_minyak_jelantah);
         setInput("m_bruto_asting", data.bruto_minyak_asting);
         setInput("m_bruto_ampas", data.bruto_ampas);
@@ -616,7 +651,6 @@ const defaultMonth = `${yyyy}-${mm}`;
         setInput("m_bruto_tepung", data.bruto_tepung);
         setInput("m_bruto_spinner", data.bruto_spinner);
       } else {
-        // Kalau kosong/belum ada data, reset formnya
         setInput("m_bruto_minyak", "");
         setInput("m_bruto_asting", "");
         setInput("m_bruto_ampas", "");

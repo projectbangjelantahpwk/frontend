@@ -92,10 +92,10 @@
           Semua
         </button>
         <button
-          data-sumber="Canvasser Lapangan"
+          data-sumber="Canvaser Lapangan"
           class="btn-sumber px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-[#833AB4]/20 hover:text-[#E1306C]"
         >
-          Canvasser Lapangan
+          Canvaser Lapangan
         </button>
         <button
           data-sumber="Facebook"
@@ -250,7 +250,12 @@
         const isMatchSumber =
           currentSumber === "Semua" ||
           (currentSumber === "Lainnya"
-            ? item.sumber !== "Facebook" && item.sumber !== "TikTok"
+            ? ![
+                "Facebook",
+                "TikTok",
+                "Instagram",
+                "Canvaser Lapangan",
+              ].includes(item.sumber)
             : item.sumber === currentSumber);
 
         if (isMatchSumber) {
@@ -314,6 +319,10 @@
         if (currentSumber === "Facebook")
           activeColor = "bg-[#1877F2] text-white";
         if (currentSumber === "TikTok") activeColor = "bg-gray-900 text-white";
+        if (currentSumber === "Instagram")
+          activeColor = "bg-[#E1306C] text-white";
+        if (currentSumber === "Canvaser Lapangan")
+          activeColor = "bg-emerald-600 text-white"; // Bebas ganti warna emerald dengan hex code lu
         if (currentSumber === "Lainnya")
           activeColor = "bg-purple-600 text-white";
 

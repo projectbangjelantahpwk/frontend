@@ -2125,6 +2125,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       const talanganManual = talInput === "" ? null : parseFloat(talInput);
       const jm = document.getElementById("input_jerigen_manual")?.value;
 
+      // 🟢 1. TAMBAHKAN DUA BARIS INI DI SINI (Sebelum blok 'try')
+      const isJamBebasAktif = document.getElementById("chk_jam_bebas")?.checked || false;
+      const inputGajiPokok = parseFloat(document.getElementById("setup_gaji_pokok")?.value) || 0;
+
       try {
         const { data, error } = await window.supabase.functions.invoke(
           "gaji-karyawan",
@@ -2142,6 +2146,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                 : talanganManual,
               siklusGaji: d.siklusGaji,
               jumlahJerigenManual: jm === "" ? null : parseFloat(jm),
+
+              // 🟢 2. TAMBAHKAN DUA BARIS INI DI DALAM BODY PAYLOAD
+              is_jam_bebas_manual: isJamBebasAktif,
+              gaji_menit_manual: inputGajiPokok,
 
               // 🔥 1. INI WAJIB ADA BIAR DENO TAU ADA ITEM BARU 🔥
               lain_lain_manual: window.dataLainLain,

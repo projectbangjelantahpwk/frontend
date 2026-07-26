@@ -31,6 +31,12 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       </button>
       <button
         class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900"
+        data-tab="kasbon"
+      >
+        <i class="bi bi-envelope-paper mr-2"></i> Konfirmasi Kasbon
+      </button>
+      <button
+        class="tab-btn px-4 py-3 font-medium transition border-b-2 border-transparent text-gray-600 hover:text-gray-900"
         data-tab="riwayat-gaji"
       >
         <i class="bi bi-clock-history mr-2"></i> Riwayat Gaji Karyawan
@@ -192,6 +198,35 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         id="riwayat-total-akumulasi"
         class="text-2xl font-black text-blue-700 font-mono">Rp 0</span
       >
+    </div>
+  </div>
+  <!-- TAB KONFIRMASI KASBON -->
+  <div class="tab-content hidden" id="kasbon">
+    <div
+      class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-3"
+    >
+      <div>
+        <h2 class="text-xl font-bold text-gray-900">
+          Antrean Pengajuan Kasbon
+        </h2>
+        <p class="text-xs text-gray-500 mt-1">
+          Daftar permintaan kasbon karyawan yang menunggu persetujuan (ACC).
+        </p>
+      </div>
+      <button
+        onclick="window.loadKasbonRequests()"
+        class="bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm hover:bg-gray-50 transition"
+      >
+        <i class="bi bi-arrow-clockwise"></i> Refresh Data
+      </button>
+    </div>
+
+    <!-- Container List Request -->
+    <div
+      id="container-request-kasbon"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+    >
+      <p class="text-gray-500 italic text-sm">Memuat data pengajuan...</p>
     </div>
   </div>
 </GeneralLayout>
@@ -548,7 +583,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               <input
                 type="checkbox"
                 id="chk_gaji_jerigen"
-                onchange="window.toggleGajiJerigen(); window.kalkulasiRealtimeGaji();"
+                onchange="window.toggleModeGaji(); window.kalkulasiRealtimeGaji();"
                 class="w-4 h-4 text-orange-600 rounded focus:ring-orange-500 cursor-pointer shrink-0"
               />
             </label>
@@ -622,7 +657,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               <input
                 type="checkbox"
                 id="chk_jam_bebas"
-                onchange="window.toggleJamBebas(); window.kalkulasiRealtimeGaji();"
+                onchange="window.toggleModeGaji(); window.kalkulasiRealtimeGaji();"
                 class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer shrink-0"
               />
             </label>
@@ -1075,6 +1110,8 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       PENERIMAAN
     </div>
     <table style="width: 100%; font-size: 12px; margin-bottom: 12px;">
+      <!-- POSISI DINAMIS DIPINDAH KE ATAS -->
+      <tbody id="slip-penerimaan-dinamis"></tbody>
       <tr
         ><td>Gaji Pokok</td><td style="text-align: right;" id="slip-gaji"
           >Rp 0</td
@@ -1131,7 +1168,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           id="slip-bonus-penjemputan">Rp 0</td
         ></tr
       >
-      <tbody id="slip-penerimaan-dinamis"></tbody>
     </table>
 
     <div
@@ -1140,13 +1176,14 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       POTONGAN
     </div>
     <table style="width: 100%; font-size: 12px; margin-bottom: 16px;">
+      <!-- POSISI DINAMIS DIPINDAH KE ATAS KASBON -->
+      <tbody id="slip-potongan-dinamis"></tbody>
       <tr
         ><td style="color: #dc2626;">Kasbon</td><td
           style="text-align: right; color: #dc2626;"
           id="slip-kasbon">Rp 0</td
         ></tr
       >
-      <tbody id="slip-potongan-dinamis"></tbody>
     </table>
 
     <div
@@ -1743,6 +1780,14 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         if (activeTab) {
           activeTab.classList.remove("hidden");
           activeTab.classList.add("block");
+
+          // 🔥 TAMBAHAN BARU: Kalau buka tab Kasbon, otomatis load data dari DB
+          if (
+            tabName === "kasbon" &&
+            typeof window.loadKasbonRequests === "function"
+          ) {
+            window.loadKasbonRequests();
+          }
         } else {
           console.warn(`Tab dengan ID '${tabName}' tidak ditemukan!`);
         }
@@ -2142,6 +2187,68 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
       window.kalkulasiRealtimeGaji();
       window.openModal("modal-detail-gaji");
+    };
+
+    // 🔥 FUNGSI BARU: MODE JERIGEN & JAM BEBAS (Direvisi) 🔥
+    window.toggleModeGaji = function () {
+      const chkJerigen = document.getElementById("chk_gaji_jerigen");
+      const chkJamBebas = document.getElementById("chk_jam_bebas");
+      const opsiJerigen = document.getElementById("opsi_jerigen");
+
+      const isJerigen = chkJerigen ? chkJerigen.checked : false;
+      const isJamBebas = chkJamBebas ? chkJamBebas.checked : false;
+
+      // Mutual Exclusion (Cuma boleh pilih salah satu)
+      if (isJerigen && chkJamBebas) {
+        chkJamBebas.checked = false;
+        chkJamBebas.disabled = true;
+      } else if (chkJamBebas) {
+        chkJamBebas.disabled = false;
+      }
+
+      if (isJamBebas && chkJerigen) {
+        chkJerigen.checked = false;
+        chkJerigen.disabled = true;
+      } else if (chkJerigen) {
+        chkJerigen.disabled = false;
+      }
+
+      // Tampilkan box input jerigen jika aktif
+      if (opsiJerigen) opsiJerigen.style.display = isJerigen ? "block" : "none";
+
+      // Daftar input standar yang HANYA HILANG KETIKA MODE JERIGEN AKTIF
+      const nonJerigenIds = [
+        "setup_lembur_menit",
+        "setup_uang_makan",
+        "setup_uang_makan_malam",
+        "setup_bonus_tepat",
+        "setup_bonus_penjemputan",
+        "setup_bonus_mingguan",
+        "setup_potongan_absen",
+        "setup_uang_transport",
+        "setup_uang_rapat",
+        "setup_uang_nginep",
+        "setup_uang_kesehatan",
+        "setup_siklus_gaji",
+        "setup_gaji_pokok",
+      ];
+
+      nonJerigenIds.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) {
+          // Disabled dan disembunyikan HANYA KETIKA Jerigen yang dicentang
+          el.disabled = isJerigen;
+          const wrapper =
+            el.closest(".col-span-2, .col-span-1") || el.parentElement;
+          if (wrapper) {
+            if (isJerigen) wrapper.classList.add("hidden");
+            else wrapper.classList.remove("hidden");
+          }
+        }
+      });
+
+      // Trigger perubahan UI Label (Jam Bebas akan tetap mengubah label Gaji Pokok)
+      window.ubahSiklusUI();
     };
 
     window.kalkulasiRealtimeGaji = async function () {
@@ -2986,8 +3093,8 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
         // 🔥 FIX 2: INJECTION KASBON YANG AMAN
         const slipKasbon = document.getElementById("slip-kasbon");
-        if (Number(slip.kasbon || 0) > 0) {
-          slipKasbon.innerText = `Rp ${Number(slip.kasbon || 0).toLocaleString("id-ID")}`;
+        if (totalKasbon > 0) {
+          slipKasbon.innerText = `Rp ${totalKasbon.toLocaleString("id-ID")}`;
           slipKasbon.parentElement.style.display = "table-row";
         } else {
           slipKasbon.parentElement.style.display = "none";
@@ -2999,13 +3106,27 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         let htmlPenerimaanLain = "";
         let htmlPotonganLain = "";
 
-        if (slip.lain_lain && slip.lain_lain.length > 0) {
-          slip.lain_lain.forEach((item) => {
+        // Pastikan format JSON dibaca dengan aman (jika formatnya string, kita parse)
+        let dataLain = slip.lain_lain;
+        if (typeof dataLain === "string") {
+          try {
+            dataLain = JSON.parse(dataLain);
+          } catch (e) {
+            dataLain = [];
+          }
+        }
+
+        if (dataLain && Array.isArray(dataLain) && dataLain.length > 0) {
+          dataLain.forEach((item) => {
             const nom = Number(item.nominal) || 0;
+            // PENGAMAN: Cek nama_item, kalau nggak ada pakai kategori (untuk data lama)
+            const namaItemTampil =
+              item.nama_item || item.kategori || "Komponen Lain";
+
             if (item.tipe === "penambahan") {
-              htmlPenerimaanLain += `<tr><td>${item.nama_item}</td><td style="text-align: right;">Rp ${nom.toLocaleString("id-ID")}</td></tr>`;
+              htmlPenerimaanLain += `<tr><td>${namaItemTampil}</td><td style="text-align: right;">Rp ${nom.toLocaleString("id-ID")}</td></tr>`;
             } else if (item.tipe === "potongan") {
-              htmlPotonganLain += `<tr><td style="color: #dc2626;">${item.nama_item}</td><td style="text-align: right; color: #dc2626;">Rp ${nom.toLocaleString("id-ID")}</td></tr>`;
+              htmlPotonganLain += `<tr><td style="color: #dc2626;">${namaItemTampil}</td><td style="text-align: right; color: #dc2626;">Rp ${nom.toLocaleString("id-ID")}</td></tr>`;
             }
           });
         }
@@ -3016,6 +3137,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         const elPotonganDinamis = document.getElementById(
           "slip-potongan-dinamis",
         );
+
         if (elPenerimaanDinamis)
           elPenerimaanDinamis.innerHTML = htmlPenerimaanLain;
         if (elPotonganDinamis) elPotonganDinamis.innerHTML = htmlPotonganLain;
@@ -3023,8 +3145,16 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         // ============================================================
         // STEP 3️⃣: **PALING AKHIR** - SET TOTAL DITERIMA
         // ============================================================
-        document.getElementById("slip-total").innerText =
-          `Rp ${Number(slip.total_diterima || 0).toLocaleString("id-ID")}`;
+        const totalTerima = Number(slip.total_diterima || 0);
+        const elTotalSlip = document.getElementById("slip-total");
+
+        if (totalTerima < 0) {
+          elTotalSlip.innerText = `-Rp ${Math.abs(totalTerima).toLocaleString("id-ID")}`;
+          elTotalSlip.style.color = "#dc2626"; // Merah
+        } else {
+          elTotalSlip.innerText = `Rp ${totalTerima.toLocaleString("id-ID")}`;
+          elTotalSlip.style.color = "#166534"; // Hijau
+        }
 
         // ============================================================
         // STEP 4️⃣: Clone & Render ke Canvas
@@ -3161,12 +3291,22 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           if (!namaKaryawan && slip.profiles?.nama)
             namaKaryawan = slip.profiles.nama;
 
-          if (slip.lain_lain && slip.lain_lain.length > 0) {
-            slip.lain_lain.forEach((item) => {
-              const key = `${item.nama_item}_${item.tipe}`;
+          let dataLain = slip.lain_lain;
+          if (typeof dataLain === "string") {
+            try {
+              dataLain = JSON.parse(dataLain);
+            } catch (e) {
+              dataLain = [];
+            }
+          }
+          if (dataLain && Array.isArray(dataLain) && dataLain.length > 0) {
+            dataLain.forEach((item) => {
+              const namaItemTampil =
+                item.nama_item || item.kategori || "Komponen Lain";
+              const key = `${namaItemTampil}_${item.tipe}`;
               if (!akumulasiLainLain[key]) {
                 akumulasiLainLain[key] = {
-                  nama_item: item.nama_item,
+                  nama_item: namaItemTampil,
                   tipe: item.tipe,
                   nominal: 0,
                 };
@@ -3313,15 +3453,21 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         }
 
         const slipKasbon = document.getElementById("slip-kasbon");
-        if (Number(slip.kasbon || 0) > 0) {
-          slipKasbon.innerText = `Rp ${Number(slip.kasbon || 0).toLocaleString("id-ID")}`;
+        if (totalKasbon > 0) {
+          slipKasbon.innerText = `Rp ${totalKasbon.toLocaleString("id-ID")}`;
           slipKasbon.parentElement.style.display = "table-row";
         } else {
           slipKasbon.parentElement.style.display = "none";
         }
 
-        document.getElementById("slip-total").innerText =
-          `Rp ${grandTotal.toLocaleString("id-ID")}`;
+        const elTotalAkumulasi = document.getElementById("slip-total");
+        if (grandTotal < 0) {
+          elTotalAkumulasi.innerText = `-Rp ${Math.abs(grandTotal).toLocaleString("id-ID")}`;
+          elTotalAkumulasi.style.color = "#dc2626"; // Merah
+        } else {
+          elTotalAkumulasi.innerText = `Rp ${grandTotal.toLocaleString("id-ID")}`;
+          elTotalAkumulasi.style.color = "#166534"; // Hijau
+        }
 
         let htmlPenerimaanAkumulasi = "";
         let htmlPotonganAkumulasi = "";
@@ -3463,10 +3609,20 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             namaKaryawan = slip.profiles.nama;
           }
 
-          if (slip.lain_lain && slip.lain_lain.length > 0) {
-            slip.lain_lain.forEach((item) => {
+          let dataLain = slip.lain_lain;
+          if (typeof dataLain === "string") {
+            try {
+              dataLain = JSON.parse(dataLain);
+            } catch (e) {
+              dataLain = [];
+            }
+          }
+          if (dataLain && Array.isArray(dataLain) && dataLain.length > 0) {
+            dataLain.forEach((item) => {
               if (item.tipe === "potongan") {
-                const key = item.nama_item;
+                const namaItemTampil =
+                  item.nama_item || item.kategori || "Potongan Lain";
+                const key = namaItemTampil;
                 if (!akumulasiPotonganLain[key]) {
                   akumulasiPotonganLain[key] = 0;
                 }
@@ -3786,9 +3942,9 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                                     <div class="flex justify-between text-gray-500"><span>Uang Lembur:</span> <span>Rp ${Number(slip.uang_lembur || 0).toLocaleString("id-ID")}</span></div>
                                     <div class="flex justify-between text-green-700 font-medium"><span>Total Bonus:</span> <span>+Rp ${Number((slip.bonus_tepat_waktu || 0) + (slip.bonus_mingguan || 0) + (slip.uang_kesehatan || 0)).toLocaleString("id-ID")}</span></div>
                                     ${Number(slip.kasbon || 0) > 0 ? `<div class="flex justify-between text-red-600 font-bold"><span>Potongan Kasbon:</span> <span>-Rp ${Number(slip.kasbon).toLocaleString("id-ID")}</span></div>` : ""}
-                                    <div class="flex justify-between font-black text-green-700 mt-2 pt-2 border-t border-green-100">
+                                    <div class="flex justify-between font-black ${Number(slip.total_diterima || 0) < 0 ? "text-red-600 border-red-100" : "text-green-700 border-green-100"} mt-2 pt-2 border-t">
                                         <span>Total Diterima (ACC):</span> 
-                                        <span>Rp ${Number(slip.total_diterima || 0).toLocaleString("id-ID")}</span>
+                                        <span>${Number(slip.total_diterima || 0) < 0 ? "-Rp " + Math.abs(slip.total_diterima).toLocaleString("id-ID") : "Rp " + Number(slip.total_diterima || 0).toLocaleString("id-ID")}</span>
                                     </div>
                                 </div>
                                 ${highlightText}
@@ -4018,8 +4174,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           else if (item.tipe === "potongan") total -= nom;
         });
       }
-
-      if (total < 0) total = 0;
 
       document.getElementById("er_total_baru").innerText =
         `Rp ${total.toLocaleString("id-ID")}`;
@@ -4320,15 +4474,12 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           if (item.tipe === "penambahan") newGrandTotal += nom;
           else if (item.tipe === "potongan") newGrandTotal -= nom;
         });
-        console.log(
-          `🧮 [DEBUG] Grand Total setelah ditambahkan JSONB Lain-lain:`,
-          newGrandTotal,
-        );
       }
 
       const prevTotal = document.getElementById("edit_grand_total_preview");
       if (prevTotal) {
-        prevTotal.innerText = `Rp ${Math.max(0, newGrandTotal).toLocaleString("id-ID")}`;
+        // HILANGKAN Math.max(0, newGrandTotal) agar minus bisa di-render
+        prevTotal.innerText = `Rp ${newGrandTotal.toLocaleString("id-ID")}`;
       }
     };
 
@@ -4373,11 +4524,8 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         });
       }
 
-      payloadUpdate.total_diterima = Math.max(0, newTotal);
-      console.log(
-        "📦 [DEBUG] Payload yang akan dikirim ke Supabase:",
-        payloadUpdate,
-      );
+      // HILANGKAN Math.max() agar kondisi minus terkirim ke DB
+      payloadUpdate.total_diterima = newTotal;
 
       const { error } = await window.supabase
         .from("slip_gaji")
@@ -4411,8 +4559,18 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       });
 
       document.getElementById("batch-count").innerText = checkboxes.length;
-      document.getElementById("batch-total").innerText =
-        "Rp " + total.toLocaleString("id-ID");
+
+      const batchTotalEl = document.getElementById("batch-total");
+      if (total < 0) {
+        batchTotalEl.innerText =
+          "-Rp " + Math.abs(total).toLocaleString("id-ID");
+        batchTotalEl.classList.remove("text-green-600");
+        batchTotalEl.classList.add("text-red-600");
+      } else {
+        batchTotalEl.innerText = "Rp " + total.toLocaleString("id-ID");
+        batchTotalEl.classList.remove("text-red-600");
+        batchTotalEl.classList.add("text-green-600");
+      }
 
       const bar = document.getElementById("batch-action-bar");
       if (checkboxes.length > 0) {
@@ -4479,8 +4637,19 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     `;
 
       document.getElementById("prev_rincian_konten").innerHTML = html;
-      document.getElementById("prev_grand_total").innerText =
-        `Rp ${Number(slip.total_diterima || 0).toLocaleString("id-ID")}`;
+
+      const grandTotalPreview = Number(slip.total_diterima || 0);
+      const elPrevTotal = document.getElementById("prev_grand_total");
+
+      if (grandTotalPreview < 0) {
+        elPrevTotal.innerText = `-Rp ${Math.abs(grandTotalPreview).toLocaleString("id-ID")}`;
+        elPrevTotal.classList.remove("text-green-700");
+        elPrevTotal.classList.add("text-red-600");
+      } else {
+        elPrevTotal.innerText = `Rp ${grandTotalPreview.toLocaleString("id-ID")}`;
+        elPrevTotal.classList.remove("text-red-600");
+        elPrevTotal.classList.add("text-green-700");
+      }
 
       window.openModal("modal-preview-slip");
     };
@@ -4867,6 +5036,171 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         alert("🚨 GAGAL PROSES MASSAL:\n\n" + err.message);
         btn.innerText = "BAYAR MASSAL";
         btn.disabled = false;
+      }
+    };
+    // ==========================================
+    // 🔥 FITUR KONFIRMASI KASBON KARYAWAN 🔥
+    // ==========================================
+
+    window.loadKasbonRequests = async function () {
+      if (!window.supabase) return;
+      const container = document.getElementById("container-request-kasbon");
+      if (!container) return;
+
+      container.innerHTML =
+        '<p class="text-gray-500 italic text-sm animate-pulse">Mengambil data dari server...</p>';
+
+      try {
+        // Ambil data kasbon yang statusnya 'Menunggu'
+        const { data, error } = await window.supabase
+          .from("pengajuan_kasbon")
+          .select(
+            "*, profiles!pengajuan_kasbon_user_id_fkey(nama, foto_profil, role)",
+          )
+          .eq("status", "Menunggu")
+          .order("tanggal_pengajuan", { ascending: true });
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          container.innerHTML = `
+            <div class="col-span-full bg-green-50 border border-green-200 text-green-700 p-6 rounded-xl text-center">
+              <i class="bi bi-check-circle text-3xl mb-2 block"></i>
+              <p class="font-bold">Semua Bersih!</p>
+              <p class="text-sm mt-1">Tidak ada pengajuan kasbon yang menunggu persetujuan saat ini.</p>
+            </div>`;
+          return;
+        }
+
+        let html = "";
+        data.forEach((item) => {
+          const tgl = new Date(item.tanggal_pengajuan).toLocaleString("id-ID", {
+            dateStyle: "medium",
+            timeStyle: "short",
+          });
+          const inisial = item.profiles?.nama
+            ? item.profiles.nama.substring(0, 2).toUpperCase()
+            : "KY";
+          const ava = item.profiles?.foto_profil
+            ? `<img src="${item.profiles.foto_profil}" class="w-10 h-10 rounded-full border border-gray-200 object-cover" />`
+            : `<div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">${inisial}</div>`;
+
+          html += `
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+              <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                <div class="flex items-center gap-3">
+                  ${ava}
+                  <div>
+                    <h4 class="font-bold text-gray-900 text-sm">${item.profiles?.nama || "Unknown"}</h4>
+                    <p class="text-[10px] text-gray-500 font-semibold uppercase">${tgl}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="p-4 flex-1">
+                <p class="text-xs text-gray-500 mb-1">Nominal Diajukan:</p>
+                <p class="text-2xl font-black text-red-600 font-mono mb-3">Rp ${Number(item.nominal).toLocaleString("id-ID")}</p>
+                
+                <p class="text-xs text-gray-500 mb-1">Alasan / Keperluan:</p>
+                <p class="text-sm text-gray-800 bg-gray-100 p-2 rounded-lg italic min-h-[40px]">"${item.alasan || "Tidak ada alasan"}"</p>
+              </div>
+              <div class="p-4 bg-gray-50 border-t border-gray-100 flex gap-2">
+                <button onclick="window.tolakKasbon('${item.id}')" class="flex-1 bg-white border border-red-200 text-red-600 hover:bg-red-50 py-2 rounded-lg text-xs font-bold transition shadow-sm">
+                  <i class="bi bi-x-lg"></i> Tolak
+                </button>
+                <button onclick="window.terimaKasbon('${item.id}', '${item.user_id}', ${item.nominal})" class="flex-[1.5] bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-xs font-bold transition shadow-sm">
+                  <i class="bi bi-check2"></i> ACC & Tambah Hutang
+                </button>
+              </div>
+            </div>
+          `;
+        });
+
+        container.innerHTML = html;
+      } catch (err) {
+        container.innerHTML = `<p class="text-red-600 text-sm font-bold">Error memuat data: ${err.message}</p>`;
+      }
+    };
+
+    window.terimaKasbon = async function (kasbonId, userId, nominal) {
+      if (
+        !confirm(
+          `Yakin ingin meng-ACC kasbon ini sebesar Rp ${Number(nominal).toLocaleString("id-ID")}?\n\nNominal ini akan otomatis ditambahkan ke total hutang kasbon karyawan tersebut di Setup Gaji.`,
+        )
+      )
+        return;
+      if (!window.supabase) return;
+
+      try {
+        // 1. Ambil data setup_gaji karyawan saat ini
+        const { data: setupData, error: errSetup } = await window.supabase
+          .from("setup_gaji")
+          .select("id, kasbon")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        let hutangLama = 0;
+        let setupId = null;
+
+        if (setupData) {
+          hutangLama = parseFloat(setupData.kasbon) || 0;
+          setupId = setupData.id;
+        }
+
+        const hutangBaru = hutangLama + parseFloat(nominal);
+
+        // 2. Update atau Insert ke setup_gaji
+        if (setupId) {
+          await window.supabase
+            .from("setup_gaji")
+            .update({ kasbon: hutangBaru })
+            .eq("id", setupId);
+        } else {
+          // Kalau belum pernah disetup gajinya, buatin sekalian
+          await window.supabase
+            .from("setup_gaji")
+            .insert([{ user_id: userId, kasbon: hutangBaru }]);
+        }
+
+        // 3. Ubah status pengajuan jadi ACC
+        await window.supabase
+          .from("pengajuan_kasbon")
+          .update({
+            status: "Disetujui",
+            disetujui_oleh: currentUserId,
+            tanggal_keputusan: new Date().toISOString(),
+          })
+          .eq("id", kasbonId);
+
+        alert(
+          `✅ Kasbon berhasil di-ACC!\nTotal hutang karyawan sekarang: Rp ${hutangBaru.toLocaleString("id-ID")}`,
+        );
+        window.loadKasbonRequests(); // Refresh list
+      } catch (err) {
+        alert("❌ Gagal memproses ACC: " + err.message);
+      }
+    };
+
+    window.tolakKasbon = async function (kasbonId) {
+      const alasan = prompt("Masukkan alasan penolakan (Opsional):");
+      if (alasan === null) return; // Kalau admin klik cancel di prompt
+
+      if (!window.supabase) return;
+
+      try {
+        await window.supabase
+          .from("pengajuan_kasbon")
+          .update({
+            status: "Ditolak",
+            catatan_admin: alasan || "Ditolak oleh Keuangan",
+            disetujui_oleh: currentUserId,
+            tanggal_keputusan: new Date().toISOString(),
+          })
+          .eq("id", kasbonId);
+
+        alert("✅ Pengajuan kasbon berhasil ditolak.");
+        window.loadKasbonRequests(); // Refresh list
+      } catch (err) {
+        alert("❌ Gagal menolak kasbon: " + err.message);
       }
     };
   });

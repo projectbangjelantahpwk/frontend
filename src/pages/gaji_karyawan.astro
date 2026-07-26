@@ -2893,14 +2893,26 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         document.getElementById("slip-periode").innerText = `: ${slip.periode}`;
         document.getElementById("slip-status").innerText = `: ${slip.status}`;
 
+        // 🔥 FIX 1: Tampilkan Range Tanggal "Dari - Sampai"
+        const startDate =
+          document.getElementById("filter-gaji-start")?.value || "-";
+        const endDate =
+          document.getElementById("filter-gaji-end")?.value || "-";
+        document.getElementById("slip-tanggal-range").innerText =
+          `: ${startDate} s/d ${endDate}`;
+
         document.getElementById("slip-gaji").parentElement.style.display =
           "table-row";
         document.getElementById("slip-gaji").innerText =
           `Rp ${Number(slip.gaji_karyawan || 0).toLocaleString("id-ID")}`;
 
         const slipLembur = document.getElementById("slip-lembur");
-        slipLembur.innerText = `Rp ${Number(slip.uang_lembur || 0).toLocaleString("id-ID")}`;
-        slipLembur.parentElement.style.display = "table-row";
+        if (Number(slip.uang_lembur || 0) > 0) {
+          slipLembur.innerText = `Rp ${Number(slip.uang_lembur || 0).toLocaleString("id-ID")}`;
+          slipLembur.parentElement.style.display = "table-row";
+        } else {
+          slipLembur.parentElement.style.display = "none";
+        }
 
         const slipMakan = document.getElementById("slip-makan");
         if (Number(slip.uang_makan || 0) > 0) {
@@ -2970,6 +2982,15 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           slipBonusPenjemputan.parentElement.style.display = "table-row";
         } else {
           slipBonusPenjemputan.parentElement.style.display = "none";
+        }
+
+        // 🔥 FIX 2: INJECTION KASBON YANG AMAN
+        const slipKasbon = document.getElementById("slip-kasbon");
+        if (Number(slip.kasbon || 0) > 0) {
+          slipKasbon.innerText = `Rp ${Number(slip.kasbon || 0).toLocaleString("id-ID")}`;
+          slipKasbon.parentElement.style.display = "table-row";
+        } else {
+          slipKasbon.parentElement.style.display = "none";
         }
 
         // ============================================================
@@ -3292,8 +3313,8 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         }
 
         const slipKasbon = document.getElementById("slip-kasbon");
-        if (totalKasbon > 0) {
-          slipKasbon.innerText = `Rp ${totalKasbon.toLocaleString("id-ID")}`;
+        if (Number(slip.kasbon || 0) > 0) {
+          slipKasbon.innerText = `Rp ${Number(slip.kasbon || 0).toLocaleString("id-ID")}`;
           slipKasbon.parentElement.style.display = "table-row";
         } else {
           slipKasbon.parentElement.style.display = "none";

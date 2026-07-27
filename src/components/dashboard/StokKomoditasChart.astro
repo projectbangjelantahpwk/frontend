@@ -2,285 +2,400 @@
 // src/components/dashboard/StokKomoditasChart.astro
 ---
 
-<div class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md flex flex-col h-full hover:shadow-lg transition-shadow duration-300">
-    
-    <!-- HEADER: Judul & Subjudul -->
-    <div class="mb-sm">
-        <h3 class="font-headline-md text-on-surface font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-tertiary">
-            Riwayat Stok Komoditas
-        </h3>
-        <p class="text-label-sm text-on-surface-variant font-medium">Akumulasi Berat (KG)</p>
+<div
+  class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md flex flex-col h-full hover:shadow-lg transition-shadow duration-300"
+>
+  <!-- HEADER: Judul & Subjudul -->
+  <div class="mb-sm">
+    <h3
+      class="font-headline-md text-on-surface font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-tertiary"
+    >
+      Riwayat Stok Komoditas
+    </h3>
+    <p class="text-label-sm text-on-surface-variant font-medium">
+      Akumulasi Berat (KG)
+    </p>
+  </div>
+
+  <!-- FILTER: Date (Penuh sejajar kolom dengan warna dipercantik) -->
+  <div class="w-full mb-lg">
+    <!-- Filter Harian (Date - Date) -->
+    <div
+      id="filter-harian-stok"
+      class="flex items-center gap-2 bg-surface-variant/20 p-2 rounded-xl border border-surface-variant/50 w-full focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all"
+    >
+      <input
+        type="date"
+        id="start-date-stok"
+        class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium"
+      />
+      <span
+        class="text-label-sm text-primary font-bold bg-primary/10 px-2 py-0.5 rounded-md"
+        >-</span
+      >
+      <input
+        type="date"
+        id="end-date-stok"
+        class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium"
+      />
     </div>
 
-    <!-- FILTER: Date (Penuh sejajar kolom dengan warna dipercantik) -->
-    <div class="w-full mb-lg">
-        <!-- Filter Harian (Date - Date) -->
-        <div id="filter-harian-stok" class="flex items-center gap-2 bg-surface-variant/20 p-2 rounded-xl border border-surface-variant/50 w-full focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
-            <input type="date" id="start-date-stok" class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium" />
-            <span class="text-label-sm text-primary font-bold bg-primary/10 px-2 py-0.5 rounded-md">-</span>
-            <input type="date" id="end-date-stok" class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium" />
-        </div>
+    <!-- Filter Mingguan (Month) -->
+    <div
+      id="filter-mingguan-stok"
+      class="hidden items-center bg-surface-variant/20 p-2 rounded-xl border border-surface-variant/50 w-full focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all"
+    >
+      <input
+        type="month"
+        id="month-stok"
+        class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium"
+      />
+    </div>
+  </div>
 
-        <!-- Filter Mingguan (Month) -->
-        <div id="filter-mingguan-stok" class="hidden items-center bg-surface-variant/20 p-2 rounded-xl border border-surface-variant/50 w-full focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
-            <input type="month" id="month-stok" class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium" />
-        </div>
+  <!-- BODY: Grafik (Canvas) -->
+  <div class="relative w-full h-64 flex-grow mb-md">
+    <canvas id="chartStok"></canvas>
+  </div>
+
+  <!-- FOOTER: Filter Komoditas & Switch Harian/Mingguan -->
+  <div
+    class="mt-auto border-t border-outline-variant/60 pt-md flex flex-col gap-4"
+  >
+    <!-- Filter Komoditas (Kecil, Rapi, Berjejer) -->
+    <div class="flex flex-wrap justify-center gap-2" id="commodity-filters">
+      <!-- Default Aktif -->
+      <button
+        data-komoditas="Minyak Jelantah"
+        class="komoditas-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-primary text-white shadow-sm ring-2 ring-primary/20 scale-105"
+      >
+        Minyak Jelantah
+      </button>
+      <!-- Inaktif -->
+      <button
+        data-komoditas="Minyak Asting"
+        class="komoditas-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
+      >
+        Minyak Asting
+      </button>
+      <button
+        data-komoditas="Minyak Semi"
+        class="komoditas-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
+      >
+        Minyak Semi
+      </button>
+      <button
+        data-komoditas="Ampas"
+        class="komoditas-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
+      >
+        Ampas
+      </button>
+      <button
+        data-komoditas="Kriuk"
+        class="komoditas-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
+      >
+        Kriuk
+      </button>
+      <button
+        data-komoditas="Tepung"
+        class="komoditas-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
+      >
+        Tepung
+      </button>
+      <button
+        data-komoditas="Spinner"
+        class="komoditas-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
+      >
+        Spinner
+      </button>
     </div>
 
-    <!-- BODY: Grafik (Canvas) -->
-    <div class="relative w-full h-64 flex-grow mb-md">
-        <canvas id="chartStok"></canvas>
+    <!-- Tab Switch Mingguan/Harian -->
+    <div class="flex justify-center">
+      <div
+        class="bg-surface-variant/20 p-1 rounded-xl inline-flex w-full sm:w-auto border border-surface-variant/40 shadow-inner"
+      >
+        <button
+          id="btn-harian-chartStok"
+          class="flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold transition-all duration-300"
+        >
+          Harian
+        </button>
+        <button
+          id="btn-mingguan-chartStok"
+          class="flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold transition-all duration-300"
+        >
+          Mingguan
+        </button>
+      </div>
     </div>
-
-    <!-- FOOTER: Filter Komoditas & Switch Harian/Mingguan -->
-    <div class="mt-auto border-t border-outline-variant/60 pt-md flex flex-col gap-4">
-        
-        <!-- Filter Komoditas (Kecil, Rapi, Berjejer) -->
-        <div class="flex flex-wrap justify-center gap-2" id="commodity-filters">
-            <!-- Default Aktif -->
-            <button data-komoditas="Minyak Jelantah" class="komoditas-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-primary text-white shadow-sm ring-2 ring-primary/20 scale-105">
-                Minyak Jelantah
-            </button>
-            <!-- Inaktif -->
-            <button data-komoditas="Ampas" class="komoditas-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
-                Ampas
-            </button>
-            <button data-komoditas="Kriuk" class="komoditas-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
-                Kriuk
-            </button>
-            <button data-komoditas="Tepung" class="komoditas-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
-                Tepung
-            </button>
-            <button data-komoditas="Spinner" class="komoditas-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
-                Spinner
-            </button>
-        </div>
-
-        <!-- Tab Switch Mingguan/Harian -->
-        <div class="flex justify-center">
-            <div class="bg-surface-variant/20 p-1 rounded-xl inline-flex w-full sm:w-auto border border-surface-variant/40 shadow-inner">
-                <button id="btn-harian-chartStok" class="flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold transition-all duration-300">
-                    Harian
-                </button>
-                <button id="btn-mingguan-chartStok" class="flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold transition-all duration-300">
-                    Mingguan
-                </button>
-            </div>
-        </div>
-    </div>
-
+  </div>
 </div>
 
 <script>
-    import { supabase } from '../../lib/supabase';
-    import Chart from 'chart.js/auto';
+  import { supabase } from "../../lib/supabase";
+  import Chart from "chart.js/auto";
 
-    Chart.defaults.font.family = "'Inter', sans-serif";
-    Chart.defaults.color = '#8E8E93';
-    
-    const chartOptions = {
-        responsive: true, 
-        maintainAspectRatio: false,
-        plugins: { 
-            legend: { display: false },
-            tooltip: {
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                titleColor: '#1F2937',
-                bodyColor: '#4B5563',
-                borderColor: '#E5E7EB',
-                borderWidth: 1,
-                padding: 10,
-                boxPadding: 4,
-                usePointStyle: true
-            }
-        },
-        scales: {
-            x: { grid: { display: false } },
-            y: { border: { dash: [4, 4] }, grid: { color: '#F3F4F6' }, beginAtZero: true }
-        }
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.color = "#8E8E93";
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: "rgba(255, 255, 255, 0.9)",
+        titleColor: "#1F2937",
+        bodyColor: "#4B5563",
+        borderColor: "#E5E7EB",
+        borderWidth: 1,
+        padding: 10,
+        boxPadding: 4,
+        usePointStyle: true,
+      },
+    },
+    scales: {
+      x: { grid: { display: false } },
+      y: {
+        border: { dash: [4, 4] },
+        grid: { color: "#F3F4F6" },
+        beginAtZero: true,
+      },
+    },
+  };
+
+  async function initChartStok() {
+    let stockChart = null;
+    let dataHarian = [];
+    let dataMingguan = [];
+
+    let currentMode = "harian";
+    let currentCommodity = "Minyak Jelantah";
+
+    const ctx = document.getElementById("chartStok").getContext("2d");
+    stockChart = new Chart(ctx, {
+      type: "line",
+      data: { labels: [], datasets: [] },
+      options: chartOptions,
+    });
+
+    const btnHarian = document.getElementById("btn-harian-chartStok");
+    const btnMingguan = document.getElementById("btn-mingguan-chartStok");
+    const filterHarianContainer = document.getElementById("filter-harian-stok");
+    const filterMingguanContainer = document.getElementById(
+      "filter-mingguan-stok",
+    );
+    const startDateInput = document.getElementById("start-date-stok");
+    const endDateInput = document.getElementById("end-date-stok");
+    const monthInput = document.getElementById("month-stok");
+    const komoditasBtns = document.querySelectorAll(".komoditas-btn");
+
+    // MAPPING KOLOM (PASTIKAN NAMA INI SAMA PERSIS DENGAN DI DATABASE)
+    const kolomDatabase: Record<string, string> = {
+      "Minyak Jelantah": "minyak_jelantah",
+      "Minyak Asting": "minyak_asting",
+      "Minyak Semi": "minyak_semi",
+      Ampas: "ampas",
+      Kriuk: "kriuk",
+      Tepung: "tepung",
+      Spinner: "spinner",
     };
 
-    async function initChartStok() {
-        let stockChart = null;
-        let dataHarian = [];
-        let dataMingguan = [];
-        
-        let currentMode = 'harian';
-        let currentCommodity = 'Minyak Jelantah'; 
+    async function fetchHarian() {
+      const kolomAktif = kolomDatabase[currentCommodity];
+      let query = supabase
+        .from("stock_gudang_harian")
+        .select(`tanggal, ${kolomAktif}`)
+        .order("tanggal", { ascending: true });
 
-        const ctx = document.getElementById('chartStok').getContext('2d');
-        stockChart = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [] }, options: chartOptions });
+      if (startDateInput.value)
+        query = query.gte("tanggal", startDateInput.value);
+      if (endDateInput.value) query = query.lte("tanggal", endDateInput.value);
+      if (!startDateInput.value && !endDateInput.value) query = query.limit(7);
 
-        const btnHarian = document.getElementById('btn-harian-chartStok');
-        const btnMingguan = document.getElementById('btn-mingguan-chartStok');
-        const filterHarianContainer = document.getElementById('filter-harian-stok');
-        const filterMingguanContainer = document.getElementById('filter-mingguan-stok');
-        const startDateInput = document.getElementById('start-date-stok');
-        const endDateInput = document.getElementById('end-date-stok');
-        const monthInput = document.getElementById('month-stok');
-        const komoditasBtns = document.querySelectorAll('.komoditas-btn');
-
-        // MAPPING KOLOM (PASTIKAN NAMA INI SAMA PERSIS DENGAN DI DATABASE)
-        const kolomDatabase = {
-            'Minyak Jelantah': 'minyak_jelantah', 
-            'Ampas': 'ampas',
-            'Kriuk': 'kriuk', // <-- CEK: Apakah di DB namanya 'keriuk' atau 'kriuk'?
-            'Tepung': 'tepung',
-            'Spinner': 'spinner'
-        };
-
-        async function fetchHarian() {
-            const kolomAktif = kolomDatabase[currentCommodity];
-            let query = supabase.from('stock_gudang_harian')
-                .select(`tanggal, ${kolomAktif}`)
-                .order('tanggal', { ascending: true });
-            
-            if (startDateInput.value) query = query.gte('tanggal', startDateInput.value);
-            if (endDateInput.value) query = query.lte('tanggal', endDateInput.value);
-            if (!startDateInput.value && !endDateInput.value) query = query.limit(7); 
-
-            const { data, error } = await query;
-            if (error) {
-                console.error("ERROR HARIAN:", error);
-                alert("Gagal Fetch Harian: " + error.message);
-            } else if (data) {
-                dataHarian = data;
-                renderChart();
-            }
-        }
-
-        async function fetchMingguan() {
-            try {
-                const kolomAktif = kolomDatabase[currentCommodity];
-                let query = supabase.from('stock_gudang_mingguan')
-                    .select(`minggu_ke, periode, ${kolomAktif}`)
-                    .order('periode', { ascending: true })
-                    .order('minggu_ke', { ascending: true });
-
-                if (monthInput && monthInput.value) {
-                    const tahun = monthInput.value.substring(0, 4); 
-                    const bulan = monthInput.value.substring(5, 7); 
-                    const formatDatabase = `${bulan}-${tahun}`; 
-                    query = query.eq('periode', formatDatabase);
-                } else {
-                    query = query.limit(8);
-                }
-                
-                const { data, error } = await query;
-                
-                // RADAR ERROR NYALA: Pop-up muncul jika kolom salah atau Supabase menolak
-                if (error) {
-                    console.error("SUPABASE ERROR MINGGUAN:", error);
-                    alert("⚠️ ERROR MINGGUAN:\n" + error.message);
-                    return;
-                }
-
-                // RADAR KOSONG: Pop-up muncul jika ternyata isi tabel kosong melompong
-                if (data && data.length === 0) {
-                    console.log("Data Mingguan Kosong!");
-                    alert("ℹ️ Data kosong! Tabel mingguan tidak memiliki record untuk komoditas/periode ini.");
-                }
-
-                if (data) {
-                    console.log("Berhasil dapat data mingguan:", data);
-                    dataMingguan = data;
-                    renderChart();
-                }
-
-            } catch (err) {
-                console.error("JS ERROR:", err);
-                alert("JS ERROR: " + err.message);
-            }
-        }
-
-        function renderChart() {
-            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-            let labels, values, color, hoverColor;
-            const kolomAktif = kolomDatabase[currentCommodity];
-
-            if (currentCommodity === 'Minyak Jelantah') { color = '#F59E0B'; hoverColor = 'rgba(245, 158, 11, 0.3)'; }
-            else if (currentCommodity === 'Ampas') { color = '#6B7280'; hoverColor = 'rgba(107, 114, 128, 0.3)'; }
-            else if (currentCommodity === 'Kriuk') { color = '#D97706'; hoverColor = 'rgba(217, 119, 6, 0.3)'; }
-            else if (currentCommodity === 'Tepung') { color = '#10B981'; hoverColor = 'rgba(16, 185, 129, 0.3)'; }
-            else { color = '#6366F1'; hoverColor = 'rgba(99, 102, 241, 0.3)'; }
-
-            if (currentMode === 'harian') {
-                labels = dataHarian.map(d => d.tanggal);
-                values = dataHarian.map(d => d[kolomAktif] || 0); 
-                gradient.addColorStop(0, hoverColor); 
-                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                
-                btnHarian.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
-                btnMingguan.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
-            } else {
-                labels = dataMingguan.map(d => `${d.minggu_ke || ''} ${d.periode || ''}`);
-                values = dataMingguan.map(d => d[kolomAktif] ? Number(d[kolomAktif]) : 0);
-                
-                gradient.addColorStop(0, hoverColor); 
-                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                
-                btnMingguan.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
-                btnHarian.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
-            }
-
-            stockChart.data = {
-                labels,
-                datasets: [{ 
-                    data: values, 
-                    borderColor: color, 
-                    backgroundColor: gradient, 
-                    fill: true, 
-                    tension: 0.4,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: color,
-                    pointBorderWidth: 2,
-                    pointHoverRadius: 6
-                }]
-            };
-            stockChart.update();
-        }
-
-        function switchMode(mode) {
-            currentMode = mode;
-            if (mode === 'harian') {
-                filterHarianContainer.classList.remove('hidden');
-                filterHarianContainer.classList.add('flex');
-                filterMingguanContainer.classList.add('hidden');
-                filterMingguanContainer.classList.remove('flex');
-                fetchHarian();
-            } else {
-                filterHarianContainer.classList.add('hidden');
-                filterHarianContainer.classList.remove('flex');
-                filterMingguanContainer.classList.remove('hidden');
-                filterMingguanContainer.classList.add('flex');
-                fetchMingguan();
-            }
-        }
-
-        btnHarian.addEventListener('click', () => switchMode('harian'));
-        btnMingguan.addEventListener('click', () => switchMode('mingguan'));
-
-        startDateInput.addEventListener('change', () => currentMode === 'harian' && fetchHarian());
-        endDateInput.addEventListener('change', () => currentMode === 'harian' && fetchHarian());
-        monthInput.addEventListener('change', () => currentMode === 'mingguan' && fetchMingguan());
-
-        komoditasBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                currentCommodity = e.target.getAttribute('data-komoditas');
-                
-                komoditasBtns.forEach(b => {
-                    b.className = "komoditas-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface";
-                });
-                
-                e.target.className = "komoditas-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-primary text-white shadow-sm ring-2 ring-primary/20 scale-105";
-
-                if (currentMode === 'harian') fetchHarian();
-                else fetchMingguan();
-            });
-        });
-
-        switchMode('harian');
+      const { data, error } = await query;
+      if (error) {
+        console.error("ERROR HARIAN:", error);
+        alert("Gagal Fetch Harian: " + error.message);
+      } else if (data) {
+        dataHarian = data;
+        renderChart();
+      }
     }
 
-    document.addEventListener('DOMContentLoaded', initChartStok);
+    async function fetchMingguan() {
+      try {
+        const kolomAktif = kolomDatabase[currentCommodity];
+        let query = supabase
+          .from("stock_gudang_mingguan")
+          .select(`minggu_ke, periode, ${kolomAktif}`)
+          .order("periode", { ascending: true })
+          .order("minggu_ke", { ascending: true });
+
+        if (monthInput && monthInput.value) {
+          const tahun = monthInput.value.substring(0, 4);
+          const bulan = monthInput.value.substring(5, 7);
+          const formatDatabase = `${bulan}-${tahun}`;
+          query = query.eq("periode", formatDatabase);
+        } else {
+          query = query.limit(8);
+        }
+
+        const { data, error } = await query;
+
+        // RADAR ERROR NYALA: Pop-up muncul jika kolom salah atau Supabase menolak
+        if (error) {
+          console.error("SUPABASE ERROR MINGGUAN:", error);
+          alert("⚠️ ERROR MINGGUAN:\n" + error.message);
+          return;
+        }
+
+        // RADAR KOSONG: Pop-up muncul jika ternyata isi tabel kosong melompong
+        if (data && data.length === 0) {
+          console.log("Data Mingguan Kosong!");
+          alert(
+            "ℹ️ Data kosong! Tabel mingguan tidak memiliki record untuk komoditas/periode ini.",
+          );
+        }
+
+        if (data) {
+          console.log("Berhasil dapat data mingguan:", data);
+          dataMingguan = data;
+          renderChart();
+        }
+      } catch (err) {
+        console.error("JS ERROR:", err);
+        alert("JS ERROR: " + err.message);
+      }
+    }
+
+    function renderChart() {
+      const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+      let labels, values, color, hoverColor;
+      const kolomAktif = kolomDatabase[currentCommodity];
+
+      if (currentCommodity === "Minyak Jelantah") {
+        color = "#F59E0B";
+        hoverColor = "rgba(245, 158, 11, 0.3)";
+      } else if (currentCommodity === "Minyak Asting") {
+        color = "#8B5CF6";
+        hoverColor = "rgba(139, 92, 246, 0.3)";
+      } else if (currentCommodity === "Minyak Semi") {
+        color = "#0EA5E9";
+        hoverColor = "rgba(14, 165, 233, 0.3)";
+      } else if (currentCommodity === "Ampas") {
+        color = "#6B7280";
+        hoverColor = "rgba(107, 114, 128, 0.3)";
+      } else if (currentCommodity === "Kriuk") {
+        color = "#D97706";
+        hoverColor = "rgba(217, 119, 6, 0.3)";
+      } else if (currentCommodity === "Tepung") {
+        color = "#10B981";
+        hoverColor = "rgba(16, 185, 129, 0.3)";
+      } else {
+        color = "#6366F1";
+        hoverColor = "rgba(99, 102, 241, 0.3)";
+      }
+
+      if (currentMode === "harian") {
+        labels = dataHarian.map((d) => d.tanggal);
+        values = dataHarian.map((d) => d[kolomAktif] || 0);
+        gradient.addColorStop(0, hoverColor);
+        gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+        btnHarian.className =
+          "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
+        btnMingguan.className =
+          "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
+      } else {
+        labels = dataMingguan.map(
+          (d) => `${d.minggu_ke || ""} ${d.periode || ""}`,
+        );
+        values = dataMingguan.map((d) =>
+          d[kolomAktif] ? Number(d[kolomAktif]) : 0,
+        );
+
+        gradient.addColorStop(0, hoverColor);
+        gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+        btnMingguan.className =
+          "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
+        btnHarian.className =
+          "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
+      }
+
+      stockChart.data = {
+        labels,
+        datasets: [
+          {
+            data: values,
+            borderColor: color,
+            backgroundColor: gradient,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: "#fff",
+            pointBorderColor: color,
+            pointBorderWidth: 2,
+            pointHoverRadius: 6,
+          },
+        ],
+      };
+      stockChart.update();
+    }
+
+    function switchMode(mode) {
+      currentMode = mode;
+      if (mode === "harian") {
+        filterHarianContainer.classList.remove("hidden");
+        filterHarianContainer.classList.add("flex");
+        filterMingguanContainer.classList.add("hidden");
+        filterMingguanContainer.classList.remove("flex");
+        fetchHarian();
+      } else {
+        filterHarianContainer.classList.add("hidden");
+        filterHarianContainer.classList.remove("flex");
+        filterMingguanContainer.classList.remove("hidden");
+        filterMingguanContainer.classList.add("flex");
+        fetchMingguan();
+      }
+    }
+
+    btnHarian.addEventListener("click", () => switchMode("harian"));
+    btnMingguan.addEventListener("click", () => switchMode("mingguan"));
+
+    startDateInput.addEventListener(
+      "change",
+      () => currentMode === "harian" && fetchHarian(),
+    );
+    endDateInput.addEventListener(
+      "change",
+      () => currentMode === "harian" && fetchHarian(),
+    );
+    monthInput.addEventListener(
+      "change",
+      () => currentMode === "mingguan" && fetchMingguan(),
+    );
+
+    komoditasBtns.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        currentCommodity = e.target.getAttribute("data-komoditas");
+
+        komoditasBtns.forEach((b) => {
+          b.className =
+            "komoditas-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface";
+        });
+
+        e.target.className =
+          "komoditas-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-primary text-white shadow-sm ring-2 ring-primary/20 scale-105";
+
+        if (currentMode === "harian") fetchHarian();
+        else fetchMingguan();
+      });
+    });
+
+    switchMode("harian");
+  }
+
+  document.addEventListener("DOMContentLoaded", initChartStok);
 </script>

@@ -635,6 +635,9 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     const allowedRoles = ["owner", "hrd", "keuangan", "admin", "it"];
     const client = window.supabase || supabase;
 
+    // === 🔒 DOUBLE-CLICK RACE GUARD ===
+    const processingIds = new Set();
+
     const {
       data: { session },
     } = await client.auth.getSession();
@@ -790,17 +793,17 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                             <div class="flex flex-col gap-2 text-sm bg-white p-3 rounded-lg border border-blue-100 shadow-sm">
                                 <div class="flex justify-between items-center">
                                     <div><span class="text-gray-500 text-[10px] uppercase font-bold block">Atas Nama</span><span class="font-bold text-gray-900">${trx.atas_nama || "-"}</span></div>
-                                    <button onclick="window.salinTeks('${trx.atas_nama || ""}', 'Atas Nama')" class="text-blue-600 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Copy Atas Nama"><i class="bi bi-clipboard"></i></button>
+<button data-action="salin" data-text="${trx.atas_nama || ""}" data-label="Atas Nama" class="text-blue-600 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Copy Atas Nama"><i class="bi bi-clipboard"></i></button>
                                 </div>
                                 <div class="w-full h-px bg-blue-50"></div>
                                 <div class="flex justify-between items-center">
                                     <div><span class="text-gray-500 text-[10px] uppercase font-bold block">Nama Bank / E-Wallet</span><span class="font-bold text-gray-900">${trx.nama_bank || "-"}</span></div>
-                                    <button onclick="window.salinTeks('${trx.nama_bank || ""}', 'Nama Bank')" class="text-blue-600 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Copy Bank"><i class="bi bi-clipboard"></i></button>
+<button data-action="salin" data-text="${trx.nama_bank || ""}" data-label="Nama Bank" class="text-blue-600 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Copy Bank"><i class="bi bi-clipboard"></i></button>
                                 </div>
                                 <div class="w-full h-px bg-blue-50"></div>
                                 <div class="flex justify-between items-center">
                                     <div><span class="text-gray-500 text-[10px] uppercase font-bold block">No. Rekening / No. HP</span><span class="font-mono font-bold text-lg text-blue-700">${trx.no_rek || "-"}</span></div>
-                                    <button onclick="window.salinTeks('${trx.no_rek || ""}', 'No. Rekening')" class="text-blue-600 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Copy No Rekening"><i class="bi bi-clipboard"></i></button>
+<button data-action="salin" data-text="${trx.no_rek || ""}" data-label="No. Rekening" class="text-blue-600 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Copy No Rekening"><i class="bi bi-clipboard"></i></button>
                                 </div>
                             </div>
                         </div>`;
@@ -876,13 +879,13 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                     </div>
                     
                     <div class="flex gap-3"> 
-                        <button onclick="window.bukaModalEditTrx('${trx.id}')" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl hover:bg-blue-100 transition font-bold active:scale-95">
+<button data-action="edit" data-id="${trx.id}" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl hover:bg-blue-100 transition font-bold active:scale-95">
                             <i class="bi bi-pencil-square"></i> Edit Data 
                         </button>
-                        <button onclick="window.validasiBayar('${trx.id}')" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-700 text-white rounded-xl hover:bg-green-800 transition font-bold active:scale-95">
+                        <button data-action="validasi" data-id="${trx.id}" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-700 text-white rounded-xl hover:bg-green-800 transition font-bold active:scale-95">
                             <i class="bi bi-check-circle"></i> Validasi Lunas 
                         </button>
-                        <button onclick="window.hapusTransaksi('${trx.id}')" class="flex-none flex items-center justify-center px-4 py-3 bg-red-50 text-red-700 border border-red-200 rounded-xl hover:bg-red-100 transition font-bold active:scale-95" title="Hapus Data">
+                        <button data-action="hapus" data-id="${trx.id}" class="flex-none flex items-center justify-center px-4 py-3 bg-red-50 text-red-700 border border-red-200 rounded-xl hover:bg-red-100 transition font-bold active:scale-95" title="Hapus Data">
                             <i class="bi bi-trash3-fill"></i> Hapus Data
                         </button>
                     </div>
@@ -948,7 +951,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                     </td> 
                     <td class="px-6 py-4 text-sm font-bold text-green-700 text-right align-top">Rp ${Number(t.grand_total || 0).toLocaleString("id-ID")}</td>
                     <td class="px-6 py-4 text-center align-top">
-                        <button onclick="window.kirimStrukWA('${t.id}', '${idStruk}')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition shadow-sm inline-flex items-center gap-1">
+<button data-action="kirim-wa" data-id="${t.id}" data-struk="${idStruk}" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition shadow-sm inline-flex items-center gap-1">
                             <i class="bi bi-whatsapp"></i> WA
                         </button>
                     </td>
@@ -1049,29 +1052,19 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         const komoditas = tr.getAttribute("data-komoditas");
 
         let matchDate = true;
-        // Cek apakah ada filter tanggal yang aktif
-        if (start && end && date) {
-          matchDate = date >= start && date <= end;
+        if (start && end && date && date !== "-") {
+          const d = new Date(date);
+          const s = new Date(start);
+          const e = new Date(end);
+          e.setHours(23, 59, 59, 999);
+          matchDate = d >= s && d <= e;
         }
 
         let matchKomoditas = true;
-        // Cek apakah opsi komoditas spesifik dipilih (bukan "Semua")
         if (filterKomoditas !== "Semua" && komoditas) {
-          const lowerKomoditas = komoditas.toLowerCase();
-          const lowerFilter = filterKomoditas.toLowerCase();
-
-          // Jika filter yang dipilih adalah "ampas" (mencocokkan: Ampas Goreng, Ampas, ampas)
-          if (lowerFilter === "ampas") {
-            matchKomoditas = lowerKomoditas.includes("ampas");
-          }
-          // Jika filter yang dipilih adalah "tepung" (mencocokkan: Tepung Ayakan, tepung ayakan, tepung)
-          else if (lowerFilter === "tepung") {
-            matchKomoditas = lowerKomoditas.includes("tepung");
-          }
-          // Untuk komoditas lainnya gunakan perbandingan langsung yang aman (case-insensitive)
-          else {
-            matchKomoditas = lowerKomoditas === lowerFilter;
-          }
+          matchKomoditas = komoditas
+            .toLowerCase()
+            .includes(filterKomoditas.toLowerCase());
         }
 
         // Tampilkan baris HANYA JIKA lolos kedua filter (tanggal dan komoditas)
@@ -1328,6 +1321,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     // 6. VALIDASI & EDIT TRANSAKSI (FUNGSI UTAMA)
     // ==========================================
     window.validasiBayar = async function (trxId) {
+      if (processingIds.has(trxId)) return;
       if (
         !confirm(
           "Tandai transaksi ini sudah dibayar LUNAS?\n\n(Perhatian: Stok gudang akan otomatis bertambah, dan rekap performa Mitra akan di-update)",
@@ -1336,6 +1330,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         return;
       if (!window.supabase) return;
 
+      processingIds.add(trxId);
       try {
         const { error } = await window.supabase.rpc(
           "validasi_pembayaran_mitra",
@@ -1349,6 +1344,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         window.location.reload();
       } catch (err) {
         alert("Gagal memproses validasi & stok: " + err.message);
+        processingIds.delete(trxId);
       }
     };
 
@@ -1356,6 +1352,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     // FUNGSI HAPUS TRANSAKSI
     // ==========================================
     window.hapusTransaksi = async function (trxId) {
+      if (processingIds.has(trxId)) return;
       if (
         !confirm(
           "🚨 PERINGATAN KRITIS 🚨\n\nApakah Anda yakin ingin MENGHAPUS transaksi ini secara permanen?\n\nSistem akan secara otomatis:\n- Mengurangi stok gudang\n- Mengembalikan saldo deposit mitra (jika ada)\n- Menghapus riwayat talangan karyawan (jika ada)",
@@ -1365,6 +1362,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
       if (!window.supabase) return;
 
+      processingIds.add(trxId);
       try {
         const { error } = await window.supabase.rpc("hapus_transaksi_mitra", {
           p_trx_id: parseInt(trxId),
@@ -1379,6 +1377,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       } catch (err) {
         console.error("Gagal hapus transaksi:", err);
         alert("❌ Gagal menghapus transaksi: " + err.message);
+        processingIds.delete(trxId);
       }
     };
 
@@ -1818,6 +1817,28 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         wrapper.classList.add("hidden");
       }
     };
+    // Event delegation for data-action buttons
+    document.addEventListener("click", function (e) {
+      const btn = e.target.closest("[data-action]");
+      if (!btn) return;
+      const action = btn.getAttribute("data-action");
+      const id = btn.getAttribute("data-id");
+      if (action === "salin") {
+        window.salinTeks(
+          btn.getAttribute("data-text"),
+          btn.getAttribute("data-label"),
+        );
+      } else if (action === "edit") {
+        window.bukaModalEditTrx(id);
+      } else if (action === "validasi") {
+        window.validasiBayar(id);
+      } else if (action === "hapus") {
+        window.hapusTransaksi(id);
+      } else if (action === "kirim-wa") {
+        window.kirimStrukWA(id, btn.getAttribute("data-struk"));
+      }
+    });
+
     await loadData();
   });
 </script>

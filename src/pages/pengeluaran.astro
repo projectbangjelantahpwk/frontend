@@ -329,7 +329,8 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
   document.addEventListener("DOMContentLoaded", async () => {
     // === 🛡️ GATEKEEPER KEUANGAN ===
-    const allowedRoles = ["owner", "hrd", "keuangan", "admin", "it"];
+    const allowedRoles = ["owner", "hrd", "keuangan", "admin", "it", "guest"];
+
     const client = window.supabase || supabase;
 
     const {
@@ -361,9 +362,16 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     }
     document.body.style.display = "block";
 
+    // === 🔒 MODE READ-ONLY UNTUK GUEST ===
+    // Role 'guest' hanya boleh MELIHAT. Semua aksi tulis (tambah/edit/hapus/ACC) diblokir.
+    if (prof?.role === "guest") {
+      applyGuestReadonly();
+    }
+
     // ==========================================
     // 1. FETCH DATA PENGELUARAN
     // ==========================================
+
     async function loadDataPengeluaran() {
       if (!window.supabase) return;
       try {
@@ -1317,7 +1325,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           .eq("user_id", userId)
           .eq("tanggal", tanggalStr)
           // .eq("sumber_dana", sumberDana) <-- Biarkan ini DIHAPUS
-          .order("updated_at", { ascending: false }) // 🔥 TAMBAH INI: Urutkan dari yang terbaru
+          .order("created_at", { ascending: false }) // 🔥 TAMBAH INI: Urutkan dari yang terbaru
           .limit(1); // 🔥 GANTI .maybeSingle() JADI INI: Ambil 1 data teratas aja
 
         if (errCheck) throw errCheck;
@@ -1393,7 +1401,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       pengeluaranId,
     ) {
       if (!window.supabase) return;
-      
+
       // Ambil User ID dari pengeluaran Induk untuk jaga-jaga kalau ada Kasbon
       const { data: pData } = await window.supabase
         .from("pengeluaran")
@@ -1424,38 +1432,40 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       if (selisihKasbon > 0) {
         const pilihan = prompt(
           `⚠️ TERDETEKSI SELISIH KURANG: Rp ${selisihKasbon.toLocaleString("id-ID")}\n\n` +
-          `Uang fisik yang disetor lebih sedikit dari catatan sistem. Apa alasan selisih ini?\n` +
-          `Ketik 1 = KASBON (Uang terpakai pribadi/hilang, akan memotong slip gaji)\n` +
-          `Ketik 2 = PERBAIKAN (Ada struk bensin/tol/dll yang lupa diinput admin)`
+            `Uang fisik yang disetor lebih sedikit dari catatan sistem. Apa alasan selisih ini?\n` +
+            `Ketik 1 = KASBON (Uang terpakai pribadi/hilang, akan memotong slip gaji)\n` +
+            `Ketik 2 = PERBAIKAN (Ada struk bensin/tol/dll yang lupa diinput admin)`,
         );
 
         if (pilihan === "2") {
-          return alert("🛑 Proses Dibatalkan!\n\nSilakan input dulu pengeluaran (Bensin/Parkir) yang kelupaan tersebut ke dalam sistem. Setelah di-ACC, sisa Uang Jalan akan otomatis berkurang dengan benar.");
+          return alert(
+            "🛑 Proses Dibatalkan!\n\nSilakan input dulu pengeluaran (Bensin/Parkir) yang kelupaan tersebut ke dalam sistem. Setelah di-ACC, sisa Uang Jalan akan otomatis berkurang dengan benar.",
+          );
         } else if (pilihan === "1") {
           const konfirmasiKasbon = confirm(
             `RINCIAN PENUTUPAN AKHIR:\n` +
-            `- Uang fisik disetor: Rp ${setorFisik.toLocaleString("id-ID")} (Masuk ke Kas Gudang)\n` +
-            `- KASBON DADAKAN: Rp ${selisihKasbon.toLocaleString("id-ID")}\n\n` +
-            `Sistem akan mencatat selisih ini sebagai "Kasbon Uang Jalan" yang akan otomatis memotong Slip Gaji minggu ini. Lanjutkan proses?`
+              `- Uang fisik disetor: Rp ${setorFisik.toLocaleString("id-ID")} (Masuk ke Kas Gudang)\n` +
+              `- KASBON DADAKAN: Rp ${selisihKasbon.toLocaleString("id-ID")}\n\n` +
+              `Sistem akan mencatat selisih ini sebagai "Kasbon Uang Jalan" yang akan otomatis memotong Slip Gaji minggu ini. Lanjutkan proses?`,
           );
           if (!konfirmasiKasbon) return;
         } else {
           return alert("❌ Pilihan tidak valid. Proses dibatalkan.");
         }
       } else {
-         // Jika uangnya pas (selisih 0)
-         const konfirmasiPas = confirm(
-           `RINCIAN PENUTUPAN AKHIR:\n` +
-           `- Uang fisik disetor: Rp ${setorFisik.toLocaleString("id-ID")} (Masuk ke Kas Gudang)\n\n` +
-           `Sisa uang jalan sesuai (tidak ada selisih). Lanjutkan proses?`
-         );
-         if (!konfirmasiPas) return;
+        // Jika uangnya pas (selisih 0)
+        const konfirmasiPas = confirm(
+          `RINCIAN PENUTUPAN AKHIR:\n` +
+            `- Uang fisik disetor: Rp ${setorFisik.toLocaleString("id-ID")} (Masuk ke Kas Gudang)\n\n` +
+            `Sisa uang jalan sesuai (tidak ada selisih). Lanjutkan proses?`,
+        );
+        if (!konfirmasiPas) return;
       }
 
       // 🚀 EKSEKUSI KE BACKEND
       try {
-        const btnBuka = document.activeElement; 
-        if(btnBuka) btnBuka.innerText = "Memproses...";
+        const btnBuka = document.activeElement;
+        if (btnBuka) btnBuka.innerText = "Memproses...";
 
         // Tembak langsung ke Edge Function biar dieksekusi di server!
         const { data, error } = await window.supabase.functions.invoke(
@@ -1474,7 +1484,9 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         if (error) throw new Error(error.message);
         if (data && data.success === false) throw new Error(data.error);
 
-        alert("✅ Mantap! Uang sisa berhasil ditambahkan ke laci Gudang dan catatan berhasil disesuaikan.");
+        alert(
+          "✅ Mantap! Uang sisa berhasil ditambahkan ke laci Gudang dan catatan berhasil disesuaikan.",
+        );
         window.location.reload();
       } catch (e) {
         alert("❌ Gagal memproses penyetoran sisa uang: " + e.message);

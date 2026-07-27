@@ -143,6 +143,38 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               </label>
             </div>
 
+            <div class="border-t border-outline-variant pt-3 mt-2">
+              <h4 class="font-bold text-sm text-on-surface mb-2">
+                Filter Personil
+              </h4>
+              <div class="flex flex-col gap-2">
+                <div>
+                  <label
+                    class="block text-[10px] text-on-surface-variant font-bold uppercase"
+                    >Nama Driver</label
+                  >
+                  <select
+                    id="filter-driver"
+                    class="w-full p-2 border border-outline-variant rounded-lg text-sm bg-surface-container outline-none focus:border-primary"
+                  >
+                    <option value="">-- Semua Driver --</option>
+                  </select>
+                </div>
+                <div>
+                  <label
+                    class="block text-[10px] text-on-surface-variant font-bold uppercase"
+                    >Nama Helper</label
+                  >
+                  <select
+                    id="filter-helper"
+                    class="w-full p-2 border border-outline-variant rounded-lg text-sm bg-surface-container outline-none focus:border-primary"
+                  >
+                    <option value="">-- Semua Helper --</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
             <div
               id="filter-history-section"
               class="hidden border-t border-outline-variant pt-3 mt-2"
@@ -580,6 +612,34 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                 <div>
                   <label
                     class="block text-xs text-on-surface-variant mb-1 font-semibold"
+                    >Estimasi Minyak Semi</label
+                  >
+                  <input
+                    type="number"
+                    id="est-minyak-semi"
+                    class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all"
+                    value="0"
+                    min="0"
+                    step="0.001"
+                  />
+                </div>
+                <div>
+                  <label
+                    class="block text-xs text-on-surface-variant mb-1 font-semibold"
+                    >Estimasi Minyak Asting</label
+                  >
+                  <input
+                    type="number"
+                    id="est-minyak-asting"
+                    class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-all"
+                    value="0"
+                    min="0"
+                    step="0.001"
+                  />
+                </div>
+                <div>
+                  <label
+                    class="block text-xs text-on-surface-variant mb-1 font-semibold"
                     >Estimasi Tepung</label
                   >
                   <input
@@ -657,6 +717,32 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                   <input
                     type="number"
                     id="satuan-minyak"
+                    class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm"
+                    value="0"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <label
+                    class="block text-xs text-on-surface-variant mb-1 font-semibold"
+                    >Harga Satuan Minyak Semi</label
+                  >
+                  <input
+                    type="number"
+                    id="satuan-minyak-semi"
+                    class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm"
+                    value="0"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <label
+                    class="block text-xs text-on-surface-variant mb-1 font-semibold"
+                    >Harga Satuan Minyak Asting</label
+                  >
+                  <input
+                    type="number"
+                    id="satuan-minyak-asting"
                     class="w-full px-3 py-2 border border-outline-variant rounded-md bg-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm"
                     value="0"
                     min="0"
@@ -905,14 +991,54 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           />
         </div>
 
-        <div>
+        <!-- Tambahan: Pilihan Jenis Kendaraan -->
+        <div class="flex gap-4">
+          <label
+            class="flex items-center gap-2 text-sm text-gray-700 font-bold cursor-pointer"
+          >
+            <input
+              type="radio"
+              name="duet_jenis"
+              value="mobil"
+              checked
+              onchange="window.toggleJenisDuet()"
+              class="accent-blue-600 w-4 h-4"
+            /> Mobil
+          </label>
+          <label
+            class="flex items-center gap-2 text-sm text-gray-700 font-bold cursor-pointer"
+          >
+            <input
+              type="radio"
+              name="duet_jenis"
+              value="motor"
+              onchange="window.toggleJenisDuet()"
+              class="accent-blue-600 w-4 h-4"
+            /> Motor
+          </label>
+        </div>
+
+        <!-- Dropdown Mobil (Default Tampil) -->
+        <div id="container-duet-mobil">
           <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
             >Pilih Armada (Mobil)</label
           >
           <select
             id="duet_mobil"
             class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 bg-white font-medium"
-            required
+          >
+            <option value="">-- Memuat Armada... --</option>
+          </select>
+        </div>
+
+        <!-- Dropdown Motor (Default Tersembunyi) -->
+        <div id="container-duet-motor" class="hidden">
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
+            >Pilih Armada (Motor)</label
+          >
+          <select
+            id="duet_motor"
+            class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 bg-white font-medium"
           >
             <option value="">-- Memuat Armada... --</option>
           </select>
@@ -928,14 +1054,14 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 bg-white font-medium"
               required></select>
           </div>
-          <div>
+          <div id="container-duet-helper">
             <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
               >Pilih Helper</label
             >
             <select
               id="duet_helper"
               class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 bg-white font-medium"
-              required></select>
+            ></select>
           </div>
         </div>
 
@@ -1005,6 +1131,38 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       tomDuetDriver,
       tomDuetHelper;
     let isFetchingDuet = false;
+
+    // Deklarasikan variabel tomSelect untuk Motor
+    let tomDuetMotor;
+
+    // Fungsi baru untuk mengatur form saat opsi Mobil / Motor diklik
+    window.toggleJenisDuet = function () {
+      const jenis = document.querySelector(
+        'input[name="duet_jenis"]:checked',
+      ).value;
+      const containerMobil = document.getElementById("container-duet-mobil");
+      const containerMotor = document.getElementById("container-duet-motor");
+      const containerHelper = document.getElementById("container-duet-helper");
+
+      if (jenis === "mobil") {
+        containerMobil.classList.remove("hidden");
+        containerMotor.classList.add("hidden");
+        containerHelper.classList.remove("hidden");
+
+        document.getElementById("duet_mobil").required = true;
+        document.getElementById("duet_motor").required = false;
+      } else {
+        containerMobil.classList.add("hidden");
+        containerMotor.classList.remove("hidden");
+        containerHelper.classList.add("hidden"); // Motor tidak butuh Helper
+
+        document.getElementById("duet_mobil").required = false;
+        document.getElementById("duet_motor").required = true;
+
+        // Kosongkan helper jika pindah ke motor
+        if (tomDuetHelper) tomDuetHelper.clear();
+      }
+    };
 
     // =======================================================
     // FUNGSI GANTI TAB SAKTI (UI + LOGIKA TANGGAL)
@@ -1092,8 +1250,8 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             .select(
               `
                         id, status, tanggal, rute_penjemputan, kendaraan, catatan, 
-                        estimasi_minyak, estimasi_tepung, estimasi_kriuk, estimasi_spinner, estimasi_ampas, total_estimasi,
-                        satuan_minyak, satuan_tepung, satuan_kriuk, satuan_spinner, satuan_ampas,
+                        estimasi_minyak, estimasi_minyak_semi, estimasi_minyak_asting, estimasi_tepung, estimasi_kriuk, estimasi_spinner, estimasi_ampas, total_estimasi,
+                        satuan_minyak, satuan_minyak_semi, satuan_minyak_asting, satuan_tepung, satuan_kriuk, satuan_spinner, satuan_ampas,
                         mitra ( id, nama_mitra, alamat, link_gmaps, nomor_hp, deposit ),
                         mobil ( id, nama_kendaraan, plat_nomor ),
                         driver:driver_id ( id, nama ),
@@ -1132,7 +1290,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         if (pending.length > 0) {
           pending.forEach((j) => {
             htmlPending += `
-                        <tr class="hover:bg-surface-container-low transition-colors" data-rute="${j.rute_penjemputan || ""}" data-tanggal="${j.tanggal || ""}">
+                        <tr class="hover:bg-surface-container-low transition-colors" data-rute="${j.rute_penjemputan || ""}" data-tanggal="${j.tanggal || ""}" data-driver="${(j.driver?.nama || "").toLowerCase()}" data-helper="${(j.helper?.nama || "").toLowerCase()}">
                             <td class="px-md py-md whitespace-nowrap font-semibold" data-label="Nama Mitra">${j.mitra?.nama_mitra || "-"}</td>
                             <td class="px-md py-md" data-label="Alamat">
                                 <div class="text-xs font-bold text-gray-800 break-words max-w-[220px]" title="${j.mitra?.alamat || ""}">
@@ -1173,7 +1331,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         if (onProgress.length > 0) {
           onProgress.forEach((j) => {
             htmlProgress += `
-                        <tr class="hover:bg-surface-container-low transition-colors" data-rute="${j.rute_penjemputan || ""}" data-tanggal="${j.tanggal || ""}">
+                        <tr class="hover:bg-surface-container-low transition-colors" data-rute="${j.rute_penjemputan || ""}" data-tanggal="${j.tanggal || ""}" data-driver="${(j.driver?.nama || "").toLowerCase()}" data-helper="${(j.helper?.nama || "").toLowerCase()}">
                             <td class="px-md py-md whitespace-nowrap font-semibold" data-label="Nama Mitra">${j.mitra?.nama_mitra || "-"}</td>
                             <td class="px-md py-md" data-label="Alamat">
                                 <div class="text-xs font-bold text-gray-800 break-words max-w-[220px]" title="${j.mitra?.alamat || ""}">
@@ -1239,7 +1397,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             }
 
             htmlHistory += `
-                        <tr class="hover:bg-surface-container-low transition-colors" data-rute="${j.rute_penjemputan || ""}" data-tanggal="${j.tanggal || ""}">
+                        <tr class="hover:bg-surface-container-low transition-colors" data-rute="${j.rute_penjemputan || ""}" data-tanggal="${j.tanggal || ""}" data-driver="${(j.driver?.nama || "").toLowerCase()}" data-helper="${(j.helper?.nama || "").toLowerCase()}">
                             <td class="px-md py-md whitespace-nowrap font-semibold" data-label="Nama Mitra">${j.mitra?.nama_mitra || "-"}</td>
                             <td class="px-md py-md whitespace-nowrap" data-label="Tanggal Selesai">${j.tanggal}</td>
                             <td class="px-md py-md" data-label="Rincian Komoditas">${itemsHtml}</td>
@@ -1478,6 +1636,50 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       const ruteCheckboxes = document.querySelectorAll(".filter-rute-cb");
       const startInput = document.getElementById("filter-start-date");
       const endInput = document.getElementById("filter-end-date");
+      const driverSelect = document.getElementById("filter-driver");
+      const helperSelect = document.getElementById("filter-helper");
+
+      // 🔥 POPULASI DROPDOWN FILTER DRIVER & HELPER DARI DATA BARIS 🔥
+      (function populatePersonilFilter() {
+        const allRows = document.querySelectorAll(
+          "#tbody-pending tr, #tbody-progress tr, #tbody-history tr",
+        );
+        const setDriver = new Set();
+        const setHelper = new Set();
+
+        allRows.forEach((row) => {
+          if (row.children.length === 1 && row.cells[0].colSpan > 1) return;
+          const d = (row.getAttribute("data-driver") || "").trim();
+          const h = (row.getAttribute("data-helper") || "").trim();
+          if (d) setDriver.add(d);
+          if (h) setHelper.add(h);
+        });
+
+        if (driverSelect) {
+          const prev = driverSelect.value;
+          let opt = '<option value="">-- Semua Driver --</option>';
+          Array.from(setDriver)
+            .sort()
+            .forEach((nama) => {
+              // Tampilkan Title Case tapi value tetap lowercase agar cocok data-driver
+              opt += `<option value="${nama}">${nama.replace(/\b\w/g, (c) => c.toUpperCase())}</option>`;
+            });
+          driverSelect.innerHTML = opt;
+          driverSelect.value = prev;
+        }
+
+        if (helperSelect) {
+          const prev = helperSelect.value;
+          let opt = '<option value="">-- Semua Helper --</option>';
+          Array.from(setHelper)
+            .sort()
+            .forEach((nama) => {
+              opt += `<option value="${nama}">${nama.replace(/\b\w/g, (c) => c.toUpperCase())}</option>`;
+            });
+          helperSelect.innerHTML = opt;
+          helperSelect.value = prev;
+        }
+      })();
 
       if (btnFilterMulti && dropdownMulti) {
         // Buka tutup menu
@@ -1500,6 +1702,8 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           .map((cb) => cb.value.toLowerCase());
         const startVal = startInput?.value;
         const endVal = endInput?.value;
+        const driverVal = (driverSelect?.value || "").toLowerCase();
+        const helperVal = (helperSelect?.value || "").toLowerCase();
 
         const allRows = document.querySelectorAll(
           "#tbody-pending tr, #tbody-progress tr, #tbody-history tr",
@@ -1511,6 +1715,8 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
           const rute = (row.getAttribute("data-rute") || "").toLowerCase();
           const tanggal = row.getAttribute("data-tanggal") || "";
+          const driver = (row.getAttribute("data-driver") || "").toLowerCase();
+          const helper = (row.getAttribute("data-helper") || "").toLowerCase();
 
           // 🔥 FIX: Kalau rute di database belum diisi (kosong), loloskan saja biar gak hilang! 🔥
           let isRuteSesuai = false;
@@ -1529,7 +1735,14 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             if (endVal && tanggal > endVal) isTanggalSesuai = false;
           }
 
-          row.style.display = isRuteSesuai && isTanggalSesuai ? "" : "none";
+          // 🔥 Filter Driver & Helper (kosong = tampilkan semua) 🔥
+          const isDriverSesuai = driverVal === "" || driver === driverVal;
+          const isHelperSesuai = helperVal === "" || helper === helperVal;
+
+          row.style.display =
+            isRuteSesuai && isTanggalSesuai && isDriverSesuai && isHelperSesuai
+              ? ""
+              : "none";
         });
       };
 
@@ -1541,6 +1754,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         startInput.addEventListener("change", window.applyMultiFilters);
       if (endInput)
         endInput.addEventListener("change", window.applyMultiFilters);
+      if (driverSelect)
+        driverSelect.addEventListener("change", window.applyMultiFilters);
+      if (helperSelect)
+        helperSelect.addEventListener("change", window.applyMultiFilters);
 
       const isAllowed = () =>
         ["owner", "hrd", "admin"].includes(currentUserRole);
@@ -1598,11 +1815,15 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         // Reset volume dan harga satuan
         const allInputIds = [
           "est-minyak",
+          "est-minyak-semi",
+          "est-minyak-asting",
           "est-tepung",
           "est-kriuk",
           "est-spinner",
           "est-ampas",
           "satuan-minyak",
+          "satuan-minyak-semi",
+          "satuan-minyak-asting",
           "satuan-tepung",
           "satuan-kriuk",
           "satuan-spinner",
@@ -1683,6 +1904,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
         // Baca data langsung dari database penjemputan
         document.getElementById("est-minyak").value = p.estimasi_minyak || "0";
+        document.getElementById("est-minyak-semi").value =
+          p.estimasi_minyak_semi || "0";
+        document.getElementById("est-minyak-asting").value =
+          p.estimasi_minyak_asting || "0";
         document.getElementById("est-tepung").value = p.estimasi_tepung || "0";
         document.getElementById("est-kriuk").value = p.estimasi_kriuk || "0";
         document.getElementById("est-spinner").value =
@@ -1691,6 +1916,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
         // 🔥 TEMPEL DATA HARGA SATUAN BARU 🔥
         document.getElementById("satuan-minyak").value = p.satuan_minyak || "0";
+        document.getElementById("satuan-minyak-semi").value =
+          p.satuan_minyak_semi || "0";
+        document.getElementById("satuan-minyak-asting").value =
+          p.satuan_minyak_asting || "0";
         document.getElementById("satuan-tepung").value = p.satuan_tepung || "0";
         document.getElementById("satuan-kriuk").value = p.satuan_kriuk || "0";
         document.getElementById("satuan-spinner").value =
@@ -1992,11 +2221,15 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         // Reset Nominal Estimasi ke 0
         const allInputIds = [
           "est-minyak",
+          "est-minyak-semi",
+          "est-minyak-asting",
           "est-tepung",
           "est-kriuk",
           "est-spinner",
           "est-ampas",
           "satuan-minyak",
+          "satuan-minyak-semi",
+          "satuan-minyak-asting",
           "satuan-tepung",
           "satuan-kriuk",
           "satuan-spinner",
@@ -2131,6 +2364,11 @@ import "bootstrap-icons/font/bootstrap-icons.css";
             );
             const estMinyak =
               parseFloat(document.getElementById("est-minyak").value) || 0;
+            const estMinyakSemi =
+              parseFloat(document.getElementById("est-minyak-semi").value) || 0;
+            const estMinyakAsting =
+              parseFloat(document.getElementById("est-minyak-asting").value) ||
+              0;
             const estTepung =
               parseFloat(document.getElementById("est-tepung").value) || 0;
             const estKriuk =
@@ -2142,6 +2380,13 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
             const satMinyak =
               parseFloat(document.getElementById("satuan-minyak").value) || 0;
+            const satMinyakSemi =
+              parseFloat(document.getElementById("satuan-minyak-semi").value) ||
+              0;
+            const satMinyakAsting =
+              parseFloat(
+                document.getElementById("satuan-minyak-asting").value,
+              ) || 0;
             const satTepung =
               parseFloat(document.getElementById("satuan-tepung").value) || 0;
             const satKriuk =
@@ -2152,26 +2397,21 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               parseFloat(document.getElementById("satuan-ampas").value) || 0;
 
             const totalEstimasi =
-              estMinyak + estTepung + estKriuk + estSpinner + estAmpas;
+              estMinyak +
+              estMinyakSemi +
+              estMinyakAsting +
+              estTepung +
+              estKriuk +
+              estSpinner +
+              estAmpas;
             const estimasiTransaksi =
               estMinyak * satMinyak +
+              estMinyakSemi * satMinyakSemi +
+              estMinyakAsting * satMinyakAsting +
               estTepung * satTepung +
               estKriuk * satKriuk +
               estSpinner * satSpinner +
               estAmpas * satAmpas;
-
-            // Tampilkan tabel di console biar rapi
-            console.table({
-              Minyak: { Estimasi_KG: estMinyak, Harga_Satuan: satMinyak },
-              Tepung: { Estimasi_KG: estTepung, Harga_Satuan: satTepung },
-              Kriuk: { Estimasi_KG: estKriuk, Harga_Satuan: satKriuk },
-              Spinner: { Estimasi_KG: estSpinner, Harga_Satuan: satSpinner },
-              Ampas: { Estimasi_KG: estAmpas, Harga_Satuan: satAmpas },
-              TOTAL_AKHIR: {
-                Estimasi_KG: totalEstimasi,
-                Total_Rupiah: estimasiTransaksi,
-              },
-            });
 
             const payloadPenjemputan = {
               mitra_id: parseInt(mitra_id),
@@ -2183,6 +2423,8 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               rute_penjemputan: wilayah,
               catatan: catatanInput || null,
               estimasi_minyak: estMinyak,
+              estimasi_minyak_semi: estMinyakSemi,
+              estimasi_minyak_asting: estMinyakAsting,
               estimasi_tepung: estTepung,
               estimasi_kriuk: estKriuk,
               estimasi_spinner: estSpinner,
@@ -2190,6 +2432,8 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               total_estimasi: totalEstimasi,
               estimasi_transaksi: estimasiTransaksi,
               satuan_minyak: satMinyak,
+              satuan_minyak_semi: satMinyakSemi,
+              satuan_minyak_asting: satMinyakAsting,
               satuan_tepung: satTepung,
               satuan_kriuk: satKriuk,
               satuan_spinner: satSpinner,
@@ -2386,6 +2630,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     function hitungEstimasiTransaksi() {
       const estMinyak =
         parseFloat(document.getElementById("est-minyak")?.value) || 0;
+      const estMinyakSemi =
+        parseFloat(document.getElementById("est-minyak-semi")?.value) || 0;
+      const estMinyakAsting =
+        parseFloat(document.getElementById("est-minyak-asting")?.value) || 0;
       const estTepung =
         parseFloat(document.getElementById("est-tepung")?.value) || 0;
       const estKriuk =
@@ -2397,6 +2645,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
       const satMinyak =
         parseFloat(document.getElementById("satuan-minyak")?.value) || 0;
+      const satMinyakSemi =
+        parseFloat(document.getElementById("satuan-minyak-semi")?.value) || 0;
+      const satMinyakAsting =
+        parseFloat(document.getElementById("satuan-minyak-asting")?.value) || 0;
       const satTepung =
         parseFloat(document.getElementById("satuan-tepung")?.value) || 0;
       const satKriuk =
@@ -2406,15 +2658,15 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       const satAmpas =
         parseFloat(document.getElementById("satuan-ampas")?.value) || 0;
 
-      // Kalkulasi nominal
       const estimasiTransaksi =
         estMinyak * satMinyak +
+        estMinyakSemi * satMinyakSemi +
+        estMinyakAsting * satMinyakAsting +
         estTepung * satTepung +
         estKriuk * satKriuk +
         estSpinner * satSpinner +
         estAmpas * satAmpas;
 
-      // Tampilkan hasil total akhir bersih
       const displayEl = document.getElementById("display-estimasi-transaksi");
       if (displayEl) {
         displayEl.innerText = "Rp " + estimasiTransaksi.toLocaleString("id-ID");
@@ -2425,11 +2677,15 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     document.addEventListener("DOMContentLoaded", () => {
       const inputIds = [
         "est-minyak",
+        "est-minyak-semi",
+        "est-minyak-asting",
         "est-tepung",
         "est-kriuk",
         "est-spinner",
         "est-ampas",
         "satuan-minyak",
+        "satuan-minyak-semi",
+        "satuan-minyak-asting",
         "satuan-tepung",
         "satuan-kriuk",
         "satuan-spinner",
@@ -2678,22 +2934,26 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         .toISOString()
         .split("T")[0];
 
+      // Reset radio button ke mobil
+      document.querySelector(
+        'input[name="duet_jenis"][value="mobil"]',
+      ).checked = true;
+      if (typeof window.toggleJenisDuet === "function")
+        window.toggleJenisDuet();
+
       // 1. Fetch Mobil Aktif
       try {
         const { data: mobilData } = await window.supabase
           .from("mobil")
           .select("id, nama_kendaraan, plat_nomor")
           .eq("is_active", true);
-
         let optMobil = '<option value="">-- Pilih Armada --</option>';
-        if (mobilData) {
-          mobilData.forEach((m) => {
-            optMobil += `<option value="${m.id}">${m.nama_kendaraan} (${m.plat_nomor})</option>`;
-          });
-        }
+        if (mobilData)
+          mobilData.forEach(
+            (m) =>
+              (optMobil += `<option value="${m.id}">${m.nama_kendaraan} (${m.plat_nomor})</option>`),
+          );
         document.getElementById("duet_mobil").innerHTML = optMobil;
-
-        // 🔥 SUNTIKAN TOMSELECT ARMADA 🔥
         if (tomDuetMobil) tomDuetMobil.destroy();
         tomDuetMobil = new TomSelect("#duet_mobil", {
           create: false,
@@ -2703,7 +2963,29 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         console.error("Gagal load mobil", err);
       }
 
-      // 2. Fetch Driver & Helper
+      // 2. Fetch Motor Aktif
+      try {
+        const { data: motorData } = await window.supabase
+          .from("motor")
+          .select("id, nama_kendaraan, plat_nomor")
+          .eq("is_active", true);
+        let optMotor = '<option value="">-- Pilih Motor --</option>';
+        if (motorData)
+          motorData.forEach(
+            (m) =>
+              (optMotor += `<option value="${m.id}">${m.nama_kendaraan} (${m.plat_nomor})</option>`),
+          );
+        document.getElementById("duet_motor").innerHTML = optMotor;
+        if (tomDuetMotor) tomDuetMotor.destroy();
+        tomDuetMotor = new TomSelect("#duet_motor", {
+          create: false,
+          maxOptions: null,
+        });
+      } catch (err) {
+        console.error("Gagal load motor", err);
+      }
+
+      // 3. Fetch Driver & Helper
       let optDriver = '<option value="">-- Pilih Driver --</option>';
       let optHelper = '<option value="">-- Pilih Helper --</option>';
       if (window.allKaryawan) {
@@ -2715,20 +2997,18 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       document.getElementById("duet_driver").innerHTML = optDriver;
       document.getElementById("duet_helper").innerHTML = optHelper;
 
-      // 🔥 SUNTIKAN TOMSELECT DRIVER & HELPER 🔥
       if (tomDuetDriver) tomDuetDriver.destroy();
       tomDuetDriver = new TomSelect("#duet_driver", {
         create: false,
         maxOptions: null,
       });
-
       if (tomDuetHelper) tomDuetHelper.destroy();
       tomDuetHelper = new TomSelect("#duet_helper", {
         create: false,
         maxOptions: null,
       });
 
-      // 3. Load Daftar Duet Terkini
+      // 4. Load Daftar Duet Terkini
       window.loadDaftarDuet();
     };
 
@@ -2739,16 +3019,17 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         '<tr><td colspan="5" class="p-4 text-center text-gray-400 italic">Memuat data...</td></tr>';
 
       try {
-        // Jangan lupa join ke tabel mobil
+        // Gabungkan relasi tabel mobil & motor sekalian
         const { data, error } = await window.supabase
           .from("partner_kendaraan")
           .select(
             `
-                        id, tanggal, 
-                        driver:driver_id(nama), 
-                        helper:helper_id(nama),
-                        mobil(nama_kendaraan, plat_nomor)
-                    `,
+                id, tanggal, 
+                driver:driver_id(nama), 
+                helper:helper_id(nama),
+                mobil(nama_kendaraan, plat_nomor),
+                motor(nama_kendaraan, plat_nomor)
+            `,
           )
           .order("tanggal", { ascending: false })
           .limit(15);
@@ -2758,29 +3039,32 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         let htmlList = "";
         if (data && data.length > 0) {
           data.forEach((d) => {
-            const armada = d.mobil
-              ? `${d.mobil.nama_kendaraan} <br><span class="text-[10px] bg-gray-200 px-1 rounded">${d.mobil.plat_nomor}</span>`
-              : "-";
+            let armada = "-";
+            if (d.mobil) {
+              armada = `<i class="bi bi-car-front-fill text-blue-500 mr-1"></i> ${d.mobil.nama_kendaraan} <br><span class="text-[10px] bg-gray-200 px-1 rounded mt-1 inline-block">${d.mobil.plat_nomor}</span>`;
+            } else if (d.motor) {
+              armada = `<i class="bi bi-bicycle text-green-500 mr-1"></i> ${d.motor.nama_kendaraan} <br><span class="text-[10px] bg-gray-200 px-1 rounded mt-1 inline-block">${d.motor.plat_nomor}</span>`;
+            }
+
             htmlList += `
-                            <tr>
-                                <td class="p-3 font-semibold">${d.tanggal}</td>
-                                <td class="p-3 leading-tight">${armada}</td>
-                                <td class="p-3 text-blue-700 font-semibold">${d.driver?.nama || "-"}</td>
-                                <td class="p-3">${d.helper?.nama || "-"}</td>
-                                <td class="p-3 text-center">
-                                    <button type="button" onclick="window.hapusDuet('${d.id}')" class="text-red-500 hover:text-red-700 bg-red-50 p-1.5 rounded" title="Hapus"><i class="bi bi-trash3"></i></button>
-                                </td>
-                            </tr>
-                        `;
+                <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                    <td class="p-3 font-semibold text-xs">${d.tanggal}</td>
+                    <td class="p-3 leading-tight">${armada}</td>
+                    <td class="p-3 text-blue-700 font-semibold">${d.driver?.nama || "-"}</td>
+                    <td class="p-3 text-gray-600">${d.helper?.nama || "-"}</td>
+                    <td class="p-3 text-center">
+                        <button type="button" onclick="window.hapusDuet('${d.id}')" class="text-red-500 hover:text-red-700 bg-red-50 p-1.5 rounded" title="Hapus"><i class="bi bi-trash3"></i></button>
+                    </td>
+                </tr>
+            `;
           });
         } else {
           htmlList =
-            '<tr><td colspan="5" class="p-4 text-center text-gray-400 italic">Belum ada pengaturan duet.</td></tr>';
+            '<tr><td colspan="5" class="p-4 text-center text-gray-400 italic">Belum ada pengaturan armada/pasangan aktif.</td></tr>';
         }
         tbody.innerHTML = htmlList;
       } catch (err) {
-        console.error("Gagal load daftar duet:", err.message || err);
-        // Tambahin alert biar lu langsung tau errornya apa tanpa buka console F12
+        console.error("Gagal load daftar duet:", err);
         alert(
           "Gagal memuat daftar duet: " + (err.message || "Cek Console F12"),
         );
@@ -2816,12 +3100,24 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       btn.innerText = "Menyimpan...";
       btn.disabled = true;
 
+      const jenis = document.querySelector(
+        'input[name="duet_jenis"]:checked',
+      ).value;
       const payload = {
         tanggal: document.getElementById("duet_tanggal").value,
-        mobil_id: document.getElementById("duet_mobil").value, // Simpan ID Mobil
         driver_id: document.getElementById("duet_driver").value,
-        helper_id: document.getElementById("duet_helper").value,
       };
+
+      if (jenis === "mobil") {
+        payload.mobil_id = document.getElementById("duet_mobil").value || null;
+        payload.motor_id = null;
+        payload.helper_id =
+          document.getElementById("duet_helper").value || null;
+      } else {
+        payload.mobil_id = null;
+        payload.motor_id = document.getElementById("duet_motor").value || null;
+        payload.helper_id = null; // Motor nggak bawa kenek
+      }
 
       try {
         const { error } = await window.supabase
@@ -2829,10 +3125,17 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           .insert([payload]);
         if (error) throw error;
 
-        alert("Pasangan duet & armada berhasil disimpan!");
+        alert("Pasangan operasional berhasil disimpan!");
+
+        // Bersihkan form tanpa menutup modal
+        if (tomDuetDriver) tomDuetDriver.clear();
+        if (tomDuetHelper) tomDuetHelper.clear();
+        if (tomDuetMobil) tomDuetMobil.clear();
+        if (tomDuetMotor) tomDuetMotor.clear();
+
         window.loadDaftarDuet(); // Refresh tabel bawah
       } catch (err) {
-        alert("Gagal menyimpan duet: " + err.message);
+        alert("Gagal menyimpan pasangan: " + err.message);
       } finally {
         btn.innerText = "Simpan Pasangan";
         btn.disabled = false;
@@ -2866,6 +3169,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       let listEstimasi = [];
       if (j.estimasi_minyak > 0)
         listEstimasi.push(`- Minyak Jelantah Kotor: ${j.estimasi_minyak} Kg`);
+      if (j.estimasi_minyak_semi > 0)
+        listEstimasi.push(`- Minyak Semi: ${j.estimasi_minyak_semi} Kg`);
+      if (j.estimasi_minyak_asting > 0)
+        listEstimasi.push(`- Minyak Asting: ${j.estimasi_minyak_asting} Kg`);
       if (j.estimasi_tepung > 0)
         listEstimasi.push(`- Tepung: ${j.estimasi_tepung} Kg`);
       if (j.estimasi_kriuk > 0)

@@ -1,613 +1,1751 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import Layout from "../layouts/Layout.astro";
+import "bootstrap-icons/font/bootstrap-icons.css";
 ---
 
 <Layout title="Manajemen Armada - Bang Jelantah">
-    <style is:global>
-        body { display: none; } /* Kunci layar sampai verifikasi role beres */
-    </style>
-    <style>
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        
-        /* Mobile Table Cards Style */
-        @media (max-width: 768px) {
-            .mobile-table-card thead { display: none; }
-            .mobile-table-card tbody tr {
-                display: flex; flex-direction: column; margin-bottom: 1rem;
-                border: 1px solid #e0e4d6; border-radius: 0.75rem; background-color: #ffffff;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            }
-            .mobile-table-card tbody td {
-                display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start;
-                padding: 12px 16px; border-bottom: 1px solid #f0f2ec;
-                font-size: 13px; text-align: right; gap: 16px;
-            }
-            .mobile-table-card tbody td:last-child {
-                border-bottom: none; background-color: #fdfdf5; align-items: center; justify-content: flex-end;
-            }
-            .mobile-table-card tbody td::before {
-                content: attr(data-label); font-weight: 700; color: #5d624c; font-size: 11px;
-                text-transform: uppercase; text-align: left; flex-shrink: 0; width: 35%;
-            }
-            .mobile-table-card tbody td > div, .mobile-table-card tbody td > span, .mobile-table-card tbody td > img {
-                word-break: break-word; text-align: right; justify-content: flex-end;
-            }
-        }
-    </style>
+  <style is:global>
+    body {
+      display: none;
+    } /* Kunci layar sampai verifikasi role beres */
+  </style>
+  <style>
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
 
-    <div class="max-w-7xl mx-auto flex flex-col h-full">
-        <!-- HEADER -->
-        <div class="mb-lg flex flex-col md:flex-row md:items-end justify-between gap-md">
+    /* Mobile Table Cards Style */
+    @media (max-width: 768px) {
+      .mobile-table-card thead {
+        display: none;
+      }
+      .mobile-table-card tbody tr {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 1rem;
+        border: 1px solid #e0e4d6;
+        border-radius: 0.75rem;
+        background-color: #ffffff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+      .mobile-table-card tbody td {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 12px 16px;
+        border-bottom: 1px solid #f0f2ec;
+        font-size: 13px;
+        text-align: right;
+        gap: 16px;
+      }
+      .mobile-table-card tbody td:last-child {
+        border-bottom: none;
+        background-color: #fdfdf5;
+        align-items: center;
+        justify-content: flex-end;
+      }
+      .mobile-table-card tbody td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: #5d624c;
+        font-size: 11px;
+        text-transform: uppercase;
+        text-align: left;
+        flex-shrink: 0;
+        width: 35%;
+      }
+      .mobile-table-card tbody td > div,
+      .mobile-table-card tbody td > span,
+      .mobile-table-card tbody td > img {
+        word-break: break-word;
+        text-align: right;
+        justify-content: flex-end;
+      }
+    }
+  </style>
+
+  <div class="max-w-7xl mx-auto flex flex-col h-full">
+    <!-- HEADER -->
+    <div
+      class="mb-lg flex flex-col md:flex-row md:items-end justify-between gap-md"
+    >
+      <div>
+        <h1
+          class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary"
+        >
+          Manajemen Armada
+        </h1>
+        <p class="font-body-md text-body-md text-on-surface-variant mt-xs">
+          Pendaftaran kendaraan & verifikasi pengecekan operasional
+        </p>
+      </div>
+      <div
+        class="flex flex-wrap gap-2 w-full md:w-auto mt-4 md:mt-0"
+        id="action-buttons-container"
+      >
+        <button
+          id="btn-tambah-mobil"
+          onclick="window.bukaModalTambahMobil()"
+          class="bg-primary text-on-primary font-label-lg rounded-full px-4 py-2 hover:opacity-90 transition-all shadow-sm flex items-center gap-2"
+        >
+          <i class="bi bi-truck"></i> Tambah Mobil
+        </button>
+        <button
+          id="btn-tambah-motor"
+          onclick="window.bukaModalTambahMotor()"
+          class="bg-green-600 text-white font-label-lg rounded-full px-4 py-2 hover:bg-green-700 transition-all shadow-sm flex items-center gap-2"
+        >
+          <i class="bi bi-bicycle"></i> Tambah Motor
+        </button>
+        <button
+          id="btn-tambah-service"
+          onclick="window.bukaModalService()"
+          class="bg-blue-600 text-white font-label-lg rounded-full px-4 py-2 hover:bg-blue-700 transition-all shadow-sm flex items-center gap-2"
+        >
+          <i class="bi bi-tools"></i> Input Service
+        </button>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div
+      class="flex border-b border-outline-variant mb-md overflow-x-auto hide-scrollbar"
+    >
+      <button
+        class="px-md py-sm font-label-lg text-primary border-b-2 border-primary whitespace-nowrap"
+        id="tab-armada-mobil"
+        onclick="window.switchTab('armada-mobil')">Armada Mobil</button
+      >
+      <button
+        class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap"
+        id="tab-armada-motor"
+        onclick="window.switchTab('armada-motor')">Armada Motor</button
+      >
+      <button
+        class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap"
+        id="tab-pengecekan-mobil"
+        onclick="window.switchTab('pengecekan-mobil')">Cek Mobil</button
+      >
+      <button
+        class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap"
+        id="tab-pengecekan-motor"
+        onclick="window.switchTab('pengecekan-motor')">Cek Motor</button
+      >
+      <button
+        class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap"
+        id="tab-service"
+        onclick="window.switchTab('service')">Riwayat Service</button
+      >
+    </div>
+
+    <!-- TAB 1: DATA MOBIL -->
+    <div class="tab-content active" id="content-armada-mobil">
+      <div
+        class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col"
+      >
+        <div class="overflow-x-auto">
+          <table
+            class="w-full text-left border-collapse mobile-table-card md:min-w-[800px]"
+          >
+            <thead>
+              <tr
+                class="bg-surface-container-low border-b border-outline-variant"
+              >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase w-20 text-center"
+                  >Foto</th
+                >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                  >Plat Nomor</th
+                >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                  >Nama Kendaraan</th
+                >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                  >Jenis</th
+                >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase text-right"
+                  >Aksi</th
+                >
+              </tr>
+            </thead>
+            <tbody
+              class="divide-y divide-outline-variant font-body-md text-on-surface bg-surface-container-lowest"
+              id="tbody-mobil"
+            >
+              <tr
+                ><td colspan="5" class="p-4 text-center text-on-surface-variant"
+                  >Memuat data armada...</td
+                ></tr
+              >
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: DATA MOTOR -->
+    <div class="tab-content" id="content-armada-motor">
+      <div
+        class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col"
+      >
+        <div class="overflow-x-auto">
+          <table
+            class="w-full text-left border-collapse mobile-table-card md:min-w-[800px]"
+          >
+            <thead>
+              <tr
+                class="bg-surface-container-low border-b border-outline-variant"
+              >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase w-20 text-center"
+                  >Foto</th
+                >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                  >Plat Nomor</th
+                >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                  >Nama Motor</th
+                >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                  >Jenis</th
+                >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase text-right"
+                  >Aksi</th
+                >
+              </tr>
+            </thead>
+            <tbody
+              class="divide-y divide-outline-variant font-body-md text-on-surface bg-surface-container-lowest"
+              id="tbody-motor"
+            >
+              <tr
+                ><td colspan="5" class="p-4 text-center text-on-surface-variant"
+                  >Memuat data armada motor...</td
+                ></tr
+              >
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: RIWAYAT PENGECEKAN MOBIL -->
+    <div class="tab-content" id="content-pengecekan-mobil">
+      <div
+        class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col"
+      >
+        <div
+          class="p-3 bg-surface-container-low border-b border-outline-variant flex justify-between items-center"
+        >
+          <h3 class="font-bold text-sm">Laporan Pengecekan Mobil</h3>
+          <input
+            type="month"
+            id="filter-bulan-cek-mobil"
+            onchange="window.loadPengecekan()"
+            class="border border-outline-variant rounded-md px-2 py-1 text-xs outline-none focus:border-primary"
+          />
+        </div>
+        <div class="overflow-x-auto">
+          <table
+            class="w-full text-left border-collapse mobile-table-card md:min-w-[900px]"
+          >
+            <thead>
+              <tr
+                class="bg-surface-container-low border-b border-outline-variant"
+              >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                  >Tanggal & Sesi</th
+                >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                  >Mobil</th
+                >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                  >Hasil Inspeksi</th
+                >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                  >Petugas Lapangan</th
+                >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase text-right"
+                  >Verifikasi</th
+                >
+              </tr>
+            </thead>
+            <tbody
+              class="divide-y divide-outline-variant font-body-md text-on-surface bg-surface-container-lowest"
+              id="tbody-pengecekan-mobil"
+            >
+              <tr
+                ><td colspan="5" class="p-4 text-center text-on-surface-variant"
+                  >Memuat histori pengecekan...</td
+                ></tr
+              >
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: RIWAYAT PENGECEKAN MOTOR -->
+    <div class="tab-content" id="content-pengecekan-motor">
+      <div
+        class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col"
+      >
+        <div
+          class="p-3 bg-surface-container-low border-b border-outline-variant flex justify-between items-center"
+        >
+          <h3 class="font-bold text-sm">Laporan Pengecekan Motor</h3>
+          <input
+            type="month"
+            id="filter-bulan-cek-motor"
+            onchange="window.loadPengecekanMotor()"
+            class="border border-outline-variant rounded-md px-2 py-1 text-xs outline-none focus:border-primary"
+          />
+        </div>
+        <div class="overflow-x-auto">
+          <table
+            class="w-full text-left border-collapse mobile-table-card md:min-w-[900px]"
+          >
+            <thead>
+              <tr
+                class="bg-surface-container-low border-b border-outline-variant"
+              >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                  >Tanggal</th
+                >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                  >Motor</th
+                >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                  >Hasil Inspeksi</th
+                >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                  >Petugas Lapangan</th
+                >
+                <th
+                  class="px-md py-sm font-label-sm text-on-surface-variant uppercase text-right"
+                  >Verifikasi</th
+                >
+              </tr>
+            </thead>
+            <tbody
+              class="divide-y divide-outline-variant font-body-md text-on-surface bg-surface-container-lowest"
+              id="tbody-pengecekan-motor"
+            >
+              <tr
+                ><td colspan="5" class="p-4 text-center text-on-surface-variant"
+                  >Memuat histori pengecekan motor...</td
+                ></tr
+              >
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- TAB 5: RIWAYAT SERVICE -->
+  <div class="tab-content" id="content-service">
+    <div
+      class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col"
+    >
+      <div
+        class="p-3 bg-surface-container-low border-b border-outline-variant flex justify-between items-center"
+      >
+        <h3 class="font-bold text-sm">Riwayat & Biaya Service</h3>
+        <input
+          type="month"
+          id="filter-bulan-service"
+          onchange="window.loadService()"
+          class="border border-outline-variant rounded-md px-2 py-1 text-xs outline-none focus:border-primary"
+        />
+      </div>
+      <div class="overflow-x-auto">
+        <table
+          class="w-full text-left border-collapse mobile-table-card md:min-w-225"
+        >
+          <thead>
+            <tr
+              class="bg-surface-container-low border-b border-outline-variant"
+            >
+              <th
+                class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                >Tanggal</th
+              >
+              <th
+                class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                >Kendaraan</th
+              >
+              <th
+                class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                >Nama Bengkel</th
+              >
+              <th
+                class="px-md py-sm font-label-sm text-on-surface-variant uppercase"
+                >Detail Perbaikan</th
+              >
+              <th
+                class="px-md py-sm font-label-sm text-on-surface-variant uppercase text-right"
+                >Biaya (Rp)</th
+              >
+              <th
+                class="px-md py-sm font-label-sm text-on-surface-variant uppercase text-right"
+                >Aksi</th
+              >
+            </tr>
+          </thead>
+          <tbody
+            class="divide-y divide-outline-variant font-body-md text-on-surface bg-surface-container-lowest"
+            id="tbody-service"
+          >
+            <tr
+              ><td colspan="6" class="p-4 text-center text-on-surface-variant"
+                >Memuat riwayat service...</td
+              ></tr
+            >
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <!-- ================= MODAL TAMBAH MOBIL ================= -->
+  <div
+    class="fixed inset-0 z-50 bg-black/50 hidden items-center justify-center p-4 opacity-0 transition-opacity"
+    id="modal-tambah-mobil"
+  >
+    <div
+      class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]"
+    >
+      <div
+        class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0"
+      >
+        <h3 class="font-bold text-lg">Registrasi Mobil Baru</h3>
+        <button
+          type="button"
+          onclick="window.closeModal('modal-tambah-mobil')"
+          class="text-gray-400 hover:text-gray-900"
+          ><i class="bi bi-x-lg"></i></button
+        >
+      </div>
+      <form
+        id="form-mobil"
+        onsubmit="window.simpanMobil(event)"
+        class="p-6 space-y-4 overflow-y-auto"
+      >
+        <input type="hidden" id="edit_mobil_id" value="" />
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
+            >Plat Nomor</label
+          >
+          <input
+            type="text"
+            id="mob_plat"
+            class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-primary uppercase"
+            required
+            placeholder="Contoh: T 1234 ABC"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
+            >Nama Kendaraan</label
+          >
+          <input
+            type="text"
+            id="mob_nama"
+            class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-primary"
+            required
+            placeholder="Contoh: Grand Max Hitam"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
+            >Jenis Kendaraan</label
+          >
+          <select
+            id="mob_jenis"
+            class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-primary"
+          >
+            <option value="Pickup">Pickup</option>
+            <option value="Box">Mobil Box</option>
+            <option value="Engkel">Truk Engkel</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
+            >Foto Kendaraan</label
+          >
+          <div
+            id="dropZoneMobil"
+            class="relative border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition bg-surface-container-lowest overflow-hidden h-40 flex flex-col items-center justify-center"
+          >
+            <div id="dropZonePlaceholder">
+              <i class="bi bi-cloud-upload text-3xl text-gray-400 mb-2 block"
+              ></i>
+              <p class="text-sm text-gray-600 mb-1">Tarik & Lepas Gambar</p>
+              <p class="text-xs text-gray-500">
+                atau klik untuk memilih (JPG, PNG)
+              </p>
+            </div>
+            <img
+              id="previewMobil"
+              src=""
+              alt="Preview"
+              class="hidden absolute inset-0 w-full h-full object-cover z-10"
+            />
+            <input
+              type="file"
+              id="mob_foto_file"
+              accept="image/jpeg,image/png"
+              class="hidden"
+            />
+          </div>
+          <div class="flex justify-between items-center mt-2">
+            <p
+              id="fileNameMobil"
+              class="text-sm text-primary font-bold truncate"
+            >
+            </p>
+            <button
+              type="button"
+              id="btnHapusPreview"
+              class="hidden text-xs text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-50 hover:bg-red-100 rounded transition"
+              title="Batal pilih foto">Hapus Foto</button
+            >
+          </div>
+        </div>
+        <div class="pt-2">
+          <button
+            type="submit"
+            id="btn-save-mobil"
+            class="w-full bg-primary text-white font-bold py-3 rounded-xl hover:opacity-90 transition shadow-sm"
+            >Simpan Ke Database</button
+          >
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL TAMBAH MOTOR ================= -->
+  <div
+    class="fixed inset-0 z-50 bg-black/50 hidden items-center justify-center p-4 opacity-0 transition-opacity"
+    id="modal-tambah-motor"
+  >
+    <div
+      class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]"
+    >
+      <div
+        class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0"
+      >
+        <h3 class="font-bold text-lg">Registrasi Motor Baru</h3>
+        <button
+          type="button"
+          onclick="window.closeModal('modal-tambah-motor')"
+          class="text-gray-400 hover:text-gray-900"
+          ><i class="bi bi-x-lg"></i></button
+        >
+      </div>
+      <form
+        id="form-motor"
+        onsubmit="window.simpanMotor(event)"
+        class="p-6 space-y-4 overflow-y-auto"
+      >
+        <input type="hidden" id="edit_motor_id" value="" />
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
+            >Plat Nomor</label
+          >
+          <input
+            type="text"
+            id="mot_plat"
+            class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-green-600 uppercase"
+            required
+            placeholder="Contoh: T 5678 XYZ"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
+            >Nama Motor</label
+          >
+          <input
+            type="text"
+            id="mot_nama"
+            class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-green-600"
+            required
+            placeholder="Contoh: Honda Beat 2021"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
+            >Jenis Kendaraan</label
+          >
+          <select
+            id="mot_jenis"
+            class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-green-600"
+          >
+            <option value="Matic">Matic</option>
+            <option value="Bebek">Bebek</option>
+            <option value="Kopling">Kopling</option>
+            <option value="Roda Tiga">Roda Tiga / Tossa</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
+            >Foto Motor</label
+          >
+          <div
+            id="dropZoneMotor"
+            class="relative border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-green-600 hover:bg-green-50 transition bg-surface-container-lowest overflow-hidden h-40 flex flex-col items-center justify-center"
+          >
+            <div id="dropZonePlaceholderMotor">
+              <i class="bi bi-cloud-upload text-3xl text-gray-400 mb-2 block"
+              ></i>
+              <p class="text-sm text-gray-600 mb-1">Tarik & Lepas Gambar</p>
+              <p class="text-xs text-gray-500">
+                atau klik untuk memilih (JPG, PNG)
+              </p>
+            </div>
+            <img
+              id="previewMotor"
+              src=""
+              alt="Preview"
+              class="hidden absolute inset-0 w-full h-full object-cover z-10"
+            />
+            <input
+              type="file"
+              id="mot_foto_file"
+              accept="image/jpeg,image/png"
+              class="hidden"
+            />
+          </div>
+          <div class="flex justify-between items-center mt-2">
+            <p
+              id="fileNameMotor"
+              class="text-sm text-green-600 font-bold truncate"
+            >
+            </p>
+            <button
+              type="button"
+              id="btnHapusPreviewMotor"
+              class="hidden text-xs text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-50 hover:bg-red-100 rounded transition"
+              title="Batal pilih foto">Hapus Foto</button
+            >
+          </div>
+        </div>
+        <div class="pt-2">
+          <button
+            type="submit"
+            id="btn-save-motor"
+            class="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition shadow-sm"
+            >Simpan Ke Database</button
+          >
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- ================= MODAL TAMBAH SERVICE ================= -->
+  <div
+    class="fixed inset-0 z-50 bg-black/50 hidden items-center justify-center p-4 opacity-0 transition-opacity"
+    id="modal-tambah-service"
+  >
+    <div
+      class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]"
+    >
+      <div
+        class="p-5 border-b border-gray-100 flex justify-between items-center bg-blue-50 shrink-0"
+      >
+        <div>
+          <h3 class="font-bold text-lg text-gray-900">Input Catatan Service</h3>
+          <p class="text-xs text-blue-800 font-medium">
+            Rekap pengeluaran bengkel untuk armada
+          </p>
+        </div>
+        <button
+          type="button"
+          onclick="window.closeModal('modal-tambah-service')"
+          class="text-gray-400 hover:text-gray-900"
+          ><i class="bi bi-x-lg"></i></button
+        >
+      </div>
+      <form
+        id="form-service"
+        onsubmit="window.simpanService(event)"
+        class="p-6 space-y-4 overflow-y-auto"
+      >
+        <input type="hidden" id="edit_service_id" value="" />
+
+        <div class="flex gap-4 mb-2">
+          <label
+            class="flex items-center gap-2 text-sm text-gray-700 font-bold cursor-pointer"
+          >
+            <input
+              type="radio"
+              name="srv_jenis"
+              value="mobil"
+              checked
+              onchange="window.toggleJenisService()"
+              class="accent-blue-600 w-4 h-4"
+            /> Mobil
+          </label>
+          <label
+            class="flex items-center gap-2 text-sm text-gray-700 font-bold cursor-pointer"
+          >
+            <input
+              type="radio"
+              name="srv_jenis"
+              value="motor"
+              onchange="window.toggleJenisService()"
+              class="accent-blue-600 w-4 h-4"
+            /> Motor
+          </label>
+        </div>
+
+        <div id="container-srv-mobil">
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
+            >Pilih Mobil</label
+          >
+          <select
+            id="srv_mobil"
+            class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 font-medium"
+          ></select>
+        </div>
+
+        <div id="container-srv-motor" class="hidden">
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
+            >Pilih Motor</label
+          >
+          <select
+            id="srv_motor"
+            class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 font-medium"
+          ></select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
+            >Tanggal Service</label
+          >
+          <input
+            type="date"
+            id="srv_tgl"
+            class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 font-medium"
+            required
+          />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
+            >Nama Bengkel</label
+          >
+          <input
+            type="text"
+            id="srv_bengkel"
+            class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600"
+            required
+            placeholder="Contoh: Auto 2000 / Bengkel Jaya"
+          />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
+            >Detail Perbaikan</label
+          >
+          <textarea
+            id="srv_detail"
+            rows="2"
+            class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600"
+            required
+            placeholder="Contoh: Ganti oli mesin, ganti kampas rem depan..."
+          ></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
+            >Total Biaya (Rp)</label
+          >
+          <input
+            type="number"
+            id="srv_biaya"
+            min="0"
+            class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-blue-600 font-mono font-bold text-gray-900"
+            required
+            placeholder="0"
+          />
+        </div>
+
+        <!-- 🔥 TAMBAHAN: BLOK INTEGRASI KEUANGAN 🔥 -->
+        <div class="border-t border-gray-200 mt-4 pt-4">
+          <p
+            class="text-xs font-bold text-blue-600 mb-3 uppercase flex items-center gap-1"
+          >
+            <i class="bi bi-wallet2"></i> Integrasi Keuangan (Opsional)
+          </p>
+          <label
+            class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer mb-3 bg-blue-50/50 p-2 rounded-lg border border-blue-100"
+          >
+            <input
+              type="checkbox"
+              id="srv_integrasi"
+              class="accent-blue-600 w-4 h-4"
+              onchange="window.toggleIntegrasiKeuangan()"
+            />
+            <span class="font-semibold text-blue-900"
+              >Masukkan ke tagihan Pengeluaran Ops</span
+            >
+          </label>
+
+          <div
+            id="container-integrasi-keuangan"
+            class="hidden space-y-3 bg-gray-50 p-3 rounded-xl border border-gray-200"
+          >
             <div>
-                <h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary">Manajemen Armada</h1>
-                <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Pendaftaran kendaraan operasional & verifikasi pengecekan harian kendaraan</p>
+              <label
+                class="block text-[10px] font-bold text-gray-500 uppercase mb-1"
+                >Siapa yang mengajukan/membawa uang?</label
+              >
+              <select
+                id="srv_pengaju"
+                class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600 font-medium"
+              ></select>
             </div>
-            <div class="flex gap-2 w-full md:w-auto mt-4 md:mt-0" id="action-buttons-container">
-                <button id="btn-tambah-mobil" onclick="window.bukaModalTambahMobil()" class="bg-primary text-on-primary font-label-lg rounded-full px-5 py-2.5 hover:opacity-90 transition-all shadow-sm flex items-center gap-2">
-                    <i class="bi bi-truck text-lg"></i> Tambah Mobil Baru
-                </button>
+            <div>
+              <label
+                class="block text-[10px] font-bold text-gray-500 uppercase mb-1"
+                >Sumber Dana</label
+              >
+              <select
+                id="srv_sumber_dana"
+                class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600 font-medium"
+              >
+                <option value="Uang Keuangan">Uang Keuangan</option>
+                <option value="Uang Gudang">Uang Gudang</option>
+              </select>
+              <p class="text-[9px] text-gray-400 mt-1.5 italic leading-tight">
+                *Catatan: Tagihan akan dikirim ke menu Pengeluaran dengan status
+                "Menunggu" (Pending) agar bisa di-ACC oleh Keuangan terlebih
+                dahulu.
+              </p>
             </div>
+          </div>
         </div>
 
-        <!-- TABS -->
-        <div class="flex border-b border-outline-variant mb-md overflow-x-auto hide-scrollbar">
-            <button class="px-md py-sm font-label-lg text-primary border-b-2 border-primary whitespace-nowrap" id="tab-armada" onclick="window.switchTab('armada')">Daftar Armada Aktif</button>
-            <button class="px-md py-sm font-label-lg text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors whitespace-nowrap" id="tab-pengecekan" onclick="window.switchTab('pengecekan')">Verifikasi Pengecekan</button>
+        <div class="pt-2">
+          <button
+            type="submit"
+            id="btn-save-service"
+            class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-sm active:scale-95"
+            >Simpan Riwayat Service</button
+          >
         </div>
-
-        <!-- TAB 1: DATA MOBIL -->
-        <div class="tab-content active" id="content-armada">
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse mobile-table-card md:min-w-[800px]">
-                        <thead>
-                            <tr class="bg-surface-container-low border-b border-outline-variant">
-                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase w-20 text-center">Foto</th>
-                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase">Plat Nomor</th>
-                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase">Nama Kendaraan</th>
-                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase">Jenis</th>
-                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-outline-variant font-body-md text-on-surface bg-surface-container-lowest" id="tbody-mobil">
-                            <tr><td colspan="5" class="p-4 text-center text-on-surface-variant">Memuat data armada...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 2: RIWAYAT PENGECEKAN DARI ANDROID -->
-        <div class="tab-content" id="content-pengecekan">
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
-                <div class="p-3 bg-surface-container-low border-b border-outline-variant flex justify-between items-center">
-                    <h3 class="font-bold text-sm">Laporan Pengecekan</h3>
-                    <input type="month" id="filter-bulan-cek" onchange="window.loadPengecekan()" class="border border-outline-variant rounded-md px-2 py-1 text-xs outline-none focus:border-primary">
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse mobile-table-card md:min-w-[900px]">
-                        <thead>
-                            <tr class="bg-surface-container-low border-b border-outline-variant">
-                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase">Tanggal & Sesi</th>
-                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase">Armada</th>
-                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase">Hasil Inspeksi Kendaraan</th>
-                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase">Petugas Lapangan</th>
-                                <th class="px-md py-sm font-label-sm text-on-surface-variant uppercase text-right">Verifikasi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-outline-variant font-body-md text-on-surface bg-surface-container-lowest" id="tbody-pengecekan">
-                            <tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Memuat histori pengecekan...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+      </form>
     </div>
-
-    <!-- MODAL TAMBAH MOBIL -->
-    <div class="fixed inset-0 z-50 bg-black/50 hidden items-center justify-center p-4 opacity-0 transition-opacity" id="modal-tambah-mobil">
-        <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
-            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
-                <h3 class="font-bold text-lg">Registrasi Armada Baru</h3>
-                <button type="button" onclick="window.closeModal('modal-tambah-mobil')" class="text-gray-400 hover:text-gray-900"><i class="bi bi-x-lg"></i></button>
-            </div>
-            
-            <form id="form-mobil" onsubmit="window.simpanMobil(event)" class="p-6 space-y-4 overflow-y-auto">
-                <input type="hidden" id="edit_mobil_id" value="">
-                
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Plat Nomor</label>
-                    <input type="text" id="mob_plat" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-primary uppercase" required placeholder="Contoh: T 1234 ABC">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nama Kendaraan</label>
-                    <input type="text" id="mob_nama" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-primary" required placeholder="Contoh: Grand Max Hitam">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Jenis Kendaraan</label>
-                    <select id="mob_jenis" class="w-full border border-gray-300 rounded-xl p-3 text-sm outline-none focus:border-primary">
-                        <option value="Pickup">Pickup</option>
-                        <option value="Box">Mobil Box</option>
-                        <option value="Engkel">Truk Engkel</option>
-                        <option value="Motor">Motor Tossa</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Foto Kendaraan</label>
-                    <div id="dropZoneMobil" class="relative border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition bg-surface-container-lowest overflow-hidden h-40 flex flex-col items-center justify-center">
-                        
-                        <div id="dropZonePlaceholder">
-                            <i class="bi bi-cloud-upload text-3xl text-gray-400 mb-2 block"></i>
-                            <p class="text-sm text-gray-600 mb-1">Tarik & Lepas Gambar</p>
-                            <p class="text-xs text-gray-500">atau klik untuk memilih (JPG, PNG)</p>
-                        </div>
-
-                        <img id="previewMobil" src="" alt="Preview" class="hidden absolute inset-0 w-full h-full object-cover z-10" />
-                        <input type="file" id="mob_foto_file" accept="image/jpeg,image/png" class="hidden" />
-                    </div>
-                    
-                    <div class="flex justify-between items-center mt-2">
-                        <p id="fileNameMobil" class="text-sm text-primary font-bold truncate"></p>
-                        <button type="button" id="btnHapusPreview" class="hidden text-xs text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-50 hover:bg-red-100 rounded transition" title="Batal pilih foto">Hapus Foto</button>
-                    </div>
-                </div>
-
-                <div class="pt-2">
-                    <button type="submit" id="btn-save-mobil" class="w-full bg-primary text-white font-bold py-3 rounded-xl hover:opacity-90 transition shadow-sm">Simpan Ke Database</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script>
-    // Astro akan memproses ini sebagai module otomatis
-    import { uploadImageToImgbb } from '../lib/imgbb.js';
-    
-    // Kita jadikan global agar bisa diakses oleh <script is:inline> di bawahnya
+  </div>
+  <script>
+    import { uploadImageToImgbb } from "../lib/imgbb.js";
+    // @ts-ignore
     window.uploadImageToImgbb = uploadImageToImgbb;
-    </script>
+  </script>
 
+  <script is:inline>
+    // ==========================================
+    // 1. INIT & GATEKEEPER
+    // ==========================================
+    document.addEventListener("DOMContentLoaded", async () => {
+      if (!window.supabase)
+        return console.error("Supabase Client tidak ditemukan!");
 
-    <script is:inline>
-        // ==========================================
-        // 1. GATEKEEPER KHUSUS MANAJEMEN
-        // ==========================================
-        document.addEventListener('DOMContentLoaded', async () => {
-            if (!window.supabase) return console.error("Supabase Client tidak ditemukan!");
-            
-            // Hanya manajemen yang bisa akses halaman ini
-            const allowedRoles = ['owner', 'hrd', 'admin', 'it'];
-            const { data: { session } } = await window.supabase.auth.getSession();
-            
-            if (!session) return window.location.replace('/');
+      const allowedRoles = ["owner", "hrd", "admin", "it"];
+      const {
+        data: { session },
+      } = await window.supabase.auth.getSession();
 
-            const { data: prof } = await window.supabase.from('profiles').select('role, nama').eq('id', session.user.id).single();
+      if (!session) return window.location.replace("/");
+      const { data: prof } = await window.supabase
+        .from("profiles")
+        .select("role, nama")
+        .eq("id", session.user.id)
+        .single();
 
-            if (!allowedRoles.includes(prof?.role)) {
-                alert(`Akses Ditolak! Anda tidak memiliki wewenang untuk menambah armada.`);
-                return window.location.replace('/');
+      if (!allowedRoles.includes(prof?.role)) {
+        alert(`Akses Ditolak!`);
+        return window.location.replace("/");
+      }
+
+      document.body.style.display = "block";
+
+      // Setup Calendar Default
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, "0");
+      document.getElementById("filter-bulan-cek-mobil").value = `${yyyy}-${mm}`;
+      document.getElementById("filter-bulan-cek-motor").value = `${yyyy}-${mm}`;
+
+      // Tarik Semua Data
+      await loadMobil();
+      await loadMotor();
+      await loadPengecekan();
+      await loadPengecekanMotor();
+
+      // Setup Filter Bulan Service & Tarik Datanya
+      document.getElementById("filter-bulan-service").value = `${yyyy}-${mm}`;
+      await loadService();
+
+      // Pasang Formatter Plat
+      setupPlatFormatter("mob_plat");
+      setupPlatFormatter("mot_plat");
+    });
+
+    // ==========================================
+    // 2. UI HELPERS (TABS & MODALS)
+    // ==========================================
+    window.switchTab = function (tabId) {
+      [
+        "armada-mobil",
+        "armada-motor",
+        "pengecekan-mobil",
+        "pengecekan-motor",
+        "service",
+      ].forEach((id) => {
+        document
+          .getElementById(`tab-${id}`)
+          .classList.remove("text-primary", "border-primary");
+        document
+          .getElementById(`tab-${id}`)
+          .classList.add("text-on-surface-variant", "border-transparent");
+        document.getElementById(`content-${id}`).classList.remove("active");
+      });
+      document
+        .getElementById(`tab-${tabId}`)
+        .classList.remove("text-on-surface-variant", "border-transparent");
+      document
+        .getElementById(`tab-${tabId}`)
+        .classList.add("text-primary", "border-primary");
+      document.getElementById(`content-${tabId}`).classList.add("active");
+    };
+
+    window.openModal = function (id) {
+      const m = document.getElementById(id);
+      if (!m) return;
+      m.classList.remove("hidden");
+      m.classList.add("flex");
+      setTimeout(() => {
+        m.classList.remove("opacity-0");
+        m.querySelector("div").classList.remove("scale-95");
+      }, 10);
+    };
+
+    window.closeModal = function (id) {
+      const m = document.getElementById(id);
+      m.classList.add("opacity-0");
+      m.querySelector("div").classList.add("scale-95");
+      setTimeout(() => {
+        m.classList.add("hidden");
+        m.classList.remove("flex");
+      }, 300);
+    };
+
+    window.setupPlatFormatter = function (inputId) {
+      const input = document.getElementById(inputId);
+      if (input) {
+        input.addEventListener("input", function (e) {
+          let val = this.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+          let result = "";
+          const kodeWilayah = val.match(/^[A-Z]{1,2}/);
+          if (kodeWilayah) {
+            result += kodeWilayah[0];
+            val = val.substring(kodeWilayah[0].length);
+            const nomorPolisi = val.match(/^[0-9]{1,4}/);
+            if (nomorPolisi) {
+              result += " " + nomorPolisi[0];
+              val = val.substring(nomorPolisi[0].length);
+              const kodeSeri = val.match(/^[A-Z]{1,3}/);
+              if (kodeSeri) result += " " + kodeSeri[0];
             }
-
-            // Lolos, Buka Layar
-            document.body.style.display = 'block';
-
-            // Set Kalender Default Pengecekan
-            const now = new Date();
-            const yyyy = now.getFullYear();
-            const mm = String(now.getMonth() + 1).padStart(2, '0');
-            document.getElementById('filter-bulan-cek').value = `${yyyy}-${mm}`;
-
-            // Tarik Data
-            await loadMobil();
-            await loadPengecekan();
+          } else result = val;
+          this.value = result;
         });
+      }
+    };
 
-        // ==========================================
-        // 2. FUNGSI TAB & MODAL
-        // ==========================================
-        window.switchTab = function(tabId) {
-            ['armada', 'pengecekan'].forEach(id => {
-                document.getElementById(`tab-${id}`).classList.remove('text-primary', 'border-primary');
-                document.getElementById(`tab-${id}`).classList.add('text-on-surface-variant', 'border-transparent');
-                document.getElementById(`content-${id}`).classList.remove('active');
-            });
-            document.getElementById(`tab-${tabId}`).classList.remove('text-on-surface-variant', 'border-transparent');
-            document.getElementById(`tab-${tabId}`).classList.add('text-primary', 'border-primary');
-            document.getElementById(`content-${tabId}`).classList.add('active');
-        };
-
-        window.openModal = function(id) {
-            const m = document.getElementById(id);
-            if(!m) return;
-            m.classList.remove('hidden'); m.classList.add('flex');
-            setTimeout(() => { m.classList.remove('opacity-0'); m.querySelector('div').classList.remove('scale-95'); }, 10);
-        };
-        
-        window.closeModal = function(id) {
-            const m = document.getElementById(id);
-            m.classList.add('opacity-0'); m.querySelector('div').classList.add('scale-95');
-            setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
-        };
-
-        // ==========================================
-        // EFEK UPLOAD FOTO MOBIL
-        // ==========================================
-        const dropZoneMobil = document.getElementById('dropZoneMobil');
-        const fotoInputMobil = document.getElementById('mob_foto_file');
-        const fileNameMobil = document.getElementById('fileNameMobil');
-        const previewMobil = document.getElementById('previewMobil');
-        const dropZonePlaceholder = document.getElementById('dropZonePlaceholder');
-        const btnHapusPreview = document.getElementById('btnHapusPreview');
-        
-        if (dropZoneMobil && fotoInputMobil) {
-            dropZoneMobil.addEventListener('click', () => fotoInputMobil.click());
-            
-            fotoInputMobil.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if(file) {
-                    // Tampilkan nama file
-                    fileNameMobil.innerText = "✓ Siap diupload: " + file.name;
-                    dropZoneMobil.classList.add('border-primary', 'border-solid');
-                    dropZoneMobil.classList.remove('border-dashed', 'border-gray-300');
-
-                    // Buat URL lokal sementara untuk Preview Gambar
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        previewMobil.src = event.target.result;
-                        previewMobil.classList.remove('hidden');
-                        dropZonePlaceholder.classList.add('hidden');
-                        btnHapusPreview.classList.remove('hidden');
-                    }
-                    reader.readAsDataURL(file);
-
-                } else {
-                    window.resetPreviewMobil();
-                }
-            });
-
-            // Fungsi Reset Preview (Dipanggil saat dihapus atau setelah save)
-            window.resetPreviewMobil = function() {
-                fotoInputMobil.value = '';
-                fileNameMobil.innerText = "";
-                previewMobil.src = "";
-                previewMobil.classList.add('hidden');
-                dropZonePlaceholder.classList.remove('hidden');
-                btnHapusPreview.classList.add('hidden');
-                dropZoneMobil.classList.remove('border-primary', 'border-solid');
-                dropZoneMobil.classList.add('border-gray-300', 'border-dashed');
-            };
-
-            // Event Tombol Hapus Preview
-            if(btnHapusPreview) {
-                btnHapusPreview.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Mencegah klik tembus ke Dropzone
-                    window.resetPreviewMobil();
-                });
+    window.kompresGambar = function (file, maxWidth = 800, quality = 0.7) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function (event) {
+          const img = new Image();
+          img.src = event.target.result;
+          img.onload = function () {
+            const canvas = document.createElement("canvas");
+            let width = img.width,
+              height = img.height;
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
             }
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+            canvas.toBlob(
+              (blob) => {
+                if (blob)
+                  resolve(
+                    new File(
+                      [blob],
+                      file.name.replace(/\.[^/.]+$/, "") + ".jpg",
+                      { type: "image/jpeg", lastModified: Date.now() },
+                    ),
+                  );
+                else reject(new Error("Gagal kompresi"));
+              },
+              "image/jpeg",
+              quality,
+            );
+          };
+          img.onerror = reject;
+        };
+        reader.onerror = reject;
+      });
+    };
+
+    // ==========================================
+    // 3. LOGIKA MOBIL (Data & Upload)
+    // ==========================================
+    window.allMobilData = [];
+
+    // Setup Drag & Drop Mobil
+    const setupUploaderMobil = () => {
+      const dz = document.getElementById("dropZoneMobil"),
+        fi = document.getElementById("mob_foto_file"),
+        fn = document.getElementById("fileNameMobil"),
+        pr = document.getElementById("previewMobil"),
+        ph = document.getElementById("dropZonePlaceholder"),
+        bh = document.getElementById("btnHapusPreview");
+      if (dz && fi) {
+        dz.addEventListener("click", () => fi.click());
+        fi.addEventListener("change", (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            fn.innerText = "✓ Siap diupload: " + file.name;
+            dz.classList.add("border-primary", "border-solid");
+            dz.classList.remove("border-dashed", "border-gray-300");
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              pr.src = ev.target.result;
+              pr.classList.remove("hidden");
+              ph.classList.add("hidden");
+              bh.classList.remove("hidden");
+            };
+            reader.readAsDataURL(file);
+          } else window.resetPreviewMobil();
+        });
+        window.resetPreviewMobil = function () {
+          fi.value = "";
+          fn.innerText = "";
+          pr.src = "";
+          pr.classList.add("hidden");
+          ph.classList.remove("hidden");
+          bh.classList.add("hidden");
+          dz.classList.remove("border-primary", "border-solid");
+          dz.classList.add("border-gray-300", "border-dashed");
+        };
+        if (bh)
+          bh.addEventListener("click", (e) => {
+            e.stopPropagation();
+            window.resetPreviewMobil();
+          });
+      }
+    };
+    setupUploaderMobil();
+
+    window.loadMobil = async function () {
+      try {
+        const { data, error } = await window.supabase
+          .from("mobil")
+          .select("*")
+          .eq("is_active", true)
+          .order("nama_kendaraan");
+        if (error) throw error;
+        const tbody = document.getElementById("tbody-mobil");
+        if (!data || data.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="5" class="p-4 text-center text-gray-400">Belum ada armada mobil.</td></tr>';
+          return;
         }
 
-        // ==========================================
-        // 3. LOGIKA DATA MOBIL (ARMADA)
-        // ==========================================
-        window.allMobilData = []; // Variabel global untuk nyimpen data armada
-
-        window.loadMobil = async function() {
-            const tbody = document.getElementById('tbody-mobil');
-            try {
-                const { data, error } = await window.supabase.from('mobil').select('*').eq('is_active', true).order('nama_kendaraan');
-                if (error) throw error;
-
-                if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">Belum ada armada mobil yang didaftarkan.</td></tr>';
-                    return;
-                }
-
-                window.allMobilData = data; // Simpan ke global
-                let html = '';
-                data.forEach(m => {
-                    const foto = m.foto_kendaraan ? `<img src="${m.foto_kendaraan}" class="w-12 h-12 object-cover rounded-md mx-auto">` : `<div class="w-12 h-12 bg-gray-200 rounded-md mx-auto flex items-center justify-center text-gray-400"><i class="bi bi-car-front-fill"></i></div>`;
-                    
-                    html += `
+        window.allMobilData = data;
+        tbody.innerHTML = data
+          .map(
+            (m) => `
                     <tr class="hover:bg-surface-container-low transition-colors">
-                        <td class="p-3 text-center" data-label="Foto">${foto}</td>
+                        <td class="p-3 text-center" data-label="Foto">${m.foto_kendaraan ? `<img src="${m.foto_kendaraan}" class="w-12 h-12 object-cover rounded-md mx-auto">` : `<div class="w-12 h-12 bg-gray-200 rounded-md mx-auto flex items-center justify-center text-gray-400"><i class="bi bi-car-front-fill"></i></div>`}</td>
                         <td class="p-3 font-mono font-bold text-gray-900" data-label="Plat Nomor"><span class="bg-gray-200 px-2 py-1 rounded text-sm">${m.plat_nomor}</span></td>
                         <td class="p-3 font-bold text-primary" data-label="Nama Kendaraan">${m.nama_kendaraan}</td>
                         <td class="p-3 text-gray-600" data-label="Jenis">${m.jenis_kendaraan}</td>
                         <td class="p-3 text-right" data-label="Aksi">
                             <div class="flex gap-2 justify-end">
-                                <button onclick="window.editMobil('${m.id}')" class="bg-blue-50 text-blue-600 p-2 rounded hover:bg-blue-100 transition shadow-sm" title="Edit Armada"><i class="bi bi-pencil-square"></i></button>
-                                <button onclick="window.hapusMobil('${m.id}', '${m.nama_kendaraan}')" class="bg-red-50 text-red-600 p-2 rounded hover:bg-red-100 transition shadow-sm" title="Hapus Mobil"><i class="bi bi-trash3"></i></button>
+                                <button onclick="window.editMobil('${m.id}')" class="bg-blue-50 text-blue-600 p-2 rounded hover:bg-blue-100 transition"><i class="bi bi-pencil-square"></i></button>
+                                <button onclick="window.hapusMobil('${m.id}', '${m.nama_kendaraan}')" class="bg-red-50 text-red-600 p-2 rounded hover:bg-red-100 transition"><i class="bi bi-trash3"></i></button>
                             </div>
                         </td>
-                    </tr>`;
-                });
-                tbody.innerHTML = html;
-            } catch(e) { console.error("Error load mobil:", e); }
+                    </tr>`,
+          )
+          .join("");
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    window.bukaModalTambahMobil = function () {
+      document.getElementById("form-mobil").reset();
+      document.getElementById("edit_mobil_id").value = "";
+      document.querySelector("#modal-tambah-mobil h3").innerText =
+        "Registrasi Mobil Baru";
+      if (window.resetPreviewMobil) window.resetPreviewMobil();
+      window.openModal("modal-tambah-mobil");
+    };
+
+    window.editMobil = function (id) {
+      const m = window.allMobilData.find((x) => String(x.id) === String(id));
+      if (!m) return;
+      document.getElementById("edit_mobil_id").value = m.id;
+      document.getElementById("mob_plat").value = m.plat_nomor;
+      document.getElementById("mob_nama").value = m.nama_kendaraan;
+      document.getElementById("mob_jenis").value = m.jenis_kendaraan;
+      document.querySelector("#modal-tambah-mobil h3").innerText =
+        "Edit Data Mobil";
+      if (window.resetPreviewMobil) window.resetPreviewMobil();
+      if (m.foto_kendaraan) {
+        const pr = document.getElementById("previewMobil"),
+          ph = document.getElementById("dropZonePlaceholder"),
+          bh = document.getElementById("btnHapusPreview"),
+          dz = document.getElementById("dropZoneMobil");
+        pr.src = m.foto_kendaraan;
+        pr.classList.remove("hidden");
+        ph.classList.add("hidden");
+        bh.classList.remove("hidden");
+        dz.classList.add("border-primary", "border-solid");
+        dz.classList.remove("border-gray-300", "border-dashed");
+      }
+      window.openModal("modal-tambah-mobil");
+    };
+
+    window.simpanMobil = async function (e) {
+      e.preventDefault();
+      const btn = document.getElementById("btn-save-mobil"),
+        file = document.getElementById("mob_foto_file")?.files[0],
+        editId = document.getElementById("edit_mobil_id").value;
+      btn.innerText = "Menyimpan...";
+      btn.disabled = true;
+      try {
+        let finalImage = null;
+        if (file) {
+          finalImage = await window.uploadImageToImgbb(
+            await window.kompresGambar(file).catch(() => file),
+          );
+        }
+
+        let payload = {
+          plat_nomor: document.getElementById("mob_plat").value.toUpperCase(),
+          nama_kendaraan: document.getElementById("mob_nama").value,
+          jenis_kendaraan: document.getElementById("mob_jenis").value,
         };
+        const pr = document.getElementById("previewMobil");
+        if (finalImage) payload.foto_kendaraan = finalImage;
+        else if (pr.src === "" || pr.classList.contains("hidden"))
+          payload.foto_kendaraan = null;
 
-        // ==========================================
-        // FUNGSI KOMPRESI GAMBAR (CANVAS HTML5)
-        // ==========================================
-        window.kompresGambar = function(file, maxWidth = 800, quality = 0.7) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = function(event) {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
+        if (editId)
+          await window.supabase.from("mobil").update(payload).eq("id", editId);
+        else await window.supabase.from("mobil").insert([payload]);
 
-                        // Hitung rasio ukuran baru (Maksimal width sesuai parameter)
-                        if (width > maxWidth) {
-                            height = Math.round((height * maxWidth) / width);
-                            width = maxWidth;
-                        }
+        window.closeModal("modal-tambah-mobil");
+        window.loadMobil();
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.innerText = "Simpan Ke Database";
+        btn.disabled = false;
+      }
+    };
 
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
+    window.hapusMobil = async function (id, nama) {
+      if (!confirm(`Yakin ingin menghapus mobil ${nama}?`)) return;
+      await window.supabase
+        .from("mobil")
+        .update({ is_active: false })
+        .eq("id", id);
+      window.loadMobil();
+    };
 
-                        // Konversi ke file JPG yang sudah dikompresi
-                        canvas.toBlob((blob) => {
-                            if (blob) {
-                                const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
-                                    type: 'image/jpeg',
-                                    lastModified: Date.now()
-                                });
-                                resolve(compressedFile);
-                            } else {
-                                reject(new Error('Gagal kompresi gambar'));
-                            }
-                        }, 'image/jpeg', quality);
-                    };
-                    img.onerror = error => reject(error);
-                };
-                reader.onerror = error => reject(error);
-            });
-        };
+    // ==========================================
+    // 4. LOGIKA MOTOR (Data & Upload)
+    // ==========================================
+    window.allMotorData = [];
 
-        window.bukaModalTambahMobil = function() {
-            document.getElementById('form-mobil').reset();
-            document.getElementById('edit_mobil_id').value = '';
-            document.querySelector('#modal-tambah-mobil h3').innerText = "Registrasi Armada Baru";
-            if (typeof window.resetPreviewMobil === 'function') window.resetPreviewMobil();
-            window.openModal('modal-tambah-mobil');
-        };
-
-        window.editMobil = function(id) {
-            const m = window.allMobilData.find(x => String(x.id) === String(id));
-            if(!m) return alert("Data tidak ditemukan, silakan refresh halaman.");
-
-            document.getElementById('edit_mobil_id').value = m.id;
-            document.getElementById('mob_plat').value = m.plat_nomor;
-            document.getElementById('mob_nama').value = m.nama_kendaraan;
-            document.getElementById('mob_jenis').value = m.jenis_kendaraan;
-            document.querySelector('#modal-tambah-mobil h3').innerText = "Edit Data Armada";
-
-            if (typeof window.resetPreviewMobil === 'function') window.resetPreviewMobil();
-
-            // Kalau ada foto lama, tempel ke preview
-            if (m.foto_kendaraan) {
-                const previewMobil = document.getElementById('previewMobil');
-                const dropZonePlaceholder = document.getElementById('dropZonePlaceholder');
-                const btnHapusPreview = document.getElementById('btnHapusPreview');
-                const dropZoneMobil = document.getElementById('dropZoneMobil');
-
-                previewMobil.src = m.foto_kendaraan;
-                previewMobil.classList.remove('hidden');
-                dropZonePlaceholder.classList.add('hidden');
-                btnHapusPreview.classList.remove('hidden');
-                dropZoneMobil.classList.add('border-primary', 'border-solid');
-                dropZoneMobil.classList.remove('border-gray-300', 'border-dashed');
-            }
-
-            window.openModal('modal-tambah-mobil');
-        };
-
-        window.simpanMobil = async function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-save-mobil');
-            const fileInput = document.getElementById('mob_foto_file');
-            const file = fileInput?.files[0];
-            const editId = document.getElementById('edit_mobil_id').value;
-
-            btn.innerText = "Menyiapkan Data..."; 
-            btn.disabled = true;
-
-            try {
-                let finalImageUrl = null;
-
-                // 1. Kompres & Upload ke ImgBB jika ada file baru dipilih
-                if (file) {
-                    btn.innerText = "Mengkompresi Foto...";
-                    try {
-                        const compressedFile = await window.kompresGambar(file, 800, 0.7); 
-                        btn.innerText = "Mengunggah Foto Kendaraan...";
-                        finalImageUrl = await window.uploadImageToImgbb(compressedFile);
-                    } catch(err) {
-                        finalImageUrl = await window.uploadImageToImgbb(file); 
-                    }
-                }
-
-                btn.innerText = "Menyimpan ke Database...";
-
-                // 2. Siapkan Data
-                let payload = {
-                    plat_nomor: document.getElementById('mob_plat').value.toUpperCase(),
-                    nama_kendaraan: document.getElementById('mob_nama').value,
-                    jenis_kendaraan: document.getElementById('mob_jenis').value,
-                };
-
-                // Logika penyimpanan foto (Pakai foto baru ATAU hapus foto lama)
-                const previewMobil = document.getElementById('previewMobil');
-                if (finalImageUrl) {
-                    payload.foto_kendaraan = finalImageUrl;
-                } else if (previewMobil.src === '' || previewMobil.classList.contains('hidden')) {
-                    payload.foto_kendaraan = null; // Admin klik "Hapus Foto"
-                }
-
-                // 3. Update atau Insert
-                if (editId) {
-                    const { error } = await window.supabase.from('mobil').update(payload).eq('id', editId);
-                    if (error) throw error;
-                    alert("Data Armada berhasil diperbarui!");
-                } else {
-                    const { error } = await window.supabase.from('mobil').insert([payload]);
-                    if (error) throw error;
-                    alert("Armada baru berhasil ditambahkan!");
-                }
-                
-                // 4. Bersihkan Form & Refresh
-                window.closeModal('modal-tambah-mobil');
-                document.getElementById('form-mobil').reset();
-                if (typeof window.resetPreviewMobil === 'function') window.resetPreviewMobil();
-                window.loadMobil();
-
-            } catch(err) { 
-                if(err.code === '23505') alert("Plat nomor ini sudah terdaftar!");
-                else alert(err.message); 
-            } finally { 
-                btn.innerText = "Simpan Ke Database"; 
-                btn.disabled = false; 
-            }
-        };
-
-        window.hapusMobil = async function(id, nama) {
-            if(!confirm(`Yakin ingin menghapus ${nama} dari daftar armada aktif?`)) return;
-            try {
-                // Soft-delete supaya riwayat operasional yang udah lalu gak error/hilang
-                await window.supabase.from('mobil').update({ is_active: false }).eq('id', id);
-                alert("Armada berhasil dihapus!");
-                window.loadMobil();
-            } catch(err) { alert("Gagal hapus: "+err.message); }
-        };
-
-        // ==========================================
-        // AUTO-FORMAT PLAT NOMOR KENDARAAN
-        // ==========================================
-        document.addEventListener('DOMContentLoaded', () => {
-            const inputPlat = document.getElementById('mob_plat');
-            if (inputPlat) {
-                inputPlat.addEventListener('input', function(e) {
-                    // Hilangkan semua spasi & karakter aneh, ubah ke Huruf Kapital
-                    let val = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-                    let result = '';
-
-                    // 1. Ambil 1-2 Huruf Depan (Kode Wilayah)
-                    const kodeWilayah = val.match(/^[A-Z]{1,2}/);
-                    if (kodeWilayah) {
-                        result += kodeWilayah[0];
-                        val = val.substring(kodeWilayah[0].length);
-
-                        // 2. Ambil 1-4 Angka Tengah (Nomor Polisi)
-                        const nomorPolisi = val.match(/^[0-9]{1,4}/);
-                        if (nomorPolisi) {
-                            result += ' ' + nomorPolisi[0];
-                            val = val.substring(nomorPolisi[0].length);
-
-                            // 3. Ambil 1-3 Huruf Belakang (Kode Seri)
-                            const kodeSeri = val.match(/^[A-Z]{1,3}/);
-                            if (kodeSeri) {
-                                result += ' ' + kodeSeri[0];
-                            }
-                        }
-                    } else {
-                        result = val; // Fallback jika format tidak standar
-                    }
-
-                    this.value = result; // Tampilkan hasil format ke input
-                });
-            }
+    const setupUploaderMotor = () => {
+      const dz = document.getElementById("dropZoneMotor"),
+        fi = document.getElementById("mot_foto_file"),
+        fn = document.getElementById("fileNameMotor"),
+        pr = document.getElementById("previewMotor"),
+        ph = document.getElementById("dropZonePlaceholderMotor"),
+        bh = document.getElementById("btnHapusPreviewMotor");
+      if (dz && fi) {
+        dz.addEventListener("click", () => fi.click());
+        fi.addEventListener("change", (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            fn.innerText = "✓ Siap diupload: " + file.name;
+            dz.classList.add("border-green-600", "border-solid");
+            dz.classList.remove("border-dashed", "border-gray-300");
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              pr.src = ev.target.result;
+              pr.classList.remove("hidden");
+              ph.classList.add("hidden");
+              bh.classList.remove("hidden");
+            };
+            reader.readAsDataURL(file);
+          } else window.resetPreviewMotor();
         });
-
-        // ==========================================
-        // 4. VERIFIKASI PENGECEKAN DARI ANDROID
-        // ==========================================
-        window.loadPengecekan = async function() {
-            const tbody = document.getElementById('tbody-pengecekan');
-            if(!tbody) return;
-            const bln = document.getElementById('filter-bulan-cek').value; 
-            if(!bln) return;
-            
-            // 🔥 PERBAIKAN: Cari tanggal terakhir di bulan yang dipilih otomatis
-            const [tahun, bulan] = bln.split('-');
-            const tanggalTerakhir = new Date(tahun, bulan, 0).getDate(); 
-            
-            const startDate = `${bln}-01`;
-            const endDate = `${bln}-${tanggalTerakhir}`;
-
-            try {
-                const { data, error } = await window.supabase
-                    .from('pengecekan_mobil')
-                    .select(`id, tanggal, waktu_cek, kondisi_ban, kebersihan, catatan, nama_pemeriksa, bensin, oli, radiator, rem_tangan, rem_kaki, wiper, kaki_kaki, stnk, mobil:mobil_id(nama_kendaraan, plat_nomor)`)
-                    .gte('tanggal', startDate)
-                    .lte('tanggal', endDate)
-                    .order('tanggal', { ascending: false });
-
-                if (error) throw error;
-
-                if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">Belum ada data laporan masuk dari Android bulan ini.</td></tr>';
-                    return;
-                }
-
-                let html = '';
-                data.forEach(d => {
-                    const warnaMesin = d.kondisi_mesin === 'Baik' ? 'text-green-600' : 'text-red-600 font-bold';
-                    const warnaBan = d.kondisi_ban === 'Baik' ? 'text-green-600' : 'text-amber-600 font-bold';
-                    const warnaBersih = d.kebersihan === 'Bersih' ? 'text-blue-600' : 'text-amber-700';
-
-                    html += `
-                        <tr class="hover:bg-surface-container-low transition-colors">
-                            <td class="p-3 font-mono font-bold text-gray-800" data-label="Tanggal & Sesi">
-                                ${d.tanggal}<br>
-                                <span class="text-[10px] ${d.waktu_cek === 'Awal' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'} px-2 py-0.5 rounded uppercase tracking-wider mt-1 inline-block">
-                                    ${d.waktu_cek || 'Awal'} Pemakaian
-                                </span>
-                            </td>
-                            <td class="p-3 leading-tight" data-label="Armada">
-                                <span class="font-bold text-primary">${d.mobil?.nama_kendaraan || '-'}</span><br>
-                                <span class="text-[10px] bg-gray-200 px-1 rounded">${d.mobil?.plat_nomor || '-'}</span>
-                            </td>
-                            <td class="p-3 text-xs" data-label="Hasil Inspeksi">
-                                <div class="grid grid-cols-2 gap-x-2 gap-y-1 max-w-[300px] text-gray-600">
-                                    <div>⛽ Bensin: <span class="font-bold text-gray-900">${d.bensin || '-'}</span></div>
-                                    <div>🛢️ Oli: <span class="font-bold text-gray-900">${d.oli || '-'}</span></div>
-                                    <div>🌡️ Radiator: <span class="font-bold text-gray-900">${d.radiator || '-'}</span></div>
-                                    <div>🛞 Ban: <span class="font-bold text-gray-900">${d.kondisi_ban || '-'}</span></div>
-                                    <div>🛑 Rem Tgn: <span class="font-bold text-gray-900">${d.rem_tangan || '-'}</span></div>
-                                    <div>🛑 Rem Kaki: <span class="font-bold text-gray-900">${d.rem_kaki || '-'}</span></div>
-                                    <div>🌧️ Wiper: <span class="font-bold text-gray-900">${d.wiper || '-'}</span></div>
-                                    <div>⚙️ Kaki-kaki: <span class="font-bold text-gray-900">${d.kaki_kaki || '-'}</span></div>
-                                    <div>📄 STNK: <span class="font-bold text-gray-900">${d.stnk || '-'}</span></div>
-                                    <div>✨ Bersih: <span class="font-bold text-gray-900">${d.kebersihan || '-'}</span></div>
-                                </div>
-                                ${d.catatan ? `<div class="mt-2 text-[11px] text-gray-500 italic p-1.5 bg-gray-50 rounded border border-gray-200">📝 Catatan: "${d.catatan}"</div>` : ''}
-                            </td>
-                            <td class="p-3 text-xs font-semibold text-gray-600" data-label="Petugas Lapangan">${d.nama_pemeriksa}</td>
-                            <td class="p-3 text-right" data-label="Verifikasi">
-                                <button onclick="window.hapusCek('${d.id}')" class="text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 text-xs font-bold rounded" title="Tolak Laporan">Tolak</button>
-                            </td>
-                        </tr>`;
-                });
-                tbody.innerHTML = html;
-            } catch(e) { console.error("Error load cek:", e.message || e); }
+        window.resetPreviewMotor = function () {
+          fi.value = "";
+          fn.innerText = "";
+          pr.src = "";
+          pr.classList.add("hidden");
+          ph.classList.remove("hidden");
+          bh.classList.add("hidden");
+          dz.classList.remove("border-green-600", "border-solid");
+          dz.classList.add("border-gray-300", "border-dashed");
         };
+        if (bh)
+          bh.addEventListener("click", (e) => {
+            e.stopPropagation();
+            window.resetPreviewMotor();
+          });
+      }
+    };
+    setupUploaderMotor();
 
-        // Tombol tolak laporan untuk membuang input supir/tim lapangan yang salah/ngawur dari DB
-        window.hapusCek = async function(id) {
-            if(!confirm("Tolak dan hapus laporan pengecekan harian ini? (Laporan dari Android akan dihapus dari sistem)")) return;
-            try {
-                await window.supabase.from('pengecekan_mobil').delete().eq('id', id);
-                window.loadPengecekan();
-            } catch(err) { alert("Gagal menolak laporan: "+err.message); }
+    window.loadMotor = async function () {
+      try {
+        const { data, error } = await window.supabase
+          .from("motor")
+          .select("*")
+          .eq("is_active", true)
+          .order("nama_kendaraan");
+        if (error) throw error;
+        const tbody = document.getElementById("tbody-motor");
+        if (!data || data.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="5" class="p-4 text-center text-gray-400">Belum ada armada motor.</td></tr>';
+          return;
+        }
+
+        window.allMotorData = data;
+        tbody.innerHTML = data
+          .map(
+            (m) => `
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="p-3 text-center" data-label="Foto">${m.foto_kendaraan ? `<img src="${m.foto_kendaraan}" class="w-12 h-12 object-cover rounded-md mx-auto">` : `<div class="w-12 h-12 bg-gray-200 rounded-md mx-auto flex items-center justify-center text-gray-400"><i class="bi bi-bicycle"></i></div>`}</td>
+                        <td class="p-3 font-mono font-bold text-gray-900" data-label="Plat Nomor"><span class="bg-gray-200 px-2 py-1 rounded text-sm">${m.plat_nomor}</span></td>
+                        <td class="p-3 font-bold text-green-700" data-label="Nama Kendaraan">${m.nama_kendaraan}</td>
+                        <td class="p-3 text-gray-600" data-label="Jenis">${m.jenis_kendaraan}</td>
+                        <td class="p-3 text-right" data-label="Aksi">
+                            <div class="flex gap-2 justify-end">
+                                <button onclick="window.editMotor('${m.id}')" class="bg-blue-50 text-blue-600 p-2 rounded hover:bg-blue-100 transition"><i class="bi bi-pencil-square"></i></button>
+                                <button onclick="window.hapusMotor('${m.id}', '${m.nama_kendaraan}')" class="bg-red-50 text-red-600 p-2 rounded hover:bg-red-100 transition"><i class="bi bi-trash3"></i></button>
+                            </div>
+                        </td>
+                    </tr>`,
+          )
+          .join("");
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    window.bukaModalTambahMotor = function () {
+      document.getElementById("form-motor").reset();
+      document.getElementById("edit_motor_id").value = "";
+      document.querySelector("#modal-tambah-motor h3").innerText =
+        "Registrasi Motor Baru";
+      if (window.resetPreviewMotor) window.resetPreviewMotor();
+      window.openModal("modal-tambah-motor");
+    };
+
+    window.editMotor = function (id) {
+      const m = window.allMotorData.find((x) => String(x.id) === String(id));
+      if (!m) return;
+      document.getElementById("edit_motor_id").value = m.id;
+      document.getElementById("mot_plat").value = m.plat_nomor;
+      document.getElementById("mot_nama").value = m.nama_kendaraan;
+      document.getElementById("mot_jenis").value = m.jenis_kendaraan;
+      document.querySelector("#modal-tambah-motor h3").innerText =
+        "Edit Data Motor";
+      if (window.resetPreviewMotor) window.resetPreviewMotor();
+      if (m.foto_kendaraan) {
+        const pr = document.getElementById("previewMotor"),
+          ph = document.getElementById("dropZonePlaceholderMotor"),
+          bh = document.getElementById("btnHapusPreviewMotor"),
+          dz = document.getElementById("dropZoneMotor");
+        pr.src = m.foto_kendaraan;
+        pr.classList.remove("hidden");
+        ph.classList.add("hidden");
+        bh.classList.remove("hidden");
+        dz.classList.add("border-green-600", "border-solid");
+        dz.classList.remove("border-gray-300", "border-dashed");
+      }
+      window.openModal("modal-tambah-motor");
+    };
+
+    window.simpanMotor = async function (e) {
+      e.preventDefault();
+      const btn = document.getElementById("btn-save-motor"),
+        file = document.getElementById("mot_foto_file")?.files[0],
+        editId = document.getElementById("edit_motor_id").value;
+      btn.innerText = "Menyimpan...";
+      btn.disabled = true;
+      try {
+        let finalImage = null;
+        if (file) {
+          finalImage = await window.uploadImageToImgbb(
+            await window.kompresGambar(file).catch(() => file),
+          );
+        }
+
+        let payload = {
+          plat_nomor: document.getElementById("mot_plat").value.toUpperCase(),
+          nama_kendaraan: document.getElementById("mot_nama").value,
+          jenis_kendaraan: document.getElementById("mot_jenis").value,
         };
-    </script>
+        const pr = document.getElementById("previewMotor");
+        if (finalImage) payload.foto_kendaraan = finalImage;
+        else if (pr.src === "" || pr.classList.contains("hidden"))
+          payload.foto_kendaraan = null;
+
+        if (editId)
+          await window.supabase.from("motor").update(payload).eq("id", editId);
+        else await window.supabase.from("motor").insert([payload]);
+
+        window.closeModal("modal-tambah-motor");
+        window.loadMotor();
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.innerText = "Simpan Ke Database";
+        btn.disabled = false;
+      }
+    };
+
+    window.hapusMotor = async function (id, nama) {
+      if (!confirm(`Yakin ingin menghapus motor ${nama}?`)) return;
+      await window.supabase
+        .from("motor")
+        .update({ is_active: false })
+        .eq("id", id);
+      window.loadMotor();
+    };
+
+    // ==========================================
+    // 5. PENGECEKAN MOBIL
+    // ==========================================
+    window.loadPengecekan = async function () {
+      const bln = document.getElementById("filter-bulan-cek-mobil").value;
+      if (!bln) return;
+      const [tahun, bulan] = bln.split("-");
+      const tglAkhir = new Date(tahun, bulan, 0).getDate();
+      try {
+        const { data, error } = await window.supabase
+          .from("pengecekan_mobil")
+          .select("*, mobil:mobil_id(nama_kendaraan, plat_nomor)")
+          .gte("tanggal", `${bln}-01`)
+          .lte("tanggal", `${bln}-${tglAkhir}`)
+          .order("tanggal", { ascending: false });
+        const tbody = document.getElementById("tbody-pengecekan-mobil");
+        if (!data || data.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="5" class="p-4 text-center text-gray-400">Belum ada data.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data
+          .map(
+            (d) => `
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="p-3 font-mono font-bold text-gray-800" data-label="Tanggal & Sesi">${d.tanggal}<br><span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded">${d.waktu_cek || "Awal"}</span></td>
+                        <td class="p-3 leading-tight" data-label="Mobil"><span class="font-bold text-primary">${d.mobil?.nama_kendaraan || "-"}</span><br><span class="text-[10px] bg-gray-200 px-1 rounded">${d.mobil?.plat_nomor || "-"}</span></td>
+                        <td class="p-3 text-xs" data-label="Inspeksi">
+                            <div class="grid grid-cols-2 gap-x-2 gap-y-1 max-w-[300px] text-gray-600">
+                                <div>Bensin: <span class="font-bold text-gray-900">${d.bensin || "-"}</span></div>
+                                <div>Oli: <span class="font-bold text-gray-900">${d.oli || "-"}</span></div>
+                                <div>Radiator: <span class="font-bold text-gray-900">${d.radiator || "-"}</span></div>
+                                <div>Ban: <span class="font-bold text-gray-900">${d.kondisi_ban || "-"}</span></div>
+                            </div>
+                            ${d.catatan ? `<div class="mt-2 text-[11px] text-gray-500 italic">📝 "${d.catatan}"</div>` : ""}
+                        </td>
+                        <td class="p-3 text-xs font-semibold text-gray-600" data-label="Petugas">${d.nama_pemeriksa}</td>
+                        <td class="p-3 text-right" data-label="Verifikasi"><button onclick="window.hapusCekMobil('${d.id}')" class="text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 text-xs font-bold rounded">Tolak</button></td>
+                    </tr>`,
+          )
+          .join("");
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    window.hapusCekMobil = async function (id) {
+      if (confirm("Tolak laporan mobil ini?")) {
+        await window.supabase.from("pengecekan_mobil").delete().eq("id", id);
+        window.loadPengecekan();
+      }
+    };
+
+    // ==========================================
+    // 6. PENGECEKAN MOTOR
+    // ==========================================
+    window.loadPengecekanMotor = async function () {
+      const bln = document.getElementById("filter-bulan-cek-motor").value;
+      if (!bln) return;
+      const [tahun, bulan] = bln.split("-");
+      const tglAkhir = new Date(tahun, bulan, 0).getDate();
+      try {
+        const { data, error } = await window.supabase
+          .from("pengecekan_motor")
+          .select("*, motor:motor_id(nama_kendaraan, plat_nomor)")
+          .gte("tanggal", `${bln}-01`)
+          .lte("tanggal", `${bln}-${tglAkhir}`)
+          .order("tanggal", { ascending: false });
+
+        const tbody = document.getElementById("tbody-pengecekan-motor");
+        if (!data || data.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="5" class="p-4 text-center text-gray-400">Belum ada data inspeksi motor masuk.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data
+          .map(
+            (d) => `
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="p-3 font-mono font-bold text-gray-800" data-label="Tanggal">${d.tanggal}</td>
+                        <td class="p-3 leading-tight" data-label="Motor"><span class="font-bold text-green-700">${d.motor?.nama_kendaraan || "-"}</span><br><span class="text-[10px] bg-gray-200 px-1 rounded">${d.motor?.plat_nomor || "-"}</span></td>
+                        <td class="p-3 text-xs" data-label="Inspeksi">
+                            <div class="grid grid-cols-2 gap-x-2 gap-y-1 max-w-[300px] text-gray-600">
+                                <div>🛣️ KM Brgkt: <span class="font-bold text-gray-900">${d.km_berangkat || "-"}</span></div>
+                                <div>🏁 KM Plng: <span class="font-bold text-gray-900">${d.km_pulang || "-"}</span></div>
+                                <div>🛑 Rem: <span class="font-bold text-gray-900">${d.rem || "-"}</span></div>
+                                <div>🛢️ Oli: <span class="font-bold text-gray-900">${d.oli || "-"}</span></div>
+                                <div>🌡️ Air Rad: <span class="font-bold text-gray-900">${d.air_radiator || "-"}</span></div>
+                                <div>📯 Klakson: <span class="font-bold text-gray-900">${d.klakson || "-"}</span></div>
+                                <div>🔍 Spion: <span class="font-bold text-gray-900">${d.spion || "-"}</span></div>
+                                <div>💡 Sen: <span class="font-bold text-gray-900">${d.lampu_sen || "-"}</span></div>
+                                <div>🚨 Lp. Rem: <span class="font-bold text-gray-900">${d.lampu_rem || "-"}</span></div>
+                            </div>
+                            ${d.catatan ? `<div class="mt-2 text-[11px] text-gray-500 italic p-1.5 bg-gray-50 border rounded">📝 "${d.catatan}"</div>` : ""}
+                        </td>
+                        <td class="p-3 text-xs font-semibold text-gray-600" data-label="Petugas">${d.nama_pemeriksa}</td>
+                        <td class="p-3 text-right" data-label="Verifikasi"><button onclick="window.hapusCekMotor('${d.id}')" class="text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 text-xs font-bold rounded">Tolak</button></td>
+                    </tr>`,
+          )
+          .join("");
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    window.hapusCekMotor = async function (id) {
+      if (confirm("Tolak laporan motor ini?")) {
+        await window.supabase.from("pengecekan_motor").delete().eq("id", id);
+        window.loadPengecekanMotor();
+      }
+    };
+    // ==========================================
+    // 7. MANAJEMEN RIWAYAT SERVICE
+    // ==========================================
+    window.loadService = async function () {
+      const bln = document.getElementById("filter-bulan-service").value;
+      if (!bln) return;
+      const [tahun, bulan] = bln.split("-");
+      const tglAkhir = new Date(tahun, bulan, 0).getDate();
+
+      try {
+        const { data, error } = await window.supabase
+          .from("service_kendaraan")
+          .select(
+            "*, mobil:mobil_id(nama_kendaraan, plat_nomor), motor:motor_id(nama_kendaraan, plat_nomor)",
+          )
+          .gte("tanggal", `${bln}-01`)
+          .lte("tanggal", `${bln}-${tglAkhir}`)
+          .order("tanggal", { ascending: false });
+
+        const tbody = document.getElementById("tbody-service");
+        if (!data || data.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="6" class="p-4 text-center text-gray-400">Tidak ada riwayat service di bulan ini.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data
+          .map((d) => {
+            const isMobil = d.tipe_kendaraan === "mobil";
+            const armada = isMobil ? d.mobil : d.motor;
+            const icon = isMobil
+              ? '<i class="bi bi-car-front-fill text-blue-500"></i>'
+              : '<i class="bi bi-bicycle text-green-500"></i>';
+
+            return `
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="p-3 font-mono font-bold text-gray-800" data-label="Tanggal">${d.tanggal}</td>
+                        <td class="p-3 leading-tight" data-label="Kendaraan">
+                            <span class="font-bold text-gray-900">${icon} ${armada?.nama_kendaraan || "-"}</span><br>
+                            <span class="text-[10px] bg-gray-200 px-1 rounded">${armada?.plat_nomor || "-"}</span>
+                        </td>
+                        <td class="p-3 text-sm font-semibold text-gray-700" data-label="Bengkel">${d.nama_bengkel || "-"}</td>
+                        <td class="p-3 text-xs text-gray-600" data-label="Detail Perbaikan">
+                            <div class="whitespace-pre-wrap max-w-xs break-words">${d.detail_service}</div>
+                        </td>
+                        <td class="p-3 font-mono font-bold text-red-600 text-right" data-label="Biaya">Rp ${d.biaya.toLocaleString("id-ID")}</td>
+                        <td class="p-3 text-right" data-label="Aksi">
+                            <button onclick="window.hapusService('${d.id}')" class="text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 text-xs font-bold rounded" title="Hapus Data">Hapus</button>
+                        </td>
+                    </tr>`;
+          })
+          .join("");
+      } catch (e) {
+        console.error("Error load service:", e);
+      }
+    };
+
+    window.toggleJenisService = function () {
+      const jenis = document.querySelector(
+        'input[name="srv_jenis"]:checked',
+      ).value;
+      const containerMobil = document.getElementById("container-srv-mobil");
+      const containerMotor = document.getElementById("container-srv-motor");
+
+      if (jenis === "mobil") {
+        containerMobil.classList.remove("hidden");
+        containerMotor.classList.add("hidden");
+        document.getElementById("srv_mobil").required = true;
+        document.getElementById("srv_motor").required = false;
+      } else {
+        containerMobil.classList.add("hidden");
+        containerMotor.classList.remove("hidden");
+        document.getElementById("srv_mobil").required = false;
+        document.getElementById("srv_motor").required = true;
+      }
+    };
+
+    // Fungsi Toggle UI Integrasi Keuangan
+    window.toggleIntegrasiKeuangan = function () {
+      const isChecked = document.getElementById("srv_integrasi").checked;
+      const container = document.getElementById("container-integrasi-keuangan");
+      if (isChecked) {
+        container.classList.remove("hidden");
+        document.getElementById("srv_pengaju").required = true;
+        document.getElementById("srv_sumber_dana").required = true;
+      } else {
+        container.classList.add("hidden");
+        document.getElementById("srv_pengaju").required = false;
+        document.getElementById("srv_sumber_dana").required = false;
+      }
+    };
+
+    window.bukaModalService = async function () {
+      document.getElementById("form-service").reset();
+
+      // Set Tanggal Hari Ini
+      const now = new Date();
+      const offset = now.getTimezoneOffset() * 60000;
+      document.getElementById("srv_tgl").value = new Date(now - offset)
+        .toISOString()
+        .split("T")[0];
+
+      // 1. Populate Dropdown Kendaraan
+      let optMobil = '<option value="">-- Pilih Mobil --</option>';
+      if (window.allMobilData)
+        window.allMobilData.forEach(
+          (m) =>
+            (optMobil += `<option value="${m.id}">${m.nama_kendaraan} (${m.plat_nomor})</option>`),
+        );
+      document.getElementById("srv_mobil").innerHTML = optMobil;
+
+      let optMotor = '<option value="">-- Pilih Motor --</option>';
+      if (window.allMotorData)
+        window.allMotorData.forEach(
+          (m) =>
+            (optMotor += `<option value="${m.id}">${m.nama_kendaraan} (${m.plat_nomor})</option>`),
+        );
+      document.getElementById("srv_motor").innerHTML = optMotor;
+
+      // 2. Populate Dropdown Karyawan (Pengaju)
+      try {
+        const { data: users } = await window.supabase
+          .from("profiles")
+          .select("id, nama")
+          .order("nama");
+        let optUsers =
+          '<option value="">-- Pilih Pengaju / Karyawan --</option>';
+        if (users)
+          users.forEach(
+            (u) => (optUsers += `<option value="${u.id}">${u.nama}</option>`),
+          );
+        document.getElementById("srv_pengaju").innerHTML = optUsers;
+      } catch (e) {
+        console.error("Gagal load pengaju:", e);
+      }
+
+      // Reset Toggle
+      window.toggleJenisService();
+      window.toggleIntegrasiKeuangan();
+      window.openModal("modal-tambah-service");
+    };
+
+    window.simpanService = async function (e) {
+      e.preventDefault();
+      const btn = document.getElementById("btn-save-service");
+      btn.innerText = "Menyimpan...";
+      btn.disabled = true;
+
+      const jenis = document.querySelector(
+        'input[name="srv_jenis"]:checked',
+      ).value;
+      const tanggalStr = document.getElementById("srv_tgl").value;
+      const mobil_id =
+        jenis === "mobil" ? document.getElementById("srv_mobil").value : null;
+      const motor_id =
+        jenis === "motor" ? document.getElementById("srv_motor").value : null;
+      const nama_bengkel = document.getElementById("srv_bengkel").value;
+      const detail_service = document.getElementById("srv_detail").value;
+      const biaya = parseInt(document.getElementById("srv_biaya").value) || 0;
+
+      const isIntegrasi = document.getElementById("srv_integrasi").checked;
+      const pengaju_id = document.getElementById("srv_pengaju").value;
+      const sumber_dana = document.getElementById("srv_sumber_dana").value;
+
+      try {
+        // LANGKAH 1: Simpan ke Riwayat Service Armada
+        const { error: errService } = await window.supabase
+          .from("service_kendaraan")
+          .insert([
+            {
+              tanggal: tanggalStr,
+              tipe_kendaraan: jenis,
+              mobil_id: mobil_id,
+              motor_id: motor_id,
+              nama_bengkel: nama_bengkel,
+              detail_service: detail_service,
+              biaya: biaya,
+            },
+          ]);
+        if (errService) throw errService;
+
+        // LANGKAH 2: Integrasi ke Pengeluaran Ops (Jika dicentang & biaya > 0)
+        if (isIntegrasi && biaya > 0) {
+          btn.innerText = "Mengirim Tagihan ke Keuangan...";
+
+          // A. Cari nama armada untuk ditaruh di Keterangan Pengeluaran
+          let namaArmada = "";
+          if (jenis === "mobil" && window.allMobilData) {
+            const m = window.allMobilData.find(
+              (x) => String(x.id) === String(mobil_id),
+            );
+            if (m) namaArmada = m.nama_kendaraan;
+          } else if (jenis === "motor" && window.allMotorData) {
+            const m = window.allMotorData.find(
+              (x) => String(x.id) === String(motor_id),
+            );
+            if (m) namaArmada = m.nama_kendaraan;
+          }
+
+          // B. Cek apakah ada pengeluaran induk di hari yang sama untuk pengaju ini
+          const { data: existingPeng } = await window.supabase
+            .from("pengeluaran")
+            .select("id")
+            .eq("user_id", pengaju_id)
+            .eq("tanggal", tanggalStr)
+            .order("created_at", { ascending: false })
+            .limit(1);
+
+          let pengeluaranId;
+          if (existingPeng && existingPeng.length > 0) {
+            pengeluaranId = existingPeng[0].id; // Gabung ke nota hari ini
+          } else {
+            // Bikin pengeluaran induk baru
+            const { data: newPeng, error: errNewPeng } = await window.supabase
+              .from("pengeluaran")
+              .insert({
+                user_id: pengaju_id,
+                tanggal: tanggalStr,
+                total_harian: 0,
+                status_approval: "Menunggu",
+                sumber_dana: sumber_dana,
+              })
+              .select("id")
+              .single();
+            if (errNewPeng) throw errNewPeng;
+            pengeluaranId = newPeng.id;
+          }
+
+          // C. Insert ke rincian pengeluaran dengan kategori 'Service'
+          const textKeterangan = `Service ${namaArmada} di ${nama_bengkel} - Detail: ${detail_service}`;
+          const { error: errRincian } = await window.supabase
+            .from("rincian_pengeluaran")
+            .insert({
+              pengeluaran_id: pengeluaranId,
+              nama_item: "Service",
+              nominal: biaya,
+              keterangan: textKeterangan,
+            });
+          if (errRincian) throw errRincian;
+        }
+
+        alert(
+          isIntegrasi
+            ? "Riwayat service dicatat & tagihan berhasil dikirim ke Pengeluaran!"
+            : "Riwayat service berhasil dicatat!",
+        );
+        window.closeModal("modal-tambah-service");
+        window.loadService(); // Refresh tabel
+      } catch (err) {
+        alert("Gagal menyimpan data: " + err.message);
+      } finally {
+        btn.innerText = "Simpan Riwayat Service";
+        btn.disabled = false;
+      }
+    };
+
+    window.hapusService = async function (id) {
+      if (
+        !confirm("Yakin ingin menghapus riwayat service ini secara permanen?")
+      )
+        return;
+      try {
+        const { error } = await window.supabase
+          .from("service_kendaraan")
+          .delete()
+          .eq("id", id);
+        if (error) throw error;
+        window.loadService();
+      } catch (err) {
+        alert("Gagal menghapus data: " + err.message);
+      }
+    };
+  </script>
 </Layout>

@@ -3093,6 +3093,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
         // 🔥 FIX 2: INJECTION KASBON YANG AMAN
         const slipKasbon = document.getElementById("slip-kasbon");
+        const totalKasbon = Number(slip.kasbon || 0);
         if (totalKasbon > 0) {
           slipKasbon.innerText = `Rp ${totalKasbon.toLocaleString("id-ID")}`;
           slipKasbon.parentElement.style.display = "table-row";
@@ -3925,8 +3926,12 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                                         <button onclick="window.bukaEditRiwayat('${slip.id}')" class="text-gray-600 hover:bg-gray-100 px-2.5 py-1.5 rounded text-xs border border-gray-200 transition flex items-center gap-1.5">
                                           <i class="bi bi-pencil-square"></i> Koreksi
                                         </button>
+
                                         <button onclick="window.downloadSlipGambar('${slip.id}')" class="text-emerald-600 hover:bg-emerald-50 px-2.5 py-1.5 rounded text-xs border border-emerald-200 transition" title="Unduh Gambar Slip">
                                             <i class="bi bi-image"></i>
+                                        </button>
+                                        <button onclick="window.hapusSlipGaji('${slip.id}')" class="text-red-600 hover:bg-red-50 px-2.5 py-1.5 rounded text-xs border border-red-200 transition flex items-center gap-1.5">
+                                          <i class="bi bi-trash"></i> Hapus
                                         </button>
                                         `
                                     }
@@ -5201,6 +5206,24 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         window.loadKasbonRequests(); // Refresh list
       } catch (err) {
         alert("❌ Gagal menolak kasbon: " + err.message);
+      }
+    };
+    window.hapusSlipGaji = async function (id) {
+      if (!confirm("Yakin ingin menghapus riwayat gaji ini secara permanen?"))
+        return;
+
+      try {
+        const { error } = await window.supabase
+          .from("slip_gaji")
+          .delete()
+          .eq("id", id);
+
+        if (error) throw error;
+
+        alert("✅ Riwayat gaji berhasil dihapus!");
+        window.muatRiwayatGaji(); // Refresh tampilan riwayat
+      } catch (err) {
+        alert("❌ Gagal menghapus data: " + err.message);
       }
     };
   });

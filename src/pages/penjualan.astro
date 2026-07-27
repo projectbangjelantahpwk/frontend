@@ -582,7 +582,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
   window.opsiKomoditasHtml = '<option value="">Pilih...</option>';
 
   document.addEventListener("DOMContentLoaded", async () => {
-    const allowedRoles = ["owner", "hrd", "keuangan", "admin", "it"];
+    const allowedRoles = ["owner", "hrd", "keuangan", "admin", "it", "guest"];
     const client = window.supabase;
 
     const {
@@ -600,6 +600,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       return window.location.replace("/");
     }
     document.body.style.display = "block";
+
+    // === 🔒 MODE READ-ONLY UNTUK GUEST ===
+    // Role 'guest' hanya boleh MELIHAT: semua aksi tulis diblokir.
+    if (prof?.role === "guest") window.applyGuestReadonly();
 
     // ==========================================
     // 1. PINDAH KE ATAS: KONTROL MODAL & NAVIGASI

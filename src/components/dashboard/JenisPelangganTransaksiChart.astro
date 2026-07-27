@@ -2,350 +2,501 @@
 // src/components/dashboard/JenisPelangganTransaksiChart.astro
 ---
 
-<div class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md flex flex-col h-full hover:shadow-lg transition-shadow duration-300">
-    
-    <div class="mb-sm flex justify-between items-start">
-        <div>
-            <h3 class="font-headline-md text-on-surface font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-                Tren Transaksi per Jenis Pelanggan
-            </h3>
-            <p class="text-label-sm text-on-surface-variant font-medium">Nilai Transaksi (Rp)</p>
-        </div>
-        <div class="text-right">
-            <span class="text-label-xs text-on-surface-variant uppercase tracking-wider block mb-1">Total Terpilih</span>
-            <span id="total-rp-jp" class="text-title-lg font-bold text-primary">Rp 0</span>
-        </div>
+<div
+  class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md flex flex-col h-full hover:shadow-lg transition-shadow duration-300"
+>
+  <div class="mb-sm flex justify-between items-start">
+    <div>
+      <h3
+        class="font-headline-md text-on-surface font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary"
+      >
+        Tren Transaksi per Jenis Pelanggan
+      </h3>
+      <p class="text-label-sm text-on-surface-variant font-medium">
+        Nilai Transaksi (Rp)
+      </p>
+    </div>
+    <div class="text-right">
+      <span
+        class="text-label-xs text-on-surface-variant uppercase tracking-wider block mb-1"
+        >Total Terpilih</span
+      >
+      <span id="total-rp-jp" class="text-title-lg font-bold text-primary"
+        >Rp 0</span
+      >
+    </div>
+  </div>
+
+  <div class="w-full mb-lg">
+    <div
+      id="filter-harian-jp"
+      class="flex items-center gap-2 bg-surface-variant/20 p-2 rounded-xl border border-surface-variant/50 w-full focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all"
+    >
+      <input
+        type="date"
+        id="start-date-jp"
+        class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium"
+      />
+      <span
+        class="text-label-sm text-primary font-bold bg-primary/10 px-2 py-0.5 rounded-md"
+        >-</span
+      >
+      <input
+        type="date"
+        id="end-date-jp"
+        class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium"
+      />
     </div>
 
-    <div class="w-full mb-lg">
-        <div id="filter-harian-jp" class="flex items-center gap-2 bg-surface-variant/20 p-2 rounded-xl border border-surface-variant/50 w-full focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
-            <input type="date" id="start-date-jp" class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium" />
-            <span class="text-label-sm text-primary font-bold bg-primary/10 px-2 py-0.5 rounded-md">-</span>
-            <input type="date" id="end-date-jp" class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium" />
-        </div>
+    <div
+      id="filter-mingguan-jp"
+      class="hidden items-center bg-surface-variant/20 p-2 rounded-xl border border-surface-variant/50 w-full focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all"
+    >
+      <input
+        type="month"
+        id="month-jp"
+        class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium"
+      />
+    </div>
+  </div>
 
-        <div id="filter-mingguan-jp" class="hidden items-center bg-surface-variant/20 p-2 rounded-xl border border-surface-variant/50 w-full focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
-            <input type="month" id="month-jp" class="w-full text-label-sm bg-transparent border-none outline-none text-on-surface cursor-pointer focus:ring-0 font-medium" />
-        </div>
+  <div class="relative w-full h-72 flex-grow mb-md">
+    <canvas id="chartJenisPelanggan"></canvas>
+  </div>
+
+  <div
+    class="mt-auto border-t border-outline-variant/60 pt-md flex flex-col gap-4"
+  >
+    <div class="flex flex-col gap-1.5">
+      <span
+        class="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest text-center"
+        >Pilih Jenis Pelanggan</span
+      >
+      <div
+        class="flex flex-wrap justify-center gap-2"
+        id="jenispelanggan-filters-jp"
+      >
+        <button
+          data-jp="Semua"
+          class="jp-btn-filter px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-gray-800 text-white shadow-sm ring-2 ring-gray-800/20 scale-105"
+        >
+          Semua (Gabungan)
+        </button>
+        <button
+          data-jp="Rumah Tangga"
+          class="jp-btn-filter px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
+        >
+          Rumah Tangga
+        </button>
+        <button
+          data-jp="Restoran/Rumah Makan"
+          class="jp-btn-filter px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
+        >
+          Restoran
+        </button>
+        <button
+          data-jp="MBG"
+          class="jp-btn-filter px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
+        >
+          MBG
+        </button>
+        <button
+          data-jp="Pengepul Kecil"
+          class="jp-btn-filter px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
+        >
+          Pengepul Kecil
+        </button>
+        <button
+          data-jp="Pabrik/Industri"
+          class="jp-btn-filter px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
+        >
+          Pabrik
+        </button>
+        <button
+          data-jp="Lainnya"
+          class="jp-btn-filter px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
+        >
+          Lainnya
+        </button>
+      </div>
     </div>
 
-    <div class="relative w-full h-72 flex-grow mb-md">
-        <canvas id="chartJenisPelanggan"></canvas>
+    <div class="flex flex-col gap-1.5 mt-1">
+      <span
+        class="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest text-center"
+        >Pilih Komoditas</span
+      >
+      <div
+        class="flex flex-wrap justify-center gap-2"
+        id="commodity-filters-jp"
+      >
+        <button
+          data-komoditas="minyak_jelantah_rp"
+          class="komoditas-btn-jp px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-primary text-white shadow-sm ring-2 ring-primary/20 scale-105"
+        >
+          Minyak Jelantah
+        </button>
+        <button
+          data-komoditas="minyak_asting_rp"
+          class="komoditas-btn-jp px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
+        >
+          Minyak Asting
+        </button>
+        <button
+          data-komoditas="minyak_semi_rp"
+          class="komoditas-btn-jp px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
+        >
+          Minyak Semi
+        </button>
+        <button
+          data-komoditas="ampas_rp"
+          class="komoditas-btn-jp px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
+        >
+          Ampas
+        </button>
+        <button
+          data-komoditas="kriuk_rp"
+          class="komoditas-btn-jp px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
+        >
+          Kriuk
+        </button>
+        <button
+          data-komoditas="tepung_rp"
+          class="komoditas-btn-jp px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
+        >
+          Tepung
+        </button>
+        <button
+          data-komoditas="spinner_rp"
+          class="komoditas-btn-jp px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
+        >
+          Spinner
+        </button>
+      </div>
     </div>
 
-    <div class="mt-auto border-t border-outline-variant/60 pt-md flex flex-col gap-4">
-        
-        <div class="flex flex-col gap-1.5">
-            <span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest text-center">Pilih Jenis Pelanggan</span>
-            <div class="flex flex-wrap justify-center gap-2" id="jenispelanggan-filters-jp">
-                <button data-jp="Semua" class="jp-btn-filter px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-gray-800 text-white shadow-sm ring-2 ring-gray-800/20 scale-105">
-                    Semua (Gabungan)
-                </button>
-                <button data-jp="Rumah Tangga" class="jp-btn-filter px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
-                    Rumah Tangga
-                </button>
-                <button data-jp="Restoran/Rumah Makan" class="jp-btn-filter px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
-                    Restoran
-                </button>
-                <button data-jp="MBG" class="jp-btn-filter px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
-                    MBG
-                </button>
-                <button data-jp="Pengepul Kecil" class="jp-btn-filter px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
-                    Pengepul Kecil
-                </button>
-                <button data-jp="Pabrik/Industri" class="jp-btn-filter px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
-                    Pabrik
-                </button>
-                <button data-jp="Lainnya" class="jp-btn-filter px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
-                    Lainnya
-                </button>
-            </div>
-        </div>
-
-        <div class="flex flex-col gap-1.5 mt-1">
-            <span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest text-center">Pilih Komoditas</span>
-            <div class="flex flex-wrap justify-center gap-2" id="commodity-filters-jp">
-                <button data-komoditas="minyak_jelantah_rp" class="komoditas-btn-jp px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-primary text-white shadow-sm ring-2 ring-primary/20 scale-105">
-                    Minyak Jelantah
-                </button>
-                <button data-komoditas="ampas_rp" class="komoditas-btn-jp px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
-                    Ampas
-                </button>
-                <button data-komoditas="kriuk_rp" class="komoditas-btn-jp px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
-                    Kriuk
-                </button>
-                <button data-komoditas="tepung_rp" class="komoditas-btn-jp px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
-                    Tepung
-                </button>
-                <button data-komoditas="spinner_rp" class="komoditas-btn-jp px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface">
-                    Spinner
-                </button>
-            </div>
-        </div>
-
-        <div class="flex justify-center mt-2">
-            <div class="bg-surface-variant/20 p-1 rounded-xl inline-flex w-full sm:w-auto border border-surface-variant/40 shadow-inner">
-                <button id="btn-harian-jp" class="flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold transition-all duration-300 bg-primary text-white shadow-md">
-                    Harian
-                </button>
-                <button id="btn-mingguan-jp" class="flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300">
-                    Mingguan
-                </button>
-            </div>
-        </div>
+    <div class="flex justify-center mt-2">
+      <div
+        class="bg-surface-variant/20 p-1 rounded-xl inline-flex w-full sm:w-auto border border-surface-variant/40 shadow-inner"
+      >
+        <button
+          id="btn-harian-jp"
+          class="flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold transition-all duration-300 bg-primary text-white shadow-md"
+        >
+          Harian
+        </button>
+        <button
+          id="btn-mingguan-jp"
+          class="flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300"
+        >
+          Mingguan
+        </button>
+      </div>
     </div>
-
+  </div>
 </div>
 
 <script>
-    import { supabase } from '../../lib/supabase';
-    import Chart from 'chart.js/auto';
+  import { supabase } from "../../lib/supabase";
+  import Chart from "chart.js/auto";
 
-    Chart.defaults.font.family = "'Inter', sans-serif";
-    Chart.defaults.color = '#8E8E93';
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.color = "#8E8E93";
 
-    const formatRp = (number) => {
-        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
-    };
+  const formatRp = (number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(number);
+  };
 
-    const TIPE_PELANGGAN = [
-        { id: 'Rumah Tangga', label: 'Rumah Tangga', color: '#3B82F6' },
-        { id: 'Restoran/Rumah Makan', label: 'Restoran', color: '#F59E0B' },
-        { id: 'MBG', label: 'MBG', color: '#8B5CF6' },
-        { id: 'Pengepul Kecil', label: 'Pengepul', color: '#10B981' },
-        { id: 'Pabrik/Industri', label: 'Pabrik', color: '#EF4444' },
-        { id: 'Lainnya', label: 'Lainnya', color: '#6B7280' }
-    ];
+  const TIPE_PELANGGAN = [
+    { id: "Rumah Tangga", label: "Rumah Tangga", color: "#3B82F6" },
+    { id: "Restoran/Rumah Makan", label: "Restoran", color: "#F59E0B" },
+    { id: "MBG", label: "MBG", color: "#8B5CF6" },
+    { id: "Pengepul Kecil", label: "Pengepul", color: "#10B981" },
+    { id: "Pabrik/Industri", label: "Pabrik", color: "#EF4444" },
+    { id: "Lainnya", label: "Lainnya", color: "#6B7280" },
+  ];
 
-    const chartOptions = {
-        responsive: true, 
-        maintainAspectRatio: false,
-        plugins: { 
-            legend: { 
-                position: 'top',
-                labels: { usePointStyle: true, boxWidth: 8, padding: 15, font: { size: 11, weight: 'bold' } }
-            },
-            tooltip: {
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                titleColor: '#1F2937',
-                bodyColor: '#4B5563',
-                borderColor: '#E5E7EB',
-                borderWidth: 1,
-                padding: 12,
-                usePointStyle: true,
-                callbacks: {
-                    label: function(context) {
-                        return `${context.dataset.label}: ${formatRp(context.raw)}`;
-                    }
-                }
-            }
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top",
+        labels: {
+          usePointStyle: true,
+          boxWidth: 8,
+          padding: 15,
+          font: { size: 11, weight: "bold" },
         },
-        scales: {
-            x: { grid: { display: false } },
-            y: { 
-                border: { dash: [4, 4] }, 
-                grid: { color: '#F3F4F6' }, 
-                beginAtZero: true,
-                ticks: {
-                    callback: function(value) {
-                        if (value >= 1000000) return 'Rp ' + (value / 1000000) + 'M';
-                        if (value >= 1000) return 'Rp ' + (value / 1000) + 'K';
-                        return 'Rp ' + value;
-                    }
-                }
-            }
-        }
-    };
+      },
+      tooltip: {
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        titleColor: "#1F2937",
+        bodyColor: "#4B5563",
+        borderColor: "#E5E7EB",
+        borderWidth: 1,
+        padding: 12,
+        usePointStyle: true,
+        callbacks: {
+          label: function (context) {
+            return `${context.dataset.label}: ${formatRp(context.raw)}`;
+          },
+        },
+      },
+    },
+    scales: {
+      x: { grid: { display: false } },
+      y: {
+        border: { dash: [4, 4] },
+        grid: { color: "#F3F4F6" },
+        beginAtZero: true,
+        ticks: {
+          callback: function (value) {
+            if (value >= 1000000) return "Rp " + value / 1000000 + "M";
+            if (value >= 1000) return "Rp " + value / 1000 + "K";
+            return "Rp " + value;
+          },
+        },
+      },
+    },
+  };
 
-    async function initChartJenisPelanggan() {
-        let chartInstance = null;
-        let rawData = [];
-        let currentMode = 'harian';
-        let currentCommodity = 'minyak_jelantah_rp';
-        let currentJenisPelanggan = 'Semua'; // Default filter dropdown
+  async function initChartJenisPelanggan() {
+    let chartInstance = null;
+    let rawData = [];
+    let currentMode = "harian";
+    let currentCommodity = "minyak_jelantah_rp";
+    let currentJenisPelanggan = "Semua"; // Default filter dropdown
 
-        const ctx = document.getElementById('chartJenisPelanggan').getContext('2d');
-        chartInstance = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [] }, options: chartOptions });
+    const ctx = document.getElementById("chartJenisPelanggan").getContext("2d");
+    chartInstance = new Chart(ctx, {
+      type: "line",
+      data: { labels: [], datasets: [] },
+      options: chartOptions,
+    });
 
-        const btnHarian = document.getElementById('btn-harian-jp');
-        const btnMingguan = document.getElementById('btn-mingguan-jp');
-        const filterHarianContainer = document.getElementById('filter-harian-jp');
-        const filterMingguanContainer = document.getElementById('filter-mingguan-jp');
-        const startDateInput = document.getElementById('start-date-jp');
-        const endDateInput = document.getElementById('end-date-jp');
-        const monthInput = document.getElementById('month-jp');
-        const komoditasBtns = document.querySelectorAll('.komoditas-btn-jp');
-        const jpBtns = document.querySelectorAll('.jp-btn-filter');
-        const elTotalRp = document.getElementById('total-rp-jp');
+    const btnHarian = document.getElementById("btn-harian-jp");
+    const btnMingguan = document.getElementById("btn-mingguan-jp");
+    const filterHarianContainer = document.getElementById("filter-harian-jp");
+    const filterMingguanContainer =
+      document.getElementById("filter-mingguan-jp");
+    const startDateInput = document.getElementById("start-date-jp");
+    const endDateInput = document.getElementById("end-date-jp");
+    const monthInput = document.getElementById("month-jp");
+    const komoditasBtns = document.querySelectorAll(".komoditas-btn-jp");
+    const jpBtns = document.querySelectorAll(".jp-btn-filter");
+    const elTotalRp = document.getElementById("total-rp-jp");
 
-        async function fetchHarian() {
-            try {
-                let query = supabase.from('jenis_pelanggan_transaksi_harian')
-                    .select(`tanggal, jenis_pelanggan, ${currentCommodity}`)
-                    .order('tanggal', { ascending: true });
+    async function fetchHarian() {
+      try {
+        let query = supabase
+          .from("jenis_pelanggan_transaksi_harian")
+          .select(`tanggal, jenis_pelanggan, ${currentCommodity}`)
+          .order("tanggal", { ascending: true });
 
-                if (startDateInput.value) query = query.gte('tanggal', startDateInput.value);
-                if (endDateInput.value) query = query.lte('tanggal', endDateInput.value);
-                
-                if (!startDateInput.value && !endDateInput.value) {
-                    const thirtyDaysAgo = new Date();
-                    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                    query = query.gte('tanggal', thirtyDaysAgo.toISOString().split('T')[0]);
-                }
+        if (startDateInput.value)
+          query = query.gte("tanggal", startDateInput.value);
+        if (endDateInput.value)
+          query = query.lte("tanggal", endDateInput.value);
 
-                const { data, error } = await query;
-                if (!error && data) {
-                    rawData = data;
-                    renderChart('tanggal');
-                }
-            } catch (err) { console.error(err); }
-        }
-
-        async function fetchMingguan() {
-            try {
-                let query = supabase.from('jenis_pelanggan_transaksi_mingguan')
-                    .select(`minggu_ke, periode, jenis_pelanggan, ${currentCommodity}`)
-                    .order('periode', { ascending: true })
-                    .order('minggu_ke', { ascending: true });
-
-                if (monthInput && monthInput.value) {
-                    const tglInput = monthInput.value;
-                    const tahun = tglInput.substring(0, 4);
-                    const bulan = tglInput.substring(5, 7); 
-                    query = query.eq('periode', `${bulan}-${tahun}`);
-                } else {
-                    const now = new Date();
-                    const b = String(now.getMonth() + 1).padStart(2, '0');
-                    const t = now.getFullYear();
-                    query = query.eq('periode', `${b}-${t}`);
-                }
-                
-                const { data, error } = await query;
-                if (!error && data) {
-                    rawData = data.map(d => ({
-                        ...d,
-                        xAxisLabel: `W${d.minggu_ke} ${d.periode}`
-                    }));
-                    renderChart('xAxisLabel');
-                }
-            } catch (err) { console.error(err); }
+        if (!startDateInput.value && !endDateInput.value) {
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+          query = query.gte(
+            "tanggal",
+            thirtyDaysAgo.toISOString().split("T")[0],
+          );
         }
 
-        function renderChart(timeKey) {
-            const uniqueTimes = [...new Set(rawData.map(item => item[timeKey]))].sort();
-            let totalSum = 0;
-            const datasets = [];
-
-            TIPE_PELANGGAN.forEach(tipe => {
-                // 🔥 LOGIKA FILTER DROPDOWN ADA DI SINI
-                // Jika tidak milih "Semua" dan tipe ini tidak cocok dengan yang dipilih, maka abaikan/skip.
-                if (currentJenisPelanggan !== 'Semua' && tipe.id !== currentJenisPelanggan) {
-                    return; 
-                }
-
-                const dataSeries = [];
-
-                uniqueTimes.forEach(timeLabel => {
-                    const foundRecord = rawData.find(item => item.jenis_pelanggan === tipe.id && item[timeKey] === timeLabel);
-                    const val = foundRecord ? Number(foundRecord[currentCommodity] || 0) : 0;
-                    dataSeries.push(val);
-                    totalSum += val; 
-                });
-
-                if (dataSeries.some(val => val > 0)) {
-                    datasets.push({
-                        label: tipe.label,
-                        data: dataSeries,
-                        borderColor: tipe.color,
-                        backgroundColor: tipe.color,
-                        fill: false,
-                        tension: 0.4, 
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: tipe.color,
-                        pointBorderWidth: 2,
-                        pointHoverRadius: 6,
-                        borderWidth: 2
-                    });
-                }
-            });
-
-            elTotalRp.textContent = formatRp(totalSum);
-
-            chartInstance.data = {
-                labels: uniqueTimes,
-                datasets: datasets
-            };
-            chartInstance.update();
+        const { data, error } = await query;
+        if (!error && data) {
+          rawData = data;
+          renderChart("tanggal");
         }
-
-        function switchMode(mode) {
-            currentMode = mode;
-            if (mode === 'harian') {
-                filterHarianContainer.classList.remove('hidden');
-                filterHarianContainer.classList.add('flex');
-                filterMingguanContainer.classList.add('hidden');
-                filterMingguanContainer.classList.remove('flex');
-                
-                btnHarian.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
-                btnMingguan.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
-                fetchHarian();
-            } else {
-                filterHarianContainer.classList.add('hidden');
-                filterHarianContainer.classList.remove('flex');
-                filterMingguanContainer.classList.remove('hidden');
-                filterMingguanContainer.classList.add('flex');
-
-                btnMingguan.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
-                btnHarian.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
-                fetchMingguan();
-            }
-        }
-
-        // --- Event Listeners ---
-        btnHarian.addEventListener('click', () => switchMode('harian'));
-        btnMingguan.addEventListener('click', () => switchMode('mingguan'));
-
-        startDateInput.addEventListener('change', () => currentMode === 'harian' && fetchHarian());
-        endDateInput.addEventListener('change', () => currentMode === 'harian' && fetchHarian());
-        monthInput.addEventListener('change', () => currentMode === 'mingguan' && fetchMingguan());
-
-        // Event saat Dropdown Jenis Pelanggan diganti
-        jpBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                currentJenisPelanggan = e.target.getAttribute('data-jp');
-                
-                // Reset warna semua tombol Jenis Pelanggan jadi abu-abu pudar
-                jpBtns.forEach(b => {
-                    b.className = "jp-btn-filter px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface";
-                });
-                
-                // Bikin tombol yang diklik jadi nyala dan gede (aktif)
-                e.target.className = "jp-btn-filter px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-gray-800 text-white shadow-sm ring-2 ring-gray-800/20 scale-105";
-                
-                // Langsung re-render grafiknya
-                const timeKey = currentMode === 'harian' ? 'tanggal' : 'xAxisLabel';
-                renderChart(timeKey);
-            });
-        });
-
-        // Event saat tombol Komoditas diganti
-        komoditasBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                currentCommodity = e.target.getAttribute('data-komoditas');
-                
-                komoditasBtns.forEach(b => {
-                    b.className = "komoditas-btn-jp px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface";
-                });
-                e.target.className = "komoditas-btn-jp px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-primary text-white shadow-sm ring-2 ring-primary/20 scale-105";
-                
-                if (currentMode === 'harian') fetchHarian();
-                else fetchMingguan();
-            });
-        });
-
-        // Init pertama kali
-        switchMode('harian');
+      } catch (err) {
+        console.error(err);
+      }
     }
 
-    initChartJenisPelanggan();
+    async function fetchMingguan() {
+      try {
+        let query = supabase
+          .from("jenis_pelanggan_transaksi_mingguan")
+          .select(`minggu_ke, periode, jenis_pelanggan, ${currentCommodity}`)
+          .order("periode", { ascending: true })
+          .order("minggu_ke", { ascending: true });
+
+        if (monthInput && monthInput.value) {
+          const tglInput = monthInput.value;
+          const tahun = tglInput.substring(0, 4);
+          const bulan = tglInput.substring(5, 7);
+          query = query.eq("periode", `${bulan}-${tahun}`);
+        } else {
+          const now = new Date();
+          const b = String(now.getMonth() + 1).padStart(2, "0");
+          const t = now.getFullYear();
+          query = query.eq("periode", `${b}-${t}`);
+        }
+
+        const { data, error } = await query;
+        if (!error && data) {
+          rawData = data.map((d) => ({
+            ...d,
+            xAxisLabel: `W${d.minggu_ke} ${d.periode}`,
+          }));
+          renderChart("xAxisLabel");
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderChart(timeKey) {
+      const uniqueTimes = [
+        ...new Set(rawData.map((item) => item[timeKey])),
+      ].sort();
+      let totalSum = 0;
+      const datasets = [];
+
+      TIPE_PELANGGAN.forEach((tipe) => {
+        // 🔥 LOGIKA FILTER DROPDOWN ADA DI SINI
+        // Jika tidak milih "Semua" dan tipe ini tidak cocok dengan yang dipilih, maka abaikan/skip.
+        if (
+          currentJenisPelanggan !== "Semua" &&
+          tipe.id !== currentJenisPelanggan
+        ) {
+          return;
+        }
+
+        const dataSeries = [];
+
+        uniqueTimes.forEach((timeLabel) => {
+          const foundRecord = rawData.find(
+            (item) =>
+              item.jenis_pelanggan === tipe.id && item[timeKey] === timeLabel,
+          );
+          const val = foundRecord
+            ? Number(foundRecord[currentCommodity] || 0)
+            : 0;
+          dataSeries.push(val);
+          totalSum += val;
+        });
+
+        if (dataSeries.some((val) => val > 0)) {
+          datasets.push({
+            label: tipe.label,
+            data: dataSeries,
+            borderColor: tipe.color,
+            backgroundColor: tipe.color,
+            fill: false,
+            tension: 0.4,
+            pointBackgroundColor: "#fff",
+            pointBorderColor: tipe.color,
+            pointBorderWidth: 2,
+            pointHoverRadius: 6,
+            borderWidth: 2,
+          });
+        }
+      });
+
+      elTotalRp.textContent = formatRp(totalSum);
+
+      chartInstance.data = {
+        labels: uniqueTimes,
+        datasets: datasets,
+      };
+      chartInstance.update();
+    }
+
+    function switchMode(mode) {
+      currentMode = mode;
+      if (mode === "harian") {
+        filterHarianContainer.classList.remove("hidden");
+        filterHarianContainer.classList.add("flex");
+        filterMingguanContainer.classList.add("hidden");
+        filterMingguanContainer.classList.remove("flex");
+
+        btnHarian.className =
+          "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
+        btnMingguan.className =
+          "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
+        fetchHarian();
+      } else {
+        filterHarianContainer.classList.add("hidden");
+        filterHarianContainer.classList.remove("flex");
+        filterMingguanContainer.classList.remove("hidden");
+        filterMingguanContainer.classList.add("flex");
+
+        btnMingguan.className =
+          "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
+        btnHarian.className =
+          "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
+        fetchMingguan();
+      }
+    }
+
+    // --- Event Listeners ---
+    btnHarian.addEventListener("click", () => switchMode("harian"));
+    btnMingguan.addEventListener("click", () => switchMode("mingguan"));
+
+    startDateInput.addEventListener(
+      "change",
+      () => currentMode === "harian" && fetchHarian(),
+    );
+    endDateInput.addEventListener(
+      "change",
+      () => currentMode === "harian" && fetchHarian(),
+    );
+    monthInput.addEventListener(
+      "change",
+      () => currentMode === "mingguan" && fetchMingguan(),
+    );
+
+    // Event saat Dropdown Jenis Pelanggan diganti
+    jpBtns.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        currentJenisPelanggan = e.target.getAttribute("data-jp");
+
+        // Reset warna semua tombol Jenis Pelanggan jadi abu-abu pudar
+        jpBtns.forEach((b) => {
+          b.className =
+            "jp-btn-filter px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface";
+        });
+
+        // Bikin tombol yang diklik jadi nyala dan gede (aktif)
+        e.target.className =
+          "jp-btn-filter px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-gray-800 text-white shadow-sm ring-2 ring-gray-800/20 scale-105";
+
+        // Langsung re-render grafiknya
+        const timeKey = currentMode === "harian" ? "tanggal" : "xAxisLabel";
+        renderChart(timeKey);
+      });
+    });
+
+    // Event saat tombol Komoditas diganti
+    komoditasBtns.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        currentCommodity = e.target.getAttribute("data-komoditas");
+
+        komoditasBtns.forEach((b) => {
+          b.className =
+            "komoditas-btn-jp px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface";
+        });
+        e.target.className =
+          "komoditas-btn-jp px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-primary text-white shadow-sm ring-2 ring-primary/20 scale-105";
+
+        if (currentMode === "harian") fetchHarian();
+        else fetchMingguan();
+      });
+    });
+
+    // Init pertama kali
+    switchMode("harian");
+  }
+
+  initChartJenisPelanggan();
 </script>

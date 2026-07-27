@@ -107,6 +107,12 @@ const defaultMonth = `${yyyy}-${mm}`;
           Minyak Asting
         </button>
         <button
+          data-komoditas="Minyak Semi"
+          class="btn-komoditas-gudang px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
+        >
+          Minyak Semi
+        </button>
+        <button
           data-komoditas="Ampas"
           class="btn-komoditas-gudang px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface"
         >
@@ -205,6 +211,18 @@ const defaultMonth = `${yyyy}-${mm}`;
         <div>
           <label
             class="block text-[10px] font-bold text-gray-600 mb-1 uppercase"
+            >Minyak Semi (Rp/Kg)</label
+          >
+          <input
+            type="number"
+            id="m_bruto_semi"
+            value="0"
+            class="w-full border border-gray-300 rounded-lg p-2 text-sm outline-none focus:border-blue-600"
+          />
+        </div>
+        <div>
+          <label
+            class="block text-[10px] font-bold text-gray-600 mb-1 uppercase"
             >Ampas Goreng (Rp/Kg)</label
           >
           <input
@@ -281,6 +299,7 @@ const defaultMonth = `${yyyy}-${mm}`;
   type KomoditasKey =
     | "Minyak Jelantah"
     | "Minyak Asting"
+    | "Minyak Semi"
     | "Ampas"
     | "Kriuk"
     | "Tepung"
@@ -318,6 +337,12 @@ const defaultMonth = `${yyyy}-${mm}`;
         vol: "minyak_asting_vol",
         bruto: "bruto_minyak_asting",
         margin: "margin_minyak_asting",
+      },
+      "Minyak Semi": {
+        rp: "minyak_semi_rp",
+        vol: "minyak_semi_vol",
+        bruto: "bruto_minyak_semi",
+        margin: "margin_minyak_semi",
       },
       Ampas: {
         rp: "ampas_rp",
@@ -581,6 +606,7 @@ const defaultMonth = `${yyyy}-${mm}`;
       const payloadBruto = {
         bruto_minyak_jelantah: getBrutoAman("m_bruto_minyak"),
         bruto_minyak_asting: getBrutoAman("m_bruto_asting"),
+        bruto_minyak_semi: getBrutoAman("m_bruto_semi"),
         bruto_ampas: getBrutoAman("m_bruto_ampas"),
         bruto_kriuk: getBrutoAman("m_bruto_kriuk"),
         bruto_tepung: getBrutoAman("m_bruto_tepung"),
@@ -633,7 +659,7 @@ const defaultMonth = `${yyyy}-${mm}`;
       const { data, error } = await window.supabase
         .from("transaksi_gudang_harian")
         .select(
-          "bruto_minyak_jelantah, bruto_minyak_asting, bruto_ampas, bruto_kriuk, bruto_tepung, bruto_spinner",
+          "bruto_minyak_jelantah, bruto_minyak_asting, bruto_minyak_semi, bruto_ampas, bruto_kriuk, bruto_tepung, bruto_spinner",
         )
         .eq("tanggal", tanggal)
         .single();
@@ -646,6 +672,7 @@ const defaultMonth = `${yyyy}-${mm}`;
       if (data && !error) {
         setInput("m_bruto_minyak", data.bruto_minyak_jelantah);
         setInput("m_bruto_asting", data.bruto_minyak_asting);
+        setInput("m_bruto_semi", data.bruto_minyak_semi);
         setInput("m_bruto_ampas", data.bruto_ampas);
         setInput("m_bruto_kriuk", data.bruto_kriuk);
         setInput("m_bruto_tepung", data.bruto_tepung);
@@ -653,6 +680,7 @@ const defaultMonth = `${yyyy}-${mm}`;
       } else {
         setInput("m_bruto_minyak", "");
         setInput("m_bruto_asting", "");
+        setInput("m_bruto_semi", "");
         setInput("m_bruto_ampas", "");
         setInput("m_bruto_kriuk", "");
         setInput("m_bruto_tepung", "");

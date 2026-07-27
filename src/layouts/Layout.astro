@@ -1583,6 +1583,79 @@ const { title, requireAuth = true } = Astro.props;
     }
     window.escapeHtml = escapeHtml;
 
+    // ==========================================
+    // 🔒 RBAC: MODE READ-ONLY UNTUK ROLE "GUEST"
+    // Dipanggil oleh halaman yang mengizinkan guest (Pengeluaran, Penjualan, Pemasukan).
+    // Guest hanya boleh MELIHAT: semua tombol aksi tulis disembunyikan & submit form diblokir.
+    // ==========================================
+    window.applyGuestReadonly = function () {
+      if (window.__guestReadonlyActive) return;
+      window.__guestReadonlyActive = true;
+
+      // Kata kunci aksi tulis (tambah/ubah/hapus dsb) yang harus dikunci untuk guest
+      const writeWords = [
+        "tambah",
+        "input",
+        "simpan",
+        "hapus",
+        "edit",
+        "acc",
+        "setuju",
+        "tolak",
+        "buat",
+        "reset",
+        "kirim",
+        "deposit",
+        "transfer",
+        "bayar",
+        "proses",
+        "lunas",
+        "koreksi",
+      ];
+
+      const style = document.createElement("style");
+      style.textContent = ".guest-readonly-hidden{display:none !important;}";
+      document.head.appendChild(style);
+
+      const lockControls = () => {
+        document.querySelectorAll("button, a").forEach((el) => {
+          if (el.classList.contains("guest-readonly-hidden")) return;
+          const txt = (el.textContent || "").toLowerCase();
+          const onclick = (el.getAttribute("onclick") || "").toLowerCase();
+          const id = (el.id || "").toLowerCase();
+          const hit = writeWords.some(
+            (w) => txt.includes(w) || onclick.includes(w) || id.includes(w),
+          );
+          if (hit) el.classList.add("guest-readonly-hidden");
+        });
+      };
+
+      const start = () => {
+        lockControls();
+        // Terapkan ulang setiap kali baris/tabel dirender ulang secara dinamis
+        const mo = new MutationObserver(() => lockControls());
+        mo.observe(document.body, { childList: true, subtree: true });
+        // Blokir semua submit form (jaring pengaman terakhir)
+        document.addEventListener(
+          "submit",
+          (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            alert(
+              "Mode Tamu (Read-Only): Anda hanya memiliki akses lihat dan tidak diizinkan mengubah data.",
+            );
+          },
+          true,
+        );
+      };
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", start, { once: true });
+      } else {
+        start();
+      }
+    };
+
     window.loadRiwayatTransfer = async function () {
       console.log("🔍 [DEBUG] Memulai penarikan riwayat transfer...");
 
@@ -1951,7 +2024,14 @@ const { title, requireAuth = true } = Astro.props;
               .single();
             const userRole = prof?.role;
             window.userRole = userRole; // 🔥 SIMPAN ROLE SECARA GLOBAL BIAR BISA DIBACA FUNGSI LAIN
-            const allowedKasRoles = ["owner", "keuangan", "admin", "it", "hrd"];
+            const allowedKasRoles = [
+              "owner",
+              "keuangan",
+              "admin",
+              "it",
+              "hrd",
+              "guest",
+            ];
 
             if (allowedKasRoles.includes(userRole)) {
               // Tarik data kas ke UI terlebih dahulu
@@ -1975,7 +2055,7 @@ const { title, requireAuth = true } = Astro.props;
               }
 
               // Proteksi khusus kas owner di desktop
-              if (userRole === "owner") {
+              if (userRole === "owner" || "it") {
                 // Munculkan di Desktop
                 document
                   .getElementById("box-kas-owner")
@@ -1997,6 +2077,16 @@ const { title, requireAuth = true } = Astro.props;
                 document
                   .getElementById("input-container-owner")
                   ?.classList.remove("hidden");
+              }
+
+              if (userRole !== "guest") {
+                const btnEdit = document.getElementById("btn-edit-kas");
+                if (btnEdit) btnEdit.style.display = "flex";
+
+                const btnEditMob = document.getElementById(
+                  "btn-edit-kas-mobile",
+                );
+                if (btnEditMob) btnEditMob.style.display = "flex";
               }
 
               // Tombol edit aksi

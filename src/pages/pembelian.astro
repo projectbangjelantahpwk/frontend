@@ -706,7 +706,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               // Memasukkan variabel 'tanggal' langsung ke data-date
               // Menambahkan atribut data-komoditas
               htmlPembelian += ` 
-                        <tr class="hover:bg-gray-50" data-date="${tanggal}" data-komoditas="${item.komoditas || ""}">
+                        <tr class="hover:bg-gray-50" data-date="${tanggal}" data-komoditas="${item.komoditas || ""}" data-berat="${item.volume || 0}" data-subtotal="${subtotal || 0}">
                             <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
                                 <div class="font-medium text-gray-900">${tanggal}</div>
                                 ${jam ? `<div class="text-[11px] text-gray-400 font-mono mt-0.5">${waktuTampil}</div>` : ""}
@@ -1099,14 +1099,11 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
           jumlahBaris++;
 
-          // Ambil berat dari kolom "Berat (Kg)"
-          const beratText = tr.querySelectorAll("td")[3]?.innerText || "0";
-          const berat = parseFloat(beratText) || 0;
+          // Ambil data langsung dari atribut HTML (lebih aman dan bebas bug format)
+          const berat = parseFloat(tr.getAttribute("data-berat")) || 0;
           totalKg += berat;
 
-          // Ambil subtotal dari kolom "Subtotal Harga" (kolom ke-6)
-          const subtotalText = tr.querySelectorAll("td")[5]?.innerText || "0";
-          const subtotal = parseFloat(subtotalText.replace(/\D/g, "")) || 0;
+          const subtotal = parseFloat(tr.getAttribute("data-subtotal")) || 0;
           totalNominal += subtotal;
         });
 

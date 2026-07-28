@@ -115,6 +115,13 @@
         >
           TikTok
         </button>
+        <!-- TAMBAHAN TOMBOL ORGANIK -->
+        <button
+          data-sumber="Organik"
+          class="btn-sumber px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-green-100 hover:text-green-700"
+        >
+          Organik
+        </button>
         <button
           data-sumber="Lainnya"
           class="btn-sumber px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-purple-100 hover:text-purple-700"
@@ -204,7 +211,7 @@
       "Minyak Asting": { rp: "minyak_asting_rp", vol: "minyak_asting_vol" },
       "Minyak Semi": { rp: "minyak_semi_rp", vol: "minyak_semi_vol" },
       Ampas: { rp: "ampas_rp", vol: "ampas_vol" },
-      Keriuk: { rp: "kriuk_rp", vol: "kriuk_vol" }, // Sesuai ejaan SQL kriuk
+      Keriuk: { rp: "kriuk_rp", vol: "kriuk_vol" },
       Tepung: { rp: "tepung_rp", vol: "tepung_vol" },
       Spinner: { rp: "spinner_rp", vol: "spinner_vol" },
     };
@@ -216,7 +223,6 @@
     const elTotalRp = document.getElementById("total-rp-sumber");
     const teksRingkasan = document.getElementById("teks-ringkasan");
 
-    // Set default bulan ke saat ini
     const now = new Date();
     const mm = String(now.getMonth() + 1).padStart(2, "0");
     const yyyy = now.getFullYear();
@@ -227,13 +233,12 @@
       if (!val) return;
 
       const [y, m] = val.split("-");
-      const lastDay = new Date(y, m, 0).getDate(); // Cari tau bulan ini 30 atau 31 hari
+      const lastDay = new Date(y, m, 0).getDate();
       const startDate = `${y}-${m}-01`;
       const endDate = `${y}-${m}-${lastDay}`;
 
       const kolomAktif = kolomDatabase[currentCommodity];
 
-      // Tarik seluruh data di bulan tersebut
       const { data, error } = await supabase
         .from("sumber_transaksi_harian")
         .select(`tanggal, sumber, ${kolomAktif.rp}, ${kolomAktif.vol}`)
@@ -252,15 +257,13 @@
       let grandTotalRp = 0;
       let grandTotalVol = 0;
 
-      // Wadah untuk nampung hitungan per tanggal (1 sampai 31)
       let rekapHarian = Array.from({ length: lastDay }, () => ({
         rp: 0,
         vol: 0,
       }));
 
-      // Kelompokkan data dari database ke array rekapHarian
       dataGlobal.forEach((item) => {
-        // Filter Sumber
+        // PENAMBAHAN ORGANIK DI PENGECUALIAN 'LAINNYA'
         const isMatchSumber =
           currentSumber === "Semua" ||
           (currentSumber === "Lainnya"
@@ -269,13 +272,14 @@
                 "TikTok",
                 "Instagram",
                 "Canvaser Lapangan",
+                "Organik", // <- Ditambahkan di sini agar tidak dihitung dua kali
               ].includes(item.sumber)
             : item.sumber === currentSumber);
 
         if (isMatchSumber) {
           const rp = Number(item[kolomAktif.rp] || 0);
           const vol = Number(item[kolomAktif.vol] || 0);
-          const dayIdx = parseInt(item.tanggal.split("-")[2]) - 1; // Index 0 untuk Tgl 1
+          const dayIdx = parseInt(item.tanggal.split("-")[2]) - 1;
 
           rekapHarian[dayIdx].rp += rp;
           rekapHarian[dayIdx].vol += vol;
@@ -284,13 +288,11 @@
         }
       });
 
-      // Cetak Baris HTML dari tanggal 1 sampai akhir bulan
       for (let i = 0; i < lastDay; i++) {
         const tglNum = i + 1;
         const dataHariIni = rekapHarian[i];
         const hrg = dataHariIni.vol > 0 ? dataHariIni.rp / dataHariIni.vol : 0;
 
-        // Highlight baris jika ada transaksi
         const bgClass = dataHariIni.vol > 0 ? "bg-green-50/50" : "";
         const textClass =
           dataHariIni.vol > 0 ? "text-gray-900 font-bold" : "text-gray-400";
@@ -307,49 +309,43 @@
                 `;
       }
 
-      // Tembak Total Keseluruhan ke UI Atas
       elTotalRp.textContent = formatRp(grandTotalRp);
       teksRingkasan.innerHTML = `Total <b>${formatVol(grandTotalVol)} Kg</b> (${currentCommodity} - ${currentSumber})`;
     }
 
-    // --- EVENT LISTENERS ---
-
-    // 1. Ganti Bulan
     monthInput.addEventListener("change", fetchDataSebulan);
 
-    // 2. Klik Filter Sumber (Facebook, TikTok, dll)
     btnsSumber.forEach((btn) => {
       btn.addEventListener("click", (e) => {
         currentSumber = e.target.getAttribute("data-sumber");
 
-        // Ubah Warna Tombol Sumber Aktif
         btnsSumber.forEach((b) => {
           b.className =
             "btn-sumber px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 bg-surface-variant/30 text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface";
         });
 
-        // Custom warna aktif berdasarkan platform
-        let activeColor = "bg-primary text-white"; // Semua
+        let activeColor = "bg-primary text-white";
         if (currentSumber === "Facebook")
           activeColor = "bg-[#1877F2] text-white";
         if (currentSumber === "TikTok") activeColor = "bg-gray-900 text-white";
         if (currentSumber === "Instagram")
           activeColor = "bg-[#E1306C] text-white";
         if (currentSumber === "Canvaser Lapangan")
-          activeColor = "bg-emerald-600 text-white"; // Bebas ganti warna emerald dengan hex code lu
+          activeColor = "bg-emerald-600 text-white";
+        // WARNA AKTIF UNTUK ORGANIK
+        if (currentSumber === "Organik")
+          activeColor = "bg-green-500 text-white";
         if (currentSumber === "Lainnya")
           activeColor = "bg-purple-600 text-white";
 
         e.target.className = `btn-sumber px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-300 shadow-sm scale-105 ${activeColor}`;
 
-        // Langsung render ulang tabel tanpa harus loading database lagi
         const val = monthInput.value;
         const [y, m] = val.split("-");
         renderTabel(new Date(y, m, 0).getDate(), y, m);
       });
     });
 
-    // 3. Klik Filter Komoditas (Minyak, Ampas, dll)
     btnsKomoditas.forEach((btn) => {
       btn.addEventListener("click", (e) => {
         currentCommodity = e.target.getAttribute("data-komoditas");
@@ -361,12 +357,10 @@
         e.target.className =
           "btn-komoditas px-3 py-1.5 rounded-full text-[11px] font-bold transition-all duration-300 bg-surface-variant/80 text-on-surface shadow-sm scale-105";
 
-        // Harus fetch ulang karena kolom yang ditarik beda
         fetchDataSebulan();
       });
     });
 
-    // Tembak data pas pertama kali buka
     fetchDataSebulan();
   }
 

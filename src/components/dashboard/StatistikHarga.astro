@@ -1,13 +1,5 @@
----
-// ==========================================
-// 1. AREA SSG (Server-Side)
-// ==========================================
-// Kosong! Karena kita akan nge-fetch data murni di Client-Side
-// persis seperti arsitektur di komponen referensi lu.
----
-
 <!-- ==========================================
-     2. AREA HTML & CSS (Tampilan)
+     AREA HTML & CSS (Tampilan)
      ========================================== -->
 <div
   class="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-4"
@@ -24,12 +16,23 @@
       </p>
     </div>
 
-    <!-- UI FILTER TANGGAL -->
+    <!-- UI FILTER TANGGAL & KATEGORI -->
     <div
-      class="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200 w-full md:w-auto"
+      class="flex flex-col md:flex-row items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200 w-full md:w-auto"
     >
+      <!-- Dropdown Filter Kategori -->
+      <select
+        id="kategori-stat"
+        class="text-[12px] font-bold bg-white border border-gray-300 rounded p-1 outline-none text-gray-600 cursor-pointer uppercase tracking-wider"
+      >
+        <option value="jenis_pelanggan">Jenis Pelanggan</option>
+        <option value="sumber">Sumber</option>
+      </select>
+
+      <span class="hidden md:inline text-gray-300">|</span>
+
       <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider"
-        >Filter (Mingguan):</span
+        >Tgl:</span
       >
       <input
         type="date"
@@ -79,7 +82,7 @@
 </div>
 
 <!-- ==========================================
-     3. AREA CSR (Client-Side Rendering)
+     AREA CSR (Client-Side Rendering)
      ========================================== -->
 <script
   is:inline
@@ -90,6 +93,7 @@
 
   document.addEventListener("DOMContentLoaded", async () => {
     const loadingEl = document.getElementById("loading-stat");
+    const kategoriInput = document.getElementById("kategori-stat");
     const startDateInput = document.getElementById("start-date-stat");
     const endDateInput = document.getElementById("end-date-stat");
     const detailPanel = document.getElementById("detail-panel");
@@ -125,23 +129,30 @@
       const jemputs = resJemputs.data || [];
       const mitras = resMitras.data || [];
 
-      // Proses JOIN & Ekstrak Tanggal (dari penjemputan atau transaksi)
+      // Proses JOIN & Ekstrak Data
       rawData = items.map((item: any) => {
         const t = trans.find((tr: any) => tr.id === item.transaksi_id) || {};
         const j = jemputs.find((pj: any) => pj.id === t.penjemputan_id) || {};
         const m = mitras.find((mt: any) => mt.id === j.mitra_id) || {};
 
-        // Ambil tanggal, prioritas dari penjemputan, kalau kosong ambil dari tanggal transaksi (created_at)
+        // Ambil tanggal transaksi umum
         const dateStr =
           j.tanggal || (t.created_at ? t.created_at.split("T")[0] : "");
+        // Ambil tanggal transaksi pertama dari mitra
+        const tglPertamaStr = m.tgl_transaksi_pertama
+          ? m.tgl_transaksi_pertama.split("T")[0]
+          : "";
 
         return {
           komoditas: item.komoditas,
           harga_unit: parseFloat(item.harga_unit) || 0,
           volume: parseFloat(item.volume) || 0,
-          jenis_pelanggan: m.jenis_pelanggan || "Tidak Diketahui",
           nama_mitra: m.nama_mitra || "Tanpa Nama",
-          tanggal: dateStr, // Kita simpan tanggalnya untuk di-filter
+          jenis_pelanggan: m.jenis_pelanggan || "Tidak Diketahui",
+          // PERBAIKAN DI SINI: Menggunakan m.sumber_mitra
+          sumber: m.sumber_mitra || "Tidak Diketahui",
+          tanggal: dateStr,
+          tgl_transaksi_pertama: tglPertamaStr,
         };
       });
 
@@ -164,15 +175,17 @@
       renderChart();
 
       // ==========================================
-      // FUNGSI UPDATE GRAFIK BERDASARKAN TANGGAL
+      // FUNGSI UPDATE GRAFIK BERDASARKAN FILTER
       // ==========================================
       function renderChart() {
         // @ts-ignore
         const start = startDateInput.value;
         // @ts-ignore
         const end = endDateInput.value;
+        // @ts-ignore
+        const kategoriBy = kategoriInput.value; // 'jenis_pelanggan' atau 'sumber'
 
-        // 1. Filter Data berdasarkan Komoditas & Rentang Tanggal
+        // 1. Filter Data berdasarkan Komoditas
         let filteredData = rawData.filter(
           (d) =>
             d.komoditas &&
@@ -180,16 +193,30 @@
             d.harga_unit > 0,
         );
 
-        if (start)
-          filteredData = filteredData.filter((d) => d.tanggal >= start);
-        if (end) filteredData = filteredData.filter((d) => d.tanggal <= end);
+        // 2. Filter Rentang Tanggal Secara Dinamis
+        if (start || end) {
+          filteredData = filteredData.filter((d) => {
+            // Logika spesifik: Jika kategori adalah 'sumber', gunakan tgl_transaksi_pertama
+            const targetDate =
+              kategoriBy === "sumber" ? d.tgl_transaksi_pertama : d.tanggal;
 
-        // 2. Susun Ulang Sumbu X dan Series
+            if (!targetDate) return false; // Abaikan jika tidak punya tanggal di kolom target
+
+            let isValid = true;
+            if (start && targetDate < start) isValid = false;
+            if (end && targetDate > end) isValid = false;
+            return isValid;
+          });
+        }
+
+        // 3. Susun Ulang Sumbu X dan Series
         const uniquePrices = [
           ...new Set(filteredData.map((d) => d.harga_unit)),
         ].sort((a: any, b: any) => a - b);
-        const uniqueJenis = [
-          ...new Set(filteredData.map((d) => d.jenis_pelanggan)),
+
+        // Ambil unique value dinamis (berdasarkan 'jenis_pelanggan' atau 'sumber')
+        const uniqueKategori = [
+          ...new Set(filteredData.map((d) => d[kategoriBy])),
         ];
 
         const seriesData: any[] = [];
@@ -199,10 +226,10 @@
           currentDrillDownMap[price] = [];
         });
 
-        uniqueJenis.forEach((jenis: any) => {
+        uniqueKategori.forEach((kategoriVal: any) => {
           const dataPoints = uniquePrices.map((price: any) => {
             const trxs = filteredData.filter(
-              (d) => d.harga_unit === price && d.jenis_pelanggan === jenis,
+              (d) => d.harga_unit === price && d[kategoriBy] === kategoriVal,
             );
             const totalVolume = trxs.reduce(
               (sum: number, curr: any) => sum + curr.volume,
@@ -218,7 +245,7 @@
               } else {
                 currentDrillDownMap[price].push({
                   nama: trx.nama_mitra,
-                  jenis: trx.jenis_pelanggan,
+                  kategoriVal: trx[kategoriBy], // Simpan kategori yang sesuai
                   volume: trx.volume,
                 });
               }
@@ -227,7 +254,7 @@
           });
 
           seriesData.push({
-            name: jenis,
+            name: kategoriVal,
             type: "line",
             smooth: true,
             areaStyle: { opacity: 0.2 },
@@ -242,7 +269,7 @@
           );
         });
 
-        // 3. Update ECharts dengan data baru
+        // 4. Update ECharts dengan data baru
         myChart.setOption(
           {
             tooltip: { trigger: "axis", axisPointer: { type: "cross" } },
@@ -273,23 +300,22 @@
             ],
           },
           true,
-        ); // parameter true ini penting buat mereset sisa data yang lama
+        ); // parameter true mereset sisa data yang lama
       }
 
       // ==========================================
       // EVENT LISTENERS
       // ==========================================
 
-      // Saat tanggal diubah -> Update Grafik
-      startDateInput?.addEventListener("change", () => {
-        if (detailPanel) detailPanel.classList.add("hidden"); // Tutup panel detail
+      // Update Grafik ketika tanggal atau kategori berubah
+      const resetAndRender = () => {
+        if (detailPanel) detailPanel.classList.add("hidden");
         renderChart();
-      });
+      };
 
-      endDateInput?.addEventListener("change", () => {
-        if (detailPanel) detailPanel.classList.add("hidden"); // Tutup panel detail
-        renderChart();
-      });
+      kategoriInput?.addEventListener("change", resetAndRender);
+      startDateInput?.addEventListener("change", resetAndRender);
+      endDateInput?.addEventListener("change", resetAndRender);
 
       // Saat kurva diklik (Drill-Down)
       const detailHarga = document.getElementById("detail-harga");
@@ -313,7 +339,7 @@
                 <div class="bg-indigo-100 text-indigo-700 font-bold w-8 h-8 rounded-full flex items-center justify-center text-sm">#${index + 1}</div>
                 <div>
                   <p class="font-medium text-gray-800 text-sm leading-tight">${mitra.nama}</p>
-                  <p class="text-xs text-gray-500">${mitra.jenis}</p>
+                  <p class="text-xs text-gray-500">${mitra.kategoriVal}</p>
                 </div>
               </div>
               <div class="text-right">

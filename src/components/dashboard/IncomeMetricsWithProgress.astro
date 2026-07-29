@@ -1,100 +1,144 @@
 ---
 // components/dashboard/IncomeMetricsWithProgress.astro
 ---
-<style>
-    /* Styling khusus scrollbar biar tipis dan elegan */
-    .custom-scrollbar::-webkit-scrollbar {
-        width: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-        background: transparent;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background-color: #e5e7eb;
-        border-radius: 10px;
-    }
-    .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-        background-color: #d1d5db;
-    }
-</style>
-<div class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow">
-    <div class="flex justify-between items-center mb-md border-b border-outline-variant pb-3">
-        <h3 class="font-headline-md text-on-surface flex items-center gap-2">
-            <i class="bi bi-wallet2 text-emerald-600"></i> Metrik Pemasukan
-        </h3>
-        <div class="bg-surface-container-low p-1 rounded-lg border border-outline-variant flex text-xs font-bold">
-            <button id="btn-pemasukan-harian" class="px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all" onclick="window.togglePemasukan('harian')">Harian</button>
-            <button id="btn-pemasukan-mingguan" class="px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all" onclick="window.togglePemasukan('mingguan')">Mingguan</button>
-        </div>
-    </div>
-    
-    <div>
-        <div class="flex justify-between items-center mb-4 bg-gray-50 p-2 rounded-lg border border-gray-100">
-            <span id="pemasukan-lbl-periode" class="text-xs font-bold text-gray-500 uppercase ml-1">Pilih Periode:</span>
-            
-            <div id="wrapper-pemasukan-picker-harian">
-                <input type="date" id="pemasukan-date-picker" class="border border-emerald-300 rounded-md px-2 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer max-w-[150px]">
-            </div>
-            
-            <div id="wrapper-pemasukan-picker-mingguan" class="hidden">
-                <input type="month" id="pemasukan-week-month-picker" class="border border-teal-300 rounded-md px-2 py-1 text-xs font-bold text-teal-700 bg-teal-50 outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer max-w-[150px]">
-            </div>
-        </div>
-        
-        <div id="pemasukan-metrics-list" class="space-y-3 min-h-[150px] max-h-[240px] overflow-y-auto pr-2 custom-scrollbar">
-            <p class="text-xs text-center text-gray-400 italic py-8">Memuat data metrik pemasukan...</p>
-        </div>
 
-        <div class="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
-            <span id="pemasukan-total-label" class="text-xs font-bold text-gray-500">Total Pemasukan</span>
-            <span id="pemasukan-total-harga" class="text-lg font-black text-emerald-700 font-mono">Rp 0</span>
-        </div>
+<style>
+  /* Styling khusus scrollbar biar tipis dan elegan */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #e5e7eb;
+    border-radius: 10px;
+  }
+  .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+    background-color: #d1d5db;
+  }
+</style>
+<div
+  class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow"
+>
+  <div
+    class="flex justify-between items-center mb-md border-b border-outline-variant pb-3"
+  >
+    <h3 class="font-headline-md text-on-surface flex items-center gap-2">
+      <i class="bi bi-wallet2 text-emerald-600"></i> Metrik Pemasukan
+    </h3>
+    <div
+      class="bg-surface-container-low p-1 rounded-lg border border-outline-variant flex text-xs font-bold"
+    >
+      <button
+        id="btn-pemasukan-harian"
+        class="px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all"
+        onclick="window.togglePemasukan('harian')">Harian</button
+      >
+      <button
+        id="btn-pemasukan-mingguan"
+        class="px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all"
+        onclick="window.togglePemasukan('mingguan')">Bulanan</button
+      >
     </div>
+  </div>
+
+  <div>
+    <div
+      class="flex justify-between items-center mb-4 bg-gray-50 p-2 rounded-lg border border-gray-100"
+    >
+      <span
+        id="pemasukan-lbl-periode"
+        class="text-xs font-bold text-gray-500 uppercase ml-1"
+        >Pilih Periode:</span
+      >
+
+      <div id="wrapper-pemasukan-picker-harian">
+        <input
+          type="date"
+          id="pemasukan-date-picker"
+          class="border border-emerald-300 rounded-md px-2 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer max-w-[150px]"
+        />
+      </div>
+
+      <div id="wrapper-pemasukan-picker-mingguan" class="hidden">
+        <input
+          type="month"
+          id="pemasukan-week-month-picker"
+          class="border border-teal-300 rounded-md px-2 py-1 text-xs font-bold text-teal-700 bg-teal-50 outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer max-w-[150px]"
+        />
+      </div>
+    </div>
+
+    <div
+      id="pemasukan-metrics-list"
+      class="space-y-3 min-h-[150px] max-h-[240px] overflow-y-auto pr-2 custom-scrollbar"
+    >
+      <p class="text-xs text-center text-gray-400 italic py-8">
+        Memuat data metrik pemasukan...
+      </p>
+    </div>
+
+    <div
+      class="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center"
+    >
+      <span id="pemasukan-total-label" class="text-xs font-bold text-gray-500"
+        >Total Pemasukan</span
+      >
+      <span
+        id="pemasukan-total-harga"
+        class="text-lg font-black text-emerald-700 font-mono">Rp 0</span
+      >
+    </div>
+  </div>
 </div>
 
 <script is:inline>
-    document.addEventListener('DOMContentLoaded', async () => {
-        const client = window.supabase;
-        if (!client) return console.error("Supabase client tidak ditemukan!");
+  document.addEventListener("DOMContentLoaded", async () => {
+    const client = window.supabase;
+    if (!client) return console.error("Supabase client tidak ditemukan!");
 
-        const datePicker = document.getElementById('pemasukan-date-picker');
-        const monthPicker = document.getElementById('pemasukan-week-month-picker'); 
-        const txtTotalHarga = document.getElementById('pemasukan-total-harga');
-        const txtTotalLabel = document.getElementById('pemasukan-total-label');
-        
-        // Setup Batas Kalender & Default
-        const now = new Date();
-        const yesterday = new Date(now.getTime() - 86400000);
-        const offset = yesterday.getTimezoneOffset() * 60000;
-        const yesterdayStr = new Date(yesterday - offset).toISOString().split('T')[0];
-        
-        if (datePicker) {
-            if (!datePicker.value) datePicker.value = yesterdayStr;
-            datePicker.max = yesterdayStr; 
-        }
+    const datePicker = document.getElementById("pemasukan-date-picker");
+    const monthPicker = document.getElementById("pemasukan-week-month-picker");
+    const txtTotalHarga = document.getElementById("pemasukan-total-harga");
+    const txtTotalLabel = document.getElementById("pemasukan-total-label");
 
-        if (monthPicker) {
-            const yyyy = now.getFullYear();
-            const mm = String(now.getMonth() + 1).padStart(2, '0');
-            if (!monthPicker.value) monthPicker.value = `${yyyy}-${mm}`; 
-            monthPicker.max = `${yyyy}-${mm}`;
-        }
+    // Setup Batas Kalender & Default
+    const now = new Date();
+    const yesterday = new Date(now.getTime() - 86400000);
+    const offset = yesterday.getTimezoneOffset() * 60000;
+    const yesterdayStr = new Date(yesterday - offset)
+      .toISOString()
+      .split("T")[0];
 
-        const formatRupiah = (num) => 'Rp ' + Number(num).toLocaleString('id-ID', { minimumFractionDigits: 0 });
-        
-        const getPercentagePemasukan = (value, total) => {
-            if (!total || total === 0) return 0;
-            let pct = Math.round((value / total) * 100);
-            return pct > 100 ? 100 : pct;
-        };
+    if (datePicker) {
+      if (!datePicker.value) datePicker.value = yesterdayStr;
+      datePicker.max = yesterdayStr;
+    }
 
-        function renderProgressBarsPemasukan(metricsPayload, totalIncome) {
-            const listContainer = document.getElementById('pemasukan-metrics-list');
-            let htmlList = '';
-            
-            metricsPayload.forEach(m => {
-                const pct = getPercentagePemasukan(m.value, totalIncome);
-                htmlList += `
+    if (monthPicker) {
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, "0");
+      if (!monthPicker.value) monthPicker.value = `${yyyy}-${mm}`;
+      monthPicker.max = `${yyyy}-${mm}`;
+    }
+
+    const formatRupiah = (num) =>
+      "Rp " + Number(num).toLocaleString("id-ID", { minimumFractionDigits: 0 });
+
+    const getPercentagePemasukan = (value, total) => {
+      if (!total || total === 0) return 0;
+      let pct = Math.round((value / total) * 100);
+      return pct > 100 ? 100 : pct;
+    };
+
+    function renderProgressBarsPemasukan(metricsPayload, totalIncome) {
+      const listContainer = document.getElementById("pemasukan-metrics-list");
+      let htmlList = "";
+
+      metricsPayload.forEach((m) => {
+        const pct = getPercentagePemasukan(m.value, totalIncome);
+        htmlList += `
                     <div class="space-y-1">
                         <div class="flex justify-between text-[11px] font-bold text-gray-700 uppercase">
                             <span>${m.label}</span>
@@ -104,108 +148,143 @@
                             <div class="h-full ${m.color} rounded-full" style="width: ${pct}%"></div>
                         </div>
                     </div>`;
-            });
-            
-            listContainer.innerHTML = htmlList || '<p class="text-xs text-center text-gray-400 py-8 italic">Tidak ada catatan pemasukan pada periode ini</p>';
-            txtTotalHarga.innerText = formatRupiah(totalIncome);
-        }
+      });
 
-        function buildMetricsArrayPemasukan(data) {
-            return [
-                { label: "Jerigen", value: data?.jerigen || 0, color: "bg-emerald-500" },
-                { label: "Fee", value: data?.fee || 0, color: "bg-teal-500" },
-                { label: "Suntikan Modal Owner", value: data?.suntikan_modal_owner || 0, color: "bg-cyan-500" },
-                { label: "Lain-lain", value: data?.lain_lain || 0, color: "bg-green-400" }
-            ];
-        }
+      listContainer.innerHTML =
+        htmlList ||
+        '<p class="text-xs text-center text-gray-400 py-8 italic">Tidak ada catatan pemasukan pada periode ini</p>';
+      txtTotalHarga.innerText = formatRupiah(totalIncome);
+    }
 
-        // Kalkulasi Total Pemasukan Manual (Karena di DB tidak ada kolom total_pemasukan)
-        function calculateTotalPemasukan(data) {
-            if (!data) return 0;
-            return (parseFloat(data.jerigen) || 0) + 
-                   (parseFloat(data.fee) || 0) + 
-                   (parseFloat(data.suntikan_modal_owner) || 0) + 
-                   (parseFloat(data.lain_lain) || 0);
-        }
+    function buildMetricsArrayPemasukan(data) {
+      return [
+        {
+          label: "Jerigen",
+          value: data?.jerigen || 0,
+          color: "bg-emerald-500",
+        },
+        { label: "Fee", value: data?.fee || 0, color: "bg-teal-500" },
+        {
+          label: "Suntikan Modal Owner",
+          value: data?.suntikan_modal_owner || 0,
+          color: "bg-cyan-500",
+        },
+        {
+          label: "Lain-lain",
+          value: data?.lain_lain || 0,
+          color: "bg-green-400",
+        },
+      ];
+    }
 
-        // 1. Fetch Harian
-        window.loadLiveHarianPemasukan = async function() {
-            const tgl = datePicker.value;
-            if (!tgl) return;
-            
-            const { data } = await client.from('rekap_pemasukan_harian').select('*').eq('tanggal', tgl).maybeSingle();
-            const total = calculateTotalPemasukan(data);
-            
-            renderProgressBarsPemasukan(buildMetricsArrayPemasukan(data), total);
-            txtTotalHarga.className = "text-lg font-black text-emerald-700 font-mono";
+    // Kalkulasi Total Pemasukan Manual (Karena di DB tidak ada kolom total_pemasukan)
+    function calculateTotalPemasukan(data) {
+      if (!data) return 0;
+      return (
+        (parseFloat(data.jerigen) || 0) +
+        (parseFloat(data.fee) || 0) +
+        (parseFloat(data.suntikan_modal_owner) || 0) +
+        (parseFloat(data.lain_lain) || 0)
+      );
+    }
+
+    // 1. Fetch Harian
+    window.loadLiveHarianPemasukan = async function () {
+      const tgl = datePicker.value;
+      if (!tgl) return;
+
+      const { data } = await client
+        .from("rekap_pemasukan_harian")
+        .select("*")
+        .eq("tanggal", tgl)
+        .maybeSingle();
+      const total = calculateTotalPemasukan(data);
+
+      renderProgressBarsPemasukan(buildMetricsArrayPemasukan(data), total);
+      txtTotalHarga.className = "text-lg font-black text-emerald-700 font-mono";
+    };
+
+    // 2. Fetch Bulanan Berdasarkan Akumulasi Bulan
+    window.loadLiveBulananPemasukan = async function () {
+      const blnRaw = monthPicker.value;
+      if (!blnRaw) return renderProgressBarsPemasukan([], 0);
+
+      try {
+        const parts = blnRaw.split("-");
+        const formatDbPeriode = `${parts[1]}-${parts[0]}`;
+
+        const { data, error } = await client
+          .from("rekap_pemasukan_mingguan")
+          .select("*")
+          .eq("periode", formatDbPeriode);
+        if (error) throw error;
+
+        const rekapPemasukanMurni = {
+          jerigen: 0,
+          fee: 0,
+          suntikan_modal_owner: 0,
+          lain_lain: 0,
         };
 
-        // 2. Fetch Mingguan Berdasarkan Akumulasi Bulan
-        window.loadLiveMingguanPemasukan = async function() {
-            const blnRaw = monthPicker.value;
-            if (!blnRaw) return renderProgressBarsPemasukan([], 0);
-            
-            try {
-                const parts = blnRaw.split('-');
-                const formatDbPeriode = `${parts[1]}-${parts[0]}`; 
+        if (data && data.length > 0) {
+          data.forEach((curr) => {
+            rekapPemasukanMurni.jerigen += parseFloat(curr.jerigen) || 0;
+            rekapPemasukanMurni.fee += parseFloat(curr.fee) || 0;
+            rekapPemasukanMurni.suntikan_modal_owner +=
+              parseFloat(curr.suntikan_modal_owner) || 0;
+            rekapPemasukanMurni.lain_lain += parseFloat(curr.lain_lain) || 0;
+          });
+        }
 
-                const { data, error } = await client.from('rekap_pemasukan_mingguan')
-                                             .select('*')
-                                             .eq('periode', formatDbPeriode);
-                if (error) throw error;
+        const totalBulanan = calculateTotalPemasukan(rekapPemasukanMurni);
+        renderProgressBarsPemasukan(
+          buildMetricsArrayPemasukan(rekapPemasukanMurni),
+          totalBulanan,
+        );
+        txtTotalHarga.className = "text-lg font-black text-teal-700 font-mono";
+      } catch (err) {
+        console.error("🛑 Gagal kalkulasi mingguan pemasukan:", err);
+      }
+    };
 
-                const rekapPemasukanMurni = {
-                    jerigen: 0, fee: 0, suntikan_modal_owner: 0, lain_lain: 0
-                };
-                
-                if (data && data.length > 0) {
-                    data.forEach(curr => {
-                        rekapPemasukanMurni.jerigen += parseFloat(curr.jerigen) || 0;
-                        rekapPemasukanMurni.fee += parseFloat(curr.fee) || 0;
-                        rekapPemasukanMurni.suntikan_modal_owner += parseFloat(curr.suntikan_modal_owner) || 0;
-                        rekapPemasukanMurni.lain_lain += parseFloat(curr.lain_lain) || 0;
-                    });
-                }
+    // Kontrol Tombol Switch
+    window.togglePemasukan = function (tipe) {
+      const btnHarian = document.getElementById("btn-pemasukan-harian");
+      const btnBulanan = document.getElementById("btn-pemasukan-mingguan");
+      const wrapperHarian = document.getElementById(
+        "wrapper-pemasukan-picker-harian",
+      );
+      const wrapperBulanan = document.getElementById(
+        "wrapper-pemasukan-picker-mingguan",
+      );
+      const txtTotalLabel = document.getElementById("pemasukan-total-label");
 
-                const totalBulanan = calculateTotalPemasukan(rekapPemasukanMurni);
-                renderProgressBarsPemasukan(buildMetricsArrayPemasukan(rekapPemasukanMurni), totalBulanan);
-                txtTotalHarga.className = "text-lg font-black text-teal-700 font-mono";
-                
-            } catch (err) {
-                console.error("🛑 Gagal kalkulasi mingguan pemasukan:", err);
-            }
-        };
+      if (tipe === "harian") {
+        btnHarian.className =
+          "px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all";
+        btnBulanan.className =
+          "px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all";
+        wrapperHarian.classList.remove("hidden");
+        wrapperBulanan.classList.add("hidden");
+        txtTotalLabel.innerText = "Total Pemasukan Hari Ini";
+        window.loadLiveHarianPemasukan();
+      } else {
+        btnBulanan.className =
+          "px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all";
+        btnHarian.className =
+          "px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all";
+        wrapperHarian.classList.add("hidden");
+        wrapperBulanan.classList.remove("hidden");
+        txtTotalLabel.innerText = "Total Pemasukan Bulan Ini";
+        window.loadLiveBulananPemasukan();
+      }
+    };
 
-        // Kontrol Tombol Switch 
-        window.togglePemasukan = function(tipe) {
-            const btnHarian = document.getElementById('btn-pemasukan-harian');
-            const btnMingguan = document.getElementById('btn-pemasukan-mingguan');
-            const wrapperHarian = document.getElementById('wrapper-pemasukan-picker-harian');
-            const wrapperMingguan = document.getElementById('wrapper-pemasukan-picker-mingguan');
-            const txtTotalLabel = document.getElementById('pemasukan-total-label');
-            
-            if (tipe === 'harian') {
-                btnHarian.className = "px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all";
-                btnMingguan.className = "px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all";
-                wrapperHarian.classList.remove('hidden');
-                wrapperMingguan.classList.add('hidden');
-                txtTotalLabel.innerText = "Total Pemasukan Hari Ini";
-                window.loadLiveHarianPemasukan();
-            } else {
-                btnMingguan.className = "px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all";
-                btnHarian.className = "px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all";
-                wrapperHarian.classList.add('hidden');
-                wrapperMingguan.classList.remove('hidden');
-                txtTotalLabel.innerText = "Total Pemasukan Bulan Ini";
-                window.loadLiveMingguanPemasukan();
-            }
-        };
+    // Init pertama kali
+    window.togglePemasukan("harian");
 
-        // Init pertama kali
-        window.togglePemasukan('harian');
-        
-        // Pasang Event Listener ke Picker
-        datePicker?.addEventListener('change', window.loadLiveHarianPemasukan);
-        monthPicker?.addEventListener('change', window.loadLiveMingguanPemasukan);
-    });
+    // Pasang Event Listener ke Picker
+    datePicker?.addEventListener("change", window.loadLiveHarianPemasukan);
+    monthPicker?.addEventListener("change", window.loadLiveBulananPemasukan);
+  });
 </script>

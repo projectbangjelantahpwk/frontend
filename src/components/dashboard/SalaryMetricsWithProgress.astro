@@ -1,210 +1,292 @@
 ---
 // components/dashboard/SalaryMetricsWithProgress.astro
 ---
-<style>
-    /* Styling khusus scrollbar biar tipis dan elegan */
-    .custom-scrollbar::-webkit-scrollbar {
-        width: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-        background: transparent;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background-color: #e5e7eb; /* Warna abu-abu muda ala Tailwind */
-        border-radius: 10px;
-    }
-    .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-        background-color: #d1d5db; /* Agak gelap pas di-hover */
-    }
-</style>
-<div class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow">
-    <div class="flex justify-between items-center mb-md border-b border-outline-variant pb-3">
-        <h3 class="font-headline-md text-on-surface flex items-center gap-2">
-            <i class="bi bi-person-vcard text-indigo-600"></i> Metrik Gaji Karyawan
-        </h3>
-        <div class="bg-surface-container-low p-1 rounded-lg border border-outline-variant flex text-xs font-bold">
-            <button id="btn-gaji-harian" class="px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all" onclick="window.toggleGaji('harian')">Harian</button>
-            <button id="btn-gaji-mingguan" class="px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all" onclick="window.toggleGaji('mingguan')">Mingguan</button>
-        </div>
-    </div>
-    
-    <div>
-        <div class="flex justify-between items-center mb-4 bg-gray-50 p-2 rounded-lg border border-gray-100">
-            <span id="gaji-lbl-periode" class="text-xs font-bold text-gray-500 uppercase ml-1">Pilih Periode:</span>
-            
-            <div id="wrapper-gaji-picker-harian">
-                <input type="date" id="gaji-date-picker" class="border border-indigo-300 rounded-md px-2 py-1 text-xs font-bold text-indigo-700 bg-indigo-50 outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer max-w-[150px]">
-            </div>
-            
-            <div id="wrapper-gaji-picker-mingguan" class="hidden">
-                <input type="month" id="gaji-week-month-picker" class="border border-purple-300 rounded-md px-2 py-1 text-xs font-bold text-purple-700 bg-purple-50 outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer max-w-[150px]">
-            </div>
-        </div>
-        
-        <div id="gaji-metrics-list" class="space-y-3 min-h-[150px] max-h-[240px] overflow-y-auto pr-2 custom-scrollbar">
-            <p class="text-xs text-center text-gray-400 italic py-8">Memuat data metrik gaji...</p>
-        </div>
 
-        <div class="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
-            <span id="gaji-total-label" class="text-xs font-bold text-gray-500">Total Slip Gaji</span>
-            <span id="gaji-total-harga" class="text-lg font-black text-indigo-700 font-mono">Rp 0</span>
-        </div>
+<style>
+  /* Styling khusus scrollbar biar tipis dan elegan */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #e5e7eb; /* Warna abu-abu muda ala Tailwind */
+    border-radius: 10px;
+  }
+  .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+    background-color: #d1d5db; /* Agak gelap pas di-hover */
+  }
+</style>
+<div
+  class="bg-surface-container-lowest rounded-2xl p-lg border border-outline-variant shadow-md hover:shadow-lg transition-shadow"
+>
+  <div
+    class="flex justify-between items-center mb-md border-b border-outline-variant pb-3"
+  >
+    <h3 class="font-headline-md text-on-surface flex items-center gap-2">
+      <i class="bi bi-person-vcard text-indigo-600"></i> Metrik Gaji Karyawan
+    </h3>
+    <div
+      class="bg-surface-container-low p-1 rounded-lg border border-outline-variant flex text-xs font-bold"
+    >
+      <button
+        id="btn-gaji-harian"
+        class="px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all"
+        onclick="window.toggleGaji('harian')">Harian</button
+      >
+      <button
+        id="btn-gaji-mingguan"
+        class="px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all"
+        onclick="window.toggleGaji('mingguan')">Bulanan</button
+      >
     </div>
+  </div>
+
+  <div>
+    <div
+      class="flex justify-between items-center mb-4 bg-gray-50 p-2 rounded-lg border border-gray-100"
+    >
+      <span
+        id="gaji-lbl-periode"
+        class="text-xs font-bold text-gray-500 uppercase ml-1"
+        >Pilih Periode:</span
+      >
+
+      <div id="wrapper-gaji-picker-harian">
+        <input
+          type="date"
+          id="gaji-date-picker"
+          class="border border-indigo-300 rounded-md px-2 py-1 text-xs font-bold text-indigo-700 bg-indigo-50 outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer max-w-[150px]"
+        />
+      </div>
+
+      <div id="wrapper-gaji-picker-mingguan" class="hidden">
+        <input
+          type="month"
+          id="gaji-week-month-picker"
+          class="border border-purple-300 rounded-md px-2 py-1 text-xs font-bold text-purple-700 bg-purple-50 outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer max-w-[150px]"
+        />
+      </div>
+    </div>
+
+    <div
+      id="gaji-metrics-list"
+      class="space-y-3 min-h-[150px] max-h-[240px] overflow-y-auto pr-2 custom-scrollbar"
+    >
+      <p class="text-xs text-center text-gray-400 italic py-8">
+        Memuat data metrik gaji...
+      </p>
+    </div>
+
+    <div
+      class="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center"
+    >
+      <span id="gaji-total-label" class="text-xs font-bold text-gray-500"
+        >Total Slip Gaji</span
+      >
+      <span
+        id="gaji-total-harga"
+        class="text-lg font-black text-indigo-700 font-mono">Rp 0</span
+      >
+    </div>
+  </div>
 </div>
 
 <script is:inline>
-    document.addEventListener('DOMContentLoaded', async () => {
-        const client = window.supabase;
-        if (!client) return console.error("Supabase client tidak ditemukan!");
+  document.addEventListener("DOMContentLoaded", async () => {
+    const client = window.supabase;
+    if (!client) return console.error("Supabase client tidak ditemukan!");
 
-        const datePicker = document.getElementById('gaji-date-picker');
-        const monthPicker = document.getElementById('gaji-week-month-picker'); 
-        const txtTotalHarga = document.getElementById('gaji-total-harga');
-        const txtTotalLabel = document.getElementById('gaji-total-label');
-        
-        // Setup Batas Kalender & Default
-        const now = new Date();
-        
-        const yesterday = new Date(now.getTime() - 86400000);
-        const offset = yesterday.getTimezoneOffset() * 60000;
-        const yesterdayStr = new Date(yesterday - offset).toISOString().split('T')[0];
-        
-        if (datePicker) {
-            if (!datePicker.value) datePicker.value = yesterdayStr; 
-            datePicker.max = yesterdayStr; 
-        }
+    const datePicker = document.getElementById("gaji-date-picker");
+    const monthPicker = document.getElementById("gaji-week-month-picker");
+    const txtTotalHarga = document.getElementById("gaji-total-harga");
+    const txtTotalLabel = document.getElementById("gaji-total-label");
 
-        if (monthPicker) {
-            const yyyy = now.getFullYear();
-            const mm = String(now.getMonth() + 1).padStart(2, '0');
-            if (!monthPicker.value) monthPicker.value = `${yyyy}-${mm}`; 
-            monthPicker.max = `${yyyy}-${mm}`; 
-        }
+    // Setup Batas Kalender & Default
+    const now = new Date();
 
-        const formatRupiah = (num) => 'Rp ' + Number(num).toLocaleString('id-ID', { minimumFractionDigits: 0 });
-        
-        // Sedikit penyesuaian agar persen bar tidak aneh jika kasbon mengurangi total terlalu besar
-        const getPercentageGaji = (value, total) => {
-            if (!total || total === 0) return 0;
-            let pct = Math.round((value / total) * 100);
-            return pct > 100 ? 100 : pct; // Maksimal bar 100%
-        };
+    const yesterday = new Date(now.getTime() - 86400000);
+    const offset = yesterday.getTimezoneOffset() * 60000;
+    const yesterdayStr = new Date(yesterday - offset)
+      .toISOString()
+      .split("T")[0];
 
-        function renderProgressBarsGaji(metricsPayload, totalSales) {
-            const listContainer = document.getElementById('gaji-metrics-list');
-            let htmlList = '';
-            metricsPayload.forEach(m => {
-                
-                    const pct = getPercentageGaji(m.value, totalSales);
-                    htmlList += `
+    if (datePicker) {
+      if (!datePicker.value) datePicker.value = yesterdayStr;
+      datePicker.max = yesterdayStr;
+    }
+
+    if (monthPicker) {
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, "0");
+      if (!monthPicker.value) monthPicker.value = `${yyyy}-${mm}`;
+      monthPicker.max = `${yyyy}-${mm}`;
+    }
+
+    const formatRupiah = (num) =>
+      "Rp " + Number(num).toLocaleString("id-ID", { minimumFractionDigits: 0 });
+
+    // Sedikit penyesuaian agar persen bar tidak aneh jika kasbon mengurangi total terlalu besar
+    const getPercentageGaji = (value, total) => {
+      if (!total || total === 0) return 0;
+      let pct = Math.round((value / total) * 100);
+      return pct > 100 ? 100 : pct; // Maksimal bar 100%
+    };
+
+    function renderProgressBarsGaji(metricsPayload, totalSales) {
+      const listContainer = document.getElementById("gaji-metrics-list");
+      let htmlList = "";
+      metricsPayload.forEach((m) => {
+        const pct = getPercentageGaji(m.value, totalSales);
+        htmlList += `
                         <div class="space-y-1">
                             <div class="flex justify-between text-[11px] font-bold text-gray-700 uppercase">
                                 <span>${m.label}</span>
-                                <span class="${m.isDeduction ? 'text-red-600' : ''}">${m.isDeduction ? '- ' : ''}${formatRupiah(m.value)}</span>
+                                <span class="${m.isDeduction ? "text-red-600" : ""}">${m.isDeduction ? "- " : ""}${formatRupiah(m.value)}</span>
                             </div>
                             <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
                                 <div class="h-full ${m.color} rounded-full" style="width: ${pct}%"></div>
                             </div>
                         </div>`;
-                
-            });
-            listContainer.innerHTML = htmlList || '<p class="text-xs text-center text-gray-400 py-8 italic">Tidak ada catatan gaji pada periode ini</p>';
-            txtTotalHarga.innerText = formatRupiah(totalSales);
+      });
+      listContainer.innerHTML =
+        htmlList ||
+        '<p class="text-xs text-center text-gray-400 py-8 italic">Tidak ada catatan gaji pada periode ini</p>';
+      txtTotalHarga.innerText = formatRupiah(totalSales);
+    }
+
+    function buildMetricsArrayGaji(data) {
+      return [
+        { label: "Gaji Pokok", value: data?.gaji || 0, color: "bg-indigo-600" },
+        { label: "Lembur", value: data?.lembur || 0, color: "bg-blue-500" },
+        { label: "Nginep", value: data?.nginep || 0, color: "bg-teal-500" },
+        { label: "Rapat", value: data?.rapat || 0, color: "bg-green-500" },
+        { label: "Bonus", value: data?.bonus || 0, color: "bg-yellow-500" },
+        {
+          label: "Uang Kesehatan",
+          value: data?.uang_kesehatan || 0,
+          color: "bg-cyan-500",
+        },
+        // Kasbon adalah potongan (isDeduction: true)
+        {
+          label: "Kasbon (Potongan)",
+          value: data?.kasbon || 0,
+          color: "bg-red-500",
+          isDeduction: true,
+        },
+      ];
+    }
+
+    // 1. Fetch Harian
+    window.loadLiveHarianGaji = async function () {
+      const tgl = datePicker.value;
+      if (!tgl) return;
+      const { data } = await client
+        .from("rekap_gaji_harian")
+        .select("*")
+        .eq("tanggal", tgl)
+        .maybeSingle();
+      renderProgressBarsGaji(
+        buildMetricsArrayGaji(data),
+        data?.total_slip_gaji || 0,
+      );
+      txtTotalHarga.className = "text-lg font-black text-indigo-700 font-mono";
+    };
+
+    // 2. Fetch Bulanan Berdasarkan Akumulasi Bulan
+    window.loadLiveBulananGaji = async function () {
+      const blnRaw = monthPicker.value; // Format: "2026-06"
+      if (!blnRaw) return renderProgressBarsGaji([], 0);
+
+      try {
+        // Konversi YYYY-MM jadi MM-YYYY sesuai kolom 'periode' di database lu
+        const parts = blnRaw.split("-");
+        const formatDbPeriode = `${parts[1]}-${parts[0]}`; // "06-2026"
+
+        const { data, error } = await client
+          .from("rekap_gaji_mingguan")
+          .select("*")
+          .eq("periode", formatDbPeriode);
+
+        if (error) throw error;
+
+        // Wadah penampung akumulasi gaji sebulan
+        const rekapGajiMurni = {
+          gaji: 0,
+          lembur: 0,
+          nginep: 0,
+          rapat: 0,
+          bonus: 0,
+          uang_kesehatan: 0,
+          kasbon: 0,
+          total_slip_gaji: 0,
+        };
+
+        if (data && data.length > 0) {
+          data.forEach((curr) => {
+            rekapGajiMurni.gaji += parseFloat(curr.gaji) || 0;
+            rekapGajiMurni.lembur += parseFloat(curr.lembur) || 0;
+            rekapGajiMurni.nginep += parseFloat(curr.nginep) || 0;
+            rekapGajiMurni.rapat += parseFloat(curr.rapat) || 0;
+            rekapGajiMurni.bonus += parseFloat(curr.bonus) || 0;
+            rekapGajiMurni.uang_kesehatan +=
+              parseFloat(curr.uang_kesehatan) || 0;
+            rekapGajiMurni.kasbon += parseFloat(curr.kasbon) || 0;
+            rekapGajiMurni.total_slip_gaji +=
+              parseFloat(curr.total_slip_gaji) || 0;
+          });
         }
 
-        function buildMetricsArrayGaji(data) {
-            return [
-                { label: "Gaji Pokok", value: data?.gaji || 0, color: "bg-indigo-600" },
-                { label: "Lembur", value: data?.lembur || 0, color: "bg-blue-500" },
-                { label: "Nginep", value: data?.nginep || 0, color: "bg-teal-500" },
-                { label: "Rapat", value: data?.rapat || 0, color: "bg-green-500" },
-                { label: "Bonus", value: data?.bonus || 0, color: "bg-yellow-500" },
-                { label: "Uang Kesehatan", value: data?.uang_kesehatan || 0, color: "bg-cyan-500" },
-                // Kasbon adalah potongan (isDeduction: true)
-                { label: "Kasbon (Potongan)", value: data?.kasbon || 0, color: "bg-red-500", isDeduction: true }
-            ];
-        }
+        renderProgressBarsGaji(
+          buildMetricsArrayGaji(rekapGajiMurni),
+          rekapGajiMurni.total_slip_gaji,
+        );
+        txtTotalHarga.className =
+          "text-lg font-black text-purple-700 font-mono";
+      } catch (err) {
+        console.error("🛑 Gagal kalkulasi mingguan gaji:", err);
+      }
+    };
 
-        // 1. Fetch Harian
-        window.loadLiveHarianGaji = async function() {
-            const tgl = datePicker.value;
-            if (!tgl) return;
-            const { data } = await client.from('rekap_gaji_harian').select('*').eq('tanggal', tgl).maybeSingle();
-            renderProgressBarsGaji(buildMetricsArrayGaji(data), data?.total_slip_gaji || 0);
-            txtTotalHarga.className = "text-lg font-black text-indigo-700 font-mono";
-        };
+    // Kontrol Tombol Switch
+    window.toggleGaji = function (tipe) {
+      const btnHarian = document.getElementById("btn-gaji-harian");
+      const btnBulanan = document.getElementById("btn-gaji-mingguan");
+      const wrapperHarian = document.getElementById(
+        "wrapper-gaji-picker-harian",
+      );
+      const wrapperBulanan = document.getElementById(
+        "wrapper-gaji-picker-mingguan",
+      );
+      const txtTotalLabel = document.getElementById("gaji-total-label");
 
-        // 2. Fetch Mingguan Berdasarkan Akumulasi Bulan
-        window.loadLiveMingguanGaji = async function() {
-            const blnRaw = monthPicker.value; // Format: "2026-06"
-            if (!blnRaw) return renderProgressBarsGaji([], 0);
+      if (tipe === "harian") {
+        btnHarian.className =
+          "px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all";
+        btnBulanan.className =
+          "px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all";
+        wrapperHarian.classList.remove("hidden");
+        wrapperBulanan.classList.add("hidden");
+        txtTotalLabel.innerText = "Total Slip Gaji Hari Ini";
+        window.loadLiveHarianGaji();
+      } else {
+        btnBulanan.className =
+          "px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all";
+        btnHarian.className =
+          "px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all";
+        wrapperHarian.classList.add("hidden");
+        wrapperBulanan.classList.remove("hidden");
+        txtTotalLabel.innerText = "Total Slip Gaji Bulan Ini";
+        window.loadLiveBulananGaji();
+      }
+    };
 
-            try {
-                // Konversi YYYY-MM jadi MM-YYYY sesuai kolom 'periode' di database lu
-                const parts = blnRaw.split('-');
-                const formatDbPeriode = `${parts[1]}-${parts[0]}`; // "06-2026"
+    // Init pertama kali
+    window.toggleGaji("harian");
 
-                const { data, error } = await client.from('rekap_gaji_mingguan')
-                                             .select('*')
-                                             .eq('periode', formatDbPeriode);
-                
-                if (error) throw error;
-
-                // Wadah penampung akumulasi gaji sebulan
-                const rekapGajiMurni = {
-                    gaji: 0, lembur: 0, nginep: 0, rapat: 0, bonus: 0, uang_kesehatan: 0, kasbon: 0, total_slip_gaji: 0
-                };
-
-                if (data && data.length > 0) {
-                    data.forEach(curr => {
-                        rekapGajiMurni.gaji += parseFloat(curr.gaji) || 0;
-                        rekapGajiMurni.lembur += parseFloat(curr.lembur) || 0;
-                        rekapGajiMurni.nginep += parseFloat(curr.nginep) || 0;
-                        rekapGajiMurni.rapat += parseFloat(curr.rapat) || 0;
-                        rekapGajiMurni.bonus += parseFloat(curr.bonus) || 0;
-                        rekapGajiMurni.uang_kesehatan += parseFloat(curr.uang_kesehatan) || 0;
-                        rekapGajiMurni.kasbon += parseFloat(curr.kasbon) || 0;
-                        rekapGajiMurni.total_slip_gaji += parseFloat(curr.total_slip_gaji) || 0;
-                    });
-                }
-
-                renderProgressBarsGaji(buildMetricsArrayGaji(rekapGajiMurni), rekapGajiMurni.total_slip_gaji);
-                txtTotalHarga.className = "text-lg font-black text-purple-700 font-mono";
-            } catch (err) {
-                console.error("🛑 Gagal kalkulasi mingguan gaji:", err);
-            }
-        };
-
-        // Kontrol Tombol Switch 
-        window.toggleGaji = function(tipe) {
-            const btnHarian = document.getElementById('btn-gaji-harian');
-            const btnMingguan = document.getElementById('btn-gaji-mingguan');
-            const wrapperHarian = document.getElementById('wrapper-gaji-picker-harian');
-            const wrapperMingguan = document.getElementById('wrapper-gaji-picker-mingguan');
-            const txtTotalLabel = document.getElementById('gaji-total-label');
-
-            if (tipe === 'harian') {
-                btnHarian.className = "px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all";
-                btnMingguan.className = "px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all";
-                wrapperHarian.classList.remove('hidden');
-                wrapperMingguan.classList.add('hidden');
-                txtTotalLabel.innerText = "Total Slip Gaji Hari Ini";
-                window.loadLiveHarianGaji();
-            } else {
-                btnMingguan.className = "px-3 py-1.5 rounded bg-white text-primary shadow-sm transition-all";
-                btnHarian.className = "px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-all";
-                wrapperHarian.classList.add('hidden');
-                wrapperMingguan.classList.remove('hidden');
-                txtTotalLabel.innerText = "Total Slip Gaji Bulan Ini";
-                window.loadLiveMingguanGaji();
-            }
-        };
-
-        // Init pertama kali
-        window.toggleGaji('harian'); 
-
-        // Pasang Event Listener ke Picker
-        datePicker?.addEventListener('change', window.loadLiveHarianGaji);
-        monthPicker?.addEventListener('change', window.loadLiveMingguanGaji);
-    });
+    // Pasang Event Listener ke Picker
+    datePicker?.addEventListener("change", window.loadLiveHarianGaji);
+    monthPicker?.addEventListener("change", window.loadLiveBulananGaji);
+  });
 </script>

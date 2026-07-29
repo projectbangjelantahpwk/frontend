@@ -49,9 +49,9 @@
       />
     </div>
 
-    <!-- Filter Mingguan (Month) -->
+    <!-- Filter Bulanan (Month) -->
     <div
-      id="filter-mingguan-transaksi"
+      id="filter-bulanan-transaksi"
       class="hidden items-center bg-surface-variant/20 p-2 rounded-xl border border-surface-variant/50 w-full focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all"
     >
       <input
@@ -120,7 +120,7 @@
       </button>
     </div>
 
-    <!-- Tab Switch Harian/Mingguan -->
+    <!-- Tab Switch Harian/Bulanan -->
     <div class="flex justify-center">
       <div
         class="bg-surface-variant/20 p-1 rounded-xl inline-flex w-full sm:w-auto border border-surface-variant/40 shadow-inner"
@@ -132,10 +132,10 @@
           Harian
         </button>
         <button
-          id="btn-mingguan-transaksi"
+          id="btn-bulanan-transaksi"
           class="flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300"
         >
-          Mingguan
+          Bulanan
         </button>
       </div>
     </div>
@@ -197,7 +197,7 @@
   async function initChartTransaksi() {
     let chartInstance = null;
     let dataHarian = [];
-    let dataMingguan = [];
+    let dataBulanan = [];
 
     let currentMode = "harian";
     let currentCommodity = "minyak_jelantah_rp";
@@ -210,18 +210,41 @@
     });
 
     const btnHarian = document.getElementById("btn-harian-transaksi");
-    const btnMingguan = document.getElementById("btn-mingguan-transaksi");
+    const btnBulanan = document.getElementById("btn-bulanan-transaksi");
     const filterHarianContainer = document.getElementById(
       "filter-harian-transaksi",
     );
-    const filterMingguanContainer = document.getElementById(
-      "filter-mingguan-transaksi",
+    const filterBulananContainer = document.getElementById(
+      "filter-bulanan-transaksi",
     );
     const startDateInput = document.getElementById("start-date-transaksi");
     const endDateInput = document.getElementById("end-date-transaksi");
     const monthInput = document.getElementById("month-transaksi");
     const komoditasBtns = document.querySelectorAll(".komoditas-btn-transaksi");
     const elTotalRp = document.getElementById("total-rp-transaksi");
+
+    // ==========================================
+    // UPDATE: Set Default Tanggal 10 Hari Lalu s.d Kemarin
+    // ==========================================
+    const today = new Date();
+
+    // End Date = Kemarin
+    const endDate = new Date(today);
+    endDate.setDate(today.getDate() - 1);
+
+    // Start Date = 10 hari sebelum hari ini
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - 10);
+
+    startDateInput.value = startDate.toISOString().split("T")[0];
+    endDateInput.value = endDate.toISOString().split("T")[0];
+
+    // ==========================================
+    // UPDATE: Set Default Bulan ke Bulan Ini
+    // ==========================================
+    const currentYear = today.getFullYear();
+    const currentMonth = String(today.getMonth() + 1).padStart(2, "0");
+    if (monthInput) monthInput.value = `${currentYear}-${currentMonth}`;
 
     async function fetchHarian() {
       console.log("🕵️‍♂️ [DEBUG HARIAN] Memulai fetch data...");
@@ -240,12 +263,6 @@
         if (endDateInput.value) {
           console.log("👉 Filter End Date aktif:", endDateInput.value);
           query = query.lte("tanggal", endDateInput.value);
-        }
-        if (!startDateInput.value && !endDateInput.value) {
-          console.log(
-            "👉 Filter tanggal kosong, membatasi ke 30 data terakhir.",
-          );
-          query = query.limit(30);
         }
 
         const { data, error } = await query;
@@ -275,11 +292,12 @@
       }
     }
 
-    async function fetchMingguan() {
-      console.log("🕵️‍♂️ [DEBUG MINGGUAN] Memulai fetch data...");
+    async function fetchBulanan() {
+      console.log("🕵️‍♂️ [DEBUG BULANAN] Memulai fetch data...");
       console.log("👉 Komoditas yang dicari:", currentCommodity);
 
       try {
+        // Masih mengambil dari tabel bulanan/mingguan sesuai arsitektur Supabase
         let query = supabase
           .from("transaksi_mingguan")
           .select(`minggu_ke, periode, ${currentCommodity}`)
@@ -298,7 +316,7 @@
           query = query.eq("periode", formatDB);
         } else {
           console.log(
-            "👉 Filter Bulan kosong, membatasi ke 8 data mingguan terakhir.",
+            "👉 Filter Bulan kosong, membatasi ke 8 data bulanan/mingguan terakhir.",
           );
           query = query.limit(8);
         }
@@ -306,30 +324,30 @@
         const { data, error } = await query;
 
         if (error) {
-          console.error("🚨 [ERROR SUPABASE MINGGUAN]:", error);
+          console.error("🚨 [ERROR SUPABASE BULANAN]:", error);
           alert(
-            "Gagal ambil data Mingguan. Cek Console (F12)!\n" + error.message,
+            "Gagal ambil data Bulanan. Cek Console (F12)!\n" + error.message,
           );
           return;
         }
 
         if (data) {
           console.log(
-            `✅ [SUKSES MINGGUAN] Ditemukan ${data.length} baris data:`,
+            `✅ [SUKSES BULANAN] Ditemukan ${data.length} baris data:`,
             data,
           );
 
           if (data.length === 0) {
             console.warn(
-              `⚠️ [WARNING] Data Mingguan kosong. Cek apakah periode ${monthInput.value || "terakhir"} sudah ada kalkulasinya di database.`,
+              `⚠️ [WARNING] Data Bulanan kosong. Cek apakah periode ${monthInput.value || "terakhir"} sudah ada kalkulasinya di database.`,
             );
           }
 
-          dataMingguan = data;
+          dataBulanan = data;
           renderChart();
         }
       } catch (err) {
-        console.error("💥 [FATAL JS ERROR - MINGGUAN]:", err);
+        console.error("💥 [FATAL JS ERROR - BULANAN]:", err);
       }
     }
 
@@ -365,16 +383,18 @@
         values = dataHarian.map((d) => d[currentCommodity] || 0);
         gradient.addColorStop(0, hoverColor);
         gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+
         btnHarian.className =
           "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
-        btnMingguan.className =
+        btnBulanan.className =
           "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
       } else {
-        labels = dataMingguan.map((d) => `W${d.minggu_ke} ${d.periode}`);
-        values = dataMingguan.map((d) => d[currentCommodity] || 0);
+        labels = dataBulanan.map((d) => `W${d.minggu_ke} ${d.periode}`);
+        values = dataBulanan.map((d) => d[currentCommodity] || 0);
         gradient.addColorStop(0, hoverColor);
         gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
-        btnMingguan.className =
+
+        btnBulanan.className =
           "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
         btnHarian.className =
           "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
@@ -407,20 +427,20 @@
       if (mode === "harian") {
         filterHarianContainer.classList.remove("hidden");
         filterHarianContainer.classList.add("flex");
-        filterMingguanContainer.classList.add("hidden");
-        filterMingguanContainer.classList.remove("flex");
+        filterBulananContainer.classList.add("hidden");
+        filterBulananContainer.classList.remove("flex");
         fetchHarian();
       } else {
         filterHarianContainer.classList.add("hidden");
         filterHarianContainer.classList.remove("flex");
-        filterMingguanContainer.classList.remove("hidden");
-        filterMingguanContainer.classList.add("flex");
-        fetchMingguan();
+        filterBulananContainer.classList.remove("hidden");
+        filterBulananContainer.classList.add("flex");
+        fetchBulanan();
       }
     }
 
     btnHarian.addEventListener("click", () => switchMode("harian"));
-    btnMingguan.addEventListener("click", () => switchMode("mingguan"));
+    btnBulanan.addEventListener("click", () => switchMode("bulanan"));
 
     startDateInput.addEventListener(
       "change",
@@ -432,7 +452,7 @@
     );
     monthInput.addEventListener(
       "change",
-      () => currentMode === "mingguan" && fetchMingguan(),
+      () => currentMode === "bulanan" && fetchBulanan(),
     );
 
     komoditasBtns.forEach((btn) => {
@@ -446,7 +466,7 @@
           "komoditas-btn-transaksi px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-primary text-white shadow-sm ring-2 ring-primary/20 scale-105";
 
         if (currentMode === "harian") fetchHarian();
-        else fetchMingguan();
+        else fetchBulanan();
       });
     });
 

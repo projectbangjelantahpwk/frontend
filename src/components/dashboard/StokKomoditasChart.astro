@@ -40,9 +40,9 @@
       />
     </div>
 
-    <!-- Filter Mingguan (Month) -->
+    <!-- Filter Bulanan (Month) -->
     <div
-      id="filter-mingguan-stok"
+      id="filter-bulanan-stok"
       class="hidden items-center bg-surface-variant/20 p-2 rounded-xl border border-surface-variant/50 w-full focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all"
     >
       <input
@@ -58,7 +58,7 @@
     <canvas id="chartStok"></canvas>
   </div>
 
-  <!-- FOOTER: Filter Komoditas & Switch Harian/Mingguan -->
+  <!-- FOOTER: Filter Komoditas & Switch Harian/Bulanan -->
   <div
     class="mt-auto border-t border-outline-variant/60 pt-md flex flex-col gap-4"
   >
@@ -110,7 +110,7 @@
       </button>
     </div>
 
-    <!-- Tab Switch Mingguan/Harian -->
+    <!-- Tab Switch Harian/Bulanan -->
     <div class="flex justify-center">
       <div
         class="bg-surface-variant/20 p-1 rounded-xl inline-flex w-full sm:w-auto border border-surface-variant/40 shadow-inner"
@@ -122,10 +122,10 @@
           Harian
         </button>
         <button
-          id="btn-mingguan-chartStok"
+          id="btn-bulanan-chartStok"
           class="flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold transition-all duration-300"
         >
-          Mingguan
+          Bulanan
         </button>
       </div>
     </div>
@@ -168,7 +168,7 @@
   async function initChartStok() {
     let stockChart = null;
     let dataHarian = [];
-    let dataMingguan = [];
+    let dataBulanan = [];
 
     let currentMode = "harian";
     let currentCommodity = "Minyak Jelantah";
@@ -181,17 +181,40 @@
     });
 
     const btnHarian = document.getElementById("btn-harian-chartStok");
-    const btnMingguan = document.getElementById("btn-mingguan-chartStok");
+    const btnBulanan = document.getElementById("btn-bulanan-chartStok");
     const filterHarianContainer = document.getElementById("filter-harian-stok");
-    const filterMingguanContainer = document.getElementById(
-      "filter-mingguan-stok",
+    const filterBulananContainer = document.getElementById(
+      "filter-bulanan-stok",
     );
     const startDateInput = document.getElementById("start-date-stok");
     const endDateInput = document.getElementById("end-date-stok");
     const monthInput = document.getElementById("month-stok");
     const komoditasBtns = document.querySelectorAll(".komoditas-btn");
 
-    // MAPPING KOLOM (PASTIKAN NAMA INI SAMA PERSIS DENGAN DI DATABASE)
+    // ==========================================
+    // UPDATE: Set Default Tanggal 10 Hari s.d Kemarin
+    // ==========================================
+    const today = new Date();
+
+    // End Date = Kemarin
+    const endDate = new Date(today);
+    endDate.setDate(today.getDate() - 1);
+
+    // Start Date = 10 hari sebelum hari ini
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - 10);
+
+    startDateInput.value = startDate.toISOString().split("T")[0];
+    endDateInput.value = endDate.toISOString().split("T")[0];
+
+    // ==========================================
+    // UPDATE: Set Default Bulan ke Bulan Ini
+    // ==========================================
+    const currentYear = today.getFullYear();
+    const currentMonth = String(today.getMonth() + 1).padStart(2, "0");
+    if (monthInput) monthInput.value = `${currentYear}-${currentMonth}`;
+
+    // MAPPING KOLOM
     const kolomDatabase: Record<string, string> = {
       "Minyak Jelantah": "minyak_jelantah",
       "Minyak Asting": "minyak_asting",
@@ -212,7 +235,6 @@
       if (startDateInput.value)
         query = query.gte("tanggal", startDateInput.value);
       if (endDateInput.value) query = query.lte("tanggal", endDateInput.value);
-      if (!startDateInput.value && !endDateInput.value) query = query.limit(7);
 
       const { data, error } = await query;
       if (error) {
@@ -224,9 +246,10 @@
       }
     }
 
-    async function fetchMingguan() {
+    async function fetchBulanan() {
       try {
         const kolomAktif = kolomDatabase[currentCommodity];
+        // Masih ambil dari stock_gudang_mingguan karena datanya merepresentasikan bagian-bagian bulan itu
         let query = supabase
           .from("stock_gudang_mingguan")
           .select(`minggu_ke, periode, ${kolomAktif}`)
@@ -244,24 +267,18 @@
 
         const { data, error } = await query;
 
-        // RADAR ERROR NYALA: Pop-up muncul jika kolom salah atau Supabase menolak
         if (error) {
-          console.error("SUPABASE ERROR MINGGUAN:", error);
-          alert("⚠️ ERROR MINGGUAN:\n" + error.message);
+          console.error("SUPABASE ERROR BULANAN:", error);
+          alert("⚠️ ERROR BULANAN:\n" + error.message);
           return;
         }
 
-        // RADAR KOSONG: Pop-up muncul jika ternyata isi tabel kosong melompong
         if (data && data.length === 0) {
-          console.log("Data Mingguan Kosong!");
-          alert(
-            "ℹ️ Data kosong! Tabel mingguan tidak memiliki record untuk komoditas/periode ini.",
-          );
+          console.log("Data Bulanan Kosong!");
         }
 
         if (data) {
-          console.log("Berhasil dapat data mingguan:", data);
-          dataMingguan = data;
+          dataBulanan = data;
           renderChart();
         }
       } catch (err) {
@@ -306,20 +323,20 @@
 
         btnHarian.className =
           "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
-        btnMingguan.className =
+        btnBulanan.className =
           "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
       } else {
-        labels = dataMingguan.map(
+        labels = dataBulanan.map(
           (d) => `${d.minggu_ke || ""} ${d.periode || ""}`,
         );
-        values = dataMingguan.map((d) =>
+        values = dataBulanan.map((d) =>
           d[kolomAktif] ? Number(d[kolomAktif]) : 0,
         );
 
         gradient.addColorStop(0, hoverColor);
         gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
-        btnMingguan.className =
+        btnBulanan.className =
           "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-bold bg-primary text-white shadow-md transition-all duration-300 scale-105";
         btnHarian.className =
           "flex-1 sm:flex-none px-6 py-1.5 rounded-lg text-label-md font-medium text-on-surface-variant bg-transparent hover:bg-surface-variant/40 transition-all duration-300";
@@ -349,20 +366,20 @@
       if (mode === "harian") {
         filterHarianContainer.classList.remove("hidden");
         filterHarianContainer.classList.add("flex");
-        filterMingguanContainer.classList.add("hidden");
-        filterMingguanContainer.classList.remove("flex");
+        filterBulananContainer.classList.add("hidden");
+        filterBulananContainer.classList.remove("flex");
         fetchHarian();
       } else {
         filterHarianContainer.classList.add("hidden");
         filterHarianContainer.classList.remove("flex");
-        filterMingguanContainer.classList.remove("hidden");
-        filterMingguanContainer.classList.add("flex");
-        fetchMingguan();
+        filterBulananContainer.classList.remove("hidden");
+        filterBulananContainer.classList.add("flex");
+        fetchBulanan();
       }
     }
 
     btnHarian.addEventListener("click", () => switchMode("harian"));
-    btnMingguan.addEventListener("click", () => switchMode("mingguan"));
+    btnBulanan.addEventListener("click", () => switchMode("bulanan"));
 
     startDateInput.addEventListener(
       "change",
@@ -374,7 +391,7 @@
     );
     monthInput.addEventListener(
       "change",
-      () => currentMode === "mingguan" && fetchMingguan(),
+      () => currentMode === "bulanan" && fetchBulanan(),
     );
 
     komoditasBtns.forEach((btn) => {
@@ -390,7 +407,7 @@
           "komoditas-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-primary text-white shadow-sm ring-2 ring-primary/20 scale-105";
 
         if (currentMode === "harian") fetchHarian();
-        else fetchMingguan();
+        else fetchBulanan();
       });
     });
 

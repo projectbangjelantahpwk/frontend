@@ -141,7 +141,11 @@ const employeesData = [
         if (roleError) throw roleError;
 
         // 5. BUKA GEMBOK AREA RAHASIA JIKA OWNER / IT
-        if (prof?.role === "owner" || prof?.role === "it") {
+        if (
+          prof?.role === "owner" ||
+          prof?.role === "it" ||
+          prof?.role === "keuangan"
+        ) {
           const areaRahasia = document.getElementById("area-rahasia");
           if (areaRahasia) {
             areaRahasia.classList.remove("hidden");

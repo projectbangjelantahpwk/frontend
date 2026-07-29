@@ -1657,37 +1657,28 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         if (errService) throw errService;
 
         // LANGKAH 2: Integrasi ke Pengeluaran Ops (Jika dicentang & biaya > 0)
+        // LANGKAH 2: Integrasi ke Pengeluaran Ops (Jika dicentang & biaya > 0)
         if (isIntegrasi && biaya > 0) {
           btn.innerText = "Mengirim Tagihan ke Keuangan...";
 
-          // A. Cari nama armada untuk ditaruh di Keterangan Pengeluaran
-          let namaArmada = "";
-          if (jenis === "mobil" && window.allMobilData) {
-            const m = window.allMobilData.find(
-              (x) => String(x.id) === String(mobil_id),
-            );
-            if (m) namaArmada = m.nama_kendaraan;
-          } else if (jenis === "motor" && window.allMotorData) {
-            const m = window.allMotorData.find(
-              (x) => String(x.id) === String(motor_id),
-            );
-            if (m) namaArmada = m.nama_kendaraan;
-          }
+          let pengeluaranId = null;
 
-          // B. Cek apakah ada pengeluaran induk di hari yang sama untuk pengaju ini
-          const { data: existingPeng } = await window.supabase
+          // B. Cek data dengan .ilike untuk mengabaikan huruf besar/kecil
+          const { data: existingPeng, error: errCek } = await window.supabase
             .from("pengeluaran")
             .select("id")
             .eq("user_id", pengaju_id)
             .eq("tanggal", tanggalStr)
-            .order("created_at", { ascending: false })
+            .ilike("sumber_dana", sumber_dana)
+            .order("updated_at", { ascending: false })
             .limit(1);
 
-          let pengeluaranId;
+          if (errCek) throw errCek;
+
           if (existingPeng && existingPeng.length > 0) {
-            pengeluaranId = existingPeng[0].id; // Gabung ke nota hari ini
+            pengeluaranId = existingPeng[0].id;
           } else {
-            // Bikin pengeluaran induk baru
+            // Jika tidak ketemu, coba buat pengeluaran induk baru
             const { data: newPeng, error: errNewPeng } = await window.supabase
               .from("pengeluaran")
               .insert({
@@ -1698,13 +1689,42 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                 sumber_dana: sumber_dana,
               })
               .select("id")
-              .single();
-            if (errNewPeng) throw errNewPeng;
-            pengeluaranId = newPeng.id;
+              .maybeSingle();
+
+            if (errNewPeng) {
+              // Fail-safe: Jika ternyata masih error duplikat constraint (kode 23505)
+              if (errNewPeng.code === "23505") {
+                // Coba ambil paksa ulang datanya
+                const { data: retryPeng } = await window.supabase
+                  .from("pengeluaran")
+                  .select("id")
+                  .eq("user_id", pengaju_id)
+                  .eq("tanggal", tanggalStr)
+                  .ilike("sumber_dana", sumber_dana)
+                  .limit(1);
+
+                if (retryPeng && retryPeng.length > 0) {
+                  pengeluaranId = retryPeng[0].id;
+                } else {
+                  // Jika duplikat tapi tetap tidak bisa di-select, ini fiks masalah RLS Supabase
+                  throw new Error(
+                    "Data pengeluaran sudah ada tapi tersembunyi! Tolong cek aturan RLS (Row Level Security) tabel pengeluaran di Supabase agar admin bisa SELECT data ini.",
+                  );
+                }
+              } else {
+                throw errNewPeng; // Lempar error insert lainnya
+              }
+            } else if (newPeng) {
+              pengeluaranId = newPeng.id;
+            }
           }
 
+          if (!pengeluaranId)
+            throw new Error("Gagal memproses ID Pengeluaran Induk");
+
           // C. Insert ke rincian pengeluaran dengan kategori 'Service'
-          const textKeterangan = `Service ${namaArmada} di ${nama_bengkel} - Detail: ${detail_service}`;
+          const textKeterangan = `${nama_bengkel} - ${detail_service}`;
+
           const { error: errRincian } = await window.supabase
             .from("rincian_pengeluaran")
             .insert({
@@ -1713,6 +1733,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               nominal: biaya,
               keterangan: textKeterangan,
             });
+
           if (errRincian) throw errRincian;
         }
 

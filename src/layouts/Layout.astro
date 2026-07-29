@@ -1986,7 +1986,7 @@ const { title, requireAuth = true } = Astro.props;
             document.getElementById("input_uang_keuangan").value = uangKeuangan;
 
           // 🔥 PROTEKSI KHUSUS OWNER 🔥
-          if (window.userRole === "owner") {
+          if (window.userRole === "owner" || userRole === "it") {
             if (document.getElementById("teks-kas-owner"))
               document.getElementById("teks-kas-owner").innerText =
                 formatter.format(uangOwner);
@@ -2055,7 +2055,7 @@ const { title, requireAuth = true } = Astro.props;
               }
 
               // Proteksi khusus kas owner di desktop
-              if (userRole === "owner" || "it") {
+              if (userRole === "owner" || userRole === "it") {
                 // Munculkan di Desktop
                 document
                   .getElementById("box-kas-owner")

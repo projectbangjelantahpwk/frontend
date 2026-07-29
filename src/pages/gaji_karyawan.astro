@@ -2195,28 +2195,30 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       const chkJamBebas = document.getElementById("chk_jam_bebas");
       const opsiJerigen = document.getElementById("opsi_jerigen");
 
+      // 1. LOGIKA ANTI-TABRAKAN (Pilih Salah Satu Secara Aman)
+      const trigger = window.event ? window.event.target : null;
+
+      if (trigger && trigger.id === "chk_gaji_jerigen" && chkJerigen?.checked) {
+        if (chkJamBebas) chkJamBebas.checked = false;
+      } else if (
+        trigger &&
+        trigger.id === "chk_jam_bebas" &&
+        chkJamBebas?.checked
+      ) {
+        if (chkJerigen) chkJerigen.checked = false;
+      }
+
+      // Pastikan nggak ada checkbox yang nyangkut ke-disable
+      if (chkJerigen) chkJerigen.disabled = false;
+      if (chkJamBebas) chkJamBebas.disabled = false;
+
       const isJerigen = chkJerigen ? chkJerigen.checked : false;
       const isJamBebas = chkJamBebas ? chkJamBebas.checked : false;
 
-      // Mutual Exclusion (Cuma boleh pilih salah satu)
-      if (isJerigen && chkJamBebas) {
-        chkJamBebas.checked = false;
-        chkJamBebas.disabled = true;
-      } else if (chkJamBebas) {
-        chkJamBebas.disabled = false;
-      }
-
-      if (isJamBebas && chkJerigen) {
-        chkJerigen.checked = false;
-        chkJerigen.disabled = true;
-      } else if (chkJerigen) {
-        chkJerigen.disabled = false;
-      }
-
-      // Tampilkan box input jerigen jika aktif
+      // 2. Tampilkan box opsi jerigen jika jerigen aktif
       if (opsiJerigen) opsiJerigen.style.display = isJerigen ? "block" : "none";
 
-      // Daftar input standar yang HANYA HILANG KETIKA MODE JERIGEN AKTIF
+      // 3. Sembunyikan parameter normal HANYA JIKA JERIGEN AKTIF
       const nonJerigenIds = [
         "setup_lembur_menit",
         "setup_uang_makan",
@@ -2236,8 +2238,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       nonJerigenIds.forEach((id) => {
         const el = document.getElementById(id);
         if (el) {
-          // Disabled dan disembunyikan HANYA KETIKA Jerigen yang dicentang
-          el.disabled = isJerigen;
+          el.disabled = isJerigen; // Matikan inputnya
           const wrapper =
             el.closest(".col-span-2, .col-span-1") || el.parentElement;
           if (wrapper) {
@@ -2247,7 +2248,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         }
       });
 
-      // Trigger perubahan UI Label (Jam Bebas akan tetap mengubah label Gaji Pokok)
+      // 4. Trigger perubahan UI Label Gaji
       window.ubahSiklusUI();
     };
 
@@ -2258,22 +2259,37 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       document.getElementById("m_rincian_list").innerHTML =
         `<p class="text-center text-sm text-gray-500 py-4"><i class="bi bi-arrow-repeat animate-spin inline-block mr-2"></i> Sinkronisasi Kalkulator Server...</p>`;
 
+      // ✅ PENGAMANAN INPUT ANGKA (Biar nggak jadi NaN di Deno)
       const potKasbonInput = document.getElementById(
         "potongan_kasbon_sekarang",
-      ).value;
-      const potonganManual =
-        potKasbonInput === "" ? null : parseFloat(potKasbonInput);
+      )?.value;
+      const potonganManual = parseFloat(potKasbonInput);
+
       const talInput = document.getElementById(
         "tambahan_talangan_sekarang",
-      ).value;
-      const talanganManual = talInput === "" ? null : parseFloat(talInput);
-      const jm = document.getElementById("input_jerigen_manual")?.value;
+      )?.value;
+      const talanganManual = parseFloat(talInput);
 
-      // 🟢 1. TAMBAHKAN DUA BARIS INI DI SINI (Sebelum blok 'try')
+      const jm = document.getElementById("input_jerigen_manual")?.value;
+      const jerigenManual = parseFloat(jm);
+
       const isJamBebasAktif =
         document.getElementById("chk_jam_bebas")?.checked || false;
       const inputGajiPokok =
         parseFloat(document.getElementById("setup_gaji_pokok")?.value) || 0;
+
+      // ✅ FILTER PEMBERSIH: Buang baris Lain-lain yang kosong biar teks nggak "undefined"
+      const isJerigenAktif =
+        document.getElementById("chk_gaji_jerigen")?.checked || false;
+      const inputTarifJerigen =
+        parseFloat(document.getElementById("setup_tarif_jerigen")?.value) || 0;
+
+      let safeLainLain = [];
+      if (window.dataLainLain && Array.isArray(window.dataLainLain)) {
+        safeLainLain = window.dataLainLain.filter(
+          (item) => item.nama_item && item.nama_item.trim() !== "",
+        );
+      }
 
       try {
         const { data, error } = await window.supabase.functions.invoke(
@@ -2284,21 +2300,22 @@ import "bootstrap-icons/font/bootstrap-icons.css";
               tglMulai: d.tglMulai,
               tglAkhir: d.tglAkhir,
               action: "kalkulasi",
+
+              // ✅ Pastikan angka divalidasi pakai isNaN sebelum dikirim
               potonganKasbonManual: isNaN(potonganManual)
                 ? null
                 : potonganManual,
               tambahanTalanganManual: isNaN(talanganManual)
                 ? null
                 : talanganManual,
-              siklusGaji: d.siklusGaji,
-              jumlahJerigenManual: jm === "" ? null : parseFloat(jm),
+              jumlahJerigenManual: isNaN(jerigenManual) ? null : jerigenManual,
 
-              // 🟢 2. TAMBAHKAN DUA BARIS INI DI DALAM BODY PAYLOAD
+              siklusGaji: d.siklusGaji,
               is_jam_bebas_manual: isJamBebasAktif,
               gaji_menit_manual: inputGajiPokok,
-
-              // 🔥 1. INI WAJIB ADA BIAR DENO TAU ADA ITEM BARU 🔥
-              lain_lain_manual: window.dataLainLain,
+              is_gaji_jerigen_manual: isJerigenAktif,
+              tarif_jerigen_manual: inputTarifJerigen,
+              lain_lain_manual: safeLainLain, // Kirim data bersih
             },
           },
         );
@@ -2580,11 +2597,14 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     // FUNGSI PENJEMBATAN (Simpan Draf ATAU Lempar ke Kasir)
     window.simpanSlipGaji = async function (statusTarget) {
       if (statusTarget === "ACC") {
+        // ✅ TAMBAHKAN BARIS INI
+        window.totalTagihanAktif =
+          window.currentSalaryData.finalState.grandTotal;
+
         // LEMPAR KE KASIR SPLIT PAYMENT
         document.getElementById("kasir_total_tagihan").innerText =
-          `Rp ${window.currentSalaryData.finalState.grandTotal.toLocaleString("id-ID")}`;
-        document.getElementById("kasir_owner").value =
-          window.currentSalaryData.finalState.grandTotal;
+          `Rp ${window.totalTagihanAktif.toLocaleString("id-ID")}`; // ✅ Update variabel ini
+        document.getElementById("kasir_owner").value = window.totalTagihanAktif; // ✅ Update variabel ini
         document.getElementById("kasir_keuangan").value = 0;
         document.getElementById("kasir_gudang").value = 0;
         window.kalkulasiKasir();
@@ -2604,7 +2624,9 @@ import "bootstrap-icons/font/bootstrap-icons.css";
       const uG = parseFloat(document.getElementById("kasir_gudang").value) || 0;
       const uO = parseFloat(document.getElementById("kasir_owner").value) || 0;
 
-      const totalTagihan = window.currentSalaryData.finalState.grandTotal;
+      // ✅ UBAH BARIS INI: Gunakan variabel global penjembatan
+      const totalTagihan = window.totalTagihanAktif || 0;
+
       const totalSplit = uK + uG + uO;
       const sisa = totalTagihan - totalSplit;
 
@@ -3774,7 +3796,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
     };
 
     // RIWAYAT GAJI LOADER
-    async function muatRiwayatGaji() {
+    window.muatRiwayatGaji = async function () {
       const container = document.getElementById("riwayat-gaji-container");
       const elTotal = document.getElementById("riwayat-total-akumulasi");
       if (!container) return;
@@ -3975,9 +3997,11 @@ import "bootstrap-icons/font/bootstrap-icons.css";
           .from("slip_gaji")
           .select(`*, profiles!inner(id, nama, role, foto_profil)`)
           .neq("profiles.role", "owner")
-          .gte("created_at", `${start} 00:00:00`)
-          .lte("created_at", `${end} 23:59:59`)
-          .order("created_at", { ascending: false });
+          // 👇 Gunakan kolom periode yang string-nya murni YYYY-MM-DD
+          .gte("periode", start)
+          .lte("periode", end)
+          // 👇 Urutkan berdasarkan periode (terbaru di atas)
+          .order("periode", { ascending: false });
         if (error) throw error;
 
         localStorage.setItem(cacheKey, JSON.stringify(dataGaji));
@@ -3992,10 +4016,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
                     </div>`;
         }
       }
-    }
+    };
     document
       .getElementById("btn-filter-gaji")
-      ?.addEventListener("click", muatRiwayatGaji);
+      ?.addEventListener("click", window.muatRiwayatGaji);
     window.filterTipeGaji = function (tipe) {
       document.querySelectorAll(".filter-gaji-btn").forEach((btn) => {
         if (
@@ -4671,6 +4695,11 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         window.batchSelectedIds.push(cb.value);
       });
 
+      // ✅ TAMBAHKAN 2 BARIS INI: Set global total & update teks UI kasir
+      window.totalTagihanAktif = total;
+      document.getElementById("kasir_total_tagihan").innerText =
+        `Rp ${total.toLocaleString("id-ID")}`;
+
       // Gunakan ulang modal Kasir
       document.getElementById("kasir_owner").value = total;
       document.getElementById("kasir_keuangan").value = 0;
@@ -4920,126 +4949,78 @@ import "bootstrap-icons/font/bootstrap-icons.css";
         return;
 
       const btn = document.getElementById("btn-eksekusi-bayar");
-      btn.innerText = "Memproses Massal... Jangan Tutup Browser!";
+      btn.innerText = "Memproses di Server... Jangan Tutup Browser!";
       btn.disabled = true;
 
       try {
-        // 1. Ambil Inputan Split Payment Kasir
-        const vKeu =
-          parseFloat(document.getElementById("kasir_keuangan").value) || 0;
-        const vGud =
-          parseFloat(document.getElementById("kasir_gudang").value) || 0;
-        const vOwn =
-          parseFloat(document.getElementById("kasir_owner").value) || 0;
-        const totalBayarKasir = vKeu + vGud + vOwn;
-
-        // 2. Potong Kas Perusahaan Secara Global
-        const { data: kasLama, error: errKas } = await window.supabase
-          .from("kas_perusahaan")
-          .select("*")
-          .eq("id", 1)
-          .single();
-        if (errKas) throw errKas;
-
-        if (
-          kasLama.uang_keuangan < vKeu ||
-          kasLama.uang_gudang < vGud ||
-          kasLama.uang_owner < vOwn
-        ) {
-          throw new Error(
-            "❌ Saldo di salah satu Kas Perusahaan tidak mencukupi!",
-          );
-        }
-
-        await window.supabase
-          .from("kas_perusahaan")
-          .update({
-            uang_keuangan: kasLama.uang_keuangan - vKeu,
-            uang_gudang: kasLama.uang_gudang - vGud,
-            uang_owner: kasLama.uang_owner - vOwn,
-          })
-          .eq("id", 1);
-
-        // 3. Eksekusi Pembayaran Tiap Slip Terpilih (Looping)
+        // Eksekusi Pembayaran Tiap Slip Terpilih ke Server Deno
         for (const slipId of window.batchSelectedIds) {
           const slip = window.currentFilteredRiwayat.find(
             (s) => String(s.id) === String(slipId),
           );
           if (!slip) continue;
 
-          // a. Update Status Slip jadi LUNAS (ACC) dan Pecah Proporsi Kasir
-          await window.supabase
-            .from("slip_gaji")
-            .update({
-              status: "ACC",
-              // Proporsikan pencatatan kas agar akurat per slip
-              kas_keuangan_terpakai:
-                totalBayarKasir > 0
-                  ? (vKeu / totalBayarKasir) * slip.total_diterima
-                  : 0,
-              kas_owner_terpakai:
-                totalBayarKasir > 0
-                  ? (vOwn / totalBayarKasir) * slip.total_diterima
-                  : 0,
-              kas_gudang_terpakai:
-                totalBayarKasir > 0
-                  ? (vGud / totalBayarKasir) * slip.total_diterima
-                  : 0,
-            })
-            .eq("id", slipId);
+          // ✅ MUTLAK PAKAI UANG OWNER (Sesuai instruksi)
+          const pOwn = Number(slip.total_diterima || 0);
+          const pKeu = 0;
+          const pGud = 0;
 
-          // b. Kurangi Hutang Asli di 'setup_gaji' & Lunaskan 'Kasbon Uang Jalan'
-          if (slip.kasbon > 0) {
-            // Tarik data setup gaji
-            const { data: setup } = await window.supabase
-              .from("setup_gaji")
-              .select("id, kasbon")
-              .eq("user_id", slip.user_id)
-              .single();
+          // Fallback tanggal mulai untuk kalkulasi ulang presensi di Deno
+          const dEnd = new Date(slip.periode);
+          const dStart = new Date(dEnd);
+          dStart.setDate(dEnd.getDate() - 6);
+          const tglMulaiFallback = dStart.toISOString().split("T")[0];
 
-            if (setup) {
-              const sisaHutangBaru = Math.max(
-                0,
-                (parseFloat(setup.kasbon) || 0) - slip.kasbon,
-              );
-              await window.supabase
-                .from("setup_gaji")
-                .update({ kasbon: sisaHutangBaru })
-                .eq("id", setup.id);
-            }
-
-            // Sinkronisasi Kasbon Uang Jalan Dadakan biar nggak ketagih 2x
-            const dEnd = new Date(slip.periode);
-            const dStart = new Date(dEnd);
-            dStart.setDate(dEnd.getDate() - 6); // Asumsi rentang waktu 1 minggu
-            const tglMulai = dStart.toISOString().split("T")[0];
-
-            const { data: listP } = await window.supabase
-              .from("pengeluaran")
-              .select("id")
-              .eq("user_id", slip.user_id)
-              .gte("tanggal", tglMulai)
-              .lte("tanggal", slip.periode);
-
-            if (listP && listP.length > 0) {
-              const arrIds = listP.map((p) => p.id);
-              await window.supabase
-                .from("rincian_pengeluaran")
-                .update({ keterangan_bayar: true })
-                .in("pengeluaran_id", arrIds)
-                .eq("nama_item", "Kasbon Uang Jalan")
-                .eq("keterangan_bayar", false);
+          // Ambil komponen JSON lain-lain (jika ada hasil koreksi)
+          let dataLain = slip.lain_lain;
+          if (typeof dataLain === "string") {
+            try {
+              dataLain = JSON.parse(dataLain);
+            } catch (e) {
+              dataLain = [];
             }
           }
+
+          // 🔥 PANGGIL DENO FUNCTION UNTUK SLIP INI 🔥
+          const { data, error } = await window.supabase.functions.invoke(
+            "gaji-karyawan",
+            {
+              body: {
+                empId: slip.user_id,
+                tglMulai: tglMulaiFallback, // Dibutuhkan Deno untuk tarik presensi
+                tglAkhir: slip.periode,
+                action: "bayar",
+                statusTarget: "ACC",
+                adminId: currentUserId, // Jika error undefined, ganti dengan session user id
+
+                // ✅ Kasih tahu Deno mutlak potong Uang Owner untuk slip INI
+                kasKeuanganTerpakai: pKeu,
+                kasGudangTerpakai: pGud,
+                kasOwnerTerpakai: pOwn,
+
+                // Ambil parameter yang mungkin sudah dikoreksi manual di draf
+                potonganKasbonManual: slip.kasbon || 0,
+                jumlahJerigenManual: slip.jumlah_jerigen || 0,
+                lain_lain_manual: dataLain || [],
+              },
+            },
+          );
+
+          // Tangkap error jika Deno menolak kalkulasinya (misal: Saldo Owner Kurang)
+          if (error) throw error;
+          if (data && data.success === false) throw new Error(data.error);
         }
 
         alert(
-          `✅ SIKAT HABIS! ${window.batchSelectedIds.length} Slip Gaji (Draf) berhasil dibayar secara massal!`,
+          `✅ SIKAT HABIS! ${window.batchSelectedIds.length} Slip Gaji (Draf) berhasil di-Approve dan dibayar mutlak menggunakan UANG OWNER!`,
         );
         window.location.reload();
       } catch (err) {
-        alert("🚨 GAGAL PROSES MASSAL:\n\n" + err.message);
-        btn.innerText = "BAYAR MASSAL";
+        alert(
+          "🚨 GAGAL PROSES MASSAL:\n\n" +
+            (err.message || "Terjadi kesalahan di server."),
+        );
+        btn.innerHTML = `<i class="bi bi-safe2 mr-2"></i> BAYAR MASSAL (${window.batchSelectedIds.length} SLIP)`;
         btn.disabled = false;
       }
     };
